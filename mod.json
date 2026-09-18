@@ -1,0 +1,28 @@
+{
+  "id": "mod.shroudedit",
+  "name": "ShroudEdit",
+  "version": "0.2.0",
+  "description": "Copy and paste Enshrouded terrain, building voxels and supported props with Shroudtopia.",
+  "shroudtopia": {
+    "api": "1.1",
+    "entrypoint": "CreateMod",
+    "binary": "mod.shroudedit.dll",
+    "target": "client",
+    "default": {
+      "active": true,
+      "diagnosticBuildTile": false,
+      "maximumCells": 16777216,
+      "maximumProps": 1000000
+    }
+  },
+  "requires": {
+    "services": [],
+    "capabilities": [
+      "shroudtopia.registry.services",
+      "shroudtopia.registry.commands",
+      "shroudtopia.assets.read",
+      "shroudtopia.assets.write"
+    ]
+  }
+}
+

@@ -1,0 +1,17 @@
+/build/
+/.vs/
+/out/
+*.user
+*.pdb
+*.obj
+*.dll
+*.lib
+*.zip
+*.zip.sha256
+__pycache__/
+*.pyc
+
+# Local research material is not part of the ShroudEdit mod repository.
+/kfc-parser/
+/mods_community/
+/server_backup.tar.gz

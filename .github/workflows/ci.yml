@@ -1,0 +1,49 @@
+name: Build ShroudEdit
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  windows:
+    permissions:
+      contents: write
+    runs-on: windows-latest
+    steps:
+      - name: Checkout ShroudEdit
+        uses: actions/checkout@v4
+      - name: Checkout Shroudtopia API
+        uses: actions/checkout@v4
+        with:
+          repository: bonsaibauer/shroudtopia
+          path: _deps/shroudtopia
+      - name: Build, test and package
+        shell: pwsh
+        run: .\build.ps1 -BuildNumber "${{ github.run_number }}" -ShroudtopiaDirectory "${{ github.workspace }}/_deps/shroudtopia"
+      - name: Read version
+        id: version
+        shell: pwsh
+        run: |
+          $version = (Get-Content VERSION -Raw).Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+$') { throw "Invalid VERSION: $version" }
+          "version=$version" >> $env:GITHUB_OUTPUT
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: shroudedit-${{ github.run_number }}
+          path: |
+            build/shroudedit-*.zip
+            build/shroudedit-*.zip.sha256
+      - name: Publish numbered prerelease
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}-build.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          files: |
+            build/shroudedit-*.zip
+            build/shroudedit-*.zip.sha256
+          generate_release_notes: true
+          prerelease: true

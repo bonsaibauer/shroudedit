@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-labelledby="title desc">
+  <title id="title">ShroudEdit five-key workflow</title>
+  <desc id="desc">Mark A, mark B, copy, aim at a clear destination, and place.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#14202b"/><stop offset="1" stop-color="#243b35"/></linearGradient>
+    <style>.box{fill:#20313c;stroke:#7ed6a5;stroke-width:3}.key{fill:#f2c76e;stroke:#fff2c9;stroke-width:2}.kt{font:700 27px system-ui,sans-serif;fill:#17222a;text-anchor:middle}.head{font:700 21px system-ui,sans-serif;fill:#fff;text-anchor:middle}.sub{font:16px system-ui,sans-serif;fill:#c9d7dc;text-anchor:middle}.arrow{stroke:#f2c76e;stroke-width:5;fill:none;marker-end:url(#end)}</style>
+    <marker id="end" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#f2c76e"/></marker>
+  </defs>
+  <rect width="1200" height="280" rx="22" fill="url(#bg)"/>
+  <g transform="translate(30 40)"><rect class="box" width="190" height="190" rx="18"/><rect class="key" x="63" y="25" width="64" height="52" rx="9"/><text class="kt" x="95" y="60">F6</text><text class="head" x="95" y="115">Mark A</text><text class="sub" x="95" y="148">first corner</text></g><path class="arrow" d="M230 135 H265"/>
+  <g transform="translate(275 40)"><rect class="box" width="190" height="190" rx="18"/><rect class="key" x="63" y="25" width="64" height="52" rx="9"/><text class="kt" x="95" y="60">F6</text><text class="head" x="95" y="115">Mark B</text><text class="sub" x="95" y="148">opposite corner</text></g><path class="arrow" d="M475 135 H510"/>
+  <g transform="translate(520 40)"><rect class="box" width="190" height="190" rx="18"/><rect class="key" x="63" y="25" width="64" height="52" rx="9"/><text class="kt" x="95" y="60">F9</text><text class="head" x="95" y="115">Copy</text><text class="sub" x="95" y="148">save blueprint</text></g><path class="arrow" d="M720 135 H755"/>
+  <g transform="translate(765 40)"><rect class="box" width="190" height="190" rx="18"/><text x="95" y="69" font-family="system-ui,sans-serif" font-size="48" fill="#f2c76e" text-anchor="middle">⌖</text><text class="head" x="95" y="115">Aim</text><text class="sub" x="95" y="148">clear destination</text></g><path class="arrow" d="M965 135 H1000"/>
+  <g transform="translate(1010 40)"><rect class="box" width="160" height="190" rx="18"/><rect class="key" x="48" y="25" width="64" height="52" rx="9"/><text class="kt" x="80" y="60">F8</text><text class="head" x="80" y="115">Place</text><text class="sub" x="80" y="148">done</text></g>
+</svg>
