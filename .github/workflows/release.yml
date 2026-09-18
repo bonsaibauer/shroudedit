@@ -21,6 +21,7 @@ jobs:
           repository: bonsaibauer/shroudtopia
           ref: 1.1.0
           path: _deps/shroudtopia
+          submodules: recursive
       - name: Validate version
         id: version
         shell: pwsh

@@ -20,6 +20,7 @@ jobs:
           repository: bonsaibauer/shroudtopia
           ref: 1.1.0
           path: _deps/shroudtopia
+          submodules: recursive
       - name: Build, test and package
         shell: pwsh
         run: .\build.ps1 -BuildNumber "${{ github.run_number }}" -ShroudtopiaDirectory "${{ github.workspace }}/_deps/shroudtopia"
