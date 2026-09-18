@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: bonsaibauer/shroudtopia
+          ref: 1.1.0
           path: _deps/shroudtopia
       - name: Validate version
         id: version
