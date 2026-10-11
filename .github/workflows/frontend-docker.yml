@@ -14,6 +14,7 @@ on:
       - 'packages/blog/**/*'
       - '**/pnpm-*.yaml'
       - '.github/actions/validate-deployment-pr/**'
+      - '.github/actions/deployment-number/**'
       - .github/workflows/frontend-docker.yml
 
 permissions:
@@ -58,9 +59,23 @@ jobs:
           api-url: ${{ github.api_url }}
           github-token: ${{ github.token }}
 
+      - name: Determine deployment number
+        id: deployment-number
+        uses: ./.github/actions/deployment-number
+        with:
+          source-branch: ${{ github.event.pull_request.head.ref }}
+          target-branch: ${{ github.event.pull_request.base.ref }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merged-at: ${{ github.event.pull_request.merged_at }}
+          repository: ${{ github.repository }}
+          api-url: ${{ github.api_url }}
+          github-token: ${{ github.token }}
+
       - name: Configure deployment version
         id: meta
         shell: bash
+        env:
+          DEPLOYMENT_NUMBER: ${{ steps.deployment-number.outputs.deployment-number }}
         run: |
           if [[ ! "$SOURCE_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "PR source branch must be a version such as 1.0.0; received: $SOURCE_BRANCH" >&2
@@ -75,7 +90,7 @@ jobs:
 
           echo "environment=$environment" >> "$GITHUB_OUTPUT"
           echo "version=$SOURCE_BRANCH" >> "$GITHUB_OUTPUT"
-          echo "deployment_number=$(git rev-list --first-parent --count "$DEPLOY_SHA")" >> "$GITHUB_OUTPUT"
+          echo "deployment_number=$DEPLOYMENT_NUMBER" >> "$GITHUB_OUTPUT"
           echo "short_sha=${DEPLOY_SHA:0:12}" >> "$GITHUB_OUTPUT"
 
       - name: Setup Node

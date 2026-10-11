@@ -39,11 +39,24 @@ jobs:
           api-url: ${{ github.api_url }}
           github-token: ${{ github.token }}
 
+      - name: Determine deployment number
+        id: deployment-number
+        uses: ./.github/actions/deployment-number
+        with:
+          source-branch: ${{ github.event.pull_request.head.ref }}
+          target-branch: ${{ github.event.pull_request.base.ref }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merged-at: ${{ github.event.pull_request.merged_at }}
+          repository: ${{ github.repository }}
+          api-url: ${{ github.api_url }}
+          github-token: ${{ github.token }}
+
       - name: Create immutable environment tag
         shell: bash
+        env:
+          DEPLOYMENT_NUMBER: ${{ steps.deployment-number.outputs.deployment-number }}
         run: |
-          deployment_number="$(git rev-list --first-parent --count "$DEPLOY_SHA")"
-          tag="v${SOURCE_BRANCH}-${TARGET_BRANCH}.${deployment_number}"
+          tag="v${SOURCE_BRANCH}-${TARGET_BRANCH}.${DEPLOYMENT_NUMBER}"
 
           if git show-ref --verify --quiet "refs/tags/$tag"; then
             existing_sha="$(git rev-parse "$tag^{commit}")"

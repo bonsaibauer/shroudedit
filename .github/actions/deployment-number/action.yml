@@ -1,0 +1,93 @@
+name: Determine deployment number
+description: Assign one increasing build number across all merged version PRs.
+inputs:
+  source-branch:
+    description: Version branch used by the merged pull request
+    required: true
+  target-branch:
+    description: Deployment branch, either dev or prod
+    required: true
+  pull-request-number:
+    description: Number of the merged pull request
+    required: true
+  merged-at:
+    description: Merge timestamp of the current pull request
+    required: true
+  repository:
+    description: Current GitHub repository in owner/name format
+    required: true
+  api-url:
+    description: GitHub API base URL
+    required: true
+  github-token:
+    description: Token with pull request read access
+    required: true
+outputs:
+  deployment-number:
+    description: Global deployment number across dev and prod
+    value: ${{ steps.number.outputs.value }}
+runs:
+  using: composite
+  steps:
+    - name: Count merged version pull requests up to this deployment
+      id: number
+      shell: bash
+      env:
+        SOURCE_BRANCH: ${{ inputs.source-branch }}
+        TARGET_BRANCH: ${{ inputs.target-branch }}
+        PULL_REQUEST_NUMBER: ${{ inputs.pull-request-number }}
+        MERGED_AT: ${{ inputs.merged-at }}
+        REPOSITORY: ${{ inputs.repository }}
+        API_URL: ${{ inputs.api-url }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        if [[ ! "$SOURCE_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "PR source branch must be a version such as 1.0.0; received: $SOURCE_BRANCH" >&2
+          exit 1
+        fi
+
+        if [[ "$TARGET_BRANCH" != "dev" && "$TARGET_BRANCH" != "prod" ]]; then
+          echo "Unsupported deployment target: $TARGET_BRANCH" >&2
+          exit 1
+        fi
+
+        pull_requests_file="$(mktemp)"
+        trap 'rm -f "$pull_requests_file"' EXIT
+
+        for base_branch in dev prod; do
+          page=1
+          while true; do
+            response="$(curl --fail --silent --show-error \
+              --header "Accept: application/vnd.github+json" \
+              --header "Authorization: Bearer $GH_TOKEN" \
+              "$API_URL/repos/$REPOSITORY/pulls?state=closed&base=$base_branch&per_page=100&page=$page")"
+            printf '%s\n' "$response" >> "$pull_requests_file"
+
+            page_count="$(printf '%s' "$response" | jq 'length')"
+            if [ "$page_count" -lt 100 ]; then
+              break
+            fi
+            page=$((page + 1))
+          done
+        done
+
+        deployment_number="$(jq -s \
+          --arg repository "$REPOSITORY" \
+          --arg merged_at "$MERGED_AT" \
+          --arg pull_request_number "$PULL_REQUEST_NUMBER" \
+          '[.[][] | select(
+            .merged_at != null
+            and .head.repo.full_name == $repository
+            and (.head.ref | test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))
+            and (
+              .merged_at < $merged_at
+              or (.merged_at == $merged_at and .number <= ($pull_request_number | tonumber))
+            )
+          )] | length' "$pull_requests_file")"
+
+        if [[ ! "$deployment_number" =~ ^[1-9][0-9]*$ ]]; then
+          echo "Could not determine a positive deployment number" >&2
+          exit 1
+        fi
+
+        echo "value=$deployment_number" >> "$GITHUB_OUTPUT"

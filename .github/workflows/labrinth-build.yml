@@ -7,6 +7,7 @@ on:
     paths:
       - .github/workflows/labrinth-build.yml
       - .github/actions/validate-deployment-pr/**
+      - .github/actions/deployment-number/**
       - 'apps/labrinth/**'
       - 'packages/**'
       - '!packages/api-client/**'
@@ -183,6 +184,18 @@ jobs:
           api-url: ${{ github.api_url }}
           github-token: ${{ github.token }}
 
+      - name: Determine deployment number
+        id: deployment-number
+        uses: ./.github/actions/deployment-number
+        with:
+          source-branch: ${{ github.event.pull_request.head.ref }}
+          target-branch: ${{ github.event.pull_request.base.ref }}
+          pull-request-number: ${{ github.event.pull_request.number }}
+          merged-at: ${{ github.event.pull_request.merged_at }}
+          repository: ${{ github.repository }}
+          api-url: ${{ github.api_url }}
+          github-token: ${{ github.token }}
+
       - name: Download Docker context
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -192,6 +205,8 @@ jobs:
       - name: Prepare image tags
         id: tags
         shell: bash
+        env:
+          DEPLOYMENT_NUMBER: ${{ steps.deployment-number.outputs.deployment-number }}
         run: |
           if [[ ! "$SOURCE_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "PR source branch must be a version such as 1.0.0; received: $SOURCE_BRANCH" >&2
@@ -205,14 +220,13 @@ jobs:
           esac
 
           short_sha="${DEPLOY_SHA:0:12}"
-          deployment_number="$(git rev-list --first-parent --count "$DEPLOY_SHA")"
-          version_tag="v${SOURCE_BRANCH}-${environment}.${deployment_number}"
+          version_tag="v${SOURCE_BRANCH}-${environment}.${DEPLOYMENT_NUMBER}"
           immutable_tag="${version_tag}-sha.${short_sha}"
           image="ghcr.io/$(printf '%s' "$IMAGE_OWNER" | tr '[:upper:]' '[:lower:]')/$IMAGE_NAME"
 
           {
             echo "environment=$environment"
-            echo "deployment_number=$deployment_number"
+            echo "deployment_number=$DEPLOYMENT_NUMBER"
             echo "version_tag=$version_tag"
             echo "immutable_tag=$immutable_tag"
             echo "image=$image"
