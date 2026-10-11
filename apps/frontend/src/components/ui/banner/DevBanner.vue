@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { XIcon } from '@shroudedit/assets'
-import { commonMessages, defineMessages, IconButton, PagewideBanner, useVIntl } from '@shroudedit/ui'
+import {
+	commonMessages,
+	defineMessages,
+	IconButton,
+	PagewideBanner,
+	useVIntl,
+} from '@shroudedit/ui'
 
 const { formatMessage } = useVIntl()
 const cosmetics = useCosmetics()
@@ -8,23 +14,23 @@ const flags = useFeatureFlags()
 
 const messages = defineMessages({
 	title: {
-		id: 'layout.banner.staging.title',
-		defaultMessage: 'You’re viewing ShroudEdit’s staging environment',
+		id: 'layout.banner.dev.title',
+		defaultMessage: 'You’re viewing ShroudEdit’s Dev environment',
 	},
 	description: {
-		id: 'layout.banner.staging.description',
+		id: 'layout.banner.dev.description',
 		defaultMessage:
-			'The staging environment is completely separate from the production ShroudEdit database. It is used for testing and may run newer backend or frontend versions than production.',
+			'This Dev frontend uses production APIs and data. Changes here can affect live ShroudEdit content.',
 	},
 })
 
-function hideStagingBanner() {
-	cosmetics.value.hideStagingBanner = true
+function hideDevBanner() {
+	cosmetics.value.hideDevBanner = true
 }
 </script>
 
 <template>
-	<PagewideBanner v-if="flags.showAllBanners || !cosmetics.hideStagingBanner" variant="warning">
+	<PagewideBanner v-if="flags.showAllBanners || !cosmetics.hideDevBanner" variant="warning">
 		<template #title>
 			<span>{{ formatMessage(messages.title) }}</span>
 		</template>
@@ -35,7 +41,7 @@ function hideStagingBanner() {
 			<IconButton
 				type="quiet"
 				:label="formatMessage(commonMessages.closeButton)"
-				@click="hideStagingBanner"
+				@click="hideDevBanner"
 			>
 				<XIcon aria-hidden="true" />
 			</IconButton>

@@ -36,8 +36,8 @@ Voxel rows contain comma-separated unsigned 16-bit values and a parallel coverag
 
 Labrinth calculates SHA-1 and SHA-512 checksums for the complete `.sfbp` file. `.mrpack` remains a separate format for modpacks.
 
-## Desktop client authorization
+## Connected editor authorization
 
-A desktop uploader should use the ShroudEdit OAuth authorization-code flow with S256 PKCE. Open the ShroudEdit authorization page with the registered `client_id`, exact `redirect_uri`, requested scopes, random `state`, `code_challenge`, and `code_challenge_method=S256`. Keep the matching `code_verifier` on the device and exchange the returned code at the OAuth token endpoint. The token request includes `grant_type=authorization_code`, `client_id`, the same `redirect_uri`, the authorization `code`, and `code_verifier`; a client secret is not sent for a PKCE flow.
+An external editor that uploads on behalf of a signed-in ShroudEdit account should use the ShroudEdit OAuth authorization-code flow with S256 PKCE. Open the ShroudEdit authorization page with the registered `client_id`, exact `redirect_uri`, requested scopes, random `state`, `code_challenge`, and `code_challenge_method=S256`. Keep the matching `code_verifier` in the editor client and exchange the returned code at the OAuth token endpoint. The token request includes `grant_type=authorization_code`, `client_id`, the same `redirect_uri`, the authorization `code`, and `code_verifier`; a client secret is not sent for a PKCE flow.
 
 Use a bearer access token for version API calls. `VERSION_CREATE` permits creating a new blueprint version, and `VERSION_WRITE` permits changing an existing version's files. The API still checks the connected account's project permissions and validates the `.sfbp` file and its metadata on upload.

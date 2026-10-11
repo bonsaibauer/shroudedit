@@ -3,7 +3,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"build": "NODE_OPTIONS=\"--max-old-space-size=8192 --max-semi-space-size=64\" nuxi build",
+		"build": "node --max-old-space-size=8192 --max-semi-space-size=64 ./node_modules/nuxt/bin/nuxt.mjs build",
 		"dev": "nuxi dev",
 		"generate": "nuxi generate",
 		"preview": "nuxi preview",
@@ -12,8 +12,8 @@
 		"fix": "eslint . --fix && prettier --write .",
 		"intl:extract": "formatjs extract \"src/{components,composables,layouts,middleware,modules,pages,plugins,utils}/**/*.{vue,ts,tsx,js,jsx,mts,cts,mjs,cjs}\" \"src/error.vue\" --ignore \"**/*.d.ts\" --ignore node_modules --out-file src/locales/en-US/index.json --format crowdin --preserve-whitespace",
 		"intl:prune-local": "pnpm -w scripts i18n-icu-contract prune-local --scope apps/frontend",
-		"cf-deploy": "pnpm run build && wrangler deploy --env staging",
-		"cf-dev": "pnpm run build && wrangler dev --env staging",
+		"cf-deploy": "pnpm run build && wrangler deploy --env dev",
+		"cf-dev": "pnpm run build && wrangler dev --env dev",
 		"cf-typegen": "wrangler types"
 	},
 	"devDependencies": {

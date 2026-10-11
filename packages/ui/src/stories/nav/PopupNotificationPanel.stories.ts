@@ -57,7 +57,7 @@ export const Default: StoryObj = {
 				popupManager.addPopupNotification({
 					contentType: 'standard',
 					title: 'Update available',
-					text: "ShroudEdit App v2.1.0 is available now! Since you're on a metered network, we didn't automatically download it.",
+					text: "A new version is available now! Since you're on a metered network, we didn't automatically download it.",
 					type: 'warning',
 					autoCloseMs: null,
 					buttons: [
@@ -78,7 +78,7 @@ export const Default: StoryObj = {
 				popupManager.addPopupNotification({
 					contentType: 'standard',
 					title: 'Download complete',
-					text: 'ShroudEdit App v2.1.0 has finished downloading. Reload to update now.',
+					text: 'The download has finished. Reload to apply the update now.',
 					type: 'info',
 					buttons: [
 						{

@@ -2138,38 +2138,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Tận hưởng trải nghiệm modding tốt nhất với các bản cập nhật liên tục từ đội ngũ ShroudEdit"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Không ngừng phát triển"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Xem báo cáo chi tiết về lượt xem trang, số lượt tải và doanh thu"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Dữ liệu và thống kê"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Đưa dự án của bạn đến với hàng nghìn người dùng thông qua tìm kiếm, trang chủ, máy chủ Discord và nhiều kênh khác trong tương lai!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Khám phá"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Tích hợp với các công cụ build của bạn thông qua Minotaur để tự động tải lên ngay khi bạn phát hành phiên bản mới"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Hệ sinh thái đa dạng"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Nhận doanh thu quảng cáo từ trang dự án của bạn và rút tiền bất cứ lúc nào"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Kiếm tiền"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Mời đồng đội và quản lý vai trò cũng như quyền hạn một cách dễ dàng"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Quản lý đội"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Không thể tải dự án ngẫu nhiên :("
@@ -2239,15 +2209,6 @@
   },
   "landing.notifications.version-released": {
     "message": "Phiên bản {version} đã được phát hành cho {gameVersion}"
-  },
-  "landing.section.for-creators.description": {
-    "message": "Mang các sáng tạo của bạn lên một nền tảng trực tuyến và tiếp cận lượng lớn người chơi đam mê."
-  },
-  "landing.section.for-creators.label": {
-    "message": "Dành cho nhà sáng tạo"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Chia sẻ nội dung của bạn với thế giới"
   },
   "landing.section.for-players.description": {
     "message": "Từ những quần xã kỳ ảo đến các hầm ngục bị nguyền rủa, bạn chắc chắn sẽ tìm thấy nội dung giúp nâng tầm trải nghiệm chơi game."
@@ -2327,17 +2288,17 @@
   "layout.banner.build-fail.title": {
     "message": "Lỗi tạo trạng thái từ API trong quá trình build."
   },
+  "layout.banner.dev.description": {
+    "message": "Giao diện Dev này sử dụng API và dữ liệu production. Các thay đổi tại đây có thể ảnh hưởng đến nội dung đã xuất bản của ShroudEdit."
+  },
+  "layout.banner.dev.title": {
+    "message": "Bạn đang xem môi trường Dev của ShroudEdit"
+  },
   "layout.banner.preview.description": {
     "message": "Nếu bạn muốn truy cập trang ShroudEdit chính thức, truy cập {url}. Trang xem trước này được sử dụng bởi ShroudEdit cho mục đích thử nghiệm. Được xây qua {ref}."
   },
   "layout.banner.preview.title": {
     "message": "Đây là bản mẫu của trang web ShroudEdit."
-  },
-  "layout.banner.staging.description": {
-    "message": "Môi trường staging hoàn toàn tách biệt với cơ sở dữ liệu ShroudEdit đang vận hành chính thức. Môi trường này được dùng cho mục đích thử nghiệm và gỡ lỗi, và có thể đang chạy các phiên bản backend hoặc frontend ShroudEdit đang phát triển, mới hơn bản production."
-  },
-  "layout.banner.staging.title": {
-    "message": "Bạn đang xem môi trường staging của ShroudEdit"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Cập nhật thông tin thanh toán"
@@ -2398,6 +2359,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Chính sách bản quyền và DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Thông tin pháp lý"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Chính sách quyền riêng tư"
@@ -3185,11 +3149,23 @@
   "report.not-for.bug-reports.description": {
     "message": "Bạn có thể báo cáo lỗi tại <issues-link>trình theo dõi lỗi</issues-link> của dự án."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Thông báo bản quyền chính thức"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Xem <policy-link>Chính sách bản quyền</policy-link> của chúng tôi."
+  },
   "report.not-for.dmca": {
     "message": "Yêu cầu gỡ nội dung theo DMCA"
   },
   "report.not-for.dmca.description": {
     "message": "Xem <policy-link>Chính sách bản quyền</policy-link> của chúng tôi."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Xin lưu ý biểu mẫu này gửi báo cáo cộng đồng về nội dung được tải lên lại, không phải thông báo pháp lý chính thức."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Để gửi thông báo chính thức về vi phạm bản quyền, vui lòng làm theo <copyright-policy-link>Chính sách bản quyền</copyright-policy-link> của chúng tôi."
   },
   "report.note.copyright.1": {
     "message": "Vui lòng lưu ý rằng bạn không đang gửi yêu cầu gỡ nội dung theo DMCA, mà là báo cáo nội dung được tải lại."
@@ -4174,5 +4150,11 @@
   },
   "version.environment.unknown.title": {
     "message": "Môi trường không xác định"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "Tệp .sfbp được tải lên nguyên trạng. Thông tin này mô tả blueprint từ ShroudForge World Editor trên ShroudEdit."
+  },
+  "version.schematic.sfbp-installation": {
+    "message": "Tải tệp .sfbp xuống, mở ShroudForge World Editor, chọn Nhập blueprint rồi chọn tệp vừa tải xuống."
   }
 }

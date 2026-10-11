@@ -1,5 +1,5 @@
 export type FaviconVariant = 'default' | 'settings'
-export type FaviconEnvironment = 'local' | 'preview' | 'staging'
+export type FaviconEnvironment = 'local' | 'preview' | 'dev'
 
 const PRODUCTION_FAVICON_HREFS = {
 	default: {
@@ -12,20 +12,28 @@ const PRODUCTION_FAVICON_HREFS = {
 	},
 } as const
 
+const DEV_FAVICON_HREFS = {
+	default: {
+		light: '/dev-favicons/favicon-dev.svg',
+		dark: '/dev-favicons/favicon-dev.svg',
+	},
+	settings: {
+		light: '/dev-favicons/favicon-dev-light-settings.svg',
+		dark: '/dev-favicons/favicon-dev-settings.svg',
+	},
+} as const
+
 const FAVICON_MEDIA = [
 	'(prefers-color-scheme:no-preference)',
 	'(prefers-color-scheme:light)',
 	'(prefers-color-scheme:dark)',
 ] as const
 
-const STAGING_API_PREFIX = 'https://staging-api.shroudedit.com'
-
 export function resolveFaviconEnvironment(
 	config: {
 		public: {
 			production?: boolean
 			preview?: boolean
-			apiBaseUrl?: string
 		}
 	},
 	hostname: string,
@@ -34,8 +42,8 @@ export function resolveFaviconEnvironment(
 		return 'local'
 	}
 
-	if (String(config.public.apiBaseUrl).startsWith(STAGING_API_PREFIX)) {
-		return 'staging'
+	if (hostname === 'dev.shroudedit.com') {
+		return 'dev'
 	}
 
 	if (config.public.preview) {
@@ -45,7 +53,15 @@ export function resolveFaviconEnvironment(
 	return null
 }
 
-function getFaviconHrefs(variant: FaviconVariant, _environment: FaviconEnvironment | null) {
+function getFaviconHrefs(variant: FaviconVariant, environment: FaviconEnvironment | null) {
+	if (environment === 'dev') {
+		return {
+			...DEV_FAVICON_HREFS[variant],
+			type: 'image/svg+xml',
+			sizes: 'any',
+		}
+	}
+
 	return {
 		...PRODUCTION_FAVICON_HREFS[variant],
 		type: 'image/png',

@@ -5,7 +5,7 @@
 
 Platform-agnostic TypeScript client for ShroudEdit's API across Node.js, browsers, Nuxt, and Tauri.
 
-**⚠️ We use this internally to power shroudedit.com, ShroudEdit App, and ShroudEdit Hosting frontends. It may break without any notice, but you are welcome to use it.**
+**⚠️ We use this internally to power shroudedit.com and ShroudEdit Hosting. It may break without any notice, but you are welcome to use it.**
 
 ## Installation
 
@@ -13,7 +13,7 @@ Platform-agnostic TypeScript client for ShroudEdit's API across Node.js, browser
 pnpm add @shroudedit/api-client
 ```
 
-Tauri apps also need the optional peer dependency:
+Tauri-based external clients also need the optional peer dependency:
 
 ```bash
 pnpm add @shroudedit/api-client @tauri-apps/plugin-http
@@ -67,14 +67,14 @@ export const useShroudEditClient = async () => {
 }
 ```
 
-### Tauri
+### Tauri-based external client
 
 ```ts
 import { getVersion } from '@tauri-apps/api/app'
 import { AuthFeature, TauriShroudEditClient } from '@shroudedit/api-client'
 
 const client = new TauriShroudEditClient({
-	userAgent: async () => `shroudedit/theseus/${await getVersion()} (support@shroudedit.com)`,
+	userAgent: async () => `external-editor/${await getVersion()}`,
 	features: [new AuthFeature({ token: process.env.SHROUDEDIT_TOKEN })],
 })
 
@@ -101,7 +101,7 @@ const project: Labrinth.Projects.v3.Project = await client.labrinth.projects_v3.
 
 ## ShroudEdit Hosting API Modules
 
-- These modules are internal to ShroudEdit and are only supported inside the ShroudEdit Hosting panel in ShroudEdit App and on shroudedit.com. They should not be expected to work in third-party clients today. We are discussing how to safely expose access to your own server through these APIs in the future.
+- These modules are internal to ShroudEdit and are only supported inside the ShroudEdit Hosting panel and on shroudedit.com. They should not be expected to work in third-party clients today. We are discussing how to safely expose access to your own server through these APIs in the future.
 
 ## Base URLs
 
@@ -109,12 +109,12 @@ By default, the client uses ShroudEdit production services:
 
 - `labrinthBaseUrl`: `https://api.shroudedit.com`
 
-Override them for staging or custom deployments:
+Override them for local development or custom deployments:
 
 ```ts
 const client = new GenericShroudEditClient({
 	userAgent: 'my-app/1.0.0',
-	labrinthBaseUrl: 'https://staging-api.shroudedit.com',
+	labrinthBaseUrl: 'http://127.0.0.1:8000',
 })
 ```
 

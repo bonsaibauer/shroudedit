@@ -2558,38 +2558,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Отримуйте найкращий можливий досвід створення модів завдяки постійним оновленням від команди ShroudEdit"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Постійний розвиток"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Отримуйте детальні звіти про перегляди, завантаження та доходи"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Дані та статистика"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Дозвольте тисячам користувачів відкрити для себе ваш проєкт через пошук, головну сторінку, сервер у Discord та інші способи, які з’являться в майбутньому!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Охоплення"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Інтегруйте ваші інструменти збірки з Minotaur, щоб автоматично завантажувати нові версії, щойно ви їх випускаєте"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Різноманітна екосистема"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Отримуйте дохід від реклами на сторінках ваших проєктів і виводьте кошти в будь-який час"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Монетизація"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Запрошуйте учасників вашої команди й керуйте їхніми ролями та дозволами з легкістю"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Керування командою"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Не вдалося завантажити випадкові проєкти :("
@@ -2659,15 +2629,6 @@
   },
   "landing.notifications.version-released": {
     "message": "Версію {version} було випущено для {gameVersion}"
-  },
-  "landing.section.for-creators.description": {
-    "message": "Створіть свою домівку для своїх творінь та охоплюйте величезну авдиторію відданих гравців."
-  },
-  "landing.section.for-creators.label": {
-    "message": "Для творців"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Діліться вашим умістом зі світом"
   },
   "landing.section.for-players.description": {
     "message": "Від чарівних біомів до проклятих підземель — ви обов’язково знайдете вміст, який виведе вашу гру на новий рівень."
@@ -2753,17 +2714,17 @@
   "layout.banner.build-fail.title": {
     "message": "Помилка під час створення стану з API під час побудови."
   },
+  "layout.banner.dev.description": {
+    "message": "Цей Dev-фронтенд використовує API та дані Production. Зміни тут можуть вплинути на опублікований вміст ShroudEdit."
+  },
+  "layout.banner.dev.title": {
+    "message": "Ви переглядаєте середовище Dev ShroudEdit"
+  },
   "layout.banner.preview.description": {
     "message": "Якщо ви хотіли отримати доступ до офіційного сайту ShroudEdit, відвідайте {url}. Це розгортання попереднього перегляду використовується персоналом ShroudEdit для тестування. Воно було створено за допомогою {ref}."
   },
   "layout.banner.preview.title": {
     "message": "Це попередній перегляд розгортки вебсайту ShroudEdit."
-  },
-  "layout.banner.staging.description": {
-    "message": "Середовище тестування повністю відокремлене від виробничої бази даних ShroudEdit. Воно використовується для тестування та налагодження та може працювати на версіях backend або frontend ShroudEdit, що знаходяться в стадії розробки та є новішими за виробничу версію."
-  },
-  "layout.banner.staging.title": {
-    "message": "Ви перебуваєте у середовищі тестування ShroudEdit"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Оновити платіжну інформацію"
@@ -2839,6 +2800,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Політика щодо авторських прав та DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Юридична інформація"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Політика конфіденційности"
@@ -4409,6 +4373,12 @@
   "report.not-for.bug-reports.description": {
     "message": "Ви можете звітувати помилки в <issues-link>трекері помилок</issues-link>."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Офіційні повідомлення про порушення авторських прав"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Дивіться нашу <policy-link>Політику щодо авторських прав</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "Видалення через порушення DMCA"
   },
@@ -4426,6 +4396,12 @@
   },
   "report.note.copyright.2": {
     "message": "Якщо ви хотіли подати запит на видалення вмісту через порушення DMCA (що є юридичною дією), ознайомтеся з нашою <copyright-policy-link>Політикою авторських прав</copyright-policy-link>."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Ця форма надсилає скаргу спільноти щодо повторно завантаженого вмісту, а не офіційне юридичне повідомлення."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Щоб подати офіційне повідомлення про порушення авторських прав, дотримуйтеся нашої <copyright-policy-link>Політики щодо авторських прав</copyright-policy-link>."
   },
   "report.note.fully-ai-generated.1": {
     "message": "Ми нещодавно оновили наші правила, які тепер забороняють проєкти, повністю згенеровані ШІ. Ми впровадили перехідний період, протягом якого автори можуть оновити або прибрати такі проєкти, перш ніж почнемо приймати скарги щодо них."
@@ -5612,6 +5588,9 @@
   "version.package-as-mod.submit-button": {
     "message": "Спакувати пакет даних"
   },
+  "version.schematic.sfbp-installation": {
+    "message": "Завантажте файл .sfbp, відкрийте ShroudForge World Editor, виберіть «Імпортувати blueprint» і вкажіть завантажений файл."
+  },
   "version.section.content.dev-info": {
     "message": "Інформація для розробників"
   },
@@ -5641,5 +5620,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "Приховано через невідомий укладений уміст"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "Файл .sfbp завантажується без змін. Ці відомості описують blueprint із ShroudForge World Editor на ShroudEdit."
   }
 }

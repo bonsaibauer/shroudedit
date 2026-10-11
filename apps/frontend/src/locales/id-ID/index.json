@@ -1496,38 +1496,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Dapatkan pengalaman pengemodan terbaik dengan pembaruan terus-menerus dari tim ShroudEdit"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Terus Berkembang"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Dapatkan laporan terperinci tentang jumlah tampilan halaman, jumlah unduhan, dan pendapatan"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Data dan Statistik"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Kesempatan untuk proyek Anda agar dapat ditemukan oleh ribuan pengguna melalui pencarian, halaman beranda kami, server Discord, dan cara-cara lainnya akan hadir di masa mendatang!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Penemuan"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Integrasikan dengan alat pengembangan Anda melalui Minotaur untuk unggahan otomatis tepat saat Anda merilis versi baru"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Ekosistem Beragam"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Dapatkan penghasilan iklan dari halaman proyek Anda dan tarik dana Anda kapan saja"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Monetisasi"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Undang rekan tim Anda dan kelola peran serta izin dengan mudah"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Manajemen Tim"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Gagal memuat proyek acak :("
@@ -1598,15 +1568,6 @@
   "landing.notifications.version-released": {
     "message": "Versi {version} telah dirilis untuk {gameVersion}"
   },
-  "landing.section.for-creators.description": {
-    "message": "Dirikan rumah daring untuk kreasi Anda dan jangkau audiens pemain setia yang besar."
-  },
-  "landing.section.for-creators.label": {
-    "message": "Untuk Kreator"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Bagikan konten Anda kepada dunia"
-  },
   "landing.section.for-players.description": {
     "message": "Dari bioma ajaib hingga terungku terkutuk, Anda pasti akan menemukan konten yang akan membawa pengalaman bermain Anda ke tingkat yang lebih tinggi."
   },
@@ -1670,17 +1631,17 @@
   "layout.banner.build-fail.description": {
     "message": "Penyebaran bagian depan ShroudEdit ini gagal menghasilkan keadaan dari API. Hal ini mungkin disebabkan oleh gangguan atau kesalahan konfigurasi. Bangun ulang saat API tersedia. Kode kesalahan: {errors}; URL API saat ini adalah: {url}"
   },
+  "layout.banner.dev.description": {
+    "message": "Frontend Dev ini menggunakan API dan data produksi. Perubahan di sini dapat memengaruhi konten ShroudEdit yang dipublikasikan."
+  },
+  "layout.banner.dev.title": {
+    "message": "Anda sedang melihat lingkungan Dev ShroudEdit"
+  },
   "layout.banner.build-fail.title": {
     "message": "Terjadi kesalahan saat menghasilkan keadaan dari API saat membangun."
   },
   "layout.banner.preview.title": {
     "message": "Ini adalah penerapan pratinjau dari situs web ShroudEdit."
-  },
-  "layout.banner.staging.description": {
-    "message": "Lingkungan pementasan sepenuhnya terpisah dari basis data ShroudEdit produksi. Lingkungan ini digunakan untuk tujuan pengujian dan pengawakutuan, dan mungkin menjalankan versi pengembangan dari bagian belakang atau depan ShroudEdit yang lebih baru daripada instans produksi."
-  },
-  "layout.banner.staging.title": {
-    "message": "Anda sedang melihat lingkungan pementasan ShroudEdit"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Perbarui informasi penagihan"
@@ -1741,6 +1702,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Kebijakan Hak Cipta dan DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Informasi hukum"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Kebijakan Privasi"
@@ -2423,11 +2387,23 @@
   "report.not-for.bug-reports.description": {
     "message": "Anda dapat melaporkan kekutu pada <issues-link>pelacak isu</issues-link> mereka."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Pemberitahuan hak cipta resmi"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Lihat <policy-link>Kebijakan Hak Cipta</policy-link> kami."
+  },
   "report.not-for.dmca": {
     "message": "Penghapusan konten yang melanggar DMCA"
   },
   "report.not-for.dmca.description": {
     "message": "Lihat <policy-link>Kebijakan Hak Cipta</policy-link> kami."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Formulir ini mengirim laporan komunitas tentang konten yang diunggah ulang, bukan pemberitahuan hukum resmi."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Untuk mengirim pemberitahuan resmi tentang pelanggaran hak cipta, ikuti <copyright-policy-link>Kebijakan Hak Cipta</copyright-policy-link> kami."
   },
   "report.note.copyright.1": {
     "message": "Harap diperhatikan bahwa Anda *bukan* menyerahkan permintaan penghapusan DMCA, tetapi laporan konten yang diunggah ulang."
@@ -3124,5 +3100,11 @@
   },
   "version.environment.unknown.title": {
     "message": "Lingkungan tidak dikenal"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "File .sfbp diunggah tanpa perubahan. Detail ini menjelaskan blueprint dari ShroudForge World Editor di ShroudEdit."
+  },
+  "version.schematic.sfbp-installation": {
+    "message": "Unduh file .sfbp, buka ShroudForge World Editor, pilih Impor blueprint, lalu pilih file yang telah diunduh."
   }
 }

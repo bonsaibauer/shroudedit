@@ -2390,38 +2390,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Få den bästa möjliga modupplevelsen med kontinuerliga uppdateringar från ShroudEditteamet"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Konstant utvecklande"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Få detaljerade rapporter på sidvisingar, nedladdningsmängder och inkomster"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Data och statistik"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Få ditt projekt upptäckt av tusentals spelare genom sökning, våran hemsida, Discordserver och mer i framtiden!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Upptäckning"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Integrera med dina byggverktyg genom Minotaur för automatiska uppladdningar när du släpper en ny version"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Brett ekosystem"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Få betalt med annonsintäkter från dina projektsidor och ta ut pengarna när som helst"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Intäkter"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Bjud in dina kompisar och hantera roller och behörigheter enkelt"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Skapa team"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Kunde inte ladda in slumpmässiga projekt :("
@@ -2491,15 +2461,6 @@
   },
   "landing.notifications.version-released": {
     "message": "Versionen {version} har släppts för {gameVersion}"
-  },
-  "landing.section.for-creators.description": {
-    "message": "Ge dina skapelser ett hem online och nå en massiv publik av dedikerade spelare."
-  },
-  "landing.section.for-creators.label": {
-    "message": "För skapare"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Dela ditt innehåll med världen"
   },
   "landing.section.for-players.description": {
     "message": "Med allt från magiska biomer till förbannade fängelsehålor hittar du innehåll som tar spelet till en ny nivå."
@@ -2582,17 +2543,17 @@
   "layout.banner.build-fail.title": {
     "message": "Fel inträffade vid generering av status från API vid kompilering."
   },
+  "layout.banner.dev.description": {
+    "message": "Det här Dev-gränssnittet använder produktions-API:er och produktionsdata. Ändringar här kan påverka publicerat innehåll på ShroudEdit."
+  },
+  "layout.banner.dev.title": {
+    "message": "Du visar ShroudEdits Dev-miljö"
+  },
   "layout.banner.preview.description": {
     "message": "Om du menade att besöka den officiella ShroudEdit webbplatsen, besök {url}. Den här förhandsgranskningen används av ShroudEdits personal för testsyften. Den byggdes med {ref}."
   },
   "layout.banner.preview.title": {
     "message": "Det här är en förhandsgranskning av ShroudEdit webbplatsen."
-  },
-  "layout.banner.staging.description": {
-    "message": "Staging-miljön är helt separat från ShroudEdits databas. Detta används för test och felsökning och kan köra experimentella versioner av ShroudEdit som inte släppts än."
-  },
-  "layout.banner.staging.title": {
-    "message": "Du använder ShroudEdits staging-miljö"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Uppdatera faktureringsinfo"
@@ -2662,6 +2623,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Upphovsrättspolicy och DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Juridisk information"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Integritetspolicy"
@@ -3827,6 +3791,12 @@
   "report.not-for.bug-reports": {
     "message": "Buggrapporter"
   },
+  "report.not-for.copyright-notice": {
+    "message": "Formella upphovsrättsmeddelanden"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Läs vår <policy-link>upphovsrättspolicy</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "DMCA borttagning"
   },
@@ -4916,6 +4886,9 @@
   "version.package-as-mod.mod-loaders.placeholder": {
     "message": "Välj moddläsare..."
   },
+  "version.schematic.sfbp-installation": {
+    "message": "Ladda ned .sfbp-filen, öppna ShroudForge World Editor, välj Importera blueprint och markera den nedladdade filen."
+  },
   "version.section.content.dev-info": {
     "message": "Utvecklarinformation"
   },
@@ -4927,5 +4900,14 @@
   },
   "version.supplementary-resources.copy-hash-sha512": {
     "message": "Kopiera SHA-512"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": ".sfbp-filen laddas upp oförändrad. Uppgifterna beskriver blueprinten från ShroudForge World Editor på ShroudEdit."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Det här formuläret skickar in en communityrapport om återuppladdat innehåll, inte ett formellt juridiskt meddelande."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Följ vår <copyright-policy-link>upphovsrättspolicy</copyright-policy-link> för att skicka ett formellt meddelande om upphovsrättsintrång."
   }
 }

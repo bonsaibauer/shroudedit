@@ -2555,38 +2555,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Получайте лучший опыт моддинга благодаря постоянным обновлениям от команды ShroudEdit"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Постоянное развитие"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Получайте подробные отчёты о просмотрах, скачиваниях и доходах"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Данные и статистика"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Получайте внимание тысяч игроков через поиск, главную, Discord и другие способы в будущем!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Заметность"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Подключайте инструменты сборки через Minotaur и публикуйте новые версии автоматически"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Развитая экосистема"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Получайте доход от рекламы на страницах проектов и выводите средства в любое время"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Монетизация"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Приглашайте участников и управляйте ролями и разрешениями без хлопот"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Управление командой"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Не удалось загрузить случайные проекты :("
@@ -2656,15 +2626,6 @@
   },
   "landing.notifications.version-released": {
     "message": "Выпущена версия {version} для {gameVersion}"
-  },
-  "landing.section.for-creators.description": {
-    "message": "Разместите свои проекты и найдите новых поклонников среди огромного сообщества игроков."
-  },
-  "landing.section.for-creators.label": {
-    "message": "Для авторов"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Делитесь творениями с миром"
   },
   "landing.section.for-players.description": {
     "message": "От магических биомов до проклятых подземелий — вы точно найдёте контент, который выведет игру на новый уровень."
@@ -2750,17 +2711,17 @@
   "layout.banner.build-fail.title": {
     "message": "Ошибка генерации состояния от API во время сборки."
   },
+  "layout.banner.dev.description": {
+    "message": "Этот интерфейс Dev использует API и данные Production. Изменения здесь могут повлиять на опубликованный контент ShroudEdit."
+  },
+  "layout.banner.dev.title": {
+    "message": "Вы просматриваете среду Dev ShroudEdit"
+  },
   "layout.banner.preview.description": {
     "message": "Официальный сайт ShroudEdit доступен по адресу {url}. Текущая предварительная версия предназначена для тестирования командой ShroudEdit и собрана из {ref}."
   },
   "layout.banner.preview.title": {
     "message": "Это предварительная версия сайта ShroudEdit."
-  },
-  "layout.banner.staging.description": {
-    "message": "Тестовая среда полностью отделена от основной базы данных ShroudEdit и нужна для тестирования и отладки. Фронтенд и бэкенд здесь могут содержать изменения, которые ещё не вышли на основном сайте."
-  },
-  "layout.banner.staging.title": {
-    "message": "Вы находитесь в тестовой среде ShroudEdit"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Обновить платёжные данные"
@@ -2836,6 +2797,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Политика авторских прав и DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Юридическая информация"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Политика конфиденциальности"
@@ -4394,6 +4358,12 @@
   "report.not-for.bug-reports.description": {
     "message": "Сообщайте об ошибках в <issues-link>трекере проекта</issues-link>."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Официальные уведомления о нарушении авторских прав"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "См. нашу <policy-link>политику в отношении авторских прав</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "Для удаления по DMCA"
   },
@@ -4411,6 +4381,12 @@
   },
   "report.note.copyright.2": {
     "message": "Если вы намерены отправить запрос на удаление контента по DMCA (что является иском), ознакомьтесь с <copyright-policy-link>политикой защиты авторских прав</copyright-policy-link>."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Эта форма отправляет жалобу сообщества на повторно загруженный контент, а не официальное юридическое уведомление."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Чтобы подать официальное уведомление о нарушении авторских прав, следуйте нашей <copyright-policy-link>политике в отношении авторских прав</copyright-policy-link>."
   },
   "report.note.fully-ai-generated.1": {
     "message": "Запрет на полностью созданные ИИ проекты появился недавно. Мы дали авторам время на обновление проектов перед приёмом жалоб."
@@ -5591,6 +5567,9 @@
   "version.package-as-mod.submit-button": {
     "message": "Собрать набор данных"
   },
+  "version.schematic.sfbp-installation": {
+    "message": "Скачайте файл .sfbp, откройте ShroudForge World Editor, выберите «Импорт blueprint» и укажите скачанный файл."
+  },
   "version.section.content.dev-info": {
     "message": "Для разработчиков"
   },
@@ -5620,5 +5599,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "Скрыто из-за неизвестного встроенного контента"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "Файл .sfbp загружается без изменений. Эти сведения описывают blueprint из ShroudForge World Editor на ShroudEdit."
   }
 }

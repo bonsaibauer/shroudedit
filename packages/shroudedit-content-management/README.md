@@ -1,1 +1,1 @@
-Content management logic shared between ShroudEdit App & Labrinth
+Content management logic shared between the ShroudEdit website and Labrinth API.

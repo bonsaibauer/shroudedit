@@ -695,35 +695,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "รับประสบการณ์การม็อดที่ดีที่สุด พร้อมการอัปเดตอย่างต่อเนื่องจากทีมงาน ShroudEdit"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "พัฒนาอย่างต่อเนื่อง"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "ดูรายงานแบบละเอียดเกี่ยวกับยอดเข้าชมหน้า จำนวนการดาวน์โหลด และรายได้"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "ข้อมูลและสถิติ"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "ให้โปรเจกต์ของคุณเข้าถึงผู้ใช้นับพัน ผ่านการค้นหา, หน้าแรก, เซิร์ฟเวอร์ Discord และช่องทางใหม่ ๆ ที่กำลังจะมาอีกเพียบ!"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "เชื่อมต่อกับ build tools ของคุณผ่าน Minotaur เพื่ออัปโหลดอัตโนมัติทันทีที่ปล่อยเวอร์ชันใหม่"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Ecosystem ที่หลากหลาย"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "รับส่วนแบ่งรายได้จากโฆษณาบนหน้าโปรเจกต์ของคุณ และสามารถถอนรายได้ของคุณได้ทุกเมื่อ"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "การสร้างรายได้"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "เชิญเพื่อนร่วมทีมของคุณและจัดการบทบาทรวมถึงสิทธิ์การเข้าถึงได้อย่างง่ายดาย"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "การจัดการทีม"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "โหลดโปรเจกต์สุ่มไม่สำเร็จ ☹"
@@ -784,5 +757,35 @@
   },
   "settings.applications.field.icon": {
     "message": "ไอคอน"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "ไฟล์ .sfbp จะถูกอัปโหลดโดยไม่มีการแก้ไข รายละเอียดนี้อธิบาย blueprint จาก ShroudForge World Editor บน ShroudEdit"
+  },
+  "layout.banner.dev.description": {
+    "message": "หน้าเว็บส่วนหน้า Dev นี้ใช้ API และข้อมูลของระบบจริง การเปลี่ยนแปลงที่นี่อาจส่งผลต่อเนื้อหาที่เผยแพร่บน ShroudEdit"
+  },
+  "layout.banner.dev.title": {
+    "message": "คุณกำลังดูสภาพแวดล้อม Dev ของ ShroudEdit"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "ข้อมูลทางกฎหมาย"
+  },
+  "layout.footer.legal.copyright-policy": {
+    "message": "นโยบายลิขสิทธิ์"
+  },
+  "report.not-for.copyright-notice": {
+    "message": "การแจ้งละเมิดลิขสิทธิ์อย่างเป็นทางการ"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "ดู<policy-link>นโยบายลิขสิทธิ์</policy-link>ของเรา"
+  },
+  "report.note.copyright.community-report": {
+    "message": "โปรดทราบว่าแบบฟอร์มนี้ใช้ส่งรายงานจากชุมชนเกี่ยวกับเนื้อหาที่อัปโหลดซ้ำ ไม่ใช่หนังสือแจ้งทางกฎหมายอย่างเป็นทางการ"
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "หากต้องการส่งหนังสือแจ้งการละเมิดลิขสิทธิ์อย่างเป็นทางการ โปรดทำตาม<copyright-policy-link>นโยบายลิขสิทธิ์</copyright-policy-link>ของเรา"
+  },
+  "version.schematic.sfbp-installation": {
+    "message": "ดาวน์โหลดไฟล์ .sfbp เปิด ShroudForge World Editor เลือกนำเข้า blueprint แล้วเลือกไฟล์ที่ดาวน์โหลด"
   }
 }

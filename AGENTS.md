@@ -11,53 +11,44 @@ This is the ShroudEdit monorepo — it contains all ShroudEdit projects, both fr
 
 ### Apps (`apps/`)
 
-| App               | Description                    |
-| ----------------- | ------------------------------ |
-| `frontend`        | Main ShroudEdit website (Nuxt 3) |
-| `app-frontend`    | Desktop/app frontend (Vue 3)   |
-| `app`             | Desktop/app shell (Tauri)      |
-| `app-playground`  | Testing playground for app     |
-| `labrinth`        | Backend API service            |
-| `daedalus_client` | Daedalus client implementation |
-| `docs`            | Documentation site (Astro)     |
+| App        | Description                     |
+| ---------- | ------------------------------- |
+| `frontend` | Main ShroudEdit website (Nuxt 3) |
+| `labrinth` | Backend API service             |
 
 ### Packages (`packages/`)
 
-| Package            | Description                                           |
-| ------------------ | ----------------------------------------------------- |
-| `ui`               | Shared Vue component library (`@shroudedit/ui`)         |
-| `assets`           | Styling and auto-generated icons (`@shroudedit/assets`) |
-| `api-client`       | API client for Nuxt, Tauri, and Node/browser          |
-| `app-lib`          | Shared app library                                    |
-| `blog`             | Blog system and changelog data                        |
-| `utils`            | Shared utility functions (mostly deprecated)          |
-| `moderation`       | Moderation utilities                                  |
-| `daedalus`         | Daedalus protocol                                     |
-| `tooling-config`   | ESLint, Prettier, TypeScript configs                  |
-| `ariadne`          | Analytics library                                     |
-| `shroudedit-log`     | Logging utilities                                     |
-| `shroudedit-maxmind` | MaxMind GeoIP                                         |
-| `shroudedit-util`    | General utilities                                     |
-| `muralpay`         | Payment processing                                    |
-| `path-util`        | Path utilities                                        |
-| `sqlx-tracing`     | SQLx query tracing                                    |
+| Package                | Description                                              |
+| ---------------------- | -------------------------------------------------------- |
+| `ui`                   | Shared Vue component library (`@shroudedit/ui`)          |
+| `assets`               | Styling and auto-generated icons (`@shroudedit/assets`)   |
+| `api-client`           | API client for Nuxt, Node/browser, and external Tauri clients |
+| `blog`                 | Blog system and changelog data                           |
+| `utils`                | Shared utility functions (mostly deprecated)             |
+| `moderation`           | Moderation utilities                                     |
+| `tooling-config`       | ESLint, Prettier, TypeScript configs                     |
+| `ariadne`              | Analytics library                                        |
+| `shroudedit-log`       | Logging utilities                                        |
+| `shroudedit-maxmind`   | MaxMind GeoIP                                            |
+| `shroudedit-util`      | General utilities                                        |
+| `muralpay`             | Payment processing                                       |
+| `path-util`            | Path utilities                                           |
+| `sqlx-tracing`         | SQLx query tracing                                       |
 
 ## Pre-PR Commands
 
 Run these from the **root** folder before opening a pull request - do not run these after each prompt the user gives you, only run when asked, ask the user a question if they want to run it if the user indicates that they are about to create a pull request.
 
 - **Website:** `pnpm prepr:frontend:web`
-- **App frontend:** `pnpm prepr:frontend:app`
 - **Frontend libs:** `pnpm prepr:frontend:lib`
-- **All frontend (app+web):** `pnpm prepr`
+- **All frontend:** `pnpm prepr`
 - **Labrinth (backend):** See `apps/labrinth/AGENTS.md`
 
-The website and app `prepr` commands
+The website `prepr` commands
 
 ## Dev Commands
 
 - **Website:** `pnpm web:dev` (copy `.env` template in `apps/frontend/` first)
-- **App:** `pnpm app:dev` (copy `.env` template in `packages/app-lib/` first)
 - **Storybook (packages/ui):** `pnpm storybook`
 
 ## Project-Specific Instructions

@@ -15,7 +15,6 @@ body:
       label: What parts of ShroudEdit is your feature request related too?
       multiple: true
       options:
-        - ShroudEdit App
         - ShroudEdit.com website
         - ShroudEdit Hosting
         - ShroudEdit API for developers

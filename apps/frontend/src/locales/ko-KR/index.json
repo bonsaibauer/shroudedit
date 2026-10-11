@@ -2516,38 +2516,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "ShroudEdit 팀의 지속적인 업데이트로 최고의 모딩 경험을 누리세요"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "지속적인 발전"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "페이지 조회수, 다운로드 수 및 수익에 대한 상세한 보고서를 확인하세요"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "데이터 및 통계"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "검색, 홈페이지, 디스코드 서버 등을 통해 수천 명의 사용자에게 당신의 프로젝트를 알릴 수 있습니다! 앞으로 더 많은 방법이 추가될 예정이니 기대해 주세요!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "탐색"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "새 버전을 출시하는 즉시 자동으로 업로드할 수 있도록 Minotaur를 통해 빌드 도구와 연동해 보세요"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "다양한 생태계"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "프로젝트 페이지에서 광고 수익을 얻고 언제든지 자금을 출금하세요"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "수익화"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "팀원을 초대하고 역할 및 권한을 손쉽게 관리하세요"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "팀 관리"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "무작위 프로젝트를 불러오지 못했습니다 :("
@@ -2617,15 +2587,6 @@
   },
   "landing.notifications.version-released": {
     "message": "{version} 버전이 {gameVersion}용으로 출시되었습니다"
-  },
-  "landing.section.for-creators.description": {
-    "message": "여러분의 창작물에 온라인 공간을 마련하고 열정적인 플레이어들에게 다가갈 수 있습니다."
-  },
-  "landing.section.for-creators.label": {
-    "message": "개발자를 위해"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "당신의 콘텐츠를 전 세계와 공유하세요"
   },
   "landing.section.for-players.description": {
     "message": "마법 같은 바이옴부터 저주받은 던전까지, 게임플레이를 한 단계 더 끌어올려 줄 콘텐츠를 확실하게 찾으실 수 있습니다."
@@ -2711,17 +2672,17 @@
   "layout.banner.build-fail.title": {
     "message": "빌드 중 API에서 상태 생성 오류가 발생했습니다."
   },
+  "layout.banner.dev.description": {
+    "message": "이 Dev 프런트엔드는 프로덕션 API와 데이터를 사용합니다. 여기서 변경하면 ShroudEdit의 게시된 콘텐츠에 영향을 줄 수 있습니다."
+  },
+  "layout.banner.dev.title": {
+    "message": "ShroudEdit Dev 환경을 보고 있습니다"
+  },
   "layout.banner.preview.description": {
     "message": "공식 ShroudEdit 웹사이트에 접속하려는 경우, {url}을(를) 방문하세요. 이 미리보기 배포판은 ShroudEdit 운영진이 테스트 목적으로 사용하며, 이는 {ref} 기반으로 빌드되었습니다."
   },
   "layout.banner.preview.title": {
     "message": "이 웹사이트는 ShroudEdit의 미리보기입니다."
-  },
-  "layout.banner.staging.description": {
-    "message": "스테이징 환경은 실제 ShroudEdit 프로덕션 데이터베이스와 완전히 분리되어 있으며, 테스트와 디버깅을 목적으로 사용됩니다. 이 환경에서는 프로덕션 인스턴스보다 최신 버전의 ShroudEdit 백엔드 또는 프론트엔드의 개발 버전이 실행되고 있을 수 있습니다."
-  },
-  "layout.banner.staging.title": {
-    "message": "현재 ShroudEdit의 스테이징 환경을 보고 있습니다"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "결제 정보 업데이트"
@@ -2797,6 +2758,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "저작권 정책 및 DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "법적 고지"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "개인정보 처리방침"
@@ -4313,6 +4277,12 @@
   "report.not-for.bug-reports.description": {
     "message": "<issues-link>이슈 트래커</issues-link>에서 오류를 신고할 수 있습니다."
   },
+  "report.not-for.copyright-notice": {
+    "message": "정식 저작권 침해 신고"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "<policy-link>저작권 정책</policy-link>을 확인하세요."
+  },
   "report.not-for.dmca": {
     "message": "DMCA 삭제 통지"
   },
@@ -4330,6 +4300,12 @@
   },
   "report.note.copyright.2": {
     "message": "DMCA 삭제 요청(법적 조치)을 하려는 경우, 대신 저희의 <copyright-policy-link>저작권 정책</copyright-policy-link>을 참조해주시기 바랍니다."
+  },
+  "report.note.copyright.community-report": {
+    "message": "이 양식은 다시 업로드된 콘텐츠에 대한 커뮤니티 신고를 제출하며, 공식 법적 통지로 제출되지 않습니다."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "정식 저작권 침해 통지를 제출하려면 <copyright-policy-link>저작권 정책</copyright-policy-link>을 따르세요."
   },
   "report.note.fully-ai-generated.1": {
     "message": "완전히 AI로 생성한 프로젝트를 업로드하지 못하도록 규정을 최근 변경했습니다. 신고 접수를 시작하기 전에 제작자가 프로젝트에서 완전히 AI로 생성한 프로젝트를 업데이트하거나 삭제 수 있도록 유예 기간을 제공하고 있습니다."
@@ -5492,6 +5468,9 @@
   "version.package-as-mod.submit-button": {
     "message": "데이터 팩 패키징"
   },
+  "version.schematic.sfbp-installation": {
+    "message": ".sfbp 파일을 다운로드하고 ShroudForge World Editor를 연 다음 Blueprint 가져오기를 선택하고 다운로드한 파일을 선택하세요."
+  },
   "version.section.content.dev-info": {
     "message": "개발자 정보"
   },
@@ -5521,5 +5500,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "알 수 없는 포함된 콘텐츠로 인해 보류됨"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": ".sfbp 파일은 수정 없이 업로드됩니다. 이 정보는 ShroudEdit에서 ShroudForge World Editor로 만든 blueprint를 설명합니다."
   }
 }

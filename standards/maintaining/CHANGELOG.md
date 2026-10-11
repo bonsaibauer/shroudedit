@@ -81,7 +81,7 @@ Historical entries do not always use periods. Use periods in all new entries.
 
 ## Product and UI Names
 
-- Use the public names `ShroudEdit App`, `ShroudEdit Hosting`, and `ShroudEdit`.
+- Use the public names `ShroudEdit Hosting` and `ShroudEdit`.
 - Do not use deprecated names, such as `ShroudEdit Servers`.
 - Use the labels that appear in the UI.
 - Capitalize a tab or page name when you refer to its label.

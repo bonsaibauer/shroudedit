@@ -23,7 +23,7 @@ export interface Cosmetics {
 	hideShroudEditAppPromos: boolean
 	preferredDarkTheme: DarkTheme
 	searchDisplayMode: Record<DisplayLocation, DisplayMode>
-	hideStagingBanner: boolean
+	hideDevBanner: boolean
 }
 
 export default defineNuxtPlugin({
@@ -56,7 +56,7 @@ export default defineNuxtPlugin({
 					user: 'list',
 					collection: 'list',
 				},
-				hideStagingBanner: false,
+				hideDevBanner: false,
 			}),
 		})
 

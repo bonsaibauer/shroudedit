@@ -30,7 +30,7 @@ interface HttpError extends Error {
  * import { getVersion } from '@tauri-apps/api/app'
  *
  * const client = new TauriShroudEditClient({
- *   userAgent: async () => `shroudedit/theseus/${await getVersion()} (support@shroudedit.com)`,
+ *   userAgent: async () => `external-editor/${await getVersion()}`,
  *   features: [
  *     new AuthFeature({ token: async () => getOAuthToken() })
  *   ]

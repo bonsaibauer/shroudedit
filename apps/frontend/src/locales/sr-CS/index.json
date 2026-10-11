@@ -1112,9 +1112,6 @@
   "hosting-marketing.why.your-favorite-mods.description": {
     "message": "Izaberi između Vanilla, Fabric, Forge, Quilt i NeoForge verzija. Ako se nalazi na ShroudEditu, može da radi na tvom serveru."
   },
-  "landing.creator.feature.discovery.description": {
-    "message": "Omogući hiljadama korisnika da otkriju tvoj projekat putem pretrage, naše početne stranice, Discord servera i drugih načina koji tek dolaze!"
-  },
   "landing.heading.the-place-for-enshrouded.resource-packs": {
     "message": "resurs paketi"
   },
@@ -1145,14 +1142,14 @@
   "layout.banner.build-fail.description": {
     "message": "Ovo izdanje ShroudEdit frontend-a nije uspelo da generiše stanje iz API-ja. To može biti zbog prekida rada ili greške u konfiguraciji. Ponovo izgradi kada API bude dostupan. Kodovi grešaka: {errors}; Trenutni API URL je: {url}"
   },
+  "layout.banner.dev.description": {
+    "message": "Ovaj Dev frontend koristi produkcione API-je i podatke. Izmene ovde mogu da utiču na objavljeni sadržaj ShroudEdit-a."
+  },
+  "layout.banner.dev.title": {
+    "message": "Pregledate ShroudEdit Dev okruženje"
+  },
   "layout.banner.build-fail.title": {
     "message": "Pregledate testno okruženje ShroudEdita."
-  },
-  "layout.banner.staging.description": {
-    "message": "Staging okruženje je potpuno odvojeno od produkcione ShroudEdit baze podataka. Koristi se za testiranje i debagovanje i može pokretati razvojne verzije backend-a ili frontend-a koje su novije od produkcije."
-  },
-  "layout.banner.staging.title": {
-    "message": "Gledaš testno okruženje ShroudEdita"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Ažuriraj podatke za plaćanje"
@@ -1195,6 +1192,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Politika autorskih prava i DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Pravne informacije"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Politika privatnosti"
@@ -1475,11 +1475,23 @@
   "report.not-for.bug-reports.description": {
     "message": "Greške možeš prijaviti na njihovom <issues-link>issue tracker-u</issues-link>."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Zvanična obaveštenja o autorskim pravima"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Pogledajte našu <policy-link>Politiku autorskih prava</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "DMCA zahtevi za uklanjanje"
   },
   "report.not-for.dmca.description": {
     "message": "Pogledaj našu <policy-link>Politiku autorskih prava</policy-link>."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Ovaj obrazac šalje prijavu zajednice o ponovo otpremljenom sadržaju, a ne zvanično pravno obaveštenje."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Za zvanično obaveštenje o kršenju autorskih prava pratite našu <copyright-policy-link>Politiku autorskih prava</copyright-policy-link>."
   },
   "report.note.copyright.1": {
     "message": "Imaj na umu da *ne* podnosiš DMCA zahtev za uklanjanje ovom prijavom, nego prijavljuješ ponovo postavljen sadržaj."
@@ -2114,6 +2126,9 @@
   "version.package-as-mod.submit-button": {
     "message": "Spakiraj data pack"
   },
+  "version.schematic.sfbp-installation": {
+    "message": "Preuzmite .sfbp fajl, otvorite ShroudForge World Editor, izaberite Uvezi blueprint i odaberite preuzeti fajl."
+  },
   "version.section.content.dev-info": {
     "message": "Informacije sa programere"
   },
@@ -2143,5 +2158,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "Zadržan sadržaj zbog nepoznatog ugrađenog sadržaja"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": ".sfbp fajl se otprema bez izmena. Ovi podaci opisuju blueprint iz ShroudForge World Editor-a na ShroudEdit-u."
   }
 }

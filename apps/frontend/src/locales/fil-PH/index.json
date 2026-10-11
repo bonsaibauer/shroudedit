@@ -1454,38 +1454,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Ranasan ang pinakamagaling na karanasan sa modding kasali ang palaging mga update galing sa ShroudEdit team"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Laging Umuunlad"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Makatanggap ng detalyadong ulat ng mga pagtingin ng pahina, bilang ng pagdownload, at revenue"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Data and Statistics"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Gawing madaling matuklas sa libo-libong tagagamit ang iyong proyekto gamit ang panghanap, sa aming pahina ng tahanan, sa Discord server, at sa iiba pang paraan sa darating na panahon!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Pagtutuklas"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Pagsamahin sa iyong build tools gamit ang Minotaur para sa awtomatikong pag-upload sa tuwing maglalathala ka ng bagong bersiyon"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Mayamang Ekosistema"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Tumanggap ng kita sa advertising galing sa mga pahina ng iyong proyekto at mag-withdraw sa iyong pundo sa kahit anong panahon"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Monetisasyon"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Anyayahin ang iyong mga kasing kakoponan at pamahalaan ang mga tungkulin at pahintulot ng madalian"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Pamamahala ng Koponan"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Bigong ma-load ang mga sapalarang proyekto :("
@@ -1556,15 +1526,6 @@
   "landing.notifications.version-released": {
     "message": "Ang bersiyong {version} ay ni-release para sa {gameVersion}"
   },
-  "landing.section.for-creators.description": {
-    "message": "Bigyan ng tahanang-online ang iyong mga kalikhaan at abutin ang mga malalaking madla ng mga dedikadong manlalaro."
-  },
-  "landing.section.for-creators.label": {
-    "message": "Para sa mga Tagagawa"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Ibahagi ang kontento mo sa mundo"
-  },
   "landing.section.for-players.description": {
     "message": "Sa mga mahihiwagang hayligiran patungo sa mga sinumpaang piitan, tiyak na mayroon kang mahahanap na kontentong makapapadadala sa iyong paglalaro sa mataas pang lebel."
   },
@@ -1631,17 +1592,17 @@
   "layout.banner.build-fail.ignore": {
     "message": "Baliwalain"
   },
+  "layout.banner.dev.description": {
+    "message": "Gumagamit ang Dev frontend na ito ng mga production API at data. Maaaring makaapekto sa inilathalang content ng ShroudEdit ang mga pagbabago rito."
+  },
+  "layout.banner.dev.title": {
+    "message": "Tinitingnan mo ang Dev environment ng ShroudEdit"
+  },
   "layout.banner.build-fail.title": {
     "message": "Error sa pagbubuo ng estado galing sa API habang nagpapatayo."
   },
   "layout.banner.preview.title": {
     "message": "Ito ay isang pinakalat na pasilip ng website ng ShroudEdit."
-  },
-  "layout.banner.staging.description": {
-    "message": "Buong magkahiwalay ang staging environment sa production ShroudEdit database. Ginagamit ito sa pagsusuri at pag-debug, at maaaring pinatatakbo sa mga bersiyong in-development ng backend o frontend sa bagong production instance ng ShroudEdit."
-  },
-  "layout.banner.staging.title": {
-    "message": "Tinitingnan mo ang staging environment ng ShroudEdit"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "I-update ang billing info"
@@ -1702,6 +1663,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Patakaran sa Copyright at DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Legal na impormasyon"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Patakaran sa Pribasiya"
@@ -2393,11 +2357,23 @@
   "report.not-for.bug-reports.description": {
     "message": "Maaari mong isumbong ang mga bug sa kanilang <issues-link>subaybayan ng isyu</issues-link>."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Mga pormal na abiso sa copyright"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Tingnan ang aming <policy-link>Patakaran sa Copyright</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "DMCA takedowns"
   },
   "report.not-for.dmca.description": {
     "message": "Tingnan ang aming <policy-link>Patakaran sa Copyright</policy-link>."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Pakitandaan na nagsusumite ang form na ito ng ulat ng komunidad tungkol sa muling na-upload na content, hindi ng pormal na legal na abiso."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Para sa pormal na abiso ng paglabag sa copyright, sundin ang aming <copyright-policy-link>Patakaran sa Copyright</copyright-policy-link>."
   },
   "report.note.copyright.1": {
     "message": "Mangyaring paunawaan na *hindi* DMCA takedown request ang iyong isusumite, ngunit ito ay isang sumbong sa kontentong muling-upload."
@@ -3073,5 +3049,11 @@
   },
   "version.environment.unknown.title": {
     "message": "Hindi kilalang environment"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "Ina-upload ang .sfbp file nang walang pagbabago. Inilalarawan ng mga detalyeng ito ang blueprint mula sa ShroudForge World Editor sa ShroudEdit."
+  },
+  "version.schematic.sfbp-installation": {
+    "message": "I-download ang .sfbp file, buksan ang ShroudForge World Editor, piliin ang Import blueprint, at piliin ang na-download na file."
   }
 }

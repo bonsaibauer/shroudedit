@@ -2537,38 +2537,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "ShroudEdit ekibinden sürekli güncellemelerle mümkün olan en iyi modlama deneyimini edinin."
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Sürekli Gelişen"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Sayfa görüntülenmeleri, indirme sayısı ve hasılat üzerine detaylı raporlar elde edin."
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Veriler ve İstatistikler"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Arama, ana sayfamız, Discord sunucumuz ve gelecek yollar üzerinden binlerce kullanıcı tarafından projenizin keşfedilmesini sağlayın!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Keşif"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Siz yeni bir sürüm çıkarır çıkarmaz otomatik yüklemeler için Minotaur üzerinden yapım araçlanızı entegre edin."
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Çeşitli Ekosistem"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Proje sayfalarınızdan reklam geliri elde edinin ve istediğiniz an çekim yapın"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Para Kazanma"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Kolaylıkla takım arkadaşlarınızı davet edin ve rol ve izinleri yönetin"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Takım Yönetimi"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Rastgele proje yüklenemedi :("
@@ -2638,15 +2608,6 @@
   },
   "landing.notifications.version-released": {
     "message": "{version} sürümü {gameVersion} için yayınlandı"
-  },
-  "landing.section.for-creators.description": {
-    "message": "İçeriklerinize çevrim içi bir yer verin ve büyük ilgili oyuncu kitleye ulaşın."
-  },
-  "landing.section.for-creators.label": {
-    "message": "Yapımcılar İçin"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "İçeriğinizi dünya ile paylaşın"
   },
   "landing.section.for-players.description": {
     "message": "Büyülü biyomlardan lanetli zindanlara kadar, oyununu sonraki seviyeye taşıyacak içerikler bulacağından emin olabilirsin."
@@ -2732,17 +2693,17 @@
   "layout.banner.build-fail.title": {
     "message": "Derleme esnasında API'den durum oluştururken hata."
   },
+  "layout.banner.dev.description": {
+    "message": "Bu Dev ön yüzü, üretim API’lerini ve verilerini kullanır. Buradaki değişiklikler ShroudEdit’te yayımlanan içeriği etkileyebilir."
+  },
+  "layout.banner.dev.title": {
+    "message": "ShroudEdit Dev ortamını görüntülüyorsunuz"
+  },
   "layout.banner.preview.description": {
     "message": "Eğer resmi ShroudEdit web sitesine erişmek istiyorsanız, {url} adresini ziyaret edin. Bu önizleme sürümü ShroudEdit ekibi tarafından test amaçlı kullanılmaktadır. {ref} kullanılarak derlenmiştir."
   },
   "layout.banner.preview.title": {
     "message": "Bu, ShroudEdit web sitesinin önizleme dağıtımıdır."
-  },
-  "layout.banner.staging.description": {
-    "message": "Hazırlama ortamı, ShroudEdit yapım veritabanından tamamen ayrıdır. Bu test ve hata ayıklama amaçları için kullanılır ve yapım profilinden daha yeni olan ShroudEdit'in arka ucunun veya ön ucunun geliştirmekte olan sürümlerini çalıştırıyor olabilir. "
-  },
-  "layout.banner.staging.title": {
-    "message": "ShroudEdit'in hazırlama ortamını görüntülüyorsunuz"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Fatura bilgisini güncelle"
@@ -2818,6 +2779,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Telif Hakkı Politikası ve DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Yasal bilgiler"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Gizlillik ilkesi"
@@ -4313,6 +4277,12 @@
   "report.not-for.bug-reports.description": {
     "message": "<issues-link>Hata izleyicilerinden</issues-link> hataları bildirebilirsiniz."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Resmî telif hakkı bildirimleri"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "<policy-link>Telif Hakkı Politikamıza</policy-link> göz atın."
+  },
   "report.not-for.dmca": {
     "message": "DMCA kaldırmaları"
   },
@@ -4324,6 +4294,12 @@
   },
   "report.note.copyright.2": {
     "message": "Eğer bir DMCA kaldırma talebi (yasal bir eylem olan) iletmeyi kastediyorsanız, bunun yerine <copyright-policy-link>Telif Hakkı Politikası</copyright-policy-link>'na göz atın."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Bu formun yeniden yüklenen içerikle ilgili bir topluluk bildirimi gönderdiğini, resmî bir yasal bildirim olmadığını unutmayın."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Resmî bir telif hakkı ihlali bildirimi için lütfen <copyright-policy-link>Telif Hakkı Politikamızı</copyright-policy-link> izleyin."
   },
   "report.note.fully-ai-generated.1": {
     "message": "Kurallarımızı, tamamen yapay zekâ ile üretilmiş projeleri yasaklayacak şekilde güncelledik. Yapımcılara, tamamen yapay zekâ ile üretilmiş projelerini güncellemeleri veya kaldırmaları için bir süre tanıyoruz; bu sürenin ardından bu projelerle ilgili şikâyetleri kabul etmeye başlayacağız."
@@ -5486,6 +5462,9 @@
   "version.package-as-mod.submit-button": {
     "message": "Davranış paketini paketle"
   },
+  "version.schematic.sfbp-installation": {
+    "message": ".sfbp dosyasını indirin, ShroudForge World Editor’ı açın, Blueprint içe aktar’ı seçin ve indirdiğiniz dosyayı belirleyin."
+  },
   "version.section.content.dev-info": {
     "message": "Yazılımcı bilgilendirme"
   },
@@ -5515,5 +5494,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "Bilinmeyen içerik yüzünden proje askıya alındı"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": ".sfbp dosyası değiştirilmeden yüklenir. Bu bilgiler, ShroudEdit üzerindeki ShroudForge World Editor blueprint’ini açıklar."
   }
 }

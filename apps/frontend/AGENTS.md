@@ -24,7 +24,7 @@ Nuxt 3 with SSR — pages are server-rendered and hydrated on the client. Uses `
 
 **Website-specific components go in `src/components/`.** These are components that only make sense in the website context — admin panels, moderation tools, dashboard widgets, brand components, etc.
 
-**Shared components go in `packages/ui`.** If a component could be used by both the website and the desktop app, it belongs in `packages/ui/src/components/`. See `packages/ui/AGENTS.md` for UI standards, color rules, and component patterns.
+**Shared components go in `packages/ui`.** Reusable website components belong in `packages/ui/src/components/`. See `packages/ui/AGENTS.md` for UI standards, color rules, and component patterns.
 
 Rule of thumb: if it doesn't depend on Nuxt-specific APIs or website-only features, it should be in `packages/ui`.
 

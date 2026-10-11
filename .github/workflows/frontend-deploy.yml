@@ -1,20 +1,21 @@
 name: Deploy frontend
 
 on:
-  push:
-    branches:
-      - main
-      - prod
+  pull_request:
+    branches: [dev, prod]
+    types: [closed]
     paths:
       - 'apps/frontend/**/*'
       - 'packages/ui/**/*'
       - 'packages/utils/**/*'
       - 'packages/assets/**/*'
       - 'packages/moderation/**/*'
+      - 'packages/api-client/**/*'
+      - 'packages/blog/**/*'
       - '**/wrangler.jsonc'
       - '**/pnpm-*.yaml'
+      - '.github/actions/validate-deployment-pr/**'
       - '.github/workflows/frontend-deploy.yml'
-  workflow_dispatch:
   workflow_call:
     inputs:
       preview:
@@ -35,11 +36,21 @@ on:
         description: 'The persistent preview alias for the branch'
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.preview && 'preview' || 'push' }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' && github.ref != 'refs/heads/prod' }}
+  group: ${{ github.workflow }}-${{ inputs.preview && github.ref || github.event.pull_request.base.ref || github.ref }}-${{ inputs.preview && 'preview' || 'deploy' }}
+  cancel-in-progress: ${{ inputs.preview == true }}
 
 jobs:
   deploy:
+    if: >-
+      ${{
+        inputs.preview == true
+        || (
+          github.event_name == 'pull_request'
+          && github.event.action == 'closed'
+          && github.event.pull_request.merged == true
+          && github.event.pull_request.head.repo.full_name == github.repository
+        )
+      }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -49,81 +60,135 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: ${{ inputs.preview && (inputs.head_sha || github.sha) || github.event.pull_request.merge_commit_sha || github.sha }}
           fetch-depth: 0
+
+      - name: Validate deployment PR
+        if: ${{ !inputs.preview }}
+        uses: ./.github/actions/validate-deployment-pr
+        with:
+          source-branch: ${{ github.event.pull_request.head.ref }}
+          source-sha: ${{ github.event.pull_request.head.sha }}
+          source-repository: ${{ github.event.pull_request.head.repo.full_name }}
+          target-branch: ${{ github.event.pull_request.base.ref }}
+          repository: ${{ github.repository }}
+          api-url: ${{ github.api_url }}
+          github-token: ${{ github.token }}
 
       - name: Configure environment
         id: meta
         env:
           PREVIEW_INPUT: ${{ inputs.preview }}
-          REF: ${{ github.ref }}
-          DEPLOY_SHA: ${{ inputs.head_sha || github.sha }}
+          TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+          DEPLOY_SHA: ${{ inputs.head_sha || github.event.pull_request.merge_commit_sha || github.sha }}
+          SOURCE_BRANCH: ${{ inputs.head_ref || github.event.pull_request.head.ref }}
           BRANCH_ALIAS: ${{ inputs.branch_alias }}
         run: |
           echo "cmd=deploy" >> $GITHUB_OUTPUT
 
           SHA_SHORT="${DEPLOY_SHA::8}"
+          echo "sha=$DEPLOY_SHA" >> $GITHUB_OUTPUT
 
           if [ "$PREVIEW_INPUT" = "true" ]; then
             URL="https://git-$SHA_SHORT-frontend.shroudedit.workers.dev"
-            STAGING_URL="https://git-$SHA_SHORT-staging-frontend.shroudedit.workers.dev"
+            DEV_URL="https://git-$SHA_SHORT-dev-frontend.shroudedit.workers.dev"
             echo "env=production" >> $GITHUB_OUTPUT
             echo "url=$URL" >> $GITHUB_OUTPUT
-            echo "staging_url=$STAGING_URL" >> $GITHUB_OUTPUT
+            echo "dev_url=$DEV_URL" >> $GITHUB_OUTPUT
             echo "cmd=versions upload --preview-alias git-$SHA_SHORT --var PREVIEW:true --var CF_PAGES_URL:$URL" >> $GITHUB_OUTPUT
 
-            STAGING_VARS=$(jq -r '.env.staging.vars | to_entries[] | "--var \(.key):\(.value)"' ./apps/frontend/wrangler.jsonc | tr '\n' ' ')
-            echo "staging_cmd=versions upload --preview-alias git-$SHA_SHORT-staging ${STAGING_VARS}--var PREVIEW:true --var CF_PAGES_URL:$STAGING_URL" >> $GITHUB_OUTPUT
+            DEV_VARS=$(jq -r '.env.dev.vars | to_entries[] | "--var \(.key):\(.value)"' ./apps/frontend/wrangler.jsonc | tr '\n' ' ')
+            echo "dev_cmd=versions upload --preview-alias git-$SHA_SHORT-dev ${DEV_VARS}--var PREVIEW:true --var CF_PAGES_URL:$DEV_URL" >> $GITHUB_OUTPUT
 
             if [ -n "$BRANCH_ALIAS" ]; then
               echo "branch_alias_url=https://$BRANCH_ALIAS-frontend.shroudedit.workers.dev" >> $GITHUB_OUTPUT
-              echo "staging_branch_alias_url=https://$BRANCH_ALIAS-staging-frontend.shroudedit.workers.dev" >> $GITHUB_OUTPUT
-              echo "staging_branch_alias_cmd=versions upload --preview-alias $BRANCH_ALIAS-staging ${STAGING_VARS}--var PREVIEW:true --var CF_PAGES_URL:https://$BRANCH_ALIAS-staging-frontend.shroudedit.workers.dev" >> $GITHUB_OUTPUT
+              echo "dev_branch_alias_url=https://$BRANCH_ALIAS-dev-frontend.shroudedit.workers.dev" >> $GITHUB_OUTPUT
+              echo "dev_branch_alias_cmd=versions upload --preview-alias $BRANCH_ALIAS-dev ${DEV_VARS}--var PREVIEW:true --var CF_PAGES_URL:https://$BRANCH_ALIAS-dev-frontend.shroudedit.workers.dev" >> $GITHUB_OUTPUT
             fi
 
-          elif [ "$REF" = "refs/heads/main" ]; then
-            echo "env=staging" >> $GITHUB_OUTPUT
-            echo "url=https://staging.shroudedit.com" >> $GITHUB_OUTPUT
-
-          else
-            # Production env (no preview)
+          elif [ "$TARGET_BRANCH" = "dev" ]; then
+            if [[ ! "$SOURCE_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "PR source branch must be a version such as 1.0.0; received: $SOURCE_BRANCH" >&2
+              exit 1
+            fi
+            echo "env=dev" >> $GITHUB_OUTPUT
+            echo "url=https://dev.shroudedit.com" >> $GITHUB_OUTPUT
+          elif [ "$TARGET_BRANCH" = "prod" ]; then
+            if [[ ! "$SOURCE_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              echo "PR source branch must be a version such as 1.0.0; received: $SOURCE_BRANCH" >&2
+              exit 1
+            fi
             echo "env=production" >> $GITHUB_OUTPUT
             echo "url=https://shroudedit.com" >> $GITHUB_OUTPUT
+          else
+            echo "Unsupported deployment target: $TARGET_BRANCH" >&2
+            exit 1
+          fi
+
+      - name: Check whether this is still the branch head
+        id: current
+        if: ${{ !inputs.preview }}
+        env:
+          TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+          DEPLOY_SHA: ${{ steps.meta.outputs.sha }}
+        run: |
+          git fetch origin "$TARGET_BRANCH"
+          if git diff --quiet "$DEPLOY_SHA" FETCH_HEAD -- \
+            apps/frontend \
+            packages/ui \
+            packages/utils \
+            packages/assets \
+            packages/moderation \
+            packages/api-client \
+            packages/blog \
+            '**/pnpm-*.yaml' \
+            '**/wrangler.jsonc'; then
+            echo "is_current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_current=false" >> "$GITHUB_OUTPUT"
+            echo "Skipping deployment because newer frontend content is already on $TARGET_BRANCH"
           fi
 
       - name: Setup Node
+        if: ${{ inputs.preview == true || steps.current.outputs.is_current == 'true' }}
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: .nvmrc
 
       - name: Enable Corepack
+        if: ${{ inputs.preview == true || steps.current.outputs.is_current == 'true' }}
         run: corepack enable
 
       - name: Inject build variables
+        if: ${{ inputs.preview == true || steps.current.outputs.is_current == 'true' }}
         working-directory: ./apps/frontend
         run: |
-          if [ "${{ steps.meta.outputs.env }}" == "staging" ]; then
-            echo "Injecting staging variables from wrangler.jsonc..."
-            jq -r '.env.staging.vars | to_entries[] | "\(.key)=\(.value)"' wrangler.jsonc >> $GITHUB_ENV
+          if [ "${{ steps.meta.outputs.env }}" == "dev" ]; then
+            echo "Injecting Dev variables from wrangler.jsonc..."
+            jq -r '.env.dev.vars | to_entries[] | "\(.key)=\(.value)"' wrangler.jsonc >> $GITHUB_ENV
           else
             echo "Injecting production variables from wrangler.jsonc..."
             jq -r '.vars | to_entries[] | "\(.key)=\(.value)"' wrangler.jsonc >> $GITHUB_ENV
           fi
 
       - name: Install dependencies
+        if: ${{ inputs.preview == true || steps.current.outputs.is_current == 'true' }}
         working-directory: ./apps/frontend
         run: pnpm install
 
       - name: Build frontend
+        if: ${{ inputs.preview == true || steps.current.outputs.is_current == 'true' }}
         run: pnpm web:build
         env:
-          CF_PAGES_BRANCH: ${{ inputs.head_ref || github.ref_name }}
-          CF_PAGES_COMMIT_SHA: ${{ inputs.head_sha || github.sha }}
+          CF_PAGES_BRANCH: ${{ inputs.head_ref || github.event.pull_request.head.ref || github.ref_name }}
+          CF_PAGES_COMMIT_SHA: ${{ steps.meta.outputs.sha }}
           CF_PAGES_URL: ${{ steps.meta.outputs.url }}
           BUILD_ENV: ${{ steps.meta.outputs.env }}
           PREVIEW: ${{ inputs.preview && 'true' || 'false' }}
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
 
       - name: Create Sentry release and upload sourcemaps
+        if: ${{ inputs.preview == true || steps.current.outputs.is_current == 'true' }}
         uses: getsentry/action-release@ff07929a6537bac57790c3451cf4d364aca38528 # v3.7.0
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
@@ -135,6 +200,7 @@ jobs:
           url_prefix: '~/'
 
       - name: Install Wrangler CLI
+        if: ${{ inputs.preview == true || steps.current.outputs.is_current == 'true' }}
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
@@ -144,70 +210,68 @@ jobs:
           wranglerVersion: '4.112.0'
           command: --version
 
-      - parallel:
-          - name: Deploy Cloudflare Worker
-            id: wrangler
-            uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-            with:
-              apiToken: ${{ secrets.CF_API_TOKEN }}
-              accountId: ${{ secrets.CF_ACCOUNT_ID }}
-              environment: ${{ steps.meta.outputs.env != 'production' && steps.meta.outputs.env || '' }}
-              workingDirectory: ./apps/frontend
-              command: ${{ steps.meta.outputs.cmd }}
+      - name: Deploy Cloudflare Worker
+        if: ${{ inputs.preview == true || steps.current.outputs.is_current == 'true' }}
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          environment: ${{ steps.meta.outputs.env != 'production' && steps.meta.outputs.env || '' }}
+          workingDirectory: ./apps/frontend
+          command: ${{ steps.meta.outputs.cmd }}
 
-          - name: Deploy staging Cloudflare Worker preview
-            if: ${{ inputs.preview }}
-            uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-            with:
-              apiToken: ${{ secrets.CF_API_TOKEN }}
-              accountId: ${{ secrets.CF_ACCOUNT_ID }}
-              workingDirectory: ./apps/frontend
-              command: ${{ steps.meta.outputs.staging_cmd }}
+      - name: Deploy Dev Cloudflare Worker preview
+        if: ${{ inputs.preview }}
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          workingDirectory: ./apps/frontend
+          command: ${{ steps.meta.outputs.dev_cmd }}
 
-          - name: Deploy persistent Cloudflare Worker preview
-            if: ${{ inputs.preview && inputs.branch_alias != '' }}
-            uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-            with:
-              apiToken: ${{ secrets.CF_API_TOKEN }}
-              accountId: ${{ secrets.CF_ACCOUNT_ID }}
-              workingDirectory: ./apps/frontend
-              command: versions upload --preview-alias ${{ inputs.branch_alias }} --var PREVIEW:true --var CF_PAGES_URL:${{ steps.meta.outputs.branch_alias_url }}
+      - name: Deploy persistent Cloudflare Worker preview
+        if: ${{ inputs.preview && inputs.branch_alias != '' }}
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          workingDirectory: ./apps/frontend
+          command: versions upload --preview-alias ${{ inputs.branch_alias }} --var PREVIEW:true --var CF_PAGES_URL:${{ steps.meta.outputs.branch_alias_url }}
 
-          - name: Deploy persistent staging Cloudflare Worker preview
-            if: ${{ inputs.preview && inputs.branch_alias != '' }}
-            uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-            with:
-              apiToken: ${{ secrets.CF_API_TOKEN }}
-              accountId: ${{ secrets.CF_ACCOUNT_ID }}
-              workingDirectory: ./apps/frontend
-              command: ${{ steps.meta.outputs.staging_branch_alias_cmd }}
+      - name: Deploy persistent Dev Cloudflare Worker preview
+        if: ${{ inputs.preview && inputs.branch_alias != '' }}
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          workingDirectory: ./apps/frontend
+          command: ${{ steps.meta.outputs.dev_branch_alias_cmd }}
 
       - name: Purge cache
-        if: github.ref == 'refs/heads/prod'
+        if: ${{ github.event.pull_request.base.ref == 'prod' && !inputs.preview && steps.current.outputs.is_current == 'true' }}
         run: |
           curl -X POST \
             -H "Authorization: Bearer ${{ secrets.CF_API_TOKEN }}" \
             -H "Content-Type: application/json" \
-            --data '{"hosts": ["shroudedit.com", "www.shroudedit.com", "staging.shroudedit.com"]}' \
+            --data '{"hosts": ["shroudedit.com", "www.shroudedit.com", "dev.shroudedit.com"]}' \
             https://api.cloudflare.com/client/v4/zones/e39df17b9c4ef44cbce2646346ee6d33/purge_cache
 
       - name: Write deployment URLs to files
         if: ${{ inputs.preview }}
         run: |
           echo "${{ steps.meta.outputs.url }}" > deployment-url-production.txt
-          echo "${{ steps.meta.outputs.staging_url }}" > deployment-url-staging.txt
+          echo "${{ steps.meta.outputs.dev_url }}" > deployment-url-dev.txt
 
-      - parallel:
-          - name: Upload production deployment URL
-            if: ${{ inputs.preview }}
-            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-            with:
-              name: deployment-url-production
-              path: deployment-url-production.txt
+      - name: Upload production deployment URL
+        if: ${{ inputs.preview }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: deployment-url-production
+          path: deployment-url-production.txt
 
-          - name: Upload staging deployment URL
-            if: ${{ inputs.preview }}
-            uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-            with:
-              name: deployment-url-staging
-              path: deployment-url-staging.txt
+      - name: Upload Dev deployment URL
+        if: ${{ inputs.preview }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: deployment-url-dev
+          path: deployment-url-dev.txt

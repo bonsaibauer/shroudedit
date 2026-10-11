@@ -2438,38 +2438,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "ShroudEditチームの継続的なアップデートで、Mod開発を最高の体験に"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "絶えず進化し続ける"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "閲覧数、ダウンロード数、収益に関する詳細なレポートを確認できます。"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "データと統計"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "検索結果やホームページ、Discordサーバー、そして今後追加される様々なルートを通じて、数千人ものユーザーにあなたのプロジェクトを見つけてもらいましょう！"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "発見"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Minotaurを使ってビルドツールと連携すれば、新バージョンのリリースと同時に自動アップロードが可能です。"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "多様なエコシステム"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "プロジェクトページから広告収益を受け取り、いつでも好きな時に出金できます。"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "収益化"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "チームメンバーを招待し、役割と権限を簡単に管理しましょう"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "チーム管理"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "ランダムなプロジェクトの読み込みに失敗しました :("
@@ -2539,15 +2509,6 @@
   },
   "landing.notifications.version-released": {
     "message": "{gameVersion} 向けのバージョン {version} がリリースされました"
-  },
-  "landing.section.for-creators.description": {
-    "message": "あなたの作品に「オンラインの拠点」を。熱心な多くのプレイヤーにあなたの創造性を届けましょう。"
-  },
-  "landing.section.for-creators.label": {
-    "message": "クリエイター"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "あなたの作品を世界中に共有しましょう"
   },
   "landing.section.for-players.description": {
     "message": "魔法に満ちたバイオームから呪われたダンジョンまで、ゲームプレイを次のレベルへと引き上げるコンテンツが必ず見つかります。"
@@ -2621,17 +2582,17 @@
   "layout.banner.build-fail.ignore": {
     "message": "無視"
   },
+  "layout.banner.dev.description": {
+    "message": "このDevフロントエンドは本番環境のAPIとデータを使用します。ここでの変更はShroudEditの公開コンテンツに影響する可能性があります。"
+  },
+  "layout.banner.dev.title": {
+    "message": "ShroudEdit の Dev 環境を表示しています"
+  },
   "layout.banner.build-fail.title": {
     "message": "ビルド時にAPIからステートを生成できませんでした。"
   },
   "layout.banner.preview.title": {
     "message": "これはShroudEditウェブサイトのプレビューデプロイです。"
-  },
-  "layout.banner.staging.description": {
-    "message": "ステージング環境は、本番のShroudEditデータベースとは完全に分離されています。これはテストやデバッグ目的で使用され、本番環境よりも新しい、開発中のShroudEditバックエンドやフロントエンドのバージョンで動作している可能性があります。"
-  },
-  "layout.banner.staging.title": {
-    "message": "ShroudEditのステージング環境を表示しています"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "請求の情報を更新"
@@ -2692,6 +2653,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "著作権ポリシーとDMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "運営者情報"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "プライバシーポリシー"
@@ -3572,6 +3536,12 @@
   "report.not-for.bug-reports.description": {
     "message": "バグの報告は、<issues-link>issue tracker</issues-link>にて行えます。"
   },
+  "report.not-for.copyright-notice": {
+    "message": "正式な著作権侵害の申し立て"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "<policy-link>著作権ポリシー</policy-link>をご確認ください。"
+  },
   "report.not-for.dmca": {
     "message": "DMCAテイクダウン"
   },
@@ -3589,6 +3559,12 @@
   },
   "report.note.copyright.2": {
     "message": "DMCAに基づく削除要請 (法的措置) を提出する意図であった場合は、当社の<copyright-policy-link>著作権ポリシー</copyright-policy-link>をご参照ください。"
+  },
+  "report.note.copyright.community-report": {
+    "message": "このフォームから送信されるのは、再アップロードされたコンテンツに関するコミュニティ報告であり、正式な法的通知ではありません。"
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "正式な著作権侵害通知を送る場合は、<copyright-policy-link>著作権ポリシー</copyright-policy-link>に従ってください。"
   },
   "report.note.fully-ai-generated.1": {
     "message": "ルールを更新し、AIによって完全に生成されたプロジェクトを禁止しました。クリエイターが完全にAIで生成されたプロジェクトを更新または削除するための一定の猶予期間を設けています。そのため、猶予期間が終了するまで、完全にAIで生成されたプロジェクトに関する報告は受け付けません。"
@@ -4745,6 +4721,9 @@
   "version.package-as-mod.submit-button": {
     "message": "データパックをパッケージ化する\n"
   },
+  "version.schematic.sfbp-installation": {
+    "message": ".sfbp ファイルをダウンロードし、ShroudForge World Editor を開いて「blueprint をインポート」を選び、ダウンロードしたファイルを選択してください。"
+  },
   "version.section.content.dev-info": {
     "message": "開発者情報\n"
   },
@@ -4768,5 +4747,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "不明な埋め込みコンテンツが含まれているため保留中"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": ".sfbp ファイルは変更せずにアップロードされます。この情報は ShroudEdit 上の ShroudForge World Editor の blueprint を説明します。"
   }
 }

@@ -2462,38 +2462,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "احصل على أفضل تجربة مودات ممكنة مع تحديثات مستمرة من فريق مودرنث"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "يتطور باستمرار"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "احصل على تقارير مفصلة حول عدد مشاهدات الصفحات، وعدد التنزيلات، والإيرادات"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "البيانات والإحصاءات"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "اجعل مشروعك معروفًا لدى آلاف المستخدمين من خلال البحث، وصفحتنا الرئيسية، وخادم Discord، والمزيد من الطرق التي ستأتي في المستقبل!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "اكتشاف"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "قم بالتكامل مع أدوات البناء الخاصة بك من خلال Minotaur لتحميل الملفات تلقائيًا فور إصدار نسخة جديدة."
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "نظام بيئي متنوع"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "احصل على عائدات إعلانية مدفوعة من صفحات مشروعك واسحب أموالك في أي وقت"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "تحقيق الربح"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "قم بدعوة زملائك في الفريق وإدارة الأدوار والصلاحيات بسهولة"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "إدارة الفريق"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "فشل تحميل المشاريع العشوائية :("
@@ -2563,15 +2533,6 @@
   },
   "landing.notifications.version-released": {
     "message": "تم إصدار النسخة {version} لجهاز {gameVersion}"
-  },
-  "landing.section.for-creators.description": {
-    "message": "Give an online home to your creations and reach a massive audience of dedicated players."
-  },
-  "landing.section.for-creators.label": {
-    "message": ""
-  },
-  "landing.section.for-creators.tagline": {
-    "message": ""
   },
   "landing.section.for-players.description": {
     "message": "من المناطق الأحيائية السحرية إلى الزنزانات الملعونة، ستجد بالتأكيد محتوى يرتقي بتجربة لعبك إلى مستوى جديد."
@@ -2651,17 +2612,17 @@
   "layout.banner.build-fail.title": {
     "message": "حدث خطأ أثناء إنشاء الحالة من واجهة برمجة التطبيقات API عند الإنشاء."
   },
+  "layout.banner.dev.description": {
+    "message": "تستخدم واجهة Dev الأمامية واجهات برمجة التطبيقات والبيانات الإنتاجية. قد تؤثر التغييرات هنا في محتوى ShroudEdit المنشور."
+  },
+  "layout.banner.dev.title": {
+    "message": "أنت تشاهد بيئة ShroudEdit Dev"
+  },
   "layout.banner.preview.description": {
     "message": "إذا كنت تقصد الوصول إلى موقع ShroudEdit الرسمي، فتفضل بزيارة {url}. تم إعداد هذا الإصدار التجريبي لاستخدامه من قِبل موظفي ShroudEdit لأغراض الاختبار. وقد تم إنشاؤه باستخدام {ref}."
   },
   "layout.banner.preview.title": {
     "message": "هذا إصدار تجريبي من موقع ShroudEdit."
-  },
-  "layout.banner.staging.description": {
-    "message": "بيئة الاختبار منفصلة تمامًا عن قاعدة بيانات مودرنث الإنتاجية. تُستخدم هذه البيئة للاختبار وتصحيح الأخطاء، وقد تعمل بإصدارات تطويرية من واجهة مودرنث الأمامية أو الخلفية أحدث من النسخة الإنتاجية."
-  },
-  "layout.banner.staging.title": {
-    "message": "أنت الآن تشاهد بيئة الاختبار الخاصة بمودرنث"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "تحديث معلومات الفوترة"
@@ -2737,6 +2698,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "سياسة حقوق النشر و DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "الإشعار القانوني"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "سياسة الخصوصية"
@@ -3578,6 +3542,12 @@
   "report.go-to-report": {
     "message": "الذَّهاب إلى التقرير"
   },
+  "report.not-for.copyright-notice": {
+    "message": "إشعارات حقوق الطبع والنشر الرسمية"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "اطّلع على <policy-link>سياسة حقوق الطبع والنشر</policy-link>."
+  },
   "report.not-for.bug-reports": {
     "message": "تقارير الخلل"
   },
@@ -3616,5 +3586,17 @@
   },
   "settings.authorizations.unofficial-disclosure": {
     "message": "هذا التطبيق غير تابع لـ ShroudEdit بأي شكل من الأشكال، رغم اسمه."
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "يُرفع ملف ‎.sfbp‎ دون تغيير. تصف هذه التفاصيل مخطط ShroudForge World Editor على ShroudEdit."
+  },
+  "report.note.copyright.community-report": {
+    "message": "يرجى ملاحظة أن هذا النموذج يرسل بلاغًا مجتمعيًا عن محتوى أُعيد رفعه، وليس إشعارًا قانونيًا رسميًا."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "لتقديم إشعار رسمي بانتهاك حقوق الطبع والنشر، يُرجى اتباع <copyright-policy-link>سياسة حقوق الطبع والنشر</copyright-policy-link>."
+  },
+  "version.schematic.sfbp-installation": {
+    "message": "نزّل ملف ‎.sfbp‎، وافتح ShroudForge World Editor، واختر استيراد مخطط، ثم حدّد الملف الذي نزّلته."
   }
 }

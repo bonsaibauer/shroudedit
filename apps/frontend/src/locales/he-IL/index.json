@@ -1277,38 +1277,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "קבל את חוויית המודים הכי טובה שאפשר עם עדכונים שוטפים מצוות ShroudEdit"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "בפיתוח מתמיד"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "קבלו דוחות מפורטים על כניסות לדפים, מספר הורדות והכנסות כספיות"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "נתונים וסטטיסטיקות"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "תנו לפרויקט שלכם להתגלות על ידי אלפי משתמשים דרך החיפוש, עמוד הבית שלנו, שרת הדיסקורד, ועוד דרכים נוספות שיגיעו בעתיד!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "חשיפה"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "שלבו את כלי הבנייה שלכם באמצעות Minotaur, ותיהנו מהעלאות אוטומטיות מיד עם שחרור גרסה חדשה"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "מערכת אקולוגית מגוונת"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "קבלו הכנסות מפרסומות בדפי הפרויקט שלכם ומשכו את הכספים בכל עת"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "ייצור הכנסות"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "הזמינו את חברי הצוות שלכם ונהלו תפקידים והרשאות בקלות"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "ניהול צוות"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "נכשל בניסיון טעינת פרויקטים אקראיים :("
@@ -1379,15 +1349,6 @@
   "landing.notifications.version-released": {
     "message": "גרסא {version} יצאה לגרסאת המשחק {gameVersion}"
   },
-  "landing.section.for-creators.description": {
-    "message": "תנו בית ליצירות שלכם והגיעו לקהל עצום של שחקנים מסורים."
-  },
-  "landing.section.for-creators.label": {
-    "message": "ליוצרים"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "שתפו את התוכן שלכם עם העולם"
-  },
   "landing.section.for-players.description": {
     "message": "מביומות קסומות למערות מקוללות, אפשר להיות בטוח שתמצא את התוכן כדי להביא את המשחק שלך לשלב הבא."
   },
@@ -1451,17 +1412,17 @@
   "layout.banner.build-fail.description": {
     "message": "פריסה זו של ממשק ה-Frontend של ShroudEdit נכשלה ביצירת נתונים מהAPI. ייתכן שהדבר נובע מהשבתה או משגיאה בהגדרות. יש לבצע בנייה מחדש כאשר ה-API יהיה זמין. קודי שגיאה: {errors}; כתובת ה-API הנוכחית היא: {url}"
   },
+  "layout.banner.dev.description": {
+    "message": "ממשק ה־Dev הזה משתמש בממשקי ה־API ובנתונים של סביבת הייצור. שינויים כאן עשויים להשפיע על התוכן שפורסם ב־ShroudEdit."
+  },
+  "layout.banner.dev.title": {
+    "message": "אתם צופים בסביבת ה־Dev של ShroudEdit"
+  },
   "layout.banner.build-fail.title": {
     "message": "שגיאה ביצירת נתונים מהAPI במהלך הבנייה."
   },
   "layout.banner.preview.title": {
     "message": "זוהי פריסת תצוגה מקדימה של אתר ShroudEdit."
-  },
-  "layout.banner.staging.description": {
-    "message": "סביבת ההפעלה (staging) נפרדת לחלוטין ממסד הנתונים של ShroudEdit בתקופת הייצור. מסד הנתונים משמש למטרות בדיקה וניפוי שגיאות, וייתכן שהוא מפעיל גרסאות פיתוח של קצה השרת או הקצה הקדמי של ShroudEdit, חדשות יותר מדגם הייצור."
-  },
-  "layout.banner.staging.title": {
-    "message": "אתה צופה בסביבת הבימוי של ShroudEdit"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "עדכן את פרטי החיוב"
@@ -1513,6 +1474,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "מדיניות זכויות יוצרים ו-DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "מידע משפטי"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "מדיניות הפרטיות"
@@ -2045,11 +2009,23 @@
   "report.not-for.bug-reports.description": {
     "message": "ניתן לדווח על באגים ב-<issues-link>מערכת ניהול התקלות</issues-link> שלהם."
   },
+  "report.not-for.copyright-notice": {
+    "message": "הודעות רשמיות בנושא זכויות יוצרים"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "עיינו ב־<policy-link>מדיניות זכויות היוצרים</policy-link> שלנו."
+  },
   "report.not-for.dmca": {
     "message": "בקשות להסרת תוכן (DMCA)"
   },
   "report.not-for.dmca.description": {
     "message": "לפרטים נוספים, עיינו ב<policy-link>מדיניות זכויות היוצרים</policy-link> שלנו."
+  },
+  "report.note.copyright.community-report": {
+    "message": "שימו לב: הטופס הזה שולח דיווח קהילתי על תוכן שהועלה מחדש, ולא הודעה משפטית רשמית."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "לשליחת הודעה רשמית על הפרת זכויות יוצרים, פעלו לפי <copyright-policy-link>מדיניות זכויות היוצרים</copyright-policy-link> שלנו."
   },
   "report.note.copyright.1": {
     "message": "לתשומת לבך: אינך מגיש בקשה להסרת תוכן (DMCA), אלא דיווח על תוכן שהועלה מחדש."
@@ -2287,5 +2263,11 @@
   },
   "settings.pats.modal.create.name.label": {
     "message": "שם"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "קובץ ‎.sfbp‎ מועלה ללא שינוי. הפרטים האלה מתארים את ה־blueprint שנוצר ב־ShroudForge World Editor ב־ShroudEdit."
+  },
+  "version.schematic.sfbp-installation": {
+    "message": "הורידו את קובץ ‎.sfbp‎, פתחו את ShroudForge World Editor, בחרו בייבוא blueprint ובחרו את הקובץ שהורדתם."
   }
 }

@@ -54,11 +54,8 @@
 				flags.showAllBanners || (config.public.buildEnv === 'production' && config.public.preview)
 			"
 		/>
-		<StagingBanner
-			v-if="
-				flags.showAllBanners ||
-				config.public.apiBaseUrl.startsWith('https://staging-api.shroudedit.com')
-			"
+		<DevBanner
+			v-if="flags.showAllBanners || config.public.buildEnv === 'dev'"
 		/>
 		<GeneratedStateErrorsBanner
 			:errors="generatedStateErrors"
@@ -704,7 +701,6 @@ import {
 	LogInIcon,
 	LogOutIcon,
 	MailIcon,
-	ShroudEditIcon,
 	MoonIcon,
 	OrganizationIcon,
 	OrganizationPlusIcon,
@@ -716,10 +712,11 @@ import {
 	ServerIcon,
 	ServerPlusIcon,
 	ServerSearchIcon,
-	TagCategoryWorldgenIcon as WorldGenIcon,
 	SettingsIcon,
 	ShieldAlertIcon,
+	ShroudEditIcon,
 	SunIcon,
+	TagCategoryWorldgenIcon as WorldGenIcon,
 	ToggleRightIcon,
 	TransferIcon,
 	UserIcon,
@@ -734,9 +731,9 @@ import {
 	commonProjectTypeCategoryMessages,
 	commonSettingsMessages,
 	defineMessages,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectPageContext,
+	injectShroudEditClient,
 	injectUserPreferences,
 	providePageContext,
 	TeleportOverflowMenu,
@@ -750,9 +747,9 @@ import { useQuery } from '@tanstack/vue-query'
 import { getTaxThreshold } from '@/providers/creator-withdraw.ts'
 import TextLogo from '~/components/brand/TextLogo.vue'
 import BatchCreditModal from '~/components/ui/admin/BatchCreditModal.vue'
+import DevBanner from '~/components/ui/banner/DevBanner.vue'
 import GeneratedStateErrorsBanner from '~/components/ui/banner/GeneratedStateErrorsBanner.vue'
 import PreviewBanner from '~/components/ui/banner/PreviewBanner.vue'
-import StagingBanner from '~/components/ui/banner/StagingBanner.vue'
 import TaxComplianceBanner from '~/components/ui/banner/TaxComplianceBanner.vue'
 import TaxIdMismatchBanner from '~/components/ui/banner/TaxIdMismatchBanner.vue'
 import VerifyEmailBanner from '~/components/ui/banner/VerifyEmailBanner.vue'

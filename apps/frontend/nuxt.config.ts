@@ -6,8 +6,8 @@ import svgLoader from 'vite-svg-loader'
 
 import { GenericShroudEditClient, type Labrinth } from '../../packages/api-client/src/index.ts'
 
-const STAGING_API_URL = 'https://staging-api.shroudedit.com/v2/'
-const STAGING_SHARED_INSTANCES_API_URL = 'https://staging-shared-instances.shroudedit.com'
+const PROD_API_URL = 'https://api.shroudedit.com/v2/'
+const PROD_SHARED_INSTANCES_API_URL = 'https://shared-instances.shroudedit.com'
 const API_CLIENT_SOURCE = fileURLToPath(
 	new URL('../../packages/api-client/src/index.ts', import.meta.url),
 )
@@ -20,7 +20,7 @@ const preloadedFonts = [
 ]
 
 const PROD_SHROUDEDIT_URL = 'https://shroudedit.com'
-const STAGING_SHROUDEDIT_URL = 'https://staging.shroudedit.com'
+const DEV_SHROUDEDIT_URL = 'https://dev.shroudedit.com'
 
 export default defineNuxtConfig({
 	srcDir: 'src/',
@@ -151,7 +151,7 @@ export default defineNuxtConfig({
 
 			await fs.writeFile('./src/generated/state.json', JSON.stringify(state))
 
-			// throw if errors and building for prod (preview & staging allowed to have errors)
+			// throw if errors and building for prod (preview & Dev allowed to have errors)
 			if (
 				process.env.BUILD_ENV === 'production' &&
 				process.env.PREVIEW !== 'true' &&
@@ -333,7 +333,7 @@ export default defineNuxtConfig({
 
 function getApiUrl() {
 	// @ts-ignore
-	return process.env.BROWSER_BASE_URL ?? globalThis.BROWSER_BASE_URL ?? STAGING_API_URL
+	return process.env.BROWSER_BASE_URL ?? globalThis.BROWSER_BASE_URL ?? PROD_API_URL
 }
 
 function getSharedInstancesApiUrl() {
@@ -341,7 +341,7 @@ function getSharedInstancesApiUrl() {
 		process.env.SHARED_INSTANCES_API_BASE_URL ??
 		// @ts-ignore
 		globalThis.SHARED_INSTANCES_API_BASE_URL ??
-		STAGING_SHARED_INSTANCES_API_URL
+		PROD_SHARED_INSTANCES_API_URL
 	)
 }
 
@@ -364,12 +364,12 @@ function getFeatureFlagOverrides() {
 
 function getDomain() {
 	if (process.env.NODE_ENV === 'production') {
-		if (process.env.HEROKU_APP_NAME) {
+		if (process.env.BUILD_ENV === 'dev') {
+			return DEV_SHROUDEDIT_URL
+		} else if (process.env.HEROKU_APP_NAME) {
 			return `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`
 		} else if (process.env.VERCEL_URL) {
 			return `https://${process.env.VERCEL_URL}`
-		} else if (getApiUrl() === STAGING_API_URL) {
-			return STAGING_SHROUDEDIT_URL
 		} else {
 			return PROD_SHROUDEDIT_URL
 		}

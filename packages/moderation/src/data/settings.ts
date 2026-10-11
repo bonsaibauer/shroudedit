@@ -52,7 +52,7 @@ const settings = {
 			id: 'alternative-hostname',
 			title: 'Alternative hostname',
 			description:
-				'When Open production/staging is used on an official host, open this hostname instead. Example: localhost:3000',
+				'When Open production/dev is used on an official host, open this hostname instead. Example: localhost:3000',
 			default: null,
 		}),
 	},

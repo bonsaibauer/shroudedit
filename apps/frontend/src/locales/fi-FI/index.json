@@ -683,24 +683,6 @@
   "landing.button.discover-mods": {
     "message": "Löydä modeja"
   },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Saa yksityiskohtaisia raportteja sivun katselukerroista, latausten määristä ja tulosta"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Data ja Tilastot"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Tutustuminen"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Monetisointi"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Kutsu tiimiläisesi ja hallinnoi rooleja sekä lupia kätevästi"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Tiimin Hallinta"
-  },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Satunnaisten projektien lataaminen epäonnistui :("
   },
@@ -749,9 +731,6 @@
   "landing.notifications.heading": {
     "message": "Ilmoitukset"
   },
-  "landing.section.for-creators.label": {
-    "message": "Luojille"
-  },
   "landing.section.for-players.label": {
     "message": "Pelaajille"
   },
@@ -791,8 +770,14 @@
   "layout.footer.legal": {
     "message": "Oikeudelliset tiedot"
   },
+  "layout.footer.legal.copyright-policy": {
+    "message": "Tekijänoikeuskäytäntö"
+  },
   "layout.footer.legal.rules": {
     "message": "Sisältö Säännöt"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Oikeudelliset tiedot"
   },
   "layout.footer.legal.terms-of-use": {
     "message": "Käyttöehdot"
@@ -944,6 +929,12 @@
   "report.go-to-report": {
     "message": "Mene raporttiin"
   },
+  "report.not-for.copyright-notice": {
+    "message": "Viralliset tekijänoikeusilmoitukset"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Katso <policy-link>tekijänoikeuskäytäntömme</policy-link>."
+  },
   "report.not-for.bug-reports": {
     "message": "Virhe raportit"
   },
@@ -997,5 +988,23 @@
   },
   "settings.sessions.unknown-os": {
     "message": "Tuntematon käyttöjärjestelmä"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": ".sfbp-tiedosto ladataan sellaisenaan. Nämä tiedot kuvaavat ShroudForge World Editorin blueprintiä ShroudEditissä."
+  },
+  "layout.banner.dev.description": {
+    "message": "Tämä Dev-käyttöliittymä käyttää tuotannon rajapintoja ja tietoja. Täällä tehdyt muutokset voivat vaikuttaa ShroudEditin julkaistuun sisältöön."
+  },
+  "layout.banner.dev.title": {
+    "message": "Katselet ShroudEditin Dev-ympäristöä"
+  },
+  "report.note.copyright.community-report": {
+    "message": "Huomaa, että tällä lomakkeella ilmoitetaan yhteisölle uudelleen ladatusta sisällöstä. Se ei ole virallinen oikeudellinen ilmoitus."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Tee virallinen tekijänoikeusloukkausilmoitus <copyright-policy-link>tekijänoikeuskäytäntömme</copyright-policy-link> mukaisesti."
+  },
+  "version.schematic.sfbp-installation": {
+    "message": "Lataa .sfbp-tiedosto, avaa ShroudForge World Editor, valitse Tuo blueprint ja valitse ladattu tiedosto."
   }
 }

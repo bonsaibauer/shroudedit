@@ -1,10 +1,6 @@
 import '../../assets/styles/defaults.scss'
-// frontend css imports
-// import '../../../apps/frontend/src/assets/styles/global.scss'
-// import '../../../apps/frontend/src/assets/styles/tailwind.css'
-// ---
-// app-frontend css imports
-import '../../../apps/app-frontend/src/assets/stylesheets/global.scss'
+import '../../../apps/frontend/src/assets/styles/global.scss'
+import '../../../apps/frontend/src/assets/styles/tailwind.css'
 import './preview.scss'
 
 import type { Labrinth } from '@shroudedit/api-client'
@@ -34,9 +30,9 @@ import {
 	type NotificationPanelLocation,
 	type PopupNotification,
 	provideFilePicker,
-	provideShroudEditClient,
 	provideNotificationManager,
 	providePopupNotificationManager,
+	provideShroudEditClient,
 	provideTags,
 	type WebNotification,
 } from '../src/providers'

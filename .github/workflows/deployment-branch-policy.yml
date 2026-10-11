@@ -1,0 +1,36 @@
+name: Deployment branch policy
+
+on:
+  pull_request:
+    branches: [dev, prod]
+    types: [opened, synchronize, reopened, ready_for_review]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  version-branch:
+    name: Version branch only
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Validate deployment PR
+        if: github.event_name == 'pull_request'
+        uses: ./.github/actions/validate-deployment-pr
+        with:
+          source-branch: ${{ github.event.pull_request.head.ref }}
+          source-sha: ${{ github.event.pull_request.head.sha }}
+          source-repository: ${{ github.event.pull_request.head.repo.full_name }}
+          target-branch: ${{ github.event.pull_request.base.ref }}
+          repository: ${{ github.repository }}
+          api-url: ${{ github.api_url }}
+          github-token: ${{ github.token }}
+
+      - name: Accept merge queue commit after PR validation
+        if: github.event_name == 'merge_group'
+        run: echo "Source branches are validated on pull requests before entering the merge queue"

@@ -1010,38 +1010,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Obține cea mai bună experiență posibilă, cu actualizări constante de la echipa ShroudEdit."
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Evoluare Constantă"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Primește raporturi detaliate despre vizualizări, număr de descărcări, și încasări."
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Date și Statistici"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Fă-ți proiectul descoperit de mii de utilizatori prin căutări, pagina noastră de acasă, serverul de Discord, și mai multe modalități care vor veni în viitor!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Descoperă"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Integrează-te cu uneltele tale de construire prin Minotaur pentru încărcări automate imediat ce lansezi o versiune nouă."
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Ecosistem Diversificat"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Primește venituri din reclame de pe paginile proiectului tău și retrage fondurile în orice moment."
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Monetizare"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Invită-ți colegii și gestionează rolurile și permisiunile cu ușurință."
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Administrează Echipa"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Încărcarea proiectelor aleatoare a eșuat :("
@@ -1112,15 +1082,6 @@
   "landing.notifications.version-released": {
     "message": "Versiunea {version} a fost lansată pentru {gameVersion}"
   },
-  "landing.section.for-creators.description": {
-    "message": "Oferă o casă online creațiilor tale și ajungi la o audiență masivă de jucători dedicați."
-  },
-  "landing.section.for-creators.label": {
-    "message": "Pentru Creatori"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Distribuie conținutul tău cu toată lumea"
-  },
   "landing.section.for-players.description": {
     "message": "De la monștrii nemiloși la temnițe blestemate, poți să fi sigur că găsești conținut să-ți aducă satisfacția jocului la următorul nivel."
   },
@@ -1166,14 +1127,14 @@
   "layout.banner.build-fail.description": {
     "message": "Această implementare a interfeței ShroudEdit a eșuat în generarea stării din API. Acest lucru poate fi cauzat de o întrerupere sau de o eroare de configurare. Reconstruiește atunci când API-ul este disponibil. Coduri de eroare: {errors}; URL-ul curent al API-ului este: {url}"
   },
+  "layout.banner.dev.description": {
+    "message": "Acest frontend Dev folosește API-urile și datele de producție. Modificările făcute aici pot afecta conținutul publicat pe ShroudEdit."
+  },
+  "layout.banner.dev.title": {
+    "message": "Vizualizezi mediul Dev ShroudEdit"
+  },
   "layout.banner.build-fail.title": {
     "message": "Eroare la generarea stării din API în timpul construirii."
-  },
-  "layout.banner.staging.description": {
-    "message": "Mediul de stagiu este complet separat de baza de date ShroudEdit de producție. Acesta este folosit pentru testare și depanare și poate rula versiuni în dezvoltare ale backend-ului sau frontend-ului ShroudEdit, mai noi decât instanța de producție."
-  },
-  "layout.banner.staging.title": {
-    "message": "Vizualizați mediul de testare ShroudEdit"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Actualizează informația facturii"
@@ -1222,6 +1183,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Dreptul de autor și DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Informații juridice"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Politica de confidențialitate"
@@ -1670,11 +1634,23 @@
   "report.not-for.bug-reports.description": {
     "message": "Poți raporta erori în <issues-link>tracker-ul de probleme</issues-link> al acestora."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Notificări oficiale privind drepturile de autor"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Consultă <policy-link>Politica noastră privind drepturile de autor</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "Retrageri DMCA"
   },
   "report.not-for.dmca.description": {
     "message": "Vezi <policy-link>Politica noastră de Drepturi de Autor</policy-link>."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Acest formular trimite o sesizare a comunității despre conținut reîncărcat, nu o notificare juridică oficială."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Pentru o notificare oficială privind încălcarea drepturilor de autor, urmează <copyright-policy-link>Politica noastră privind drepturile de autor</copyright-policy-link>."
   },
   "report.note.copyright.1": {
     "message": "Te rugăm să reții că *nu* trimiți o cerere de retragere DMCA, ci mai degrabă un raport privind conținutul reîncărcat."
@@ -2167,5 +2143,11 @@
   },
   "ui.latest-news-row.view-all": {
     "message": "Vedeți toate noutățile"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "Fișierul .sfbp este încărcat fără modificări. Aceste detalii descriu blueprintul din ShroudForge World Editor pe ShroudEdit."
+  },
+  "version.schematic.sfbp-installation": {
+    "message": "Descarcă fișierul .sfbp, deschide ShroudForge World Editor, alege Importă blueprint și selectează fișierul descărcat."
   }
 }

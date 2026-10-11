@@ -31,7 +31,7 @@ const copyProjectLink = async (
 
 function isOfficialShroudEditHost(): boolean {
 	const host = globalThis.location?.hostname
-	return host === 'shroudedit.com' || host === 'www.shroudedit.com' || host === 'staging.shroudedit.com'
+	return host === 'shroudedit.com' || host === 'www.shroudedit.com' || host === 'dev.shroudedit.com'
 }
 
 const keybinds: { [id: string]: KeybindListener } = {
@@ -121,7 +121,7 @@ const keybinds: { [id: string]: KeybindListener } = {
 	'open-official-site': {
 		keybind: 'Ctrl+Shift+P',
 		description: isOfficialShroudEditHost()
-			? 'Open current page on production/staging'
+			? 'Open current page on production/dev'
 			: 'Open current page on alternative host',
 		scope: 'global',
 		enabled: (ctx) => !isOfficialShroudEditHost() || !!ctx.alternativeUrl,
@@ -137,8 +137,8 @@ const keybinds: { [id: string]: KeybindListener } = {
 		enabled: () => !isOfficialShroudEditHost(),
 		action: async (ctx) => {
 			await navigator.clipboard.writeText(ctx.officialUrl)
-			const environment = ctx.officialUrl.startsWith('https://staging.shroudedit.com')
-				? 'staging'
+			const environment = ctx.officialUrl.startsWith('https://dev.shroudedit.com')
+				? 'dev'
 				: 'production'
 			ctx.notifyCopied(ctx.officialUrl, `Copied ${environment} URL to clipboard`)
 		},

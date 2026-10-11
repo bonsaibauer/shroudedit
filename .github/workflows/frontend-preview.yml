@@ -2,12 +2,15 @@ name: Deploy frontend preview
 
 on:
   pull_request:
+    branches: [dev, prod]
     paths:
       - 'apps/frontend/**/*'
       - 'packages/ui/**/*'
       - 'packages/utils/**/*'
       - 'packages/assets/**/*'
       - 'packages/moderation/**/*'
+      - 'packages/api-client/**/*'
+      - 'packages/blog/**/*'
       - '**/wrangler.jsonc'
       - '**/pnpm-*.yaml'
       - '.github/workflows/frontend-preview.yml'
@@ -90,24 +93,23 @@ jobs:
           wranglerVersion: '4.112.0'
           command: --version
 
-      - parallel:
-          - name: Deploy Storybook preview
-            uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-            with:
-              apiToken: ${{ secrets.CF_API_TOKEN }}
-              accountId: ${{ secrets.CF_ACCOUNT_ID }}
-              workingDirectory: ./packages/ui
-              command: versions upload --preview-alias git-${{ steps.meta.outputs.sha_short }}
+      - name: Deploy Storybook preview
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          workingDirectory: ./packages/ui
+          command: versions upload --preview-alias git-${{ steps.meta.outputs.sha_short }}
 
-          - name: Deploy persistent Storybook preview
-            uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
-            env:
-              NODE_OPTIONS: --max-old-space-size=6144
-            with:
-              apiToken: ${{ secrets.CF_API_TOKEN }}
-              accountId: ${{ secrets.CF_ACCOUNT_ID }}
-              workingDirectory: ./packages/ui
-              command: versions upload --preview-alias ${{ needs.metadata.outputs.branch-alias }}
+      - name: Deploy persistent Storybook preview
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
+          workingDirectory: ./packages/ui
+          command: versions upload --preview-alias ${{ needs.metadata.outputs.branch-alias }}
 
   comment:
     if: |
@@ -134,9 +136,9 @@ jobs:
           STORYBOOK_RESULT: ${{ needs.deploy-storybook.result }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          STAGING_SHA_URL=$(cat deployment-url-staging.txt)
+          DEV_SHA_URL=$(cat deployment-url-dev.txt)
           PRODUCTION_SHA_URL=$(cat deployment-url-production.txt)
-          STAGING_BRANCH_URL="https://$BRANCH_ALIAS-staging-frontend.shroudedit.workers.dev"
+          DEV_BRANCH_URL="https://$BRANCH_ALIAS-dev-frontend.shroudedit.workers.dev"
           PRODUCTION_BRANCH_URL="https://$BRANCH_ALIAS-frontend.shroudedit.workers.dev"
 
           if [ "$STORYBOOK_RESULT" = "success" ]; then
@@ -147,10 +149,10 @@ jobs:
             STORYBOOK_BRANCH_URL="⚠️ Deployment $STORYBOOK_RESULT ([logs]($RUN_URL))"
           fi
 
-          echo "staging-sha-url=$STAGING_SHA_URL" >> $GITHUB_OUTPUT
+          echo "dev-sha-url=$DEV_SHA_URL" >> $GITHUB_OUTPUT
           echo "production-sha-url=$PRODUCTION_SHA_URL" >> $GITHUB_OUTPUT
           echo "storybook-sha-url=$STORYBOOK_SHA_URL" >> $GITHUB_OUTPUT
-          echo "staging-branch-url=$STAGING_BRANCH_URL" >> $GITHUB_OUTPUT
+          echo "dev-branch-url=$DEV_BRANCH_URL" >> $GITHUB_OUTPUT
           echo "production-branch-url=$PRODUCTION_BRANCH_URL" >> $GITHUB_OUTPUT
           echo "storybook-branch-url=$STORYBOOK_BRANCH_URL" >> $GITHUB_OUTPUT
 
@@ -179,7 +181,7 @@ jobs:
 
             | Environment | URL |
             |-------------|-----|
-            | staging     | ${{ steps.urls.outputs.staging-branch-url }} |
+            | dev         | ${{ steps.urls.outputs.dev-branch-url }} |
             | production  | ${{ steps.urls.outputs.production-branch-url }} |
             | storybook   | ${{ steps.urls.outputs.storybook-branch-url }} |
 
@@ -187,7 +189,7 @@ jobs:
 
             | Environment | URL |
             |-------------|-----|
-            | staging     | ${{ steps.urls.outputs.staging-sha-url }} |
+            | dev         | ${{ steps.urls.outputs.dev-sha-url }} |
             | production  | ${{ steps.urls.outputs.production-sha-url }} |
             | storybook   | ${{ steps.urls.outputs.storybook-sha-url }} |
           edit-mode: replace

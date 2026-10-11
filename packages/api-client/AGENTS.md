@@ -1,6 +1,6 @@
 # @shroudedit/api-client
 
-Platform-agnostic API client for ShroudEdit's services. Works in Nuxt (SSR + CSR), Tauri (desktop app), and plain Node/browser environments.
+API client for ShroudEdit's services. Works in Nuxt (SSR + CSR) and plain Node/browser environments. Its generic and Tauri adapters remain available to external clients, including the separate ShroudForge launcher if it uses this package.
 
 ## Architecture
 
@@ -65,15 +65,11 @@ this.client.request<MyType>('/endpoint', {
 
 ## Usage
 
-The client is provided to the component tree via DI (see `standards/frontend/DEPENDENCY_INJECTION.md`). Each app creates a platform-specific client and provides it at the root:
+The website provides its client to the component tree through `packages/ui/src/providers/api-client.ts`:
 
 ```ts
-// apps/frontend/src/app.vue (Nuxt)
+// Website setup
 const client = new NuxtShroudEditClient({ ... })
-provideShroudEditClient(client)
-
-// apps/app-frontend/src/App.vue (Tauri)
-const client = new TauriShroudEditClient({ ... })
 provideShroudEditClient(client)
 ```
 

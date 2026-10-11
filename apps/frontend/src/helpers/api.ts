@@ -15,7 +15,6 @@ import type { Ref } from 'vue'
 
 import { useFeatureFlags } from '~/composables/featureFlags.ts'
 import { useVisitorUserAgent } from '~/composables/visitor-user-agent.ts'
-import { withStagingArchonBaseUrl } from '~/helpers/archon.ts'
 import { readEnv } from '~/helpers/env.ts'
 import { getFrontendUserAgent, VISITOR_USER_AGENT_HEADER } from '~/helpers/user-agent.ts'
 
@@ -37,8 +36,7 @@ export function createShroudEditClient(
 
 	const clientConfig: NuxtClientConfig = {
 		labrinthBaseUrl: config.apiBaseUrl,
-		archonBaseUrl: () =>
-			withStagingArchonBaseUrl(config.archonBaseUrl, flags.value.archonApiStaging),
+		archonBaseUrl: () => config.archonBaseUrl,
 		sharedInstancesBaseUrl: config.sharedInstancesBaseUrl,
 		userAgent: () => (import.meta.server ? getFrontendUserAgent(config.commitHash) : undefined),
 		headers: visitorUserAgent ? { [VISITOR_USER_AGENT_HEADER]: visitorUserAgent } : undefined,

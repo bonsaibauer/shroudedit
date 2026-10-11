@@ -2561,38 +2561,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Obtenha a melhor experiência possível de mods com atualizações constantes da equipe do ShroudEdit"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Evolução constante"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Tenha acesso a relatórios detalhados sobre visualizações de páginas, contagens de downloads e receita"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Dados e estatísticas"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Faça com que seu projeto seja descoberto por milhares de usuários nas buscas, em nossa página inicial, no servidor de Discord e muitas outras formas que chegarão no futuro!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Descoberta"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Integre, em suas ferramentas de compilação, o Minotaur, para que ele envie automaticamente seu projeto quando você lançar uma nova versão"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Ecossistema diverso"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Seja pago com a receita de anúncios das páginas do seu projeto e saque seus fundos a qualquer momento"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Monetização"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Convide seus colegas de equipe e gerencie cargos e permissões com facilidade"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Gerenciamento de equipe"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Falha ao carregar projetos aleatórios :("
@@ -2662,15 +2632,6 @@
   },
   "landing.notifications.version-released": {
     "message": "Versão {version} lançada para {gameVersion}"
-  },
-  "landing.section.for-creators.description": {
-    "message": "Dê um lar ativo para suas criações e alcance um enorme público de jogadores dedicados."
-  },
-  "landing.section.for-creators.label": {
-    "message": "Para criadores"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Compartilhe seu conteúdo com o mundo"
   },
   "landing.section.for-players.description": {
     "message": "De biomas mágicos a masmorras amaldiçoadas, você certamente encontrará o conteúdo certo para levar a sua jogatina ao próximo nível."
@@ -2756,17 +2717,17 @@
   "layout.banner.build-fail.title": {
     "message": "Erro ao gerar o estado da API durante a compilação."
   },
+  "layout.banner.dev.description": {
+    "message": "Este frontend Dev usa as APIs e os dados de produção. As alterações feitas aqui podem afetar o conteúdo publicado do ShroudEdit."
+  },
+  "layout.banner.dev.title": {
+    "message": "Você está vendo o ambiente Dev do ShroudEdit"
+  },
   "layout.banner.preview.description": {
     "message": "Se você pretendia acessar o site oficial do ShroudEdit, visite {url}. Essa versão de pré-lançamento é usada pela equipe da ShroudEdit para fins de teste. Ela foi criada usando {ref}."
   },
   "layout.banner.preview.title": {
     "message": "Esta é uma versão de pré-lançamento do site ShroudEdit."
-  },
-  "layout.banner.staging.description": {
-    "message": "O ambiente de desenvolvimento é completamente separado do banco de dados padrão do ShroudEdit. Ele é usado para testes e depurações, e pode estar rodando versões mais novas, em desenvolvimento, do backend ou frontend do ShroudEdit."
-  },
-  "layout.banner.staging.title": {
-    "message": "Você está visualizando o ambiente de desenvolvimento do ShroudEdit"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Atualizar informações de cobrança"
@@ -2842,6 +2803,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Política de direitos autorais e DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Aviso legal"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Política de privacidade"
@@ -4418,6 +4382,12 @@
   "report.not-for.bug-reports.description": {
     "message": "Você pode relatar erros no <issues-link>rastreador de problemas</issues-link>."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Notificações formais de direitos autorais"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Consulte nossa <policy-link>Política de Direitos Autorais</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "Remoções de DMCA"
   },
@@ -4435,6 +4405,12 @@
   },
   "report.note.copyright.2": {
     "message": "Se você pretendia registrar uma solicitação de remoção de DMCA (que é uma ação legal), consulte nossa <copyright-policy-link>Política de direitos autorais</copyright-policy-link>."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Este formulário envia uma denúncia da comunidade sobre conteúdo reenviado, não uma notificação jurídica formal."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Para enviar uma notificação formal de violação de direitos autorais, siga nossa <copyright-policy-link>Política de Direitos Autorais</copyright-policy-link>."
   },
   "report.note.fully-ai-generated.1": {
     "message": "Acabamos de atualizar nossas regras para projetos gerados por IA proibida. Estamos dando aos criadores um período para atualizar ou derrubar projetos totalmente gerados por IA antes de começar a aceitar relatórios para eles."
@@ -5621,6 +5597,9 @@
   "version.package-as-mod.submit-button": {
     "message": "Empacotar pacote de dados"
   },
+  "version.schematic.sfbp-installation": {
+    "message": "Baixe o arquivo .sfbp, abra o ShroudForge World Editor, escolha Importar blueprint e selecione o arquivo baixado."
+  },
   "version.section.content.dev-info": {
     "message": "Informações do desenvolvedor"
   },
@@ -5650,5 +5629,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "Retido devido a conteúdo incorporado desconhecido"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "O arquivo .sfbp é enviado sem alterações. Estes dados descrevem o blueprint do ShroudForge World Editor no ShroudEdit."
   }
 }

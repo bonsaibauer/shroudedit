@@ -37,7 +37,6 @@ import PageHeaderActions from '../../components/base/page-header/page-header-act
 import PageHeaderBadgeItem from '../../components/base/page-header/page-header-badge-item.vue'
 import TagIcon from '../../components/base/TagIcon.vue'
 import TagItem from '../../components/base/TagItem.vue'
-import ServerIcon from '../../components/servers/icons/ServerIcon.vue'
 
 const noop = () => undefined
 const categories = ['adventure', 'magic', 'technology']
@@ -301,7 +300,7 @@ export const BrowseHeader: Story = {
 
 export const ServerPanelRootHeader: Story = {
 	render: () => ({
-		components: { ...pageHeaderComponents, ServerIcon, TeleportOverflowMenu },
+		components: { ...pageHeaderComponents, TeleportOverflowMenu },
 		setup() {
 			return {
 				...pageHeaderIcons,
@@ -313,7 +312,7 @@ export const ServerPanelRootHeader: Story = {
 		template: `
 			<PageHeader title="Survival SMP">
 				<template #leading>
-					<ServerIcon class="size-16 !rounded-xl" :image="serverImage" />
+					<Avatar class="size-16 !rounded-xl" :src="serverImage" alt="Survival SMP" size="64px" />
 				</template>
 
 				<template #metadata>

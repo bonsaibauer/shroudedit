@@ -3,7 +3,7 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<title>ShroudEdit App Ad</title>
+		<title>ShroudEdit advertisement</title>
 		<script src="/inmobi.js"></script>
 		<script src="https://cadmus.script.ac/d14pdm1b7fi5kh/script.js"></script>
 		<script src="https://dn0qt3r0xannq.cloudfront.net/shroudedit-7JfmkEIXEp/shroudedit-longform/prebid-load.js"></script>
@@ -66,31 +66,6 @@
 						},
 					},
 				])
-			})
-
-			// window.addEventListener(
-			//   "message",
-			//   (event) => {
-			//     if (event.data.shroudeditAdClick && window.__TAURI_INTERNALS__) {
-			//       window.__TAURI_INTERNALS__.invoke("plugin:ads|record_ads_click", {});
-			//     }
-			//
-			//     if (event.data.shroudeditOpenUrl && window.__TAURI_INTERNALS__) {
-			//       window.__TAURI_INTERNALS__.invoke("plugin:ads|open_link", {
-			//         path: event.data.shroudeditOpenUrl,
-			//         origin: event.origin,
-			//       });
-			//     }
-			//   },
-			//   false,
-			// );
-
-			window.addEventListener('mousewheel', (event) => {
-				if (window.__TAURI_INTERNALS__) {
-					window.__TAURI_INTERNALS__.invoke('plugin:ads|scroll_ads_window', {
-						scroll: event.deltaY,
-					})
-				}
 			})
 
 			document.addEventListener('contextmenu', (event) => event.preventDefault())

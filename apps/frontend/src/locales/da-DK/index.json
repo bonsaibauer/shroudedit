@@ -1799,38 +1799,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Få den bedste modding oplevelse muligt med konstante opdateringer fra ShroudEdit holdet"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Konstant Udvikling"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Få detaljerede rapporter om sidevisninger, antal downloads, og indtægter"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Data og Statistikker"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Få dit projekt set af tusinder og brugere gennem søgning, på vores forside, Discord server, og flere måder i fremtiden!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Udforsk"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Integrer med dine bygge-værktøjer via Minotaur for automatisk upload, lige når du udgiver en ny version"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Bredt økosystem"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Få betalt reklameindtægter fra dine projektsider og hæv dine penge når som helst"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Monetarisering"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Inviter dine holdkammerater og styr roller og tilladelser nemt"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Teamledelse"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "Fejlede i at indlæse tilfældige projekter :("
@@ -1901,15 +1871,6 @@
   "landing.notifications.version-released": {
     "message": "Version {version} er blevet udgivet til {gameVersion}"
   },
-  "landing.section.for-creators.description": {
-    "message": "Giv et online hjem til dine kreationer og nå ud til et stort publikum af dedikeret spillere."
-  },
-  "landing.section.for-creators.label": {
-    "message": "For Skabere"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Del dit indhold med verden"
-  },
   "landing.section.for-players.description": {
     "message": "Fra magiske biomes til forbandede underjordiske huler kan du være sikker på at finde indhold, der løfter din spiloplevelse til et nyt niveau."
   },
@@ -1961,9 +1922,6 @@
   "layout.banner.add-email.button": {
     "message": "Gå til kontoindstillinger"
   },
-  "layout.banner.staging.title": {
-    "message": "Du ser ShroudEdit's test miljø"
-  },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Opdater betalingsoplysninger"
   },
@@ -2002,6 +1960,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Ophavsretspolitik og DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Juridisk information"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Privatlivspolitik"
@@ -2639,11 +2600,23 @@
   "report.not-for.bug-reports": {
     "message": "Fejl rapporter"
   },
+  "report.not-for.copyright-notice": {
+    "message": "Formelle ophavsretsmeddelelser"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Se vores <policy-link>politik for ophavsret</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "DMCA-fjernelser"
   },
   "report.not-for.dmca.description": {
     "message": "Se vores <policy-link>Politik Om Pphavsret</policy-link>."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Bemærk, at denne formular indsender en fællesskabsrapport om genuploadet indhold, ikke en formel juridisk meddelelse."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Følg vores <copyright-policy-link>politik for ophavsret</copyright-policy-link> for at indsende en formel meddelelse om krænkelse af ophavsretten."
   },
   "report.note.copyright.1": {
     "message": "Bemærk venligst, at du *ikke* indsender en anmodning om fjernelse i henhold til DMCA, men derimod en anmeldelse af genuploadet indhold."
@@ -3347,6 +3320,9 @@
   "version.package-as-mod.submit-button": {
     "message": "Pak datapakke"
   },
+  "version.schematic.sfbp-installation": {
+    "message": "Download .sfbp-filen, åbn ShroudForge World Editor, vælg Importér blueprint, og vælg den downloadede fil."
+  },
   "version.section.content.dev-info": {
     "message": "Udvikler information"
   },
@@ -3364,5 +3340,14 @@
   },
   "version.supplementary-resources.copy-hash-sha512": {
     "message": "Kopier SHA-512"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "Filen .sfbp uploades uændret. Disse oplysninger beskriver blueprintet fra ShroudForge World Editor på ShroudEdit."
+  },
+  "layout.banner.dev.description": {
+    "message": "Dette Dev-frontend bruger produktions-API’er og produktionsdata. Ændringer her kan påvirke ShroudEdits offentliggjorte indhold."
+  },
+  "layout.banner.dev.title": {
+    "message": "Du ser ShroudEdits Dev-miljø"
   }
 }

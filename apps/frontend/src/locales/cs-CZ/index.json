@@ -1808,12 +1808,6 @@
   "landing.button.discover-mods": {
     "message": "Objevit módy"
   },
-  "landing.creator.feature.discovery.title": {
-    "message": "Objev"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Monetizace"
-  },
   "landing.heading.the-place-for-enshrouded.data-packs": {
     "message": "data packy"
   },
@@ -1846,9 +1840,6 @@
   },
   "landing.notifications.heading": {
     "message": "Oznámení"
-  },
-  "landing.section.for-creators.label": {
-    "message": "Pro Tvůrce"
   },
   "landing.section.for-players.label": {
     "message": "Pro hráče"
@@ -1895,14 +1886,14 @@
   "layout.banner.build-fail.ignore": {
     "message": "Ignorovat"
   },
+  "layout.banner.dev.description": {
+    "message": "Toto rozhraní Dev používá produkční API a data. Změny zde mohou ovlivnit zveřejněný obsah ShroudEdit."
+  },
+  "layout.banner.dev.title": {
+    "message": "Prohlížíte si vývojové prostředí ShroudEdit"
+  },
   "layout.banner.build-fail.title": {
     "message": "Chyba generování stavu z API při sestavování."
-  },
-  "layout.banner.staging.description": {
-    "message": "Vývojové prostředí je oddělené od produkční databáze ShroudEditu. Používá se pro testování a odstraňování chyb, a může spouštět právě vyvíjené verze backendu nebo frontendu ShroudEditu, které jsou novější než produkční instance."
-  },
-  "layout.banner.staging.title": {
-    "message": "Sledujete vývojové prostředí ShroudEditu"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Aktualizuje fakturační informace"
@@ -1948,6 +1939,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Zásady autorských práv a DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Právní informace"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Zásady ochrany osobních údajů"
@@ -2534,11 +2528,23 @@
   "report.not-for.bug-reports.description": {
     "message": "Můžete nahlásit chyby na jejich <issues-link>issue trackeru</issues-link>."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Formální oznámení o autorských právech"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Podívejte se na naše <policy-link>zásady autorských práv</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "Stažení kvůli DMCA"
   },
   "report.not-for.dmca.description": {
     "message": "Podívejte se na naše <policy-link>Zásady autorských práv</policy-link>."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Upozorňujeme, že tento formulář slouží k podání komunitního hlášení o znovu nahraném obsahu, nikoli formálního právního oznámení."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Formální oznámení o porušení autorských práv podejte podle našich <copyright-policy-link>zásad autorských práv</copyright-policy-link>."
   },
   "report.note.copyright.1": {
     "message": "Mějte na vědomí, že *neodesíláte* žádost o stažení kvůli DMCA, ale hlášení o znovunahraném obsahu."
@@ -3068,6 +3074,9 @@
   "version.package-as-mod.submit-button": {
     "message": "Zabalit data pack"
   },
+  "version.schematic.sfbp-installation": {
+    "message": "Stáhněte soubor .sfbp, otevřete ShroudForge World Editor, zvolte Importovat blueprint a vyberte stažený soubor."
+  },
   "version.section.content.dev-info": {
     "message": "Informace pro vývojáře"
   },
@@ -3091,5 +3100,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "Zadrženo z důvodu neznámého vloženého obsahu"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "Soubor .sfbp se nahraje beze změn. Tyto údaje popisují blueprint z ShroudForge World Editoru na ShroudEdit."
   }
 }

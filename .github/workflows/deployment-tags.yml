@@ -1,0 +1,60 @@
+name: Create deployment tag
+
+on:
+  pull_request:
+    branches: [dev, prod]
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: read
+
+jobs:
+  create-tag:
+    if: >-
+      ${{
+        github.event.pull_request.merged == true
+        && github.event.pull_request.head.repo.full_name == github.repository
+      }}
+    runs-on: ubuntu-latest
+    env:
+      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+      TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+      DEPLOY_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+    steps:
+      - name: Check out merged commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Validate deployment PR
+        uses: ./.github/actions/validate-deployment-pr
+        with:
+          source-branch: ${{ github.event.pull_request.head.ref }}
+          source-sha: ${{ github.event.pull_request.head.sha }}
+          source-repository: ${{ github.event.pull_request.head.repo.full_name }}
+          target-branch: ${{ github.event.pull_request.base.ref }}
+          repository: ${{ github.repository }}
+          api-url: ${{ github.api_url }}
+          github-token: ${{ github.token }}
+
+      - name: Create immutable environment tag
+        shell: bash
+        run: |
+          deployment_number="$(git rev-list --first-parent --count "$DEPLOY_SHA")"
+          tag="v${SOURCE_BRANCH}-${TARGET_BRANCH}.${deployment_number}"
+
+          if git show-ref --verify --quiet "refs/tags/$tag"; then
+            existing_sha="$(git rev-parse "$tag^{commit}")"
+            if [ "$existing_sha" != "$DEPLOY_SHA" ]; then
+              echo "Git tag $tag already points to a different commit" >&2
+              exit 1
+            fi
+          else
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git tag --annotate "$tag" "$DEPLOY_SHA" --message "Deploy $TARGET_BRANCH v$SOURCE_BRANCH"
+          fi
+
+          git push origin "refs/tags/$tag"

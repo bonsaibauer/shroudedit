@@ -14,16 +14,15 @@
 
 ## Welcome!
 
-ShroudEdit is the website, API, and desktop app for discovering and publishing Enshrouded community projects. This monorepo contains the frontend, Labrinth API, shared UI, app, and API client.
+ShroudEdit is a website and API for discovering and publishing Enshrouded community projects. This monorepo contains the frontend, Labrinth API, shared UI, and API client.
 
-The ShroudEdit API accepts ShroudForge Blueprint (`.sfbp`) V7 files and stores them unchanged. The format and desktop OAuth S256 PKCE upload flow are described in the [SFBP reference](apps/labrinth/SFBP_FORMAT.md).
+The ShroudEdit API accepts ShroudForge Blueprint (`.sfbp`) V7 files and stores them unchanged. The format and OAuth S256 PKCE upload flow for connected editor clients are described in the [SFBP reference](apps/labrinth/SFBP_FORMAT.md).
 
 ## Use ShroudEdit
 
 - [Open the website](https://shroudedit.com)
 - [Browse Enshrouded mods](https://shroudedit.com/discover/mods)
 - [Browse World Editor blueprints](https://shroudedit.com/discover/schematics)
-- [Download the app](https://shroudedit.com/app)
 - [Read the documentation](https://docs.shroudedit.com)
 
 ## Local development
@@ -42,7 +41,6 @@ Read the root [AGENTS.md](AGENTS.md) and the project-level instructions before c
 | --- | --- |
 | `apps/frontend` | ShroudEdit website |
 | `apps/labrinth` | Rust API, accounts, projects, and version uploads |
-| `apps/app` and `apps/app-frontend` | Desktop app and its frontend |
 | `packages/api-client` | Shared API client |
 | `packages/ui` | Shared Vue components |
 | `packages/assets` | Shared icons, illustrations, and styles |

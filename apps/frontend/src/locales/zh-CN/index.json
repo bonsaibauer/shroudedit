@@ -2561,38 +2561,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "ShroudEdit 团队将持续更新，为你提供优质的模组创作体验"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "持续进化"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "获取页面浏览量、下载量和项目收入的详细数据报告"
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "数据统计"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "通过搜索、首页、Discord 社区以及未来更多渠道，让你的项目被成千上万的用户发现！"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "探索发现"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "通过 Minotaur 与你的构建工具无缝集成，在新版本发布时自动上传"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "生态拓展"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "从你的项目页面获得广告收入，并随时提现"
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "获取收益"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "轻松邀请团队成员，便捷管理成员角色与权限"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "团队管理"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "加载随机项目失败 :("
@@ -2662,15 +2632,6 @@
   },
   "landing.notifications.version-released": {
     "message": "新版本 {version} 已发布，适用于 {gameVersion}"
-  },
-  "landing.section.for-creators.description": {
-    "message": "给你的作品在网上安家，并触达广大的忠实玩家群体。"
-  },
-  "landing.section.for-creators.label": {
-    "message": "面向创作者"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "让你的作品走向世界"
   },
   "landing.section.for-players.description": {
     "message": "从奇幻生物群系到诅咒地牢，海量内容定能将你的游戏体验提升到全新高度。"
@@ -2756,17 +2717,17 @@
   "layout.banner.build-fail.title": {
     "message": "构建期间从 API 生成状态时发生错误。"
   },
+  "layout.banner.dev.description": {
+    "message": "此 Dev 前端使用生产环境的 API 和数据。在这里所做的更改可能会影响 ShroudEdit 已发布的内容。"
+  },
+  "layout.banner.dev.title": {
+    "message": "你正在查看 ShroudEdit 的 Dev 环境"
+  },
   "layout.banner.preview.description": {
     "message": "如果你打算访问 ShroudEdit 官方网站，请访问 {url}。此预览部署仅用于 ShroudEdit 员工的测试目的，其构建基于 {ref}。"
   },
   "layout.banner.preview.title": {
     "message": "这是 ShroudEdit 网站的预览部署版本。"
-  },
-  "layout.banner.staging.description": {
-    "message": "测试环境与 ShroudEdit 在生产环境所用数据库是完全分离的。本站用于测试和调试，且可能正运行着比生产环境更新的 ShroudEdit 前端或后端的开发版。"
-  },
-  "layout.banner.staging.title": {
-    "message": "你正在查看的是 ShroudEdit 测试环境"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "更新财务信息"
@@ -2842,6 +2803,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "版权政策与 DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "法律信息"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "隐私政策"
@@ -4418,6 +4382,12 @@
   "report.not-for.bug-reports.description": {
     "message": "你可以在 <issues-link>问题追踪器</issues-link> 向他们报告漏洞。"
   },
+  "report.not-for.copyright-notice": {
+    "message": "正式版权通知"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "请参阅我们的<policy-link>版权政策</policy-link>。"
+  },
   "report.not-for.dmca": {
     "message": "由于DMCA下架"
   },
@@ -4435,6 +4405,12 @@
   },
   "report.note.copyright.2": {
     "message": "如果你需要填报 DMCA 删除请求（这是一个法务行为），请参见我们的<copyright-policy-link>版权政策</copyright-policy-link>。"
+  },
+  "report.note.copyright.community-report": {
+    "message": "请注意，此表单用于提交有关重新上传内容的社区举报，并非正式法律通知。"
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "如需提交正式的版权侵权通知，请遵循我们的<copyright-policy-link>版权政策</copyright-policy-link>。"
   },
   "report.note.fully-ai-generated.1": {
     "message": "我们刚刚更新了规则，明确禁止完全由 AI 生成的项目。在正式开始接收此类举报之前，我们正在向创作者提供一段宽限期，以便他们更新或下架完全由 AI 生成的项目。"
@@ -5621,6 +5597,9 @@
   "version.package-as-mod.submit-button": {
     "message": "打包数据包"
   },
+  "version.schematic.sfbp-installation": {
+    "message": "下载 .sfbp 文件，打开 ShroudForge World Editor，选择“导入 blueprint”，然后选择下载的文件。"
+  },
   "version.section.content.dev-info": {
     "message": "开发者信息"
   },
@@ -5650,5 +5629,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "由于存在未知的嵌入式内容而未显示"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": ".sfbp 文件会原样上传。这些信息用于说明 ShroudEdit 上由 ShroudForge World Editor 创建的 blueprint。"
   }
 }

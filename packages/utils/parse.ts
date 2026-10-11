@@ -147,8 +147,6 @@ export const configuredXss = new FilterXSS({
 					'i.imgur.com',
 					'cdn-raw.shroudedit.com',
 					'cdn.shroudedit.com',
-					'staging-cdn-raw.shroudedit.com',
-					'staging-cdn.shroudedit.com',
 					'github.com',
 					'raw.githubusercontent.com',
 					'user-images.githubusercontent.com',

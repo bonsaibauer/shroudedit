@@ -1,0 +1,67 @@
+name: Validate deployment pull request
+description: Enforce version branches and Dev-before-Production promotion.
+inputs:
+  source-branch:
+    description: Pull request head branch
+    required: true
+  source-sha:
+    description: Pull request head commit
+    required: true
+  source-repository:
+    description: Repository containing the pull request head branch
+    required: true
+  target-branch:
+    description: Pull request base branch
+    required: true
+  repository:
+    description: Current repository
+    required: true
+  api-url:
+    description: GitHub API base URL
+    required: true
+  github-token:
+    description: Token with pull request read access
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Validate source and promotion order
+      shell: bash
+      env:
+        SOURCE_BRANCH: ${{ inputs.source-branch }}
+        SOURCE_SHA: ${{ inputs.source-sha }}
+        SOURCE_REPOSITORY: ${{ inputs.source-repository }}
+        TARGET_BRANCH: ${{ inputs.target-branch }}
+        REPOSITORY: ${{ inputs.repository }}
+        API_URL: ${{ inputs.api-url }}
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        if [ "$SOURCE_REPOSITORY" != "$REPOSITORY" ]; then
+          echo "Deployment PRs must come from a branch in $REPOSITORY" >&2
+          exit 1
+        fi
+
+        if [[ ! "$SOURCE_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          echo "PR source branch must be a version such as 1.0.0; received: $SOURCE_BRANCH" >&2
+          exit 1
+        fi
+
+        if [[ "$TARGET_BRANCH" != "dev" && "$TARGET_BRANCH" != "prod" ]]; then
+          echo "Unsupported deployment target: $TARGET_BRANCH" >&2
+          exit 1
+        fi
+
+        if [ "$TARGET_BRANCH" = "prod" ]; then
+          merged_dev_prs=$(curl --fail --silent --show-error \
+            --header "Accept: application/vnd.github+json" \
+            --header "Authorization: Bearer $GH_TOKEN" \
+            "$API_URL/repos/$REPOSITORY/commits/$SOURCE_SHA/pulls")
+
+          if ! printf '%s' "$merged_dev_prs" | jq --exit-status --arg source "$SOURCE_BRANCH" --arg sha "$SOURCE_SHA" \
+            'any(.[]; .base.ref == "dev" and .head.ref == $source and .head.sha == $sha and .merged_at != null)' >/dev/null; then
+            echo "This exact version commit must be merged into dev before it can be promoted to prod" >&2
+            exit 1
+          fi
+        fi
+
+        echo "Allowed deployment: $SOURCE_BRANCH -> $TARGET_BRANCH"

@@ -2549,38 +2549,8 @@
   "landing.creator.feature.constantly-evolving.description": {
     "message": "Kapd meg a legjobb modolási élményt folyamatos frissítésekkel a ShroudEdit csapattól"
   },
-  "landing.creator.feature.constantly-evolving.title": {
-    "message": "Folyamatos változás"
-  },
-  "landing.creator.feature.data-statistics.description": {
-    "message": "Részletes jelentéseket kaphatsz a megtekintésekről, a letöltések számáról és a bevételekről."
-  },
-  "landing.creator.feature.data-statistics.title": {
-    "message": "Adatok és statisztikák"
-  },
-  "landing.creator.feature.discovery.description": {
-    "message": "Tedd a projektedet több ezer felhasználó számára láthatóvá keresés, honlapunk, Discord szerverünk és a jövőben bevezetésre kerülő további lehetőségek segítségével!"
-  },
-  "landing.creator.feature.discovery.title": {
-    "message": "Felfedezés"
-  },
   "landing.creator.feature.diverse-ecosystem.description": {
     "message": "Integráld a Minotaur segítségével a fejlesztési eszközeid, hogy új verzió kiadásakor automatikusan feltöltődjenek a fájlok"
-  },
-  "landing.creator.feature.diverse-ecosystem.title": {
-    "message": "Változatos ökoszisztéma"
-  },
-  "landing.creator.feature.monetization.description": {
-    "message": "Szerezz fizetett hirdetési bevételt projektoldalaidról, és bármikor felveheted a pénzedet."
-  },
-  "landing.creator.feature.monetization.title": {
-    "message": "Pénzügyi hasznosítás"
-  },
-  "landing.creator.feature.team-management.description": {
-    "message": "Hívd meg csapattársaidat, és könnyedén kezelheted a szerepeket és jogosultságokat"
-  },
-  "landing.creator.feature.team-management.title": {
-    "message": "Csapatkezelés"
   },
   "landing.error.failedToLoadRandomProjects": {
     "message": "A véletlenszerű projektek betöltése sikertelen :("
@@ -2650,15 +2620,6 @@
   },
   "landing.notifications.version-released": {
     "message": "Egy új verzió ({version}) kijött erre: {gameVersion}"
-  },
-  "landing.section.for-creators.description": {
-    "message": "Adj otthont alkotásaidnak az interneten, és érj el hatalmas közönséget elkötelezett játékosokból."
-  },
-  "landing.section.for-creators.label": {
-    "message": "Fejlesztőknek"
-  },
-  "landing.section.for-creators.tagline": {
-    "message": "Oszd meg a tartalmadat a világgal"
   },
   "landing.section.for-players.description": {
     "message": "A varázslatos biomoktól az elátkozott kazamatákig biztosan találsz olyan tartalmakat, amelyekkel a következő szintre emelheted a játékmenetedet."
@@ -2744,17 +2705,17 @@
   "layout.banner.build-fail.title": {
     "message": "Hiba történt az API állapotának generálása közben a fordítás során."
   },
+  "layout.banner.dev.description": {
+    "message": "Ez a Dev felület az éles API-kat és adatokat használja. Az itt végzett módosítások hatással lehetnek a ShroudEdit közzétett tartalmaira."
+  },
+  "layout.banner.dev.title": {
+    "message": "A ShroudEdit Dev környezetét nézed"
+  },
   "layout.banner.preview.description": {
     "message": "Ha a ShroudEdit hivatalos webhelyét szeretnéd elérni, látogass el ide: {url}. Ezt az előzetes verziót a ShroudEdit munkatársai tesztelési célokra használják. A következő alapján készült: {ref}."
   },
   "layout.banner.preview.title": {
     "message": "Ez a ShroudEdit weboldal előzetes verziója."
-  },
-  "layout.banner.staging.description": {
-    "message": "Az előkészítési környezet teljesen elkülönül az éles ShroudEdit-adatbázistól. Tesztelési és hibakeresési célokat szolgál, és a ShroudEdit háttérrendszerének vagy felhasználói felületének a fejlesztés alatt álló, az éles környezetnél újabb verzióit is futtathatja."
-  },
-  "layout.banner.staging.title": {
-    "message": "A ShroudEdit színreviteli környezetét nézed"
   },
   "layout.banner.subscription-payment-failed.button": {
     "message": "Számlázási információ frissítése"
@@ -2830,6 +2791,9 @@
   },
   "layout.footer.legal.copyright-policy": {
     "message": "Szerzői jogi iránynyelvek és DMCA"
+  },
+  "layout.footer.legal.imprint": {
+    "message": "Jogi információk"
   },
   "layout.footer.legal.privacy-policy": {
     "message": "Adatvédelmi iránynyelvek"
@@ -4406,6 +4370,12 @@
   "report.not-for.bug-reports.description": {
     "message": "A hibákat a <issues-link>hibajelentő rendszer</issues-link>ben jelentheted be."
   },
+  "report.not-for.copyright-notice": {
+    "message": "Hivatalos szerzői jogi bejelentések"
+  },
+  "report.not-for.copyright-notice.description": {
+    "message": "Lásd a <policy-link>szerzői jogi szabályzatunkat</policy-link>."
+  },
   "report.not-for.dmca": {
     "message": "DMCA leszedések"
   },
@@ -4423,6 +4393,12 @@
   },
   "report.note.copyright.2": {
     "message": "Ha DMCA-eltávolítási kérelmet (ami jogi lépés) szeretnél benyújtani, kérjük, olvasd el a <copyright-policy-link>Szerzői jogi irányelvünket</copyright-policy-link>."
+  },
+  "report.note.copyright.community-report": {
+    "message": "Ez az űrlap újra feltöltött tartalomról szóló közösségi bejelentést küld, nem hivatalos jogi értesítést."
+  },
+  "report.note.copyright.formal-notice": {
+    "message": "Hivatalos szerzői jogsértési bejelentéshez kövesd a <copyright-policy-link>szerzői jogi szabályzatunkat</copyright-policy-link>."
   },
   "report.note.fully-ai-generated.1": {
     "message": "A készítőknek türelmi időt biztosítunk, hogy frissítsék vagy eltávolítsák a teljes egészében MI által generált projektjeiket, mielőtt elkezdjük elfogadni az ezekkel kapcsolatos jelentéseket."
@@ -5609,6 +5585,9 @@
   "version.package-as-mod.submit-button": {
     "message": "Adatcsomag csomagolása"
   },
+  "version.schematic.sfbp-installation": {
+    "message": "Töltsd le a .sfbp fájlt, nyisd meg a ShroudForge World Editort, válaszd a Blueprint importálása lehetőséget, majd válaszd ki a letöltött fájlt."
+  },
   "version.section.content.dev-info": {
     "message": "Fejlesztői információk"
   },
@@ -5638,5 +5617,8 @@
   },
   "version.unknown-embedded-content.title": {
     "message": "Ismeretlen beágyazott tartalom miatt visszatartva"
+  },
+  "create-project-version.sfbp.metadata-description": {
+    "message": "A .sfbp fájl változtatás nélkül kerül feltöltésre. Ezek az adatok a ShroudForge World Editor blueprintjét írják le a ShroudEditen."
   }
 }

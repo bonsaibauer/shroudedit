@@ -160,7 +160,7 @@ const footerLinks: {
 				href: '/legal/imprint',
 				label: defineMessage({
 					id: 'layout.footer.legal.imprint',
-					defaultMessage: 'Impressum',
+					defaultMessage: 'Imprint',
 				}),
 			},
 			{
