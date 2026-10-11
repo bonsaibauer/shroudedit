@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+	<title id="title">Shroud Sigil A</title>
+	<defs>
+		<radialGradient id="bg" cx="50%" cy="45%" r="70%">
+			<stop offset="0" stop-color="#18344d"/>
+			<stop offset="0.55" stop-color="#0a1929"/>
+			<stop offset="1" stop-color="#050b14"/>
+		</radialGradient>
+		<linearGradient id="sigil" x1="0" y1="0" x2="1" y2="1">
+			<stop stop-color="#f8ffff"/>
+			<stop offset="0.5" stop-color="#bcecff"/>
+			<stop offset="1" stop-color="#63c9f5"/>
+		</linearGradient>
+		<filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+			<feGaussianBlur stdDeviation="18" result="blur"/>
+			<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+		</filter>
+	</defs>
+	<rect x="20" y="20" width="472" height="472" rx="104" fill="url(#bg)"/>
+	<path d="M256 76c18 128 36 146 164 164-128 18-146 36-164 164-18-128-36-146-164-164 128-18 146-36 164-164Z" fill="#5fd2ff" opacity="0.25" filter="url(#glow)"/>
+	<path d="M256 68c14 146 34 166 180 180-146 14-166 34-180 180-14-146-34-166-180-180 146-14 166-34 180-180Z" fill="url(#sigil)"/>
+	<path d="M256 136c9 82 21 94 103 103-82 9-94 21-103 103-9-82-21-94-103-103 82-9 94-21 103-103Z" fill="#ffffff"/>
+	<circle cx="256" cy="248" r="22" fill="#07111f"/>
+</svg>

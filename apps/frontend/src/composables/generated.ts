@@ -1,0 +1,221 @@
+import type { ISO3166, Labrinth } from '@shroudedit/api-client'
+import type { DisplayProjectType } from '@shroudedit/utils'
+
+import {
+	apiUrl,
+	categories,
+	donationPlatforms,
+	errors,
+	gameVersions,
+	lastGenerated,
+	loaders,
+	reportTypes,
+	taxComplianceThresholds,
+} from '~/generated/state.json'
+import type { DisplayMode } from '~/plugins/cosmetics'
+
+const ENSHROUDED_GAME_VERSIONS = new Set([
+	'0.7.0.1',
+	'0.7.0.2',
+	'0.7.1.0',
+	'0.7.1.1',
+	'0.7.2.0',
+	'0.7.2.1',
+	'0.7.3.0',
+	'0.7.4.0',
+	'0.7.4.1',
+	'0.7.4.2',
+	'0.8.0.0',
+	'0.8.0.1',
+	'0.8.1.0',
+	'0.8.1.1',
+	'0.8.1.2',
+	'0.9.0.0',
+	'0.9.0.1',
+	'0.9.0.2',
+	'0.9.0.3',
+	'0.9.0.4',
+	'0.9.1.0',
+	'0.9.1.1',
+	'0.9.1.2',
+])
+
+const ENSHROUDED_LOADERS: Labrinth.Tags.v2.Loader[] = [
+	{
+		name: 'shroudtopia',
+		icon: '',
+		supported_project_types: ['mod', 'schematic'],
+	},
+	{
+		name: 'shroudforge',
+		icon: '',
+		supported_project_types: ['mod', 'schematic'],
+	},
+	{
+		name: 'eml',
+		icon: '',
+		supported_project_types: ['mod', 'schematic'],
+	},
+]
+
+const getEnshroudedLoaders = (generatedLoaders: Labrinth.Tags.v2.Loader[]) =>
+	generatedLoaders.length > 0 ? generatedLoaders : ENSHROUDED_LOADERS
+
+const filterEnshroudedGameVersions = (versions: Labrinth.Tags.v2.GameVersion[]) =>
+	versions.filter((version) => ENSHROUDED_GAME_VERSIONS.has(version.version))
+
+export interface ProjectType {
+	actual: string
+	id: DisplayProjectType
+	display: string
+}
+
+export interface LoaderData {
+	pluginLoaders: string[]
+	pluginPlatformLoaders: string[]
+	allPluginLoaders: string[]
+	dataPackLoaders: string[]
+	modLoaders: string[]
+	hiddenModLoaders: string[]
+}
+
+// Re-export types from api-client for convenience
+export type Country = ISO3166.Country
+export type Subdivision = ISO3166.Subdivision
+
+/**
+ * Route-specific slices of the generated state are deliberately excluded here.
+ * Anything placed on `useGeneratedState` is serialized into the SSR payload of
+ * every page, so large fields must be imported directly by the pages that need
+ * them instead (see `useCountries`, `useSubdivisions`, `~/generated/state.json`).
+ */
+type GloballyUsedState = Omit<
+	Labrinth.State.GeneratedState,
+	| 'countries'
+	| 'subdivisions'
+	| 'muralBankDetails'
+	| 'tremendousIdMap'
+	| 'homePageProjects'
+	| 'homePageSearch'
+	| 'homePageNotifs'
+	| 'products'
+>
+
+export interface GeneratedState extends GloballyUsedState {
+	// Additional runtime-defined fields not from the API
+	projectTypes: ProjectType[]
+	loaderData: LoaderData
+	projectViewModes: DisplayMode[]
+	approvedStatuses: string[]
+	rejectedStatuses: string[]
+	staffRoles: string[]
+	taxComplianceThresholds?: Record<string, number>
+
+	// Metadata
+	lastGenerated?: string
+	apiUrl?: string
+	buildYear: number
+}
+
+/**
+ * Built once per module load rather than via `useState`, because every `useState` value is
+ * serialized into the SSR payload of every page. This is build-time constant data that the
+ * client already has via the static import above, so putting it in the payload would ship a
+ * second copy for no benefit.
+ *
+ * Consequence: on the server this object is shared by every request in the isolate, so it must
+ * stay immutable there. Runtime refreshes are client-only and go through `setGameVersions`.
+ */
+const generatedState = shallowRef<GeneratedState>(
+	Object.freeze({
+		// Cast JSON data to typed API responses
+		categories: (categories ?? []) as Labrinth.Tags.v2.Category[],
+		loaders: getEnshroudedLoaders((loaders ?? []) as Labrinth.Tags.v2.Loader[]),
+		gameVersions: filterEnshroudedGameVersions(
+			(gameVersions ?? []) as Labrinth.Tags.v2.GameVersion[],
+		),
+		donationPlatforms: (donationPlatforms ?? []) as Labrinth.Tags.v2.DonationPlatform[],
+		reportTypes: (reportTypes ?? []) as string[],
+
+		projectTypes: [
+			{
+				actual: 'mod',
+				id: 'mod',
+				display: 'mod',
+			},
+			{
+				actual: 'modpack',
+				id: 'modpack',
+				display: 'modpack',
+			},
+			{
+				actual: 'schematic',
+				id: 'schematic',
+				display: 'schematic',
+			},
+			{
+				actual: 'server',
+				id: 'server',
+				display: 'server',
+			},
+		],
+		loaderData: {
+			pluginLoaders: [],
+			pluginPlatformLoaders: [],
+			allPluginLoaders: [],
+			dataPackLoaders: [],
+			modLoaders: ['shroudtopia', 'shroudforge', 'eml'],
+			hiddenModLoaders: [],
+		},
+		projectViewModes: ['list', 'grid', 'gallery'],
+		approvedStatuses: ['approved', 'archived', 'unlisted', 'private'],
+		rejectedStatuses: ['rejected', 'withheld'],
+		staffRoles: ['moderator', 'admin'],
+
+		taxComplianceThresholds: (taxComplianceThresholds ?? {}) as Record<string, number>,
+
+		lastGenerated,
+		apiUrl,
+		errors,
+
+		buildYear: new Date().getFullYear(),
+	}) as GeneratedState,
+)
+
+// Read once, with no effect active, so this does not register a subscriber on `generatedState`.
+const frozenState = generatedState.value
+
+/**
+ * Non-tracking server-side view of the state above.
+ *
+ * `generatedState` lives for the lifetime of the isolate, so every per-request `computed()` that
+ * reads it registers a subscriber link on its dep. SSR never unmounts, so those links are never
+ * released, and each one pins the whole request graph that created it. This ref deliberately never
+ * calls `track()`, so reads register nothing. The data is frozen and `setGameVersions` is
+ * client-only, so the server has nothing to react to.
+ *
+ * It must stay a real ref: consumers pass it straight into templates and rely on Vue unwrapping it.
+ */
+const serverGeneratedState = customRef<GeneratedState>(() => ({
+	get: () => frozenState,
+	set: () => {},
+}))
+
+/**
+ * Composable for accessing the globally used generated state.
+ * This includes both fetched data and runtime-defined constants.
+ */
+export const useGeneratedState = () => (import.meta.server ? serverGeneratedState : generatedState)
+
+/**
+ * Replaces the build-time game versions with a freshly fetched list. Client-only: mutating this
+ * on the server would leak across every request sharing the isolate.
+ */
+export function setGameVersions(versions: Labrinth.Tags.v2.GameVersion[]) {
+	if (import.meta.server) return
+
+	generatedState.value = Object.freeze({
+		...generatedState.value,
+		gameVersions: filterEnshroudedGameVersions(versions),
+	}) as GeneratedState
+}

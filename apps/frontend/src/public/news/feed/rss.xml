@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?><rss xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+        <title><![CDATA[ShroudEdit News]]></title>
+        <description><![CDATA[Keep up-to-date on the latest news from ShroudEdit.]]></description>
+        <link>https://shroudedit.com/news/</link>
+        <generator>@shroudedit/blog</generator>
+        <lastBuildDate>Sun, 20 Sep 2026 14:15:44 GMT</lastBuildDate>
+        <atom:link href="https://shroudedit.com/news/feed/rss.xml" rel="self" type="application/rss+xml"/>
+        <language><![CDATA[en]]></language>
+        <item>
+            <title><![CDATA[Welcome to ShroudEdit]]></title>
+            <description><![CDATA[A community home for Enshrouded mods, schematics, modpacks, and servers.]]></description>
+            <link>https://shroudedit.com/news/article/welcome-to-shroudedit/</link>
+            <guid isPermaLink="false">https://shroudedit.com/news/article/welcome-to-shroudedit/</guid>
+            <pubDate>Sun, 20 Sep 2026 00:00:00 GMT</pubDate>
+            <content:encoded>&lt;![CDATA[&lt;p&gt;ShroudEdit brings the Enshrouded modding community together on one open platform. Creators can publish their work, and players can discover it through the same familiar project, version, collection, and search workflows.&lt;/p&gt;&lt;h2&gt;Four kinds of community content&lt;/h2&gt;&lt;p&gt;The platform supports mods, schematics exported by the World Editor, modpacks, and community servers. Schematics are a first-class project type, so saved parts of a world can be versioned, described, and shared independently.&lt;/p&gt;&lt;h2&gt;Built for Enshrouded&lt;/h2&gt;&lt;p&gt;Game versions, Shroudtopia and Shroudforge loaders, server access roles, and community categories are adapted for Enshrouded while the proven website structure remains intact.&lt;/p&gt;&lt;p&gt;This is the first ShroudEdit news entry. Future platform and community updates will appear here.&lt;/p&gt;]]&gt;</content:encoded>
+        </item>
+    </channel>
+</rss>

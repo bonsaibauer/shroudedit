@@ -1,0 +1,3 @@
+{
+	"extends": "@shroudedit/tooling-config/typescript/vue.json"
+}

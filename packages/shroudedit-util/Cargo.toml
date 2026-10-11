@@ -1,0 +1,26 @@
+[package]
+name = "shroudedit-util"
+edition.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+
+[dependencies]
+actix-web = { workspace = true }
+derive_more = { workspace = true, features = ["display", "error", "from"] }
+dotenvy = { workspace = true }
+eyre = { workspace = true }
+shroudedit-log = { workspace = true }
+rust_decimal = { workspace = true, features = ["macros"], optional = true }
+serde = { workspace = true, features = ["derive"] }
+utoipa = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[features]
+decimal = ["dep:rust_decimal", "utoipa?/decimal"]
+sentry = ["shroudedit-log/sentry"]
+utoipa = ["dep:utoipa"]
+
+[lints]
+workspace = true

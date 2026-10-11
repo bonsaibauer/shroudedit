@@ -1,0 +1,211 @@
+.ace-shroudedit .ace_gutter {
+	background: var(--surface-2);
+	color: var(--color-text-tertiary);
+}
+
+.ace-shroudedit .ace_print-margin {
+	width: 1px;
+	background: var(--surface-5);
+}
+
+.ace-shroudedit {
+	background-color: var(--surface-3);
+	color: var(--color-text-default);
+}
+
+.ace-shroudedit .ace_cursor {
+	color: var(--color-brand);
+}
+
+.ace-shroudedit .ace_marker-layer .ace_selection {
+	background: var(--color-brand-highlight);
+}
+
+.ace-shroudedit.ace_multiselect .ace_selection.ace_start {
+	box-shadow: 0 0 3px 0 var(--surface-3);
+}
+
+.ace-shroudedit .ace_marker-layer .ace_step {
+	background: var(--color-orange-highlight);
+}
+
+.ace-shroudedit .ace_marker-layer .ace_bracket {
+	margin: -1px 0 0 -1px;
+	border: 1px solid var(--color-brand);
+}
+
+.ace-shroudedit .ace_marker-layer .ace_active-line {
+	background: var(--surface-4);
+}
+
+.ace-shroudedit .ace_gutter-active-line {
+	background-color: var(--surface-1);
+}
+
+.ace-shroudedit .ace_marker-layer .ace_selected-word {
+	border: 1px solid var(--color-brand-highlight);
+}
+
+.ace-shroudedit .ace_invisible {
+	color: var(--color-text-tertiary);
+	opacity: 0.5;
+}
+
+.ace-shroudedit .ace_fold {
+	background-color: var(--color-blue);
+	border-color: var(--color-text-default);
+}
+
+/* Comments */
+.ace-shroudedit .ace_comment {
+	color: var(--color-gray);
+	font-style: italic;
+}
+
+/* Strings */
+.ace-shroudedit .ace_string {
+	color: var(--color-green);
+}
+
+.ace-shroudedit .ace_string.ace_regexp {
+	color: var(--color-orange);
+}
+
+/* Constants */
+.ace-shroudedit .ace_constant.ace_numeric {
+	color: var(--color-purple);
+}
+
+.ace-shroudedit .ace_constant.ace_language {
+	color: var(--color-orange);
+}
+
+.ace-shroudedit .ace_constant.ace_character {
+	color: var(--color-orange);
+}
+
+.ace-shroudedit .ace_constant.ace_other {
+	color: var(--color-purple);
+}
+
+/* Keywords */
+.ace-shroudedit .ace_keyword {
+	color: var(--color-red);
+}
+
+.ace-shroudedit .ace_keyword.ace_operator {
+	color: var(--color-text-default);
+}
+
+/* Storage */
+.ace-shroudedit .ace_storage {
+	color: var(--color-red);
+}
+
+.ace-shroudedit .ace_storage.ace_type {
+	color: var(--color-blue);
+}
+
+/* Entity names */
+.ace-shroudedit .ace_entity.ace_name.ace_function {
+	color: var(--color-blue);
+}
+
+.ace-shroudedit .ace_entity.ace_name.ace_class {
+	color: var(--color-purple);
+}
+
+.ace-shroudedit .ace_entity.ace_name.ace_tag {
+	color: var(--color-red);
+}
+
+.ace-shroudedit .ace_entity.ace_other.ace_attribute-name {
+	color: var(--color-orange);
+}
+
+/* Variables */
+.ace-shroudedit .ace_variable {
+	color: var(--color-text-default);
+}
+
+.ace-shroudedit .ace_variable.ace_parameter {
+	color: var(--color-text-default);
+	font-style: italic;
+}
+
+.ace-shroudedit .ace_variable.ace_language {
+	color: var(--color-orange);
+}
+
+/* Support */
+.ace-shroudedit .ace_support.ace_function {
+	color: var(--color-blue);
+}
+
+.ace-shroudedit .ace_support.ace_class {
+	color: var(--color-purple);
+}
+
+.ace-shroudedit .ace_support.ace_type {
+	color: var(--color-blue);
+}
+
+.ace-shroudedit .ace_support.ace_constant {
+	color: var(--color-purple);
+}
+
+/* Invalid */
+.ace-shroudedit .ace_invalid {
+	color: var(--color-text-primary);
+	background-color: var(--color-red-bg);
+}
+
+.ace-shroudedit .ace_invalid.ace_deprecated {
+	color: var(--color-text-primary);
+	background-color: var(--color-orange-bg);
+}
+
+/* Punctuation */
+.ace-shroudedit .ace_punctuation {
+	color: var(--color-text-tertiary);
+}
+
+/* Meta */
+.ace-shroudedit .ace_meta.ace_tag {
+	color: var(--color-text-default);
+}
+
+/* Markup */
+.ace-shroudedit .ace_markup.ace_heading {
+	color: var(--color-red);
+	font-weight: bold;
+}
+
+.ace-shroudedit .ace_markup.ace_list {
+	color: var(--color-orange);
+}
+
+.ace-shroudedit .ace_markup.ace_bold {
+	font-weight: bold;
+}
+
+.ace-shroudedit .ace_markup.ace_italic {
+	font-style: italic;
+}
+
+.ace-shroudedit .ace_markup.ace_underline {
+	text-decoration: underline;
+}
+
+/* Indent guide */
+.ace-shroudedit .ace_indent-guide {
+	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYHB3d/8PAAOIAdULw8qMAAAAAElFTkSuQmCC)
+		right repeat-y;
+	opacity: 0.2;
+}
+
+.ace-shroudedit .ace_indent-guide-active {
+	background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAEklEQVQImWNgYGBgYHB3d/8PAAOIAdULw8qMAAAAAElFTkSuQmCC)
+		right repeat-y;
+	opacity: 0.4;
+}

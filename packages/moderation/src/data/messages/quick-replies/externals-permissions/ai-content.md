@@ -1,0 +1,1 @@
+Please note that per section 6.1 of [ShroudEdit's Content Rules](https://shroudedit.com/legal/rules), you will be required to apply the "Contains AI Generated Content" disclosure in your disclosure settings if you wish to include this file in your Modpack.

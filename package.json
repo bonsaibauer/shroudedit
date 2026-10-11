@@ -1,0 +1,71 @@
+{
+	"name": "@shroudedit/monorepo",
+	"version": "0.0.0",
+	"private": true,
+	"scripts": {
+		"web:dev": "pnpm i18n:coverage && turbo run dev --filter=@shroudedit/frontend",
+		"web:build": "turbo run build --filter=@shroudedit/frontend",
+		"pages:build": "pnpm i18n:coverage && NITRO_PRESET=cloudflare-pages pnpm --filter frontend run build",
+		"build": "turbo run build --continue",
+		"lint": "turbo run lint lint:ancillary --continue",
+		"lint:ancillary": "prettier --check .github *.*",
+		"test": "turbo run test --continue",
+		"fix": "turbo run fix fix:ancillary --continue",
+		"fix:ancillary": "prettier --write .github *.*",
+		"ci": "turbo run lint test --continue",
+		"prepr": "turbo run prepr --continue",
+		"prepr:frontend": "turbo run prepr --filter=@shroudedit/frontend",
+		"prepr:frontend:lib": "turbo run prepr --filter=@shroudedit/ui --filter=@shroudedit/moderation --filter=@shroudedit/assets --filter=@shroudedit/blog --filter=@shroudedit/api-client --filter=@shroudedit/utils --filter=@shroudedit/tooling-config",
+		"prepr:frontend:web": "turbo run prepr --filter=@shroudedit/frontend",
+		"storybook": "pnpm i18n:coverage && pnpm --filter @shroudedit/ui storybook",
+		"build-storybook": "pnpm i18n:coverage && pnpm --filter @shroudedit/ui build-storybook",
+		"icons:add": "pnpm --filter @shroudedit/assets icons:add",
+		"i18n:coverage": "node scripts/run.mjs coverage-i18n --write packages/ui/src/layouts/wrapped/settings/language-settings/language-settings-coverage.generated.ts --quiet",
+		"scripts": "node scripts/run.mjs"
+	},
+	"devDependencies": {
+		"@clack/prompts": "^1.0.0",
+		"@crowdin/crowdin-api-client": "^1.55.2",
+		"@formatjs/icu-messageformat-parser": "^2.11.4",
+		"@shroudedit/tooling-config": "workspace:*",
+		"@tailwindcss/container-queries": "^0.1.1",
+		"@types/node": "^24",
+		"@typescript-eslint/typescript-estree": "^8.64.0",
+		"@vue/compiler-dom": "^3.5.26",
+		"@vue/compiler-sfc": "^3.5.26",
+		"chalk": "^5.6.2",
+		"if-ci": "^3.0.0",
+		"keep-a-changelog": "^3.0.2",
+		"prettier": "^3.3.2",
+		"turbo": "^2.5.4",
+		"vue": "^3.5.13",
+		"yaml": "^2.8.2"
+	},
+	"packageManager": "pnpm@10.33.2",
+	"engines": {
+		"node": ">=24.15.0"
+	},
+	"pnpm": {
+		"patchedDependencies": {
+			"readable-stream@2.3.8": "patches/readable-stream@2.3.8.patch"
+		},
+		"peerDependencyRules": {
+			"allowedVersions": {
+				"vite": "8",
+				"esbuild": "0"
+			}
+		},
+		"onlyBuiltDependencies": [
+			"@parcel/watcher",
+			"@sentry/cli",
+			"core-js",
+			"esbuild",
+			"protobufjs",
+			"sharp",
+			"unrs-resolver",
+			"vue-demi",
+			"workerd"
+		]
+	},
+	"prettier": "@shroudedit/tooling-config/prettier.config.cjs"
+}

@@ -1,0 +1,9 @@
+{
+	"extends": "@shroudedit/tooling-config/typescript/vue.json",
+	"compilerOptions": {
+		"paths": {
+			"#ui/*": ["./src/*"],
+			"@shroudedit/api-client": ["../api-client/src/index.ts"]
+		}
+	}
+}
