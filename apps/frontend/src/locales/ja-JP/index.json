@@ -2163,7 +2163,7 @@
     "message": "ShroudEditがダウンしていないか、<status-link>ステータスページ</status-link>で確認してください。"
   },
   "error.generic.default.list_item.2": {
-    "message": "この問題が繰り返し発生する場合は、<discord-link>Discordサーバー</discord-link>に参加して、ShroudEditチームにお知らせください。"
+    "message": "問題が続く場合は、<support-link>support@shroudedit.com</support-link> までメールで ShroudEdit サポートにお問い合わせください。"
   },
   "error.generic.default.list_title": {
     "message": "数分後に再度試してください。"
@@ -3957,7 +3957,7 @@
     "message": "データのエクスポート"
   },
   "settings.account.delete.confirm.description": {
-    "message": "これにより**即座にあなたのすべてのユーザーデータとフォローが削除されます**。プロジェクトは削除されません。アカウントの削除は取り消せません。<br><br>アカウントについてサポートが必要な場合は、[ShroudEdit Discord](https://discord.shroudedit.com)にてご連絡ください。"
+    "message": "これにより**即座にあなたのすべてのユーザーデータとフォローが削除されます**。プロジェクトは削除されません。アカウントの削除は取り消せません。<br><br>アカウントについてサポートが必要な場合は、[support@shroudedit.com](mailto:support@shroudedit.com) までメールでお問い合わせください。"
   },
   "settings.account.delete.confirm.proceed": {
     "message": "このアカウントを削除"

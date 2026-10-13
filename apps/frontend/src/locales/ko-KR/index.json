@@ -2220,7 +2220,7 @@
     "message": "<status-link>서버 상태</status-link>에서 ShroudEdit 서버가 다운되었는지 확인해 보세요."
   },
   "error.generic.default.list_item.2": {
-    "message": "계속해서 문제가 발생하는 경우, <discord-link>디스코드 서버</discord-link>에 접속해 ShroudEdit 팀과 연락할 수 있습니다."
+    "message": "문제가 계속되면 <support-link>support@shroudedit.com</support-link>으로 ShroudEdit 지원팀에 이메일을 보내 주세요."
   },
   "error.generic.default.list_title": {
     "message": "몇 분 뒤에 다시 시도해 보세요."
@@ -4698,7 +4698,7 @@
     "message": "데이터 내보내기"
   },
   "settings.account.delete.confirm.description": {
-    "message": "이 작업은 **모든 사용자 데이터와 팔로우 목록을 즉시 삭제합니다**. 단, 프로젝트는 삭제되지 않습니다. 계정 삭제는 되돌릴 수 없습니다.<br><br>계정 관련 도움이 필요하면 [ShroudEdit Discord](https://discord.shroudedit.com)에서 도움을 받으세요."
+    "message": "이 작업은 **모든 사용자 데이터와 팔로우 목록을 즉시 삭제합니다**. 단, 프로젝트는 삭제되지 않습니다. 계정 삭제는 되돌릴 수 없습니다.<br><br>계정에 관한 도움이 필요하면 [support@shroudedit.com](mailto:support@shroudedit.com)으로 이메일을 보내 주세요."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "계정 삭제"

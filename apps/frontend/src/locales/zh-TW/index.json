@@ -2262,7 +2262,7 @@
     "message": "前往我們的<status-link>狀態頁面</status-link>，查看 ShroudEdit 是不是停機了。"
   },
   "error.generic.default.list_item.2": {
-    "message": "如果這個問題持續發生，你可以考慮加入我們的 <discord-link>Discord 伺服器</discord-link>，通知 ShroudEdit 團隊。"
+    "message": "如果問題持續發生，請寄信至 <support-link>support@shroudedit.com</support-link> 聯絡 ShroudEdit 支援團隊。"
   },
   "error.generic.default.list_title": {
     "message": "請在幾分鐘後再試一次。"
@@ -4803,7 +4803,7 @@
     "message": "資料匯出"
   },
   "settings.account.delete.confirm.description": {
-    "message": "這個動作將會**立即刪除您的所有使用者資料與追蹤清單**。這不會刪除你的專案。帳號刪除後將無法還原。<br><br>若你需要帳號相關協助，請至 [ShroudEdit Discord](https://discord.shroudedit.com) 取得支援。"
+    "message": "這個動作將會**立即刪除您的所有使用者資料與追蹤清單**。這不會刪除你的專案。帳號刪除後將無法還原。<br><br>若你需要帳號相關協助，請寄信至 [support@shroudedit.com](mailto:support@shroudedit.com)。"
   },
   "settings.account.delete.confirm.proceed": {
     "message": "刪除這個帳號"

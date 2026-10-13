@@ -2061,7 +2061,7 @@
     "message": "Check if ShroudEdit is down on our <status-link>Status page</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "If this keeps happening, you may want to let the ShroudEdit Team know by joining our <discord-link>Discord server</discord-link>."
+    "message": "If this keeps happening, please contact ShroudEdit Support at <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Please try again in a few minutes."
@@ -4254,7 +4254,7 @@
     "message": "Data export"
   },
   "settings.account.delete.confirm.description": {
-    "message": "This will **immediately delete all of your user data and follows**. This will not delete your projects. Deleting your account cannot be reversed.<br><br>If you need help with your account, get support on the [ShroudEdit Discord](https://discord.shroudedit.com)."
+    "message": "This will **immediately delete all of your user data and follows**. This will not delete your projects. Deleting your account cannot be reversed.<br><br>If you need help with your account, email [support@shroudedit.com](mailto:support@shroudedit.com)."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Delete this account"

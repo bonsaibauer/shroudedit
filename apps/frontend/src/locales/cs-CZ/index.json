@@ -1692,7 +1692,7 @@
     "message": "Zkontrolujte, zda je ShroudEdit offline, na naší <status-link>Stránce statusu</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Pokud se to bude dít i nadále, můžete dát vědět týmu ShroudEdit připojením se k našemu <discord-link>Discord serveru</discord-link>."
+    "message": "Pokud problém přetrvá, kontaktujte podporu ShroudEdit e-mailem na adrese <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Prosím zkuste znovu za pár minut."

@@ -861,7 +861,7 @@
     "message": "Verifică dacă ShroudEdit este picat pe a noastră <status-link>Pagină de status</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Dacă asta continuă să se întâmple, poate vrei să anunți echipa ShroudEdit alăturându-te serverului nostru de <discord-link>Discord</discord-link>."
+    "message": "Dacă problema persistă, contactează serviciul de asistență ShroudEdit la <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Te rog încercă din nou în câteva minute."

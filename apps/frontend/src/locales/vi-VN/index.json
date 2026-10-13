@@ -1860,7 +1860,7 @@
     "message": "Kiểm tra xem ShroudEdit có đang gặp sự cố không trên <status-link>Trang trạng thái</status-link> của chúng tôi."
   },
   "error.generic.default.list_item.2": {
-    "message": "Nếu điều này tiếp tục xảy ra, bạn có thể thông báo cho Đội ngũ ShroudEdit bằng cách tham gia <discord-link>máy chủ Discord</discord-link> của chúng tôi."
+    "message": "Nếu tình trạng này tiếp diễn, hãy gửi email cho bộ phận hỗ trợ ShroudEdit tại <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Vui lòng thử lại sau vài phút."
@@ -3549,7 +3549,7 @@
     "message": "Xuất dữ liệu"
   },
   "settings.account.delete.confirm.description": {
-    "message": "Hành động này sẽ **ngay lập tức xóa toàn bộ dữ liệu người dùng và các theo dõi của bạn**. Các dự án của bạn sẽ không bị xóa. Việc xóa tài khoản là không thể hoàn tác.<br><br>Nếu bạn cần hỗ trợ về tài khoản, hãy liên hệ tại [server Discord của ShroudEdit](https://discord.shroudedit.com)."
+    "message": "Hành động này sẽ **ngay lập tức xóa toàn bộ dữ liệu người dùng và các theo dõi của bạn**. Các dự án của bạn sẽ không bị xóa. Việc xóa tài khoản là không thể hoàn tác.<br><br>Nếu bạn cần hỗ trợ về tài khoản, hãy gửi email đến [support@shroudedit.com](mailto:support@shroudedit.com)."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Xoá tài khoản này"

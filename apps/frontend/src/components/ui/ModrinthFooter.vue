@@ -68,7 +68,7 @@ const socialLinks: {
 }[] = [
 	{
 		label: defineMessage({ id: 'layout.footer.social.discord', defaultMessage: 'Discord' }),
-		href: 'https://discord.gg/shroudedit',
+		href: 'https://discord.gg/ppzyYaVqeA',
 		icon: DiscordIcon,
 	},
 ]

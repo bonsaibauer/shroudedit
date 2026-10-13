@@ -561,7 +561,7 @@ const messages = defineMessages({
 	deleteAccountConfirmDescription: {
 		id: 'settings.account.delete.confirm.description',
 		defaultMessage:
-			'This will **immediately delete all of your user data and follows**. This will not delete your projects. Deleting your account cannot be reversed.<br><br>If you need help with your account, get support on the [ShroudEdit Discord](https://discord.shroudedit.com).',
+			'This will **immediately delete all of your user data and follows**. This will not delete your projects. Deleting your account cannot be reversed.<br><br>If you need help with your account, email [support@shroudedit.com](mailto:support@shroudedit.com).',
 	},
 	deleteAccountConfirmProceed: {
 		id: 'settings.account.delete.confirm.proceed',

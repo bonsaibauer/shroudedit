@@ -2256,7 +2256,7 @@
     "message": "Проверьте доступность ShroudEdit на <status-link>странице статуса</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Если проблема не исчезает, сообщите о ней команде ShroudEdit в <discord-link>Discord</discord-link>."
+    "message": "Если проблема не исчезнет, напишите в службу поддержки ShroudEdit: <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Повторите попытку через несколько минут."
@@ -4779,7 +4779,7 @@
     "message": "Экспорт данных"
   },
   "settings.account.delete.confirm.description": {
-    "message": "**Все подписки и данные аккаунта будут немедленно удалены.** Проекты останутся. Удаление аккаунта необратимо.<br><br>Нужна помощь с аккаунтом? Напишите нам в [Discord](https://discord.shroudedit.com)."
+    "message": "**Все подписки и данные аккаунта будут немедленно удалены.** Проекты останутся. Удаление аккаунта необратимо.<br><br>Если вам нужна помощь с аккаунтом, напишите на [support@shroudedit.com](mailto:support@shroudedit.com)."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Удалить этот аккаунт"

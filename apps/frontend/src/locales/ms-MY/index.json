@@ -1770,7 +1770,7 @@
     "message": "Semak sama ada ShroudEdit tidak berfungsi pada <status-link>laman Status</status-link> kami."
   },
   "error.generic.default.list_item.2": {
-    "message": "Jika ralat ini terus berlaku, anda mungkin ingin memberitahu Pasukan ShroudEdit dengan menyertai <discord-link>pelayan Discord</discord-link> kami."
+    "message": "Jika masalah ini berterusan, hubungi Sokongan ShroudEdit melalui e-mel di <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Sila cuba lagi dalam beberapa minit."
@@ -3546,7 +3546,7 @@
     "message": "Pengeksportan data"
   },
   "settings.account.delete.confirm.description": {
-    "message": "Ini akan **dengan segera memadamkan semua projek** dan ikutan anda. Ini tidak akan memadamkan projek anda. Pemadaman akaun anda tidak boleh dibatalkan.<br><br>Jika anda memerlukan bantuan dengan akaun anda, dapatkan sokongan di [Discord ShroudEdit](https://discord.shroudedit.com)."
+    "message": "Ini akan **dengan segera memadamkan semua projek** dan ikutan anda. Ini tidak akan memadamkan projek anda. Pemadaman akaun anda tidak boleh dibatalkan.<br><br>Jika anda memerlukan bantuan tentang akaun anda, e-mel [support@shroudedit.com](mailto:support@shroudedit.com)."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Padam akaun ini"

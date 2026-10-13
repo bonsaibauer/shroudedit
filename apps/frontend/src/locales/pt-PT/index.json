@@ -1872,7 +1872,7 @@
     "message": "Verifica se o ShroudEdit está em baixo na nossa <status-link>página de Status</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Se isto continuar a acontecer, podes informar a Equipa do ShroudEdit através do nosso <discord-link>servidor de Discord</discord-link>."
+    "message": "Se isto continuar a acontecer, contacta o suporte do ShroudEdit por e-mail através de <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Por favor tenta novamente em alguns minutos."
@@ -3447,7 +3447,7 @@
     "message": "Exportação de dados"
   },
   "settings.account.delete.confirm.description": {
-    "message": "Isto irá **eliminar imediatamente todos os teus dados e seguidos**. Isto não vai apagar os teus projetos. Eliminar a tua conta não pode ser revertido.<br><br>Se precisares de ajuda com a tua conta, obtém ajuda no [Discord do ShroudEdit](https://discord.shroudedit.com)."
+    "message": "Isto irá **eliminar imediatamente todos os teus dados e seguidos**. Isto não vai apagar os teus projetos. Eliminar a tua conta não pode ser revertido.<br><br>Se precisares de ajuda com a tua conta, envia um e-mail para [support@shroudedit.com](mailto:support@shroudedit.com)."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Apagar esta conta"

@@ -2226,7 +2226,7 @@
     "message": "Controleer of ShroudEdit een storing heeft op onze <status-link>Status pagina</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Als dit blijft gebeuren, kun je dit het beste aan het ShroudEdit-team laten weten door lid te worden van onze <discord-link>Discord-server</discord-link>."
+    "message": "Blijft dit gebeuren? Neem dan per e-mail contact op met ShroudEdit Support via <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Probeer alstublieft opnieuw in een paar minuten."
@@ -4728,7 +4728,7 @@
     "message": "Gegevens exporteren"
   },
   "settings.account.delete.confirm.description": {
-    "message": "Hierdoor worden **onmiddellijk al je gebruikersgegevens en volgers verwijderd**. Je projecten worden hierdoor niet verwijderd. Het verwijderen van je account kan niet ongedaan worden gemaakt.<br><br>Als je hulp nodig hebt met je account, kun je ondersteuning krijgen op de [ShroudEdit Discord](https://discord.shroudedit.com)."
+    "message": "Hierdoor worden **onmiddellijk al je gebruikersgegevens en volgers verwijderd**. Je projecten worden hierdoor niet verwijderd. Het verwijderen van je account kan niet ongedaan worden gemaakt.<br><br>Heb je hulp nodig met je account? Mail dan naar [support@shroudedit.com](mailto:support@shroudedit.com)."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Je account verwijderen"

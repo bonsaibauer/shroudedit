@@ -2238,7 +2238,7 @@
     "message": "<status-link>Durum sayfamızdan</status-link> ShroudEdit'in çöküp çökmediğini kontrol edin."
   },
   "error.generic.default.list_item.2": {
-    "message": "Bu yaşanmaya devam ederse ShroudEdit Ekibini <discord-link>Discord sunucumuza</discord-link> katılarak bilgilendirmek isteyebilirsin."
+    "message": "Bu sorun devam ederse <support-link>support@shroudedit.com</support-link> adresinden ShroudEdit Destek Ekibiyle e-posta yoluyla iletişime geçebilirsin."
   },
   "error.generic.default.list_title": {
     "message": "Lütfen bir kaç dakika içinde tekrar dene."
@@ -4689,7 +4689,7 @@
     "message": "Veri dışa aktarma"
   },
   "settings.account.delete.confirm.description": {
-    "message": "Bu işlem, **tüm kullanıcı verilerinizi ve takip ettiğiniz hesapları anında siler**. Projeleriniz silinmez. Hesabınızı silme işlemi geri alınamaz.<br><br>Hesabınızla ilgili yardıma ihtiyacınız varsa, [ShroudEdit Discord](https://discord.shroudedit.com) üzerinden destek alabilirsiniz."
+    "message": "Bu işlem, **tüm kullanıcı verilerinizi ve takip ettiğiniz hesapları anında siler**. Projeleriniz silinmez. Hesabınızı silme işlemi geri alınamaz.<br><br>Hesabınla ilgili yardıma ihtiyacın varsa [support@shroudedit.com](mailto:support@shroudedit.com) adresine e-posta gönder."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Hesabı sil"

@@ -1527,7 +1527,7 @@
     "message": "Tjek om ShroudEdit er nede på vores <status-link>Status side</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Hvis der bliver ved med at ske, kan du dele det ShroudEdit Team ved at join vores <discord-link>Discord server</discord-link>."
+    "message": "Hvis problemet fortsætter, kan du kontakte ShroudEdit Support på <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Venligst prøv igen om nogle minutter."
@@ -2820,7 +2820,7 @@
     "message": "Data eksport"
   },
   "settings.account.delete.confirm.description": {
-    "message": "Dette vil **med det samme slette alt dit bruger data og følgere**. Dine projekter vil ikke blive slettet. Sletning af din konto kan ikke blive fortrudt.<br><br>Hvis du har brug for hjælp med din konto, kan du få support på [ShroudEdit Discord'en](https://discord.shroudedit.com)."
+    "message": "Dette vil **med det samme slette alt dit bruger data og følgere**. Dine projekter vil ikke blive slettet. Sletning af din konto kan ikke blive fortrudt.<br><br>Hvis du har brug for hjælp med din konto, kan du skrive til [support@shroudedit.com](mailto:support@shroudedit.com)."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Slet denne konto"

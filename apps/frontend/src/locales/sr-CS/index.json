@@ -939,7 +939,7 @@
     "message": "Proveri da li je ShroudEdit nedostupan na našoj <status-link>stranici statusa</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Ako se ovo nastavi dešavati, možeš obavestiti ShroudEdit tim pridruživši se našem <discord-link>Discord serveru</discord-link>."
+    "message": "Ako se ovo nastavi, kontaktiraj ShroudEdit podršku putem imejla na <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Molimo pokušaj ponovo za nekoliko minuta."

@@ -2259,7 +2259,7 @@
     "message": "Перевірте, чи працює ShroudEdit на нашій <status-link>сторінці статусу</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Якщо таке продовжує відбуватись, дайте знати команді ShroudEdit, приєднавшись до нашого <discord-link>сервера в Discord</discord-link>."
+    "message": "Якщо проблема не зникне, напишіть до служби підтримки ShroudEdit на адресу <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Спробуйте знову за кілька хвилин."
@@ -4794,7 +4794,7 @@
     "message": "Експорт даних"
   },
   "settings.account.delete.confirm.description": {
-    "message": "Це **негайно видалить усі ваші дані й відстежування**, але не видалить ваші проєкти. Видалення облікового запису не можна скасувати.<br><br>Якщо вам потрібна допомога з обліковим записом, зверніться до підтримки на [сервері ShroudEdit у Discord](https://discord.shroudedit.com)."
+    "message": "Це **негайно видалить усі ваші дані й відстежування**, але не видалить ваші проєкти. Видалення облікового запису не можна скасувати.<br><br>Якщо вам потрібна допомога з обліковим записом, напишіть на [support@shroudedit.com](mailto:support@shroudedit.com)."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Видалити обліковий запис"

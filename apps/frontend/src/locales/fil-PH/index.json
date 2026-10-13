@@ -1182,7 +1182,7 @@
     "message": "Tingnan if wala ba ang ShroudEdit sa ngayon gamit ang aming <status-link>Status page</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Kung mangyayari pa ito muli, mangyaring ipaalam sa ShroudEdit Team sa pagsali sa aming <discord-link>Discord server</discord-link>."
+    "message": "Kung magpatuloy ito, makipag-ugnayan sa ShroudEdit Support sa <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Mangyaring subukan muli sa iilang minuto."

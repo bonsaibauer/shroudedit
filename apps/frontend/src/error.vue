@@ -78,8 +78,8 @@
 										<component :is="() => normalizeChildren(children)" />
 									</a>
 								</template>
-								<template #discord-link="{ children }">
-									<a href="https://discord.shroudedit.com" target="_blank" rel="noopener">
+								<template #support-link="{ children }">
+									<a href="mailto:support@shroudedit.com">
 										<component :is="() => normalizeChildren(children)" />
 									</a>
 								</template>
@@ -252,7 +252,7 @@ const messages = {
 			defineMessage({
 				id: 'error.generic.default.list_item.2',
 				defaultMessage:
-					'If this keeps happening, you may want to let the ShroudEdit Team know by joining our <discord-link>Discord server</discord-link>.',
+					'If this keeps happening, please contact ShroudEdit Support at <support-link>support@shroudedit.com</support-link>.',
 			}),
 		],
 	},

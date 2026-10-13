@@ -1614,7 +1614,7 @@
     "message": "Sjekk om ShroudEdit er nede på <status-link>Statussida vår</status-link>."
   },
   "error.generic.default.list_item.2": {
-    "message": "Viss dette forsetter å skje, så kan du bli med i <discord-link>Discord-serveren vår</discord-link> for å fortelle ShroudEdit-laget om det."
+    "message": "Hvis dette fortsetter, kan du kontakte ShroudEdit Support på e-post: <support-link>support@shroudedit.com</support-link>."
   },
   "error.generic.default.list_title": {
     "message": "Vær så snill å prøv igjen etter noen minutt."
@@ -3231,7 +3231,7 @@
     "message": "Dataeksport"
   },
   "settings.account.delete.confirm.description": {
-    "message": "Dette kommer til å **slette alle brukerdataene dine og følgerene dine med en gang**. Dette kommer ikke til å slette prosjekta dine. Du kan ikke angre sletting av kontoen din.<br><br>Viss du trenger hjelp med kontoen din, få støtte fra [ShroudEdit Discord]-en(https://discord.shroudedit.com)."
+    "message": "Dette kommer til å **slette alle brukerdataene dine og følgerene dine med en gang**. Dette kommer ikke til å slette prosjekta dine. Du kan ikke angre sletting av kontoen din.<br><br>Hvis du trenger hjelp med kontoen din, kan du sende e-post til [support@shroudedit.com](mailto:support@shroudedit.com)."
   },
   "settings.account.delete.confirm.proceed": {
     "message": "Slett denne kontoen"
