@@ -10,8 +10,8 @@ directories = { workspace = true }
 eyre = { workspace = true }
 flate2 = { workspace = true }
 maxminddb = { workspace = true }
-shroudedit-util = { workspace = true }
 reqwest = { workspace = true, features = ["json"] }
+shroudedit-util = { workspace = true }
 tar = { workspace = true }
 tokio = { workspace = true, features = ["fs"] }
 tracing = { workspace = true }

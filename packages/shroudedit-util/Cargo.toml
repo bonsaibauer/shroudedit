@@ -9,9 +9,9 @@ actix-web = { workspace = true }
 derive_more = { workspace = true, features = ["display", "error", "from"] }
 dotenvy = { workspace = true }
 eyre = { workspace = true }
-shroudedit-log = { workspace = true }
 rust_decimal = { workspace = true, features = ["macros"], optional = true }
 serde = { workspace = true, features = ["derive"] }
+shroudedit-log = { workspace = true }
 utoipa = { workspace = true, optional = true }
 
 [dev-dependencies]

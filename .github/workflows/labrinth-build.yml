@@ -1,5 +1,5 @@
 name: Labrinth Build and Publish
-run-name: ${{ github.event_name == 'workflow_dispatch' && format('Publish API stable from {0}', github.ref_name) || github.event_name == 'push' && format('Publish API dev from {0}', github.ref_name) || github.event_name == 'pull_request' && format('Build API for PR #{0}', github.event.pull_request.number) || format('Build API for {0}', github.ref_name) }}
+run-name: ${{ github.event_name == 'workflow_dispatch' && 'Publish API stable' || github.event_name == 'push' && 'Publish API dev' || 'Build API' }} from ${{ github.ref_name }}
 
 on:
   push:

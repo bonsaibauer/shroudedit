@@ -140,7 +140,7 @@ jobs:
         env:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
           SENTRY_ORG: shroudedit
-          SENTRY_PROJECT: knossos-server
+          SENTRY_PROJECT: shroudedit-server
         with:
           environment: ${{ steps.meta.outputs.environment }}
           sourcemaps: ./apps/frontend/.output/server
