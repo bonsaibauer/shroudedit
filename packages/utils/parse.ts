@@ -158,7 +158,6 @@ export const configuredXss = new FilterXSS({
 					'cdn.serilum.com',
 					'workflow.serilum.com',
 					'modfolio.creeperkatze.dev',
-					'badges.crowdin.net',
 					'moddex.gg',
 				]
 

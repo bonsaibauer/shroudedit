@@ -12,6 +12,12 @@
 ![GitHub Stars](https://img.shields.io/github/stars/bonsaibauer/shroudedit?style=social)
 ![GitHub Forks](https://img.shields.io/github/forks/bonsaibauer/shroudedit?style=social)
 
+## Contribute translations
+
+Help bring ShroudEdit to players worldwide by contributing translations in Fink. Submit your changes as a GitHub pull request. Read the [translation guide](docs/translations.md) for the steps.
+
+[![Help bring ShroudEdit to players worldwide. Contribute translations in Fink and submit a pull request on GitHub.](assets/translations/illustration.svg)](https://fink.inlang.com/?repo=bonsaibauer/shroudedit&project=project.inlang)
+
 # Shroudedit x Shroudforge Network
 
 <p align="center">

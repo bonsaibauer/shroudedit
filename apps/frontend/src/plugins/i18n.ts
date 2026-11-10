@@ -1,10 +1,9 @@
 import { moderationLocaleModules } from '@shroudedit/moderation'
 import {
-	type CrowdinMessages,
+	type LocaleMessages,
 	I18N_INJECTION_KEY,
 	type I18nContext,
 	LOCALES,
-	transformCrowdinMessages,
 	uiLocaleModules,
 	useDebugLogger,
 } from '@shroudedit/ui'
@@ -14,7 +13,7 @@ import { LRUCache } from 'lru-cache'
 const debug = useDebugLogger('i18n')
 const DEFAULT_LOCALE = 'en-US'
 
-const frontendLocaleModules = import.meta.glob<{ default: CrowdinMessages }>(
+const frontendLocaleModules = import.meta.glob<{ default: LocaleMessages }>(
 	'../locales/*/index.json',
 	{ eager: false },
 )
@@ -23,7 +22,7 @@ const messageCache = new LRUCache<string, Record<string, string>>({ max: 10 })
 const formatterCache = new LRUCache<string, IntlMessageFormat>({ max: 1000 })
 const loadingPromises = new Map<string, Promise<void>>() // Dedupe concurrent loads
 
-type LocaleModules = Record<string, () => Promise<{ default: CrowdinMessages }>>
+type LocaleModules = Record<string, () => Promise<{ default: LocaleMessages }>>
 
 // Find the loader for a locale code in a glob result (paths end with /{code}/index.json)
 function findLocaleLoader(modules: LocaleModules, code: string) {
@@ -106,10 +105,10 @@ async function loadLocale(code: string): Promise<void> {
 
 		// Merge: UI (base) → moderation → frontend (highest priority)
 		const mergedMessages: Record<string, string> = {}
-		if (uiData) Object.assign(mergedMessages, transformCrowdinMessages(uiData.default))
+		if (uiData) Object.assign(mergedMessages, uiData.default)
 		if (moderationData)
-			Object.assign(mergedMessages, transformCrowdinMessages(moderationData.default))
-		if (frontendData) Object.assign(mergedMessages, transformCrowdinMessages(frontendData.default))
+			Object.assign(mergedMessages, moderationData.default)
+		if (frontendData) Object.assign(mergedMessages, frontendData.default)
 
 		debug('loadLocale: merged', code, 'total keys:', Object.keys(mergedMessages).length)
 

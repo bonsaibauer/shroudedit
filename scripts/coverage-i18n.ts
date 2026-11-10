@@ -42,8 +42,7 @@ interface CoverageReport {
 	filesNeedingWork: FileResult[]
 }
 
-type MessageEntry = string | { message?: string; defaultMessage?: string }
-type MessageFile = Record<string, MessageEntry>
+type MessageFile = Record<string, string>
 type LanguageProduct = 'app' | 'website'
 
 interface LanguageCoverageStats {
@@ -491,11 +490,6 @@ function generateReport(results: FileResult[], rootDir: string): CoverageReport 
 	return report
 }
 
-function messageText(entry: MessageEntry | undefined): string | undefined {
-	if (typeof entry === 'string') return entry
-	return entry?.message ?? entry?.defaultMessage
-}
-
 function readMessageFile(filePath: string): MessageFile {
 	if (!fs.existsSync(filePath)) return {}
 	return JSON.parse(fs.readFileSync(filePath, 'utf8')) as MessageFile
@@ -531,11 +525,9 @@ function getLocaleCodes(rootDir: string): string[] {
 
 function isValidTranslation(
 	key: string,
-	sourceEntry: MessageEntry,
-	translationEntry: MessageEntry | undefined,
+	source: string,
+	translation: string | undefined,
 ): boolean {
-	const source = messageText(sourceEntry)
-	const translation = messageText(translationEntry)
 	if (!source || !translation) return false
 
 	try {
@@ -577,7 +569,7 @@ function generateLanguageCoverage(
 		const interfaceCoverage =
 			detectedStrings > 0 ? Math.round((localizedUsages / detectedStrings) * 100) : 100
 		const sourceCatalog = mergeProductCatalog(rootDir, definition.catalogScopes, 'en-US')
-		const sourceEntries = Object.entries(sourceCatalog).filter(([, entry]) => messageText(entry))
+		const sourceEntries = Object.entries(sourceCatalog).filter(([, entry]) => Boolean(entry))
 
 		for (const locale of localeCodes) {
 			const translationCatalog = mergeProductCatalog(rootDir, definition.catalogScopes, locale)

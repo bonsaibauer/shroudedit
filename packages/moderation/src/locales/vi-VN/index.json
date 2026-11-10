@@ -1,183 +1,62 @@
 {
-  "nags.add-description.title": {
-    "defaultMessage": "Thêm một mô tả"
-  },
-  "nags.add-icon.description": {
-    "defaultMessage": "Việc thêm một biểu tượng độc đáo, phù hợp và thu hút sẽ giúp dự án của bạn dễ nhận biết và nổi bật hơn."
-  },
-  "nags.add-icon.title": {
-    "defaultMessage": "Thêm một biểu tượng"
-  },
-  "nags.add-java-address.description": {
-    "defaultMessage": "Thêm địa chỉ IP và cổng mà người chơi phiên bản Java có thể sử dụng để tham gia máy chủ của bạn."
-  },
-  "nags.add-java-address.title": {
-    "defaultMessage": "Thêm địa chỉ Java"
-  },
-  "nags.add-license-details.description": {
-    "defaultMessage": "Thêm một URL hợp lệ và tên hoặc mã định danh SPDX cho giấy phép tuỳ chỉnh của bạn."
-  },
-  "nags.add-license-details.title": {
-    "defaultMessage": "Thông tin giấy phép"
-  },
-  "nags.add-links-server.title": {
-    "defaultMessage": "Thêm liên kết ngoài"
-  },
-  "nags.add-links.title": {
-    "defaultMessage": "Thêm liên kết ngoài"
-  },
-  "nags.all-languages.description": {
-    "defaultMessage": "Bạn đã chọn tất cả ngôn ngữ có sẵn. Xin hãy chỉ chọn những ngôn ngữ máy chủ của bạn hỗ trợ tích cực."
-  },
-  "nags.all-languages.title": {
-    "defaultMessage": "Chọn ngôn ngữ chính xác"
-  },
-  "nags.all-tags-selected.title": {
-    "defaultMessage": "Chọn các thẻ chính xác"
-  },
-  "nags.description-too-short.title": {
-    "defaultMessage": "Mở rộng mô tả"
-  },
-  "nags.edit-description.title": {
-    "defaultMessage": "Chỉnh sửa mô tả"
-  },
-  "nags.edit-license.title": {
-    "defaultMessage": "Chỉnh sửa giấy phép"
-  },
-  "nags.edit-summary.title": {
-    "defaultMessage": "Chỉnh sửa tóm tắt"
-  },
-  "nags.edit-tags.title": {
-    "defaultMessage": "Chỉnh sửa thẻ"
-  },
-  "nags.feature-gallery-image.description": {
-    "defaultMessage": "Hình ảnh thư viện nổi bật thường là cách dự án của bạn tạo ấn tượng đầu tiên."
-  },
-  "nags.feature-gallery-image.title": {
-    "defaultMessage": "Đặt một hình ảnh thư viện nổi bật"
-  },
-  "nags.gallery.title": {
-    "defaultMessage": "Truy cập trang thư viện"
-  },
-  "nags.gpl-license-source-required.title": {
-    "defaultMessage": "Cung cấp mã nguồn"
-  },
-  "nags.invalid-license-url.description.default": {
-    "defaultMessage": "URL giấy phép không hợp lệ."
-  },
-  "nags.invalid-license-url.description.malformed": {
-    "defaultMessage": "URL giấy phép của bạn có vẻ không đúng định dạng. Vui lòng cung cấp một URL hợp lệ dẫn tới nội dung giấy phép."
-  },
-  "nags.invalid-license-url.title": {
-    "defaultMessage": "Thêm liên kết giấy phép hợp lệ"
-  },
-  "nags.long-headers.description": {
-    "defaultMessage": "{count, plural,  other {# tiêu đề}} trong phần mô tả của bạn {count, plural,  other {quá dài}}. Tiêu đề nên ngắn gọn và đóng vai trò là tiêu đề mục, không phải là câu hoàn chỉnh."
-  },
-  "nags.long-headers.title": {
-    "defaultMessage": "Rút gọn tiêu đề"
-  },
-  "nags.enshrouded-title-clause.description": {
-    "defaultMessage": "Dự án không được sử dụng thương hiệu của Enshrouded hoặc đưa “Enshrouded” làm một phần quan trọng trong tên dự án."
-  },
-  "nags.enshrouded-title-clause.title": {
-    "defaultMessage": "Tránh vi phạm thương hiệu"
-  },
-  "nags.missing-alt-text.description": {
-    "defaultMessage": "Một số hình ảnh của bạn đang thiếu văn bản thay thế, điều này rất quan trọng cho khả năng truy cập, đặc biệt đối với người khiếm thị."
-  },
-  "nags.missing-alt-text.title": {
-    "defaultMessage": "Thêm văn bản thay thế cho hình ảnh"
-  },
-  "nags.misused-discord-link.title": {
-    "defaultMessage": "Di chuyển liên kết mời Discord"
-  },
-  "nags.moderation.title": {
-    "defaultMessage": "Truy cập luồng kiểm duyệt"
-  },
-  "nags.moderator-feedback.description": {
-    "defaultMessage": "Xem xét và xử lý tất cả các vấn đề do đội ngũ kiểm duyệt nêu ra trước khi gửi lại."
-  },
-  "nags.moderator-feedback.title": {
-    "defaultMessage": "Xem phản hồi"
-  },
-  "nags.multiple-resolution-tags.title": {
-    "defaultMessage": "Chọn độ phân giải đúng"
-  },
-  "nags.select-compatibility.description": {
-    "defaultMessage": "Chọn các phiên bản mà máy chủ của bạn hỗ trợ, chọn một Modpack hoặc tải lên Modpack của riêng bạn."
-  },
-  "nags.select-compatibility.title": {
-    "defaultMessage": "Chọn khả năng tương thích"
-  },
-  "nags.select-country.description": {
-    "defaultMessage": "Hãy cho người chơi biết máy chủ của bạn đặt ở khu vực nào."
-  },
-  "nags.select-country.title": {
-    "defaultMessage": "Chọn khu vực"
-  },
-  "nags.select-language.description": {
-    "defaultMessage": "Liệt kê ngôn ngữ hoặc các ngôn ngữ được máy chủ của bạn hỗ trợ."
-  },
-  "nags.select-language.title": {
-    "defaultMessage": "Lựa chọn ngôn ngữ"
-  },
-  "nags.select-license.description": {
-    "defaultMessage": "Lựa chọn giây phép mà {type} được phân phối theo."
-  },
-  "nags.select-license.title": {
-    "defaultMessage": "Chọn giấy phép"
-  },
-  "nags.select-tags.description": {
-    "defaultMessage": "Chọn các thẻ phù hợp với dự án của bạn để giúp đúng đối tượng người dùng tìm thấy dự án."
-  },
-  "nags.select-tags.title": {
-    "defaultMessage": "Chọn thẻ"
-  },
-  "nags.server.title": {
-    "defaultMessage": "Truy cập cài đặt máy chủ"
-  },
-  "nags.settings.license.title": {
-    "defaultMessage": "Truy cập cài đặt giấy phép"
-  },
-  "nags.settings.links.title": {
-    "defaultMessage": "Truy cập cài đặt liên kết"
-  },
-  "nags.settings.tags.title": {
-    "defaultMessage": "Truy cập cài đặt thẻ"
-  },
-  "nags.settings.title": {
-    "defaultMessage": "Truy cập cài đặt chung"
-  },
-  "nags.summary-too-short.title": {
-    "defaultMessage": "Mở rộng phần tóm tắt"
-  },
-  "nags.too-many-languages.description": {
-    "defaultMessage": "Bạn đã chọn {languageCount} ngôn ngữ. Xin hãy chỉ chọn những ngôn ngữ máy chủ của bạn hỗ trợ tích cực."
-  },
-  "nags.too-many-languages.title": {
-    "defaultMessage": "Chọn ngôn ngữ chính xác"
-  },
-  "nags.too-many-tags-server.title": {
-    "defaultMessage": "Chọn thẻ chính xác"
-  },
-  "nags.too-many-tags.title": {
-    "defaultMessage": "Chọn các thẻ chính xác"
-  },
-  "nags.upload-gallery-image.description": {
-    "defaultMessage": "Cần ít nhất một hình ảnh minh họa cho {type}."
-  },
-  "nags.upload-gallery-image.title": {
-    "defaultMessage": "Tải lên hình ảnh thư viện"
-  },
-  "nags.upload-version.description": {
-    "defaultMessage": "Cần có ít nhất một phiên bản để dự án có thể được gửi xét duyệt."
-  },
-  "nags.upload-version.title": {
-    "defaultMessage": "Tải lên một phiên bản"
-  },
-  "nags.visit-links-settings.title": {
-    "defaultMessage": "Truy cập cài đặt liên kết"
-  }
+  "nags.add-description.title": "Thêm một mô tả",
+  "nags.add-icon.description": "Việc thêm một biểu tượng độc đáo, phù hợp và thu hút sẽ giúp dự án của bạn dễ nhận biết và nổi bật hơn.",
+  "nags.add-icon.title": "Thêm một biểu tượng",
+  "nags.add-java-address.description": "Thêm địa chỉ IP và cổng mà người chơi phiên bản Java có thể sử dụng để tham gia máy chủ của bạn.",
+  "nags.add-java-address.title": "Thêm địa chỉ Java",
+  "nags.add-license-details.description": "Thêm một URL hợp lệ và tên hoặc mã định danh SPDX cho giấy phép tuỳ chỉnh của bạn.",
+  "nags.add-license-details.title": "Thông tin giấy phép",
+  "nags.add-links-server.title": "Thêm liên kết ngoài",
+  "nags.add-links.title": "Thêm liên kết ngoài",
+  "nags.all-languages.description": "Bạn đã chọn tất cả ngôn ngữ có sẵn. Xin hãy chỉ chọn những ngôn ngữ máy chủ của bạn hỗ trợ tích cực.",
+  "nags.all-languages.title": "Chọn ngôn ngữ chính xác",
+  "nags.all-tags-selected.title": "Chọn các thẻ chính xác",
+  "nags.description-too-short.title": "Mở rộng mô tả",
+  "nags.edit-description.title": "Chỉnh sửa mô tả",
+  "nags.edit-license.title": "Chỉnh sửa giấy phép",
+  "nags.edit-summary.title": "Chỉnh sửa tóm tắt",
+  "nags.edit-tags.title": "Chỉnh sửa thẻ",
+  "nags.feature-gallery-image.description": "Hình ảnh thư viện nổi bật thường là cách dự án của bạn tạo ấn tượng đầu tiên.",
+  "nags.feature-gallery-image.title": "Đặt một hình ảnh thư viện nổi bật",
+  "nags.gallery.title": "Truy cập trang thư viện",
+  "nags.gpl-license-source-required.title": "Cung cấp mã nguồn",
+  "nags.invalid-license-url.description.default": "URL giấy phép không hợp lệ.",
+  "nags.invalid-license-url.description.malformed": "URL giấy phép của bạn có vẻ không đúng định dạng. Vui lòng cung cấp một URL hợp lệ dẫn tới nội dung giấy phép.",
+  "nags.invalid-license-url.title": "Thêm liên kết giấy phép hợp lệ",
+  "nags.long-headers.description": "{count, plural,  other {# tiêu đề}} trong phần mô tả của bạn {count, plural,  other {quá dài}}. Tiêu đề nên ngắn gọn và đóng vai trò là tiêu đề mục, không phải là câu hoàn chỉnh.",
+  "nags.long-headers.title": "Rút gọn tiêu đề",
+  "nags.enshrouded-title-clause.description": "Dự án không được sử dụng thương hiệu của Enshrouded hoặc đưa “Enshrouded” làm một phần quan trọng trong tên dự án.",
+  "nags.enshrouded-title-clause.title": "Tránh vi phạm thương hiệu",
+  "nags.missing-alt-text.description": "Một số hình ảnh của bạn đang thiếu văn bản thay thế, điều này rất quan trọng cho khả năng truy cập, đặc biệt đối với người khiếm thị.",
+  "nags.missing-alt-text.title": "Thêm văn bản thay thế cho hình ảnh",
+  "nags.misused-discord-link.title": "Di chuyển liên kết mời Discord",
+  "nags.moderation.title": "Truy cập luồng kiểm duyệt",
+  "nags.moderator-feedback.description": "Xem xét và xử lý tất cả các vấn đề do đội ngũ kiểm duyệt nêu ra trước khi gửi lại.",
+  "nags.moderator-feedback.title": "Xem phản hồi",
+  "nags.multiple-resolution-tags.title": "Chọn độ phân giải đúng",
+  "nags.select-compatibility.description": "Chọn các phiên bản mà máy chủ của bạn hỗ trợ, chọn một Modpack hoặc tải lên Modpack của riêng bạn.",
+  "nags.select-compatibility.title": "Chọn khả năng tương thích",
+  "nags.select-country.description": "Hãy cho người chơi biết máy chủ của bạn đặt ở khu vực nào.",
+  "nags.select-country.title": "Chọn khu vực",
+  "nags.select-language.description": "Liệt kê ngôn ngữ hoặc các ngôn ngữ được máy chủ của bạn hỗ trợ.",
+  "nags.select-language.title": "Lựa chọn ngôn ngữ",
+  "nags.select-license.description": "Lựa chọn giây phép mà {type} được phân phối theo.",
+  "nags.select-license.title": "Chọn giấy phép",
+  "nags.select-tags.description": "Chọn các thẻ phù hợp với dự án của bạn để giúp đúng đối tượng người dùng tìm thấy dự án.",
+  "nags.select-tags.title": "Chọn thẻ",
+  "nags.server.title": "Truy cập cài đặt máy chủ",
+  "nags.settings.license.title": "Truy cập cài đặt giấy phép",
+  "nags.settings.links.title": "Truy cập cài đặt liên kết",
+  "nags.settings.tags.title": "Truy cập cài đặt thẻ",
+  "nags.settings.title": "Truy cập cài đặt chung",
+  "nags.summary-too-short.title": "Mở rộng phần tóm tắt",
+  "nags.too-many-languages.description": "Bạn đã chọn {languageCount} ngôn ngữ. Xin hãy chỉ chọn những ngôn ngữ máy chủ của bạn hỗ trợ tích cực.",
+  "nags.too-many-languages.title": "Chọn ngôn ngữ chính xác",
+  "nags.too-many-tags-server.title": "Chọn thẻ chính xác",
+  "nags.too-many-tags.title": "Chọn các thẻ chính xác",
+  "nags.upload-gallery-image.description": "Cần ít nhất một hình ảnh minh họa cho {type}.",
+  "nags.upload-gallery-image.title": "Tải lên hình ảnh thư viện",
+  "nags.upload-version.description": "Cần có ít nhất một phiên bản để dự án có thể được gửi xét duyệt.",
+  "nags.upload-version.title": "Tải lên một phiên bản",
+  "nags.visit-links-settings.title": "Truy cập cài đặt liên kết"
 }
-

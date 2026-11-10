@@ -19,7 +19,7 @@ import PopupNotificationPanel from '../src/components/nav/PopupNotificationPanel
 import {
 	buildLocaleMessages,
 	createMessageCompiler,
-	type CrowdinMessages,
+	type LocaleMessages,
 } from '../src/composables/i18n'
 import {
 	AbstractPopupNotificationManager,
@@ -41,7 +41,7 @@ import {
 // @ts-ignore
 const localeModules = import.meta.glob('../src/locales/en-US/index.json', {
 	eager: true,
-}) as Record<string, { default: CrowdinMessages }>
+}) as Record<string, { default: LocaleMessages }>
 
 // Set up vue-i18n for Storybook - provides useVIntl() context for components
 const i18n = createI18n({

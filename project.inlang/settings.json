@@ -1,0 +1,49 @@
+{
+	"$schema": "https://inlang.com/schema/project-settings",
+	"baseLocale": "en-US",
+	"locales": [
+		"ar-SA",
+		"cs-CZ",
+		"da-DK",
+		"de-CH",
+		"de-DE",
+		"en-US",
+		"es-419",
+		"es-ES",
+		"fi-FI",
+		"fil-PH",
+		"fr-FR",
+		"he-IL",
+		"hu-HU",
+		"id-ID",
+		"it-IT",
+		"ja-JP",
+		"ko-KR",
+		"ms-MY",
+		"nl-NL",
+		"no-NO",
+		"pl-PL",
+		"pt-BR",
+		"pt-PT",
+		"ro-RO",
+		"ru-RU",
+		"sr-CS",
+		"sv-SE",
+		"th-TH",
+		"tr-TR",
+		"uk-UA",
+		"vi-VN",
+		"zh-CN",
+		"zh-TW"
+	],
+	"modules": [
+		"https://cdn.jsdelivr.net/npm/@inlang/plugin-next-intl@2/dist/index.js"
+	],
+	"plugin.inlang.nextIntl": {
+		"pathPattern": {
+			"frontend": "./apps/frontend/src/locales/{locale}/index.json",
+			"ui": "./packages/ui/src/locales/{locale}/index.json",
+			"moderation": "./packages/moderation/src/locales/{locale}/index.json"
+		}
+	}
+}

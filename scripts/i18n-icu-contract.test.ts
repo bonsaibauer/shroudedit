@@ -4,7 +4,6 @@ import { test } from 'node:test'
 import {
 	contractFromMessage,
 	contractsEqual,
-	sourceContractChanged,
 	translationCompatibleWithSource,
 } from './i18n-icu-contract'
 
@@ -110,39 +109,4 @@ test('translation cannot invent variables', () => {
 	const translation = contractFromMessage('Created by {username}', 'translation')
 
 	assert.equal(translationCompatibleWithSource(source, translation), false)
-})
-
-test('source shape rewrite with same runtime interface is not a contract change', () => {
-	assert.equal(
-		sourceContractChanged(
-			'In the last {amount} {unit, select, hours {{amount, plural, one {hour} other {hours}}} days {{amount, plural, one {day} other {days}}} other {days}}',
-			'{unit, select, hours {{amount, plural, one {In the last hour} other {In the last # hours}}} days {{amount, plural, one {In the last day} other {In the last # days}}} other {In the last {amount} days}}',
-			'previous',
-			'current',
-		),
-		false,
-	)
-})
-
-test('invalid previous source message is treated as changed', () => {
-	assert.equal(
-		sourceContractChanged(
-			'Get support at {support-link}',
-			'Get support at <support-link></support-link>',
-			'previous',
-			'current',
-		),
-		true,
-	)
-})
-
-test('invalid current source message is rejected', () => {
-	assert.throws(() =>
-		sourceContractChanged(
-			'Get support at <support-link></support-link>',
-			'Get support at {support-link}',
-			'previous',
-			'current',
-		),
-	)
 })

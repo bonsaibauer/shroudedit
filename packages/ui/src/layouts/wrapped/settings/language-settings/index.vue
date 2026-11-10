@@ -13,8 +13,11 @@
 				:message-id="languageSelectorMessages.languagesDescription"
 				:values="{ platform }"
 			>
-				<template #~crowdin-link="{ children }">
-					<AutoLink to="https://translate.shroudedit.com" class="text-link">
+				<template #~translations-link="{ children }">
+					<AutoLink
+						to="https://fink.inlang.com/?repo=bonsaibauer/shroudedit&project=project.inlang"
+						class="text-link"
+					>
 						<component :is="() => children" />
 					</AutoLink>
 				</template>
