@@ -68,10 +68,10 @@
 				"NODE_ENV": "production",
 				"ENVIRONMENT": "dev",
 				"SENTRY_ENVIRONMENT": "dev",
-				"BASE_URL": "https://api.shroudedit.com/v2/",
-				"BROWSER_BASE_URL": "https://api.shroudedit.com/v2/",
-				"PYRO_BASE_URL": "https://archon.shroudedit.com/",
-				"SHARED_INSTANCES_API_BASE_URL": "https://shared-instances.shroudedit.com",
+				"BASE_URL": "https://api.dev.shroudedit.com/v2/",
+				"BROWSER_BASE_URL": "https://api.dev.shroudedit.com/v2/",
+				"PYRO_BASE_URL": "https://archon.dev.shroudedit.com/",
+				"SHARED_INSTANCES_API_BASE_URL": "https://shared-instances.dev.shroudedit.com",
 				"STRIPE_PUBLISHABLE_KEY": "pk_test_51JbFxJJygY5LJFfKV50mnXzz3YLvBVe2Gd1jn7ljWAkaBlRz3VQdxN9mXcPSrFbSqxwAb0svte9yhnsmm7qHfcWn00R611Ce7b"
 			},
 			"preview_urls": true

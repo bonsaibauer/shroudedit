@@ -1,5 +1,29 @@
 # ShroudEdit
 
+[![Made With Love](https://img.shields.io/badge/Made%20with%20%E2%9D%A4%EF%B8%8F-by%20bonsaibauer-green)](https://github.com/bonsaibauer)
+[![Repository](https://img.shields.io/badge/Repository-shroudforge-blue?style=flat&logo=github)](https://github.com/bonsaibauer/shroudforge)
+[![License](https://img.shields.io/badge/License-MIT-blue)](https://github.com/bonsaibauer/shroudforge/blob/main/LICENSE)
+[![Visitors](https://visitor-badge.laobi.icu/badge?page_id=bonsaibauer.shroudforge)](https://github.com/bonsaibauer/shroudforge)
+[![Downloads](https://img.shields.io/github/downloads/bonsaibauer/shroudforge/total)](https://github.com/bonsaibauer/shroudforge/releases)
+[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D6?style=flat&logo=windows&logoColor=white)](https://github.com/bonsaibauer/shroudforge)
+
+[![Report Bug](https://img.shields.io/badge/Report-Bug-critical?style=flat&logo=github)](https://github.com/bonsaibauer/shroudforge/issues/new?template=bug_report.yml)
+[![Request Feature](https://img.shields.io/badge/Request-Feature-green?style=flat&logo=github)](https://github.com/bonsaibauer/shroudforge/issues/new?template=feature_request.yml)
+[![Compatibility Problem](https://img.shields.io/badge/Report-Compatibility_Problem-important?style=flat&logo=github)](https://github.com/bonsaibauer/shroudforge/issues/new?template=version_mismatch.yml)
+
+![GitHub Stars](https://img.shields.io/github/stars/bonsaibauer/shroudforge?style=social)
+![GitHub Forks](https://img.shields.io/github/forks/bonsaibauer/shroudforge?style=social)
+
+# Shroudforge Network
+
+<p align="center">
+  <strong>🔨 <a href="https://shroudforge.net/">Check out the official download page →</a></strong>
+  &nbsp;<a href="https://status.shroudforge.net/"><img src="https://incidents.betterstack.com/status-badges/v1/monitor/32xnl.svg" alt="ShroudForge website status"></a>
+  &nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;&nbsp;
+  <strong>📖 <a href="https://wiki.shroudforge.net/">Visit the official Modloader Wiki →</a></strong>
+  &nbsp;<a href="https://status.shroudforge.net/"><img src="https://incidents.betterstack.com/status-badges/v1/monitor/33ehg.svg" alt="ShroudForge Wiki status"></a>
+</p>
+
 [![Made with love](https://img.shields.io/badge/Made%20with-%E2%9D%A4%EF%B8%8F-c78aff?style=flat)](https://github.com/ShroudEdit)
 [![Repository](https://img.shields.io/badge/Repository-ShroudEdit-blue?style=flat&logo=github)](https://github.com/ShroudEdit/code)
 [![Website](https://img.shields.io/badge/Website-shroudedit.com-c78aff?style=flat)](https://shroudedit.com)
@@ -37,13 +61,13 @@ Read the root [AGENTS.md](AGENTS.md) and the project-level instructions before c
 
 ## Repository layout
 
-| Path | Purpose |
-| --- | --- |
-| `apps/frontend` | ShroudEdit website |
-| `apps/labrinth` | Rust API, accounts, projects, and version uploads |
-| `packages/api-client` | Shared API client |
-| `packages/ui` | Shared Vue components |
-| `packages/assets` | Shared icons, illustrations, and styles |
+| Path                  | Purpose                                           |
+| --------------------- | ------------------------------------------------- |
+| `apps/frontend`       | ShroudEdit website                                |
+| `apps/labrinth`       | Rust API, accounts, projects, and version uploads |
+| `packages/api-client` | Shared API client                                 |
+| `packages/ui`         | Shared Vue components                             |
+| `packages/assets`     | Shared icons, illustrations, and styles           |
 
 ## Monetization
 

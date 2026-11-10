@@ -18,9 +18,8 @@ const messages = defineMessages({
 		defaultMessage: 'You’re viewing ShroudEdit’s Dev environment',
 	},
 	description: {
-		id: 'layout.banner.dev.description',
-		defaultMessage:
-			'This Dev frontend uses production APIs and data. Changes here can affect live ShroudEdit content.',
+		id: 'layout.banner.dev.description.developmentServices',
+		defaultMessage: 'This Dev frontend is configured to use the development API and service endpoints.',
 	},
 })
 
