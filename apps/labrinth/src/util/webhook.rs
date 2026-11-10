@@ -664,7 +664,7 @@ fn get_gv_range(
 
 // Converted from knossos
 // See: packages/utils/utils.ts
-// https://github.com/shroudedit/code/blob/47af459f24e541a844b42b1c8427af6a7b86381e/packages/utils/utils.ts#L147-L196
+// https://github.com/bonsaibauer/shroudedit/blob/HEAD/packages/utils/utils.ts
 fn format_category_or_loader(mut x: String) -> String {
     match &*x {
         "modloader" => "Risugami's ModLoader".to_string(),

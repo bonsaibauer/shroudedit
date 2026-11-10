@@ -1,24 +1,35 @@
-name: Labrinth Build
+name: Labrinth Build and Publish
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('Publish API stable from {0}', github.ref_name) || github.event_name == 'push' && format('Publish API dev from {0}', github.ref_name) || github.event_name == 'pull_request' && format('Build API for PR #{0}', github.event.pull_request.number) || format('Build API for {0}', github.ref_name) }}
 
 on:
-  pull_request:
-    branches: [dev, prod]
-    types: [opened, synchronize, reopened, closed]
+  push:
+    branches:
+      - '*.*.*'
     paths:
       - .github/workflows/labrinth-build.yml
-      - .github/actions/validate-deployment-pr/**
-      - .github/actions/deployment-number/**
+      - VERSION
       - 'apps/labrinth/**'
       - 'packages/**'
       - '!packages/api-client/**'
       - Cargo.toml
       - Cargo.lock
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/labrinth-build.yml
+      - VERSION
+      - 'apps/labrinth/**'
+      - 'packages/**'
+      - '!packages/api-client/**'
+      - Cargo.toml
+      - Cargo.lock
+  workflow_dispatch:
   merge_group:
     types: [checks_requested]
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' && github.event.action != 'closed' }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && 'stable' || github.event_name == 'push' && 'dev' || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 permissions:
   contents: read
@@ -49,6 +60,7 @@ jobs:
           fi
 
       - name: Merge Queue CI Check Skipper
+        if: github.event_name == 'merge_group'
         id: merge-queue-ci-skipper
         uses: ./.github/merge-queue-ci-skipper
         with:
@@ -73,14 +85,10 @@ jobs:
     name: Build Labrinth
     runs-on: ${{ needs.skip-if-clean.outputs.internal == 'true' && 'namespace-profile-shroudedit-labrinth' || 'ubuntu-latest' }}
     needs: [skip-if-clean]
-    if: >-
-      ${{
-        needs.skip-if-clean.outputs.skip != 'true'
-        && (github.event.action != 'closed' || github.event.pull_request.merged == true)
-      }}
+    if: needs.skip-if-clean.outputs.skip != 'true'
     env:
       SQLX_OFFLINE: 'true'
-      GIT_HASH: ${{ github.event.action == 'closed' && github.event.pull_request.merged && github.event.pull_request.merge_commit_sha || github.sha }}
+      GIT_HASH: ${{ github.sha }}
       SCCACHE_CACHE_SIZE: ${{ needs.skip-if-clean.outputs.internal == 'true' && '20G' || '' }}
       RUSTC_WRAPPER: ${{ needs.skip-if-clean.outputs.internal == 'true' && 'sccache' || '' }}
       RUST_MIN_STACK: '268435456'
@@ -88,7 +96,28 @@ jobs:
       - name: Check out code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.action == 'closed' && github.event.pull_request.merged && github.event.pull_request.merge_commit_sha || github.sha }}
+          ref: ${{ github.sha }}
+
+      - name: Require a branch for API publication
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF_TYPE" != 'branch' ]]; then
+            echo "Run this workflow from a branch, not a tag." >&2
+            exit 1
+          fi
+
+      - name: Set version from source branch
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
+        shell: bash
+        env:
+          VERSION_BRANCH: ${{ github.ref_name }}
+        run: |
+          if [[ ! "$VERSION_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "The selected branch must be a version such as 1.0.0." >&2
+            exit 1
+          fi
+          printf '%s\n' "$VERSION_BRANCH" > VERSION
 
       - name: Setup Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@166cdcfd11aee3cb47222f9ddb555ce30ddb9659 # v1.17.0
@@ -121,20 +150,16 @@ jobs:
         run: cargo build --profile release-labrinth --package labrinth
 
       - name: Stage Docker context
+        if: github.event_name == 'workflow_dispatch' || github.event_name == 'push'
         run: |
           mkdir -p apps/labrinth/docker-stage
           cp target/release-labrinth/labrinth apps/labrinth/docker-stage/labrinth
           cp -r apps/labrinth/migrations apps/labrinth/docker-stage/migrations
           cp -r apps/labrinth/assets apps/labrinth/docker-stage/assets
+          cp VERSION apps/labrinth/docker-stage/VERSION
 
       - name: Upload Docker context
-        if: >-
-          ${{
-            needs.skip-if-clean.outputs.internal == 'true'
-            && github.event_name == 'pull_request'
-            && github.event.action == 'closed'
-            && github.event.pull_request.merged == true
-          }}
+        if: ${{ needs.skip-if-clean.outputs.internal == 'true' && (github.event_name == 'workflow_dispatch' || github.event_name == 'push') }}
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: labrinth-docker-context
@@ -142,59 +167,32 @@ jobs:
           path: apps/labrinth/docker-stage
 
   publish-image:
-    name: Publish ${{ github.event.pull_request.base.ref }} API image
+    name: Publish ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'dev' }} API image
     needs: [skip-if-clean, build]
     if: >-
       ${{
         needs.skip-if-clean.outputs.internal == 'true'
-        && github.event_name == 'pull_request'
-        && github.event.action == 'closed'
-        && github.event.pull_request.merged == true
+        && (github.event_name == 'workflow_dispatch' || github.event_name == 'push')
       }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-      pull-requests: read
     outputs:
       image: ${{ steps.tags.outputs.image }}
       version_tag: ${{ steps.tags.outputs.version_tag }}
-      environment: ${{ steps.tags.outputs.environment }}
+      channel: ${{ steps.tags.outputs.channel }}
     env:
-      SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
-      TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
+      DEPLOYMENT_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'dev' }}
       IMAGE_OWNER: ${{ github.repository_owner }}
       IMAGE_NAME: shroudedit-api
-      DEPLOY_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      DEPLOY_SHA: ${{ github.sha }}
     steps:
-      - name: Check out merged commit
+      - name: Check out selected source commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
-
-      - name: Validate deployment PR
-        uses: ./.github/actions/validate-deployment-pr
-        with:
-          source-branch: ${{ github.event.pull_request.head.ref }}
-          source-sha: ${{ github.event.pull_request.head.sha }}
-          source-repository: ${{ github.event.pull_request.head.repo.full_name }}
-          target-branch: ${{ github.event.pull_request.base.ref }}
-          repository: ${{ github.repository }}
-          api-url: ${{ github.api_url }}
-          github-token: ${{ github.token }}
-
-      - name: Determine deployment number
-        id: deployment-number
-        uses: ./.github/actions/deployment-number
-        with:
-          source-branch: ${{ github.event.pull_request.head.ref }}
-          target-branch: ${{ github.event.pull_request.base.ref }}
-          pull-request-number: ${{ github.event.pull_request.number }}
-          merged-at: ${{ github.event.pull_request.merged_at }}
-          repository: ${{ github.repository }}
-          api-url: ${{ github.api_url }}
-          github-token: ${{ github.token }}
 
       - name: Download Docker context
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
@@ -206,27 +204,21 @@ jobs:
         id: tags
         shell: bash
         env:
-          DEPLOYMENT_NUMBER: ${{ steps.deployment-number.outputs.deployment-number }}
+          DEPLOYMENT_CHANNEL: ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'dev' }}
+          DEPLOY_SHA: ${{ github.sha }}
         run: |
-          if [[ ! "$SOURCE_BRANCH" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "PR source branch must be a version such as 1.0.0; received: $SOURCE_BRANCH" >&2
-            exit 1
-          fi
-
-          case "$TARGET_BRANCH" in
-            dev) environment=dev ;;
-            prod) environment=prod ;;
-            *) echo "Unsupported deployment target: $TARGET_BRANCH" >&2; exit 1 ;;
+          case "$DEPLOYMENT_CHANNEL" in
+            stable|dev) ;;
+            *) echo "Unsupported API channel: $DEPLOYMENT_CHANNEL" >&2; exit 1 ;;
           esac
 
           short_sha="${DEPLOY_SHA:0:12}"
-          version_tag="v${SOURCE_BRANCH}-${environment}.${DEPLOYMENT_NUMBER}"
-          immutable_tag="${version_tag}-sha.${short_sha}"
+          version_tag="${DEPLOYMENT_CHANNEL}-${GITHUB_RUN_NUMBER}"
+          immutable_tag="${DEPLOYMENT_CHANNEL}-sha.${short_sha}"
           image="ghcr.io/$(printf '%s' "$IMAGE_OWNER" | tr '[:upper:]' '[:lower:]')/$IMAGE_NAME"
 
           {
-            echo "environment=$environment"
-            echo "deployment_number=$DEPLOYMENT_NUMBER"
+            echo "channel=$DEPLOYMENT_CHANNEL"
             echo "version_tag=$version_tag"
             echo "immutable_tag=$immutable_tag"
             echo "image=$image"
@@ -242,9 +234,10 @@ jobs:
           IMAGE: ${{ steps.tags.outputs.image }}
           VERSION_TAG: ${{ steps.tags.outputs.version_tag }}
           IMMUTABLE_TAG: ${{ steps.tags.outputs.immutable_tag }}
-          ENVIRONMENT: ${{ steps.tags.outputs.environment }}
         run: |
+          BUILD_VERSION="$(cat apps/labrinth/docker-stage/VERSION)"
           docker build \
+            --build-arg BUILD_VERSION="$BUILD_VERSION" \
             --file apps/labrinth/Dockerfile \
             --tag "$IMAGE:$VERSION_TAG" \
             --tag "$IMAGE:$IMMUTABLE_TAG" \
@@ -253,60 +246,58 @@ jobs:
           docker push "$IMAGE:$VERSION_TAG"
           docker push "$IMAGE:$IMMUTABLE_TAG"
 
-  promote-latest:
-    name: Move ${{ github.event.pull_request.base.ref }} API alias
+  promote-channel-aliases:
+    name: Update ${{ github.event_name == 'workflow_dispatch' && 'stable' || 'dev' }} API aliases
     needs: [publish-image]
     runs-on: ubuntu-latest
     concurrency:
-      group: ${{ github.workflow }}-${{ github.event.pull_request.base.ref }}-alias
+      group: ${{ github.workflow }}-${{ github.event_name == 'workflow_dispatch' && 'stable' || 'dev' }}-alias
       cancel-in-progress: false
     permissions:
       contents: read
       packages: write
     env:
-      TARGET_BRANCH: ${{ github.event.pull_request.base.ref }}
-      DEPLOY_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+      SOURCE_BRANCH_REF: ${{ github.ref_name }}
+      SOURCE_BRANCH_SHA: ${{ github.sha }}
       IMAGE: ${{ needs.publish-image.outputs.image }}
       VERSION_TAG: ${{ needs.publish-image.outputs.version_tag }}
-      ENVIRONMENT: ${{ needs.publish-image.outputs.environment }}
+      CHANNEL: ${{ needs.publish-image.outputs.channel }}
     steps:
       - name: Check out deployment commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
 
-      - name: Check whether this is still the latest API content
+      - name: Confirm the selected branch is still current
         id: current
+        shell: bash
         run: |
-          git fetch origin "$TARGET_BRANCH"
-          if git diff --quiet "$DEPLOY_SHA" FETCH_HEAD -- \
-            apps/labrinth \
-            Cargo.toml \
-            Cargo.lock \
-            packages \
-            ':(exclude)packages/api-client/**'; then
-            echo "is_current=true" >> "$GITHUB_OUTPUT"
+          git fetch --no-tags origin "refs/heads/$SOURCE_BRANCH_REF"
+          current_sha="$(git rev-parse FETCH_HEAD)"
+          if [[ "$current_sha" == "$SOURCE_BRANCH_SHA" ]]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
           else
-            echo "is_current=false" >> "$GITHUB_OUTPUT"
-            echo "Skipping alias update because newer API content is already on $TARGET_BRANCH"
+            echo "::notice::The selected branch changed during the build. Skipping this older deployment."
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Log in to GitHub Container Registry
-        if: steps.current.outputs.is_current == 'true'
+        if: steps.current.outputs.deploy == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: printf '%s' "$GH_TOKEN" | docker login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
 
-      - name: Move API alias
-        if: steps.current.outputs.is_current == 'true'
+      - name: Update API channel aliases
+        if: steps.current.outputs.deploy == 'true'
         run: |
-          if [ "$ENVIRONMENT" = "prod" ]; then
-            alias=latest
-          else
-            alias=dev-latest
-          fi
-
+          case "$CHANNEL" in
+            stable) aliases=(stable latest) ;;
+            dev) aliases=(dev dev-latest) ;;
+            *) echo "Unsupported API channel: $CHANNEL" >&2; exit 1 ;;
+          esac
           docker pull "$IMAGE:$VERSION_TAG"
-          docker tag "$IMAGE:$VERSION_TAG" "$IMAGE:$alias"
-          docker push "$IMAGE:$alias"
+          for alias in "${aliases[@]}"; do
+            docker tag "$IMAGE:$VERSION_TAG" "$IMAGE:$alias"
+            docker push "$IMAGE:$alias"
+          done

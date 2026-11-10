@@ -86,7 +86,7 @@ jobs:
             // Detect child PR: check if this PR's base branch is another open PR's head branch
             const baseRef = pr.base.ref;
 
-            if (baseRef === 'main' || baseRef === 'prod') {
+            if (baseRef === pr.base.repo.default_branch) {
               return;
             }
 

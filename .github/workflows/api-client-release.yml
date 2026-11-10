@@ -2,7 +2,6 @@ name: API client release
 
 on:
   push:
-    branches: [main]
     paths:
       - .github/workflows/api-client-release.yml
       - packages/api-client/**
@@ -17,7 +16,7 @@ permissions:
 
 jobs:
   release:
-    if: github.repository_owner == 'shroudedit' && github.ref == 'refs/heads/main'
+    if: github.repository_owner == 'bonsaibauer' && github.ref_name == github.event.repository.default_branch
     # npm Trusted Publishing requires a GitHub-hosted runner.
     runs-on: ubuntu-latest
     env:

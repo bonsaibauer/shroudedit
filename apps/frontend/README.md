@@ -26,12 +26,10 @@ pnpm web:dev
 
 You should now have a development build of the web interface running with hot-reloading enabled. Any changes you make to the code will automatically refresh the browser.
 
-## Cloudflare releases
+## Cloudflare deployment
 
-The frontend is a Nuxt SSR application deployed directly as Cloudflare Workers from `apps/frontend/wrangler.jsonc`. The `dev` GitHub branch deploys the `dev` Worker to `https://dev.shroudedit.com`. The `prod` branch deploys the `frontend` Worker to `https://shroudedit.com`. A merged version-branch pull request starts only the matching channel workflow. Both workflows use the shared build and deploy steps in `.github/workflows/frontend-deploy.yml`.
+Run **Deploy frontend** from GitHub Actions and choose a version branch in `X.Y.Z` format to deploy `stable` manually. Every push to a branch matching `*.*.*` deploys `dev`, including pushes created by merging a pull request. Pull requests themselves run through regular CI and do not deploy. Each deployment validates the branch version, writes it to the root `VERSION` file for that build, and checks that its source branch has not moved during the build. Update the checked-in `VERSION` file when preparing a new version branch. Local and deployed frontend builds expose it as `public.version` in Nuxt runtime config.
 
-The deploy builds the Nuxt application, then Wrangler publishes the generated `.output/server` Worker code and `.output/public` assets. It does not create or upload a ZIP file for Cloudflare. Repository Actions secrets `CF_API_TOKEN` and `CF_ACCOUNT_ID` authenticate the deployment. `SENTRY_AUTH_TOKEN` is used for the release and source map upload.
+The `stable` channel uses the default Worker configuration for `https://shroudedit.com`. The `dev` channel uses the Wrangler `dev` environment for `https://dev.shroudedit.com`. Each channel injects its own build variables and purges only its own domain cache. The deploy builds the Nuxt application and publishes `.output/server` and `.output/public` directly through Wrangler.
 
-`.github/workflows/frontend-docker.yml` is a separate publication path. It builds a Node-based container image from the same frontend output and publishes versioned and immutable tags to GitHub Container Registry. It also updates the `dev-latest` or `latest` alias. This GHCR image publication is independent from the Cloudflare Worker deployment.
-
-The dev and production Workers have separate names, domains and build-time variables in `wrangler.jsonc`. Dev uses `api.dev.shroudedit.com`, `archon.dev.shroudedit.com` and `shared-instances.dev.shroudedit.com`. Production uses the corresponding production services. Each release also purges only its own domain cache.
+Repository Actions secrets `CF_API_TOKEN` and `CF_ACCOUNT_ID` authenticate the deployment. `SENTRY_AUTH_TOKEN` is used to upload source maps and create the Sentry release. Both Worker configurations remain in `apps/frontend/wrangler.jsonc`.

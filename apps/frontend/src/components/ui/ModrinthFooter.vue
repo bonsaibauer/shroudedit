@@ -325,9 +325,9 @@ function developerModeIncrement() {
 					v-if="config.public.owner && config.public.branch"
 					class="hover:underline"
 					target="_blank"
-					:href="`https://github.com/${config.public.owner}/code/tree/${config.public.branch}`"
+					:href="`https://github.com/${config.public.owner}/${config.public.slug}/tree/${config.public.branch}`"
 				>
-					{{ config.public.owner }}/{{ config.public.branch }}
+					{{ config.public.owner }}/{{ config.public.slug }} / {{ config.public.branch }}
 				</a>
 				@
 				<span v-if="config.public.hash === 'unknown'">{{
@@ -337,7 +337,7 @@ function developerModeIncrement() {
 					v-else
 					class="text-link"
 					target="_blank"
-					:to="`https://github.com/${config.public.owner}/code/commit/${config.public.hash}`"
+					:to="`https://github.com/${config.public.owner}/${config.public.slug}/commit/${config.public.hash}`"
 				>
 					{{ config.public.hash }}
 				</AutoLink>

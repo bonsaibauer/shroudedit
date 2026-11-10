@@ -1,3 +1,5 @@
+import { execSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import serverSidedVue from '@vitejs/plugin-vue'
 import fs from 'fs/promises'
 import { defineNuxtConfig } from 'nuxt/config'
@@ -21,6 +23,15 @@ const preloadedFonts = [
 
 const PROD_SHROUDEDIT_URL = 'https://shroudedit.com'
 const DEV_SHROUDEDIT_URL = 'https://dev.shroudedit.com'
+const BUILD_VERSION = readFileSync(new URL('../../VERSION', import.meta.url), 'utf8').trim()
+
+function currentGitBranch() {
+	try {
+		return execSync('git branch --show-current', { encoding: 'utf8' }).trim() || 'unknown'
+	} catch {
+		return 'unknown'
+	}
+}
 
 export default defineNuxtConfig({
 	srcDir: 'src/',
@@ -197,18 +208,21 @@ export default defineNuxtConfig({
 			production: isProduction(),
 			cookieSecure: isProduction(),
 			buildEnv: process.env.BUILD_ENV,
+			version: BUILD_VERSION,
 			preview: process.env.PREVIEW === 'true',
 			monetizationEnabled: process.env.MONETIZATION_ENABLED === 'true',
 			featureFlagOverrides: getFeatureFlagOverrides(),
 
-			owner: process.env.VERCEL_GIT_REPO_OWNER || 'shroudedit',
-			slug: process.env.VERCEL_GIT_REPO_SLUG || 'code',
+			owner: process.env.VERCEL_GIT_REPO_OWNER || 'bonsaibauer',
+			slug: process.env.VERCEL_GIT_REPO_SLUG || 'shroudedit',
 			branch:
 				process.env.VERCEL_GIT_COMMIT_REF ||
 				process.env.CF_PAGES_BRANCH ||
+				process.env.GITHUB_HEAD_REF ||
+				process.env.GITHUB_REF_NAME ||
 				// @ts-ignore
 				globalThis.CF_PAGES_BRANCH ||
-				'main',
+				currentGitBranch(),
 			hash:
 				process.env.VERCEL_GIT_COMMIT_SHA ||
 				process.env.CF_PAGES_COMMIT_SHA ||

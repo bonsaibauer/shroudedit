@@ -17,7 +17,7 @@ members = [
 [workspace.package]
 edition = "2024"
 rust-version = "1.90.0"
-repository = "https://github.com/shroudedit/code"
+repository = "https://github.com/bonsaibauer/shroudedit"
 
 [workspace.dependencies]
 actix-cors = "0.7.1"

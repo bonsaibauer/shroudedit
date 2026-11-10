@@ -1,0 +1,23 @@
+name: Deploy frontend dev
+
+on:
+  push:
+    branches:
+      - '*.*.*'
+
+permissions:
+  contents: read
+  deployments: write
+
+concurrency:
+  group: shroudedit-frontend-dev-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    uses: ./.github/workflows/frontend-deploy.yml
+    with:
+      channel: dev
+      source_ref: ${{ github.ref_name }}
+      source_sha: ${{ github.sha }}
+    secrets: inherit

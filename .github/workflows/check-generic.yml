@@ -1,8 +1,6 @@
 on:
   pull_request:
   push:
-    branches:
-      - main
 
 env:
   CARGO_TERM_COLOR: always
@@ -10,6 +8,7 @@ env:
 
 jobs:
   typos:
+    if: ${{ github.event_name != 'push' || github.ref_name == github.event.repository.default_branch }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -17,6 +16,7 @@ jobs:
 
   # see <https://github.com/influxdata/datafusion-udf-wasm/pull/275>
   tombi:
+    if: ${{ github.event_name != 'push' || github.ref_name == github.event.repository.default_branch }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1

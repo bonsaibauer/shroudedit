@@ -22,13 +22,13 @@
 	"sideEffects": false,
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/shroudedit/code.git",
+		"url": "https://github.com/bonsaibauer/shroudedit.git",
 		"directory": "packages/api-client"
 	},
 	"bugs": {
-		"url": "https://github.com/shroudedit/code/issues"
+		"url": "https://github.com/bonsaibauer/shroudedit/issues"
 	},
-	"homepage": "https://github.com/shroudedit/code/tree/main/packages/api-client#readme",
+	"homepage": "https://github.com/bonsaibauer/shroudedit/tree/HEAD/packages/api-client#readme",
 	"publishConfig": {
 		"access": "public"
 	},

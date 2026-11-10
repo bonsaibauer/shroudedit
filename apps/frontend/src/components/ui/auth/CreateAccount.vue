@@ -133,7 +133,7 @@ const {
 } = defineProps<Props>()
 
 const SOURCE_CODE_URL =
-	'https://github.com/bonsaibauer/shroudedit/blob/main/apps/frontend/src/components/ui/auth/CreateAccount.vue'
+	'https://github.com/bonsaibauer/shroudedit/blob/HEAD/apps/frontend/src/components/ui/auth/CreateAccount.vue'
 
 const dateOfBirthModel = defineModel<string | null>('dateOfBirth', { default: '' })
 const usernameModel = defineModel<string>('username', { default: '' })

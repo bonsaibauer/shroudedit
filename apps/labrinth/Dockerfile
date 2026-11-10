@@ -2,10 +2,13 @@
 
 FROM debian:trixie-slim
 
-LABEL org.opencontainers.image.source=https://github.com/shroudedit/code
+ARG BUILD_VERSION=unknown
+
+LABEL org.opencontainers.image.source=https://github.com/bonsaibauer/shroudedit
 LABEL org.opencontainers.image.title=labrinth
 LABEL org.opencontainers.image.description="ShroudEdit API"
 LABEL org.opencontainers.image.licenses=AGPL-3.0-only
+LABEL org.opencontainers.image.version=$BUILD_VERSION
 
 RUN apt-get update \
 	&& apt-get install -y --no-install-recommends ca-certificates dumb-init curl \

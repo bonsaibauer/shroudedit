@@ -2,12 +2,12 @@
 
 [![Made With Love](https://img.shields.io/badge/Made%20with%20%E2%9D%A4%EF%B8%8F-by%20bonsaibauer-green)](https://github.com/bonsaibauer)
 [![Repository](https://img.shields.io/badge/Repository-shroudedit-blue?style=flat&logo=github)](https://github.com/bonsaibauer/shroudedit)
-[![License](https://img.shields.io/badge/License-MIT-blue)](https://github.com/bonsaibauer/shroudedit/blob/main/LICENSE)
+[![License](https://img.shields.io/badge/License-MIT-blue)](LICENSE)
 [![Visitors](https://visitor-badge.laobi.icu/badge?page_id=bonsaibauer.shroudedit)](https://github.com/bonsaibauer/shroudedit)
 
-[![Report Bug](https://img.shields.io/badge/Report-Bug-critical?style=flat&logo=github)](https://github.com/bonsaibauer/shroudforge/issues/new?template=bug_report.yml)
-[![Request Feature](https://img.shields.io/badge/Request-Feature-green?style=flat&logo=github)](https://github.com/bonsaibauer/shroudforge/issues/new?template=feature_request.yml)
-[![Compatibility Problem](https://img.shields.io/badge/Report-Compatibility_Problem-important?style=flat&logo=github)](https://github.com/bonsaibauer/shroudforge/issues/new?template=version_mismatch.yml)
+[![Report Website Bug](https://img.shields.io/badge/Report-Website_Bug-critical?style=flat&logo=github)](https://github.com/bonsaibauer/shroudedit/issues/new?template=2-web-bug.yml)
+[![Report API Bug](https://img.shields.io/badge/Report-API_Bug-critical?style=flat&logo=github)](https://github.com/bonsaibauer/shroudedit/issues/new?template=4-api-bug.yml)
+[![Request Feature](https://img.shields.io/badge/Request-Feature-green?style=flat&logo=github)](https://github.com/bonsaibauer/shroudedit/issues/new?template=5-feature-request.yml)
 
 ![GitHub Stars](https://img.shields.io/github/stars/bonsaibauer/shroudedit?style=social)
 ![GitHub Forks](https://img.shields.io/github/forks/bonsaibauer/shroudedit?style=social)
@@ -67,7 +67,7 @@ Monetization features are disabled by default. Set `MONETIZATION_ENABLED=true` f
 
 ## Contributing
 
-Before opening a pull request, read the applicable project instructions and [contributing guide](https://docs.shroudedit.com/contributing/getting-started/). Report bugs or request features through [GitHub Issues](https://github.com/ShroudEdit/code/issues).
+Before opening a pull request, read the applicable project instructions and [contributing guide](https://docs.shroudedit.com/contributing/getting-started/). Report bugs or request features through [GitHub Issues](https://github.com/bonsaibauer/shroudedit/issues).
 
 ## Security
 

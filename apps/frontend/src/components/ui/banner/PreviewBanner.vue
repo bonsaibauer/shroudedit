@@ -48,17 +48,17 @@ const url = computed(() => `${config.public.siteUrl}${route.fullPath}`)
 					</template>
 					<template #ref>
 						<a
-							:href="`https://github.com/${config.public.owner}/code/tree/${config.public.branch}`"
+							:href="`https://github.com/${config.public.owner}/${config.public.slug}/tree/${config.public.branch}`"
 							target="_blank"
 							rel="noopener"
 							class="hover:underline"
 						>
-							{{ config.public.owner }} / {{ config.public.branch }}
+							{{ config.public.owner }}/{{ config.public.slug }} / {{ config.public.branch }}
 						</a>
 						@ <span v-if="config.public.hash === 'unknown'">unknown</span>
 						<a
 							v-else
-							:href="`https://github.com/${config.public.owner}/code/commit/${config.public.hash}`"
+							:href="`https://github.com/${config.public.owner}/${config.public.slug}/commit/${config.public.hash}`"
 							target="_blank"
 							rel="noopener"
 							class="text-link"
