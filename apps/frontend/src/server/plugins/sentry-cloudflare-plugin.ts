@@ -5,7 +5,7 @@ declare const __SENTRY_ENVIRONMENT__: string
 
 export default defineNitroPlugin(
 	sentryCloudflareNitroPlugin({
-		dsn: 'https://9cf8f56ab7055ab6b1042fad535f2a44@o485889.ingest.us.sentry.io/4510709722185728',
+		dsn: 'https://c6bbc8fff23b102ddc634d15a2b18f05@o4512409261965312.ingest.de.sentry.io/4512410112294992',
 		tracesSampleRate: 0.0001, // match with wrangler.jsonc
 		release: __SENTRY_RELEASE__,
 		environment: __SENTRY_ENVIRONMENT__,

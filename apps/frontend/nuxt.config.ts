@@ -196,6 +196,11 @@ export default defineNuxtConfig({
 			// @ts-ignore
 			globalThis.INTERCOM_IDENTITY_SECRET,
 		public: {
+			sentry: {
+				dsn:
+					process.env.NUXT_PUBLIC_SENTRY_DSN ??
+					'https://c6bbc8fff23b102ddc634d15a2b18f05@o4512409261965312.ingest.de.sentry.io/4512410112294992',
+			},
 			apiBaseUrl: getApiUrl(),
 			pyroBaseUrl: process.env.PYRO_BASE_URL,
 			sharedInstancesBaseUrl: getSharedInstancesApiUrl(),

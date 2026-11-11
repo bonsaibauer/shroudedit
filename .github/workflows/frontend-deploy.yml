@@ -143,7 +143,8 @@ jobs:
           SENTRY_PROJECT: shroudedit-server
         with:
           environment: ${{ steps.meta.outputs.environment }}
-          sourcemaps: ./apps/frontend/.output/server
+          release: ${{ env.DEPLOY_SHA }}
+          sourcemaps: ./apps/frontend/.output
           url_prefix: '~/'
 
       - name: Install Wrangler CLI
