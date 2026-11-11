@@ -173,22 +173,30 @@ jobs:
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
-          curl -X POST \
+          response="$(curl --silent --show-error -X POST \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
             --data '{"hosts": ["dev.shroudedit.com"]}' \
-            https://api.cloudflare.com/client/v4/zones/e39df17b9c4ef44cbce2646346ee6d33/purge_cache
+            https://api.cloudflare.com/client/v4/zones/e39df17b9c4ef44cbce2646346ee6d33/purge_cache)"
+          if ! jq -e '.success == true' <<< "$response" >/dev/null; then
+            printf '%s\n' "$response" >&2
+            exit 1
+          fi
 
       - name: Purge stable cache
         if: env.DEPLOYMENT_CHANNEL == 'stable' && steps.current.outputs.deploy == 'true'
         env:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
-          curl -X POST \
+          response="$(curl --silent --show-error -X POST \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
             --data '{"hosts": ["shroudedit.com", "www.shroudedit.com"]}' \
-            https://api.cloudflare.com/client/v4/zones/e39df17b9c4ef44cbce2646346ee6d33/purge_cache
+            https://api.cloudflare.com/client/v4/zones/e39df17b9c4ef44cbce2646346ee6d33/purge_cache)"
+          if ! jq -e '.success == true' <<< "$response" >/dev/null; then
+            printf '%s\n' "$response" >&2
+            exit 1
+          fi
 
       - name: Record deployed source
         if: steps.current.outputs.deploy == 'true'

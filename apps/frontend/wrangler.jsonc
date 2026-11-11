@@ -8,7 +8,7 @@
 		"binding": "ASSETS",
 		"directory": "./.output/public/"
 	},
-	"routes": ["shroudedit.com/*"],
+	"routes": [{ "pattern": "shroudedit.com", "custom_domain": true }],
 	"preview_urls": true,
 	"workers_dev": true,
 	"upload_source_maps": true,
@@ -64,7 +64,7 @@
 					"head_sampling_rate": 0.1
 				}
 			},
-			"routes": ["dev.shroudedit.com/*"],
+			"routes": [{ "pattern": "dev.shroudedit.com", "custom_domain": true }],
 			"vars": {
 				"NODE_ENV": "production",
 				"ENVIRONMENT": "dev",
