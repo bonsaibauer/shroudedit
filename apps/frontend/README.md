@@ -32,4 +32,6 @@ Run **Deploy frontend** from GitHub Actions and choose a version branch in `X.Y.
 
 The `stable` channel uses the default Worker configuration for `https://shroudedit.com`. The `dev` channel uses the Wrangler `dev` environment for `https://dev.shroudedit.com`. Each channel injects its own build variables and purges only its own domain cache. The deploy builds the Nuxt application and publishes `.output/server` and `.output/public` directly through Wrangler.
 
+Both frontend channels use the production Labrinth API at `https://api.shroudedit.com/v2/` for server and browser requests.
+
 Repository Actions secrets `CF_API_TOKEN` and `CF_ACCOUNT_ID` authenticate the deployment. `SENTRY_AUTH_TOKEN` is used to upload source maps and create the Sentry release. Both Worker configurations remain in `apps/frontend/wrangler.jsonc`.
