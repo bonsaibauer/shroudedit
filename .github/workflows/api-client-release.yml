@@ -1,4 +1,4 @@
-name: API client release
+name: 'Publish: API Client to npm'
 
 on:
   push:

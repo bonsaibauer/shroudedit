@@ -1,3 +1,5 @@
+name: 'Check: Spelling and TOML'
+
 on:
   pull_request:
   push:

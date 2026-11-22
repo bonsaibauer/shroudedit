@@ -1,3 +1,5 @@
+name: 'Check: Rust Dependencies'
+
 on:
   pull_request:
   push:

@@ -1,4 +1,4 @@
-name: Cancel PR Workflows on Merge
+name: 'PR: Cancel Runs After Merge'
 
 on:
   pull_request_target:

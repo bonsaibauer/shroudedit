@@ -1,4 +1,4 @@
-name: Deploy frontend
+name: 'Deploy: Frontend Stable'
 run-name: Deploy frontend (${{ inputs.channel || 'stable' }}) from ${{ inputs.source_ref || github.ref_name }}
 
 on:

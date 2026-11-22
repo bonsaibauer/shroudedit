@@ -1,4 +1,4 @@
-name: CI
+name: 'Check: Lint and Tests'
 
 on:
   push:
@@ -17,24 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       skip: ${{ steps.check.outputs.skip }}
-      internal: ${{ steps.check-internal.outputs.internal }}
     if: ${{ always() && (github.event_name != 'push' || github.ref_name == github.event.repository.default_branch) }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-
-      - name: Check if workflow runs on an internal branch
-        id: check-internal
-        env:
-          EVENT_NAME: ${{ github.event_name }}
-          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
-          REPO: ${{ github.repository }}
-        run: |
-          if [ "$EVENT_NAME" != "pull_request" ] || [ "$HEAD_REPO" = "$REPO" ]; then
-            echo "internal=true" >> $GITHUB_OUTPUT
-          else
-            echo "internal=false" >> $GITHUB_OUTPUT
-          fi
 
       - name: Merge Queue CI Check Skipper
         id: merge-queue-ci-skipper
@@ -61,7 +47,7 @@ jobs:
 
   build:
     name: Lint and Test
-    runs-on: ${{ needs.skip-if-clean.outputs.internal == 'true' && 'namespace-profile-shroudedit-turbo' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
     needs: [skip-if-clean]
     if: ${{ (github.event_name != 'push' || github.ref_name == github.event.repository.default_branch) && needs.skip-if-clean.outputs.skip != 'true' }}
 
@@ -95,19 +81,6 @@ jobs:
 
       - name: Enable Corepack
         run: corepack enable
-
-      - name: Set up caches
-        if: needs.skip-if-clean.outputs.internal == 'true'
-        uses: namespacelabs/nscloud-cache-action@c5f8dab7560444c4bf8dbc64f1b203431873c547 # v1.6.1
-        with:
-          cache: |
-            rust
-            pnpm
-            apt
-
-      - name: Set up Turborepo caching
-        if: needs.skip-if-clean.outputs.internal == 'true'
-        uses: namespace-actions/setup-turbocache@f96bd6befa13ae74b2858a5be49573640d4636f5 # v0.0.2
 
       - name: Install apt dependencies
         run: |
