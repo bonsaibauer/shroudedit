@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM enshrouded_server_public_passwords WHERE project_id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fc0f4316affa93daa7d9988ad7d046dcb18403deb6f8e7de3c2595fdf4c5aa6a"
+}

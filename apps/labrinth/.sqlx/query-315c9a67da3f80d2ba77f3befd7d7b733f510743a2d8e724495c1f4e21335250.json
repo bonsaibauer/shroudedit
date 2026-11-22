@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT id, components AS \"components: Json<exp::ProjectSerial>\" FROM mods WHERE status = ANY($1) AND components ? 'enshrouded_server'",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "components: Json<exp::ProjectSerial>",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "TextArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "315c9a67da3f80d2ba77f3befd7d7b733f510743a2d8e724495c1f4e21335250"
+}
