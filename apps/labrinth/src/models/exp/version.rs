@@ -1,6 +1,6 @@
 use crate::models::exp::{
-    base,
-    component::{Component, ComponentKind},
+	base,
+	component::{Component, ComponentKind},
 };
 
 use serde::{Deserialize, Serialize};
@@ -62,11 +62,10 @@ macro_rules! define_version_components {
         impl VersionCreate {
             #[must_use]
             pub fn component_kinds(&self) -> HashSet<VersionComponentKind> {
-                let mut kinds = HashSet::new();
-                $(if self.$field_name.is_some() {
-                    kinds.insert(VersionComponentKind::$variant_name);
-                })*
-                kinds
+				let kinds: &[Option<VersionComponentKind>] = &[
+					$(self.$field_name.as_ref().map(|_| VersionComponentKind::$variant_name),)*
+				];
+				kinds.iter().flatten().copied().collect()
             }
         }
 
@@ -89,7 +88,9 @@ macro_rules! define_version_components {
 
 // needed because the `utoipa::ToSchema` macro is broken
 // when you have a `::` in the type path
+#[allow(dead_code, reason = "the component list may be empty")]
 type Edit<T> = <T as Component>::Edit;
+#[allow(dead_code, reason = "the component list may be empty")]
 type Query<T> = <T as Component>::Query;
 
 define_version_components![];
