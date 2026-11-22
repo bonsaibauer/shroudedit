@@ -1,0 +1,2 @@
+DROP TRIGGER sqlx_20260920120000_prepare_enshrouded_game ON games;
+DROP FUNCTION sqlx_20260920120000_prepare_enshrouded_game();
