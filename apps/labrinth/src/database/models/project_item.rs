@@ -1,6 +1,6 @@
 use super::loader_fields::{
-    QueryLoaderField, QueryLoaderFieldEnumValue, QueryVersionField,
-    VersionField,
+	QueryLoaderField, QueryLoaderFieldEnumValue, QueryVersionField,
+	VersionField,
 };
 use super::{DBUser, ids::*};
 
@@ -9,7 +9,7 @@ use crate::file_hosting::FileHost;
 use crate::models::exp;
 use crate::models::ids::ProjectId;
 use crate::models::projects::{
-    MonetizationStatus, ProjectStatus, SideTypesMigrationReviewStatus,
+	MonetizationStatus, ProjectStatus, SideTypesMigrationReviewStatus,
 };
 use crate::util::kafka::KafkaClientState;
 use ariadne::ids::base62_impl::parse_base62;
@@ -30,81 +30,81 @@ const PROJECTS_DEPENDENCIES_NAMESPACE: &str = "projects_dependencies:v4";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct LinkUrl {
-    pub platform_id: LinkPlatformId,
-    pub platform_name: String,
-    pub url: String,
-    pub donation: bool, // Is this a donation link
+	pub platform_id: LinkPlatformId,
+	pub platform_name: String,
+	pub url: String,
+	pub donation: bool, // Is this a donation link
 }
 
 impl LinkUrl {
-    pub async fn insert_many_projects(
-        links: Vec<Self>,
-        project_id: DBProjectId,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        let (project_ids, platform_ids, urls): (Vec<_>, Vec<_>, Vec<_>) = links
-            .into_iter()
-            .map(|url| (project_id.0, url.platform_id.0, url.url))
-            .multiunzip();
-        sqlx::query!(
-            "
+	pub async fn insert_many_projects(
+		links: Vec<Self>,
+		project_id: DBProjectId,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		let (project_ids, platform_ids, urls): (Vec<_>, Vec<_>, Vec<_>) = links
+			.into_iter()
+			.map(|url| (project_id.0, url.platform_id.0, url.url))
+			.multiunzip();
+		sqlx::query!(
+			"
             INSERT INTO mods_links (
                 joining_mod_id, joining_platform_id, url
             )
             SELECT * FROM UNNEST($1::bigint[], $2::int[], $3::varchar[])
             ",
-            &project_ids[..],
-            &platform_ids[..],
-            &urls[..],
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("inserting project links into database")?;
+			&project_ids[..],
+			&platform_ids[..],
+			&urls[..],
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("inserting project links into database")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DBGalleryItem {
-    pub image_url: String,
-    pub raw_image_url: String,
-    pub featured: bool,
-    pub name: Option<String>,
-    pub description: Option<String>,
-    pub created: DateTime<Utc>,
-    pub ordering: i64,
+	pub image_url: String,
+	pub raw_image_url: String,
+	pub featured: bool,
+	pub name: Option<String>,
+	pub description: Option<String>,
+	pub created: DateTime<Utc>,
+	pub ordering: i64,
 }
 
 impl DBGalleryItem {
-    pub async fn insert_many(
-        items: Vec<Self>,
-        project_id: DBProjectId,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        let (
-            project_ids,
-            image_urls,
-            raw_image_urls,
-            featureds,
-            names,
-            descriptions,
-            orderings,
-        ): (Vec<_>, Vec<_>, Vec<_>, Vec<_>, Vec<_>, Vec<_>, Vec<_>) = items
-            .into_iter()
-            .map(|gi| {
-                (
-                    project_id.0,
-                    gi.image_url,
-                    gi.raw_image_url,
-                    gi.featured,
-                    gi.name,
-                    gi.description,
-                    gi.ordering,
-                )
-            })
-            .multiunzip();
-        sqlx::query!(
+	pub async fn insert_many(
+		items: Vec<Self>,
+		project_id: DBProjectId,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		let (
+			project_ids,
+			image_urls,
+			raw_image_urls,
+			featureds,
+			names,
+			descriptions,
+			orderings,
+		): (Vec<_>, Vec<_>, Vec<_>, Vec<_>, Vec<_>, Vec<_>, Vec<_>) = items
+			.into_iter()
+			.map(|gi| {
+				(
+					project_id.0,
+					gi.image_url,
+					gi.raw_image_url,
+					gi.featured,
+					gi.name,
+					gi.description,
+					gi.ordering,
+				)
+			})
+			.multiunzip();
+		sqlx::query!(
             "
             INSERT INTO mods_gallery (
                 mod_id, image_url, raw_image_url, featured, name, description, ordering
@@ -123,30 +123,30 @@ impl DBGalleryItem {
         .await
         .wrap_err("inserting project gallery items into database")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 }
 
 pub struct DBModCategory {
-    pub project_id: DBProjectId,
-    pub category_id: CategoryId,
-    pub is_additional: bool,
+	pub project_id: DBProjectId,
+	pub category_id: CategoryId,
+	pub is_additional: bool,
 }
 
 impl DBModCategory {
-    pub async fn insert_many(
-        items: Vec<Self>,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        let (project_ids, category_ids, is_additionals): (
-            Vec<_>,
-            Vec<_>,
-            Vec<_>,
-        ) = items
-            .into_iter()
-            .map(|mc| (mc.project_id.0, mc.category_id.0, mc.is_additional))
-            .multiunzip();
-        sqlx::query!(
+	pub async fn insert_many(
+		items: Vec<Self>,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		let (project_ids, category_ids, is_additionals): (
+			Vec<_>,
+			Vec<_>,
+			Vec<_>,
+		) = items
+			.into_iter()
+			.map(|mc| (mc.project_id.0, mc.category_id.0, mc.is_additional))
+			.multiunzip();
+		sqlx::query!(
             "
             INSERT INTO mods_categories (joining_mod_id, joining_category_id, is_additional)
             SELECT * FROM UNNEST ($1::bigint[], $2::int[], $3::bool[])
@@ -159,174 +159,174 @@ impl DBModCategory {
         .await
         .wrap_err("inserting project categories")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 }
 
 #[derive(Clone)]
 pub struct ProjectBuilder {
-    pub project_id: DBProjectId,
-    pub team_id: DBTeamId,
-    pub organization_id: Option<DBOrganizationId>,
-    pub name: String,
-    pub summary: String,
-    pub description: String,
-    pub icon_url: Option<String>,
-    pub raw_icon_url: Option<String>,
-    pub license_url: Option<String>,
-    pub categories: Vec<CategoryId>,
-    pub additional_categories: Vec<CategoryId>,
-    pub initial_versions: Vec<super::version_item::VersionBuilder>,
-    pub status: ProjectStatus,
-    pub requested_status: Option<ProjectStatus>,
-    pub license: String,
-    pub slug: Option<String>,
-    pub link_urls: Vec<LinkUrl>,
-    pub gallery_items: Vec<DBGalleryItem>,
-    pub color: Option<u32>,
-    pub monetization_status: MonetizationStatus,
-    pub components: exp::ProjectSerial,
+	pub project_id: DBProjectId,
+	pub team_id: DBTeamId,
+	pub organization_id: Option<DBOrganizationId>,
+	pub name: String,
+	pub summary: String,
+	pub description: String,
+	pub icon_url: Option<String>,
+	pub raw_icon_url: Option<String>,
+	pub license_url: Option<String>,
+	pub categories: Vec<CategoryId>,
+	pub additional_categories: Vec<CategoryId>,
+	pub initial_versions: Vec<super::version_item::VersionBuilder>,
+	pub status: ProjectStatus,
+	pub requested_status: Option<ProjectStatus>,
+	pub license: String,
+	pub slug: Option<String>,
+	pub link_urls: Vec<LinkUrl>,
+	pub gallery_items: Vec<DBGalleryItem>,
+	pub color: Option<u32>,
+	pub monetization_status: MonetizationStatus,
+	pub components: exp::ProjectSerial,
 }
 
 impl ProjectBuilder {
-    pub async fn insert(
-        self,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-        file_host: &dyn FileHost,
-        kafka_client: &KafkaClientState,
-    ) -> Result<DBProjectId> {
-        let project_struct = DBProject {
-            id: self.project_id,
-            team_id: self.team_id,
-            organization_id: self.organization_id,
-            name: self.name,
-            summary: self.summary,
-            description: self.description,
-            published: Utc::now(),
-            updated: Utc::now(),
-            approved: None,
-            queued: if self.status == ProjectStatus::Processing {
-                Some(Utc::now())
-            } else {
-                None
-            },
-            status: self.status,
-            requested_status: self.requested_status,
-            downloads: 0,
-            follows: 0,
-            icon_url: self.icon_url,
-            raw_icon_url: self.raw_icon_url,
-            license_url: self.license_url,
-            license: self.license,
-            slug: self.slug,
-            moderation_message: None,
-            moderation_message_body: None,
-            webhook_sent: false,
-            color: self.color,
-            monetization_status: self.monetization_status,
-            side_types_migration_review_status:
-                SideTypesMigrationReviewStatus::Reviewed,
-            loaders: vec![],
-            components: self.components,
-        };
-        project_struct
-            .insert(&mut *transaction)
-            .await
-            .wrap_err("inserting project")?;
+	pub async fn insert(
+		self,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+		file_host: &dyn FileHost,
+		kafka_client: &KafkaClientState,
+	) -> Result<DBProjectId> {
+		let project_struct = DBProject {
+			id: self.project_id,
+			team_id: self.team_id,
+			organization_id: self.organization_id,
+			name: self.name,
+			summary: self.summary,
+			description: self.description,
+			published: Utc::now(),
+			updated: Utc::now(),
+			approved: None,
+			queued: if self.status == ProjectStatus::Processing {
+				Some(Utc::now())
+			} else {
+				None
+			},
+			status: self.status,
+			requested_status: self.requested_status,
+			downloads: 0,
+			follows: 0,
+			icon_url: self.icon_url,
+			raw_icon_url: self.raw_icon_url,
+			license_url: self.license_url,
+			license: self.license,
+			slug: self.slug,
+			moderation_message: None,
+			moderation_message_body: None,
+			webhook_sent: false,
+			color: self.color,
+			monetization_status: self.monetization_status,
+			side_types_migration_review_status:
+				SideTypesMigrationReviewStatus::Reviewed,
+			loaders: vec![],
+			components: self.components,
+		};
+		project_struct
+			.insert(&mut *transaction)
+			.await
+			.wrap_err("inserting project")?;
 
-        let ProjectBuilder {
-            link_urls,
-            gallery_items,
-            categories,
-            additional_categories,
-            ..
-        } = self;
+		let ProjectBuilder {
+			link_urls,
+			gallery_items,
+			categories,
+			additional_categories,
+			..
+		} = self;
 
-        for mut version in self.initial_versions {
-            version.project_id = self.project_id;
-            version
-                .insert(transaction, redis, file_host, kafka_client)
-                .await
-                .wrap_err("inserting initial project version")?;
-        }
+		for mut version in self.initial_versions {
+			version.project_id = self.project_id;
+			version
+				.insert(transaction, redis, file_host, kafka_client)
+				.await
+				.wrap_err("inserting initial project version")?;
+		}
 
-        LinkUrl::insert_many_projects(
-            link_urls,
-            self.project_id,
-            &mut *transaction,
-        )
-        .await
-        .wrap_err("inserting project links")?;
+		LinkUrl::insert_many_projects(
+			link_urls,
+			self.project_id,
+			&mut *transaction,
+		)
+		.await
+		.wrap_err("inserting project links")?;
 
-        DBGalleryItem::insert_many(
-            gallery_items,
-            self.project_id,
-            &mut *transaction,
-        )
-        .await
-        .wrap_err("inserting project gallery items")?;
+		DBGalleryItem::insert_many(
+			gallery_items,
+			self.project_id,
+			&mut *transaction,
+		)
+		.await
+		.wrap_err("inserting project gallery items")?;
 
-        let project_id = self.project_id;
-        let mod_categories = categories
-            .into_iter()
-            .map(|category_id| DBModCategory {
-                project_id,
-                category_id,
-                is_additional: false,
-            })
-            .chain(additional_categories.into_iter().map(|category_id| {
-                DBModCategory {
-                    project_id,
-                    category_id,
-                    is_additional: true,
-                }
-            }))
-            .collect_vec();
-        DBModCategory::insert_many(mod_categories, &mut *transaction)
-            .await
-            .wrap_err("inserting project categories")?;
+		let project_id = self.project_id;
+		let mod_categories = categories
+			.into_iter()
+			.map(|category_id| DBModCategory {
+				project_id,
+				category_id,
+				is_additional: false,
+			})
+			.chain(additional_categories.into_iter().map(|category_id| {
+				DBModCategory {
+					project_id,
+					category_id,
+					is_additional: true,
+				}
+			}))
+			.collect_vec();
+		DBModCategory::insert_many(mod_categories, &mut *transaction)
+			.await
+			.wrap_err("inserting project categories")?;
 
-        Ok(self.project_id)
-    }
+		Ok(self.project_id)
+	}
 }
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DBProject {
-    pub id: DBProjectId,
-    pub team_id: DBTeamId,
-    pub organization_id: Option<DBOrganizationId>,
-    pub name: String,
-    pub summary: String,
-    pub description: String,
-    pub published: DateTime<Utc>,
-    pub updated: DateTime<Utc>,
-    pub approved: Option<DateTime<Utc>>,
-    pub queued: Option<DateTime<Utc>>,
-    pub status: ProjectStatus,
-    pub requested_status: Option<ProjectStatus>,
-    pub downloads: i32,
-    pub follows: i32,
-    pub icon_url: Option<String>,
-    pub raw_icon_url: Option<String>,
-    pub license_url: Option<String>,
-    pub license: String,
-    pub slug: Option<String>,
-    pub moderation_message: Option<String>,
-    pub moderation_message_body: Option<String>,
-    pub webhook_sent: bool,
-    pub color: Option<u32>,
-    pub monetization_status: MonetizationStatus,
-    pub side_types_migration_review_status: SideTypesMigrationReviewStatus,
-    pub loaders: Vec<String>,
-    pub components: exp::ProjectSerial,
+	pub id: DBProjectId,
+	pub team_id: DBTeamId,
+	pub organization_id: Option<DBOrganizationId>,
+	pub name: String,
+	pub summary: String,
+	pub description: String,
+	pub published: DateTime<Utc>,
+	pub updated: DateTime<Utc>,
+	pub approved: Option<DateTime<Utc>>,
+	pub queued: Option<DateTime<Utc>>,
+	pub status: ProjectStatus,
+	pub requested_status: Option<ProjectStatus>,
+	pub downloads: i32,
+	pub follows: i32,
+	pub icon_url: Option<String>,
+	pub raw_icon_url: Option<String>,
+	pub license_url: Option<String>,
+	pub license: String,
+	pub slug: Option<String>,
+	pub moderation_message: Option<String>,
+	pub moderation_message_body: Option<String>,
+	pub webhook_sent: bool,
+	pub color: Option<u32>,
+	pub monetization_status: MonetizationStatus,
+	pub side_types_migration_review_status: SideTypesMigrationReviewStatus,
+	pub loaders: Vec<String>,
+	pub components: exp::ProjectSerial,
 }
 
 impl DBProject {
-    pub async fn insert(
-        &self,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        sqlx::query!(
+	pub async fn insert(
+		&self,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		sqlx::query!(
             "
             INSERT INTO mods (
                 id, team_id, name, summary, description,
@@ -369,265 +369,265 @@ impl DBProject {
         .await
         .wrap_err("inserting project")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    pub async fn remove(
-        id: DBProjectId,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<Option<()>> {
-        let project = Self::get_id(id, &mut *transaction, redis)
-            .await
-            .wrap_err("fetching project by id")?;
+	pub async fn remove(
+		id: DBProjectId,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<Option<()>> {
+		let project = Self::get_id(id, &mut *transaction, redis)
+			.await
+			.wrap_err("fetching project by id")?;
 
-        if let Some(project) = project {
-            DBProject::clear_cache(id, project.inner.slug, Some(true), redis)
-                .await
-                .wrap_err("clearing project cache")?;
+		if let Some(project) = project {
+			DBProject::clear_cache(id, project.inner.slug, Some(true), redis)
+				.await
+				.wrap_err("clearing project cache")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM mod_follows
                 WHERE mod_id = $1
                 ",
-                id as DBProjectId
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting project followers")?;
+				id as DBProjectId
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting project followers")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM mods_gallery
                 WHERE mod_id = $1
                 ",
-                id as DBProjectId
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting project gallery items")?;
+				id as DBProjectId
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting project gallery items")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM mod_follows
                 WHERE mod_id = $1
                 ",
-                id as DBProjectId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting duplicate project followers")?;
+				id as DBProjectId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting duplicate project followers")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE reports
                 SET mod_id = NULL
                 WHERE mod_id = $1
                 ",
-                id as DBProjectId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("clearing report project references")?;
+				id as DBProjectId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("clearing report project references")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM mods_categories
                 WHERE joining_mod_id = $1
                 ",
-                id as DBProjectId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting project categories")?;
+				id as DBProjectId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting project categories")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM mods_links
                 WHERE joining_mod_id = $1
                 ",
-                id as DBProjectId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting project links")?;
+				id as DBProjectId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting project links")?;
 
-            for version in project.versions {
-                super::DBVersion::remove_full(version, redis, transaction)
-                    .await
-                    .wrap_err("removing project version")?;
-            }
+			for version in project.versions {
+				super::DBVersion::remove_full(version, redis, transaction)
+					.await
+					.wrap_err("removing project version")?;
+			}
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM dependencies WHERE mod_dependency_id = $1
                 ",
-                id as DBProjectId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting dependency references")?;
+				id as DBProjectId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting dependency references")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE payouts_values
                 SET mod_id = NULL
                 WHERE (mod_id = $1)
                 ",
-                id as DBProjectId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("clearing payout project references")?;
+				id as DBProjectId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("clearing payout project references")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM mods
                 WHERE id = $1
                 ",
-                id as DBProjectId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting project row")?;
+				id as DBProjectId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting project row")?;
 
-            models::DBTeamMember::clear_cache(project.inner.team_id, redis)
-                .await
-                .wrap_err("clearing team member cache")?;
+			models::DBTeamMember::clear_cache(project.inner.team_id, redis)
+				.await
+				.wrap_err("clearing team member cache")?;
 
-            let affected_user_ids = sqlx::query!(
-                "
+			let affected_user_ids = sqlx::query!(
+				"
                 DELETE FROM team_members
                 WHERE team_id = $1
                 RETURNING user_id
                 ",
-                project.inner.team_id as DBTeamId,
-            )
-            .fetch(&mut *transaction)
-            .map_ok(|x| DBUserId(x.user_id))
-            .try_collect::<Vec<_>>()
-            .await
-            .wrap_err("deleting team members")?;
+				project.inner.team_id as DBTeamId,
+			)
+			.fetch(&mut *transaction)
+			.map_ok(|x| DBUserId(x.user_id))
+			.try_collect::<Vec<_>>()
+			.await
+			.wrap_err("deleting team members")?;
 
-            DBUser::clear_project_cache(&affected_user_ids, redis)
-                .await
-                .wrap_err("clearing user project cache")?;
+			DBUser::clear_project_cache(&affected_user_ids, redis)
+				.await
+				.wrap_err("clearing user project cache")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM teams
                 WHERE id = $1
                 ",
-                project.inner.team_id as DBTeamId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting team")?;
+				project.inner.team_id as DBTeamId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting team")?;
 
-            Ok(Some(()))
-        } else {
-            Ok(None)
-        }
-    }
+			Ok(Some(()))
+		} else {
+			Ok(None)
+		}
+	}
 
-    pub async fn get<'a, 'b, E>(
-        string: &str,
-        executor: E,
-        redis: &RedisPool,
-    ) -> Result<Option<ProjectQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        DBProject::get_many(&[string], executor, redis)
-            .await
-            .wrap_err("fetching project")
-            .map(|x| x.into_iter().next())
-    }
+	pub async fn get<'a, 'b, E>(
+		string: &str,
+		executor: E,
+		redis: &RedisPool,
+	) -> Result<Option<ProjectQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		DBProject::get_many(&[string], executor, redis)
+			.await
+			.wrap_err("fetching project")
+			.map(|x| x.into_iter().next())
+	}
 
-    pub async fn get_id<'a, 'b, E>(
-        id: DBProjectId,
-        executor: E,
-        redis: &RedisPool,
-    ) -> Result<Option<ProjectQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        DBProject::get_many(
-            &[crate::models::ids::ProjectId::from(id)],
-            executor,
-            redis,
-        )
-        .await
-        .wrap_err("fetching project by id")
-        .map(|x| x.into_iter().next())
-    }
+	pub async fn get_id<'a, 'b, E>(
+		id: DBProjectId,
+		executor: E,
+		redis: &RedisPool,
+	) -> Result<Option<ProjectQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		DBProject::get_many(
+			&[crate::models::ids::ProjectId::from(id)],
+			executor,
+			redis,
+		)
+		.await
+		.wrap_err("fetching project by id")
+		.map(|x| x.into_iter().next())
+	}
 
-    pub async fn get_many_ids<'a, E>(
-        project_ids: &[DBProjectId],
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<ProjectQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        let ids = project_ids
-            .iter()
-            .map(|x| crate::models::ids::ProjectId::from(*x))
-            .collect::<Vec<_>>();
-        DBProject::get_many(&ids, exec, redis)
-            .await
-            .wrap_err("fetching projects by id")
-    }
+	pub async fn get_many_ids<'a, E>(
+		project_ids: &[DBProjectId],
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<ProjectQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		let ids = project_ids
+			.iter()
+			.map(|x| crate::models::ids::ProjectId::from(*x))
+			.collect::<Vec<_>>();
+		DBProject::get_many(&ids, exec, redis)
+			.await
+			.wrap_err("fetching projects by id")
+	}
 
-    pub async fn get_many<
-        'a,
-        E,
-        T: Display + Hash + Eq + PartialEq + Clone + Debug,
-    >(
-        project_strings: &[T],
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<ProjectQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        Self::get_many_inner(project_strings, exec, redis, true)
-            .await
-            .wrap_err("fetching projects")
-    }
+	pub async fn get_many<
+		'a,
+		E,
+		T: Display + Hash + Eq + PartialEq + Clone + Debug,
+	>(
+		project_strings: &[T],
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<ProjectQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		Self::get_many_inner(project_strings, exec, redis, true)
+			.await
+			.wrap_err("fetching projects")
+	}
 
-    pub async fn get_many_uncached<
-        'a,
-        E,
-        T: Display + Hash + Eq + PartialEq + Clone + Debug,
-    >(
-        project_strings: &[T],
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<ProjectQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        Self::get_many_inner(project_strings, exec, redis, false)
-            .await
-            .wrap_err("fetching uncached projects")
-    }
+	pub async fn get_many_uncached<
+		'a,
+		E,
+		T: Display + Hash + Eq + PartialEq + Clone + Debug,
+	>(
+		project_strings: &[T],
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<ProjectQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		Self::get_many_inner(project_strings, exec, redis, false)
+			.await
+			.wrap_err("fetching uncached projects")
+	}
 
-    async fn get_many_inner<
-        'a,
-        E,
-        T: Display + Hash + Eq + PartialEq + Clone + Debug,
-    >(
-        project_strings: &[T],
-        exec: E,
-        redis: &RedisPool,
-        use_cache: bool,
-    ) -> Result<Vec<ProjectQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        let val = redis.get_keys_with_slug_cache(
+	async fn get_many_inner<
+		'a,
+		E,
+		T: Display + Hash + Eq + PartialEq + Clone + Debug,
+	>(
+		project_strings: &[T],
+		exec: E,
+		redis: &RedisPool,
+		use_cache: bool,
+	) -> Result<Vec<ProjectQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		let val = redis.get_keys_with_slug_cache(
             PROJECTS_NAMESPACE,
             PROJECTS_SLUGS_NAMESPACE,
             false,
@@ -1014,45 +1014,45 @@ impl DBProject {
         .await
         .wrap_err("fetching cached projects")?;
 
-        Ok(val)
-    }
+		Ok(val)
+	}
 
-    pub async fn get_dependencies<'a, E>(
-        id: DBProjectId,
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<
-        Vec<(
-            Option<DBVersionId>,
-            Option<DBProjectId>,
-            Option<DBProjectId>,
-        )>,
-    >
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        type Dependencies = Vec<(
-            Option<DBVersionId>,
-            Option<DBProjectId>,
-            Option<DBProjectId>,
-        )>;
+	pub async fn get_dependencies<'a, E>(
+		id: DBProjectId,
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<
+		Vec<(
+			Option<DBVersionId>,
+			Option<DBProjectId>,
+			Option<DBProjectId>,
+		)>,
+	>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		type Dependencies = Vec<(
+			Option<DBVersionId>,
+			Option<DBProjectId>,
+			Option<DBProjectId>,
+		)>;
 
-        {
-            let mut redis = redis.connect().await.wrap_err(
-                "connecting to redis to fetch project dependencies",
-            )?;
-            let key = redis.key().entity(PROJECTS_DEPENDENCIES_NAMESPACE, id.0);
+		{
+			let mut redis = redis.connect().await.wrap_err(
+				"connecting to redis to fetch project dependencies",
+			)?;
+			let key = redis.key().entity(PROJECTS_DEPENDENCIES_NAMESPACE, id.0);
 
-            let dependencies = redis
-                .get_deserialized::<Dependencies>(&key)
-                .await
-                .wrap_err("fetching cached project dependencies")?;
-            if let Some(dependencies) = dependencies {
-                return Ok(dependencies);
-            }
-        }
+			let dependencies = redis
+				.get_deserialized::<Dependencies>(&key)
+				.await
+				.wrap_err("fetching cached project dependencies")?;
+			if let Some(dependencies) = dependencies {
+				return Ok(dependencies);
+			}
+		}
 
-        let dependencies: Dependencies = sqlx::query!(
+		let dependencies: Dependencies = sqlx::query!(
             "
             SELECT d.dependency_id, COALESCE(vd.mod_id, 0) mod_id, d.mod_dependency_id
             FROM versions v
@@ -1078,64 +1078,64 @@ impl DBProject {
         .await
         .wrap_err("fetching project dependencies")?;
 
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to cache project dependencies")?;
-        let key = redis.key().entity(PROJECTS_DEPENDENCIES_NAMESPACE, id.0);
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to cache project dependencies")?;
+		let key = redis.key().entity(PROJECTS_DEPENDENCIES_NAMESPACE, id.0);
 
-        redis
-            .set_serialized(&key, &dependencies, None)
-            .await
-            .wrap_err("caching project dependencies")?;
-        Ok(dependencies)
-    }
+		redis
+			.set_serialized(&key, &dependencies, None)
+			.await
+			.wrap_err("caching project dependencies")?;
+		Ok(dependencies)
+	}
 
-    pub async fn clear_cache(
-        id: DBProjectId,
-        slug: Option<String>,
-        clear_dependencies: Option<bool>,
-        redis: &RedisPool,
-    ) -> Result<()> {
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to clear project cache")?;
-        let mut keys = vec![redis.key().entity(PROJECTS_NAMESPACE, id.0)];
-        if let Some(slug) = slug {
-            keys.push(
-                redis
-                    .key()
-                    .entity(PROJECTS_SLUGS_NAMESPACE, slug.to_lowercase()),
-            );
-        }
-        if clear_dependencies.unwrap_or(false) {
-            keys.push(
-                redis.key().entity(PROJECTS_DEPENDENCIES_NAMESPACE, id.0),
-            );
-        }
+	pub async fn clear_cache(
+		id: DBProjectId,
+		slug: Option<String>,
+		clear_dependencies: Option<bool>,
+		redis: &RedisPool,
+	) -> Result<()> {
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to clear project cache")?;
+		let mut keys = vec![redis.key().entity(PROJECTS_NAMESPACE, id.0)];
+		if let Some(slug) = slug {
+			keys.push(
+				redis
+					.key()
+					.entity(PROJECTS_SLUGS_NAMESPACE, slug.to_lowercase()),
+			);
+		}
+		if clear_dependencies.unwrap_or(false) {
+			keys.push(
+				redis.key().entity(PROJECTS_DEPENDENCIES_NAMESPACE, id.0),
+			);
+		}
 
-        redis
-            .delete_many(&keys)
-            .await
-            .wrap_err("clearing project cache")?;
-        Ok(())
-    }
+		redis
+			.delete_many(&keys)
+			.await
+			.wrap_err("clearing project cache")?;
+		Ok(())
+	}
 }
 
 #[serde_binhum]
 #[derive(Clone, Debug)]
 pub struct ProjectQueryResult {
-    #[serde(flatten)]
-    pub inner: DBProject,
-    pub categories: Vec<String>,
-    pub additional_categories: Vec<String>,
-    pub versions: Vec<DBVersionId>,
-    pub project_types: Vec<String>,
-    pub games: Vec<String>,
-    pub urls: Vec<LinkUrl>,
-    pub gallery_items: Vec<DBGalleryItem>,
-    pub thread_id: DBThreadId,
-    pub aggregate_version_fields: Vec<VersionField>,
-    pub components: exp::ProjectQuery,
+	#[serde(flatten)]
+	pub inner: DBProject,
+	pub categories: Vec<String>,
+	pub additional_categories: Vec<String>,
+	pub versions: Vec<DBVersionId>,
+	pub project_types: Vec<String>,
+	pub games: Vec<String>,
+	pub urls: Vec<LinkUrl>,
+	pub gallery_items: Vec<DBGalleryItem>,
+	pub thread_id: DBThreadId,
+	pub aggregate_version_fields: Vec<VersionField>,
+	pub components: exp::ProjectQuery,
 }

@@ -15,21 +15,21 @@ use crate::util::guards::subscriptions_key_guard;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct UpdateManySubscriptions {
-    pub subscriptions: Vec<SubscriptionUpdate>,
+	pub subscriptions: Vec<SubscriptionUpdate>,
 }
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 pub struct SubscriptionUpdate {
-    pub target: SubscriptionTarget,
-    pub update_region: Option<String>,
-    pub ignore_if_missing: bool,
+	pub target: SubscriptionTarget,
+	pub update_region: Option<String>,
+	pub ignore_if_missing: bool,
 }
 
 #[derive(
-    Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, ToSchema,
+	Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, ToSchema,
 )]
 pub enum SubscriptionTarget {
-    Pyro { user_id: Id, server_id: Uuid },
+	Pyro { user_id: Id, server_id: Uuid },
 }
 
 /// Update multiple managed subscriptions.
@@ -40,79 +40,79 @@ pub enum SubscriptionTarget {
 	responses((status = OK))
 )]
 #[post(
-    "/subscriptions/manager/update_many",
-    guard = "subscriptions_key_guard"
+	"/subscriptions/manager/update_many",
+	guard = "subscriptions_key_guard"
 )]
 pub async fn update_many(
-    pool: web::Data<PgPool>,
-    body: web::Json<UpdateManySubscriptions>,
+	pool: web::Data<PgPool>,
+	body: web::Json<UpdateManySubscriptions>,
 ) -> Result<(), ApiError> {
-    let UpdateManySubscriptions { subscriptions } = body.into_inner();
+	let UpdateManySubscriptions { subscriptions } = body.into_inner();
 
-    let mut txn = pool
-        .begin()
-        .await
-        .wrap_internal_err("failed to begin transaction")?;
+	let mut txn = pool
+		.begin()
+		.await
+		.wrap_internal_err("failed to begin transaction")?;
 
-    // Only supports hosting subscriptions now, so gather the server IDs and
-    // fetch the subscriptions from them
-    let server_ids = subscriptions
-        .iter()
-        .map(|update| match update.target {
-            SubscriptionTarget::Pyro { server_id, .. } => server_id.to_string(),
-        })
-        .collect::<Vec<_>>();
+	// Only supports hosting subscriptions now, so gather the server IDs and
+	// fetch the subscriptions from them
+	let server_ids = subscriptions
+		.iter()
+		.map(|update| match update.target {
+			SubscriptionTarget::Pyro { server_id, .. } => server_id.to_string(),
+		})
+		.collect::<Vec<_>>();
 
-    let found_subscriptions =
-        DBUserSubscription::get_many_by_server_ids(&server_ids, &mut txn)
-            .await
-            .wrap_internal_err("failed to fetch subscriptions to update")?;
+	let found_subscriptions =
+		DBUserSubscription::get_many_by_server_ids(&server_ids, &mut txn)
+			.await
+			.wrap_internal_err("failed to fetch subscriptions to update")?;
 
-    let mut subscriptions_by_target =
-        HashMap::<SubscriptionTarget, DBUserSubscription>::new();
+	let mut subscriptions_by_target =
+		HashMap::<SubscriptionTarget, DBUserSubscription>::new();
 
-    // Creates a map of subscription "key" -> it's DB representation.
-    for subscription in found_subscriptions {
-        let Some(SubscriptionMetadata::Pyro { id, .. }) =
-            subscription.metadata.as_ref()
-        else {
-            continue;
-        };
-        let Ok(server_id) = Uuid::parse_str(id) else {
-            continue;
-        };
-        let target = SubscriptionTarget::Pyro {
-            user_id: subscription.user_id.into(),
-            server_id,
-        };
+	// Creates a map of subscription "key" -> it's DB representation.
+	for subscription in found_subscriptions {
+		let Some(SubscriptionMetadata::Pyro { id, .. }) =
+			subscription.metadata.as_ref()
+		else {
+			continue;
+		};
+		let Ok(server_id) = Uuid::parse_str(id) else {
+			continue;
+		};
+		let target = SubscriptionTarget::Pyro {
+			user_id: subscription.user_id.into(),
+			server_id,
+		};
 
-        subscriptions_by_target.insert(target, subscription);
-    }
+		subscriptions_by_target.insert(target, subscription);
+	}
 
-    for update in subscriptions {
-        let Some(subscription) =
-            subscriptions_by_target.get_mut(&update.target)
-        else {
-            continue;
-        };
+	for update in subscriptions {
+		let Some(subscription) =
+			subscriptions_by_target.get_mut(&update.target)
+		else {
+			continue;
+		};
 
-        // Update the subscription region
-        if let Some(SubscriptionMetadata::Pyro { region, .. }) =
-            subscription.metadata.as_mut()
-            && let Some(new_region) = update.update_region.clone()
-        {
-            *region = Some(new_region);
-        }
+		// Update the subscription region
+		if let Some(SubscriptionMetadata::Pyro { region, .. }) =
+			subscription.metadata.as_mut()
+			&& let Some(new_region) = update.update_region.clone()
+		{
+			*region = Some(new_region);
+		}
 
-        subscription
-            .upsert(&mut txn)
-            .await
-            .wrap_internal_err("updating uuid in database")?;
-    }
+		subscription
+			.upsert(&mut txn)
+			.await
+			.wrap_internal_err("updating uuid in database")?;
+	}
 
-    txn.commit()
-        .await
-        .wrap_internal_err("failed to commit transaction")?;
+	txn.commit()
+		.await
+		.wrap_internal_err("failed to commit transaction")?;
 
-    Ok(())
+	Ok(())
 }

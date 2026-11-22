@@ -2,7 +2,7 @@ use super::MailError;
 use crate::database::PgTransaction;
 use crate::database::models::ids::*;
 use crate::database::models::notifications_template_item::{
-    NotificationTemplate, get_or_set_cached_dynamic_html,
+	NotificationTemplate, get_or_set_cached_dynamic_html,
 };
 use crate::database::models::report_item::DBReport;
 use crate::database::models::{DBOrganization, DBProject, DBUser};
@@ -36,13 +36,13 @@ const SUBSCRIPTION_ID: &str = "subscription.id";
 const TAXNOTIFICATION_OLD_AMOUNT: &str = "taxnotification.old_amount";
 const TAXNOTIFICATION_OLD_TAX_AMOUNT: &str = "taxnotification.old_tax_amount";
 const TAXNOTIFICATION_OLD_TOTAL_AMOUNT: &str =
-    "taxnotification.old_total_amount";
+	"taxnotification.old_total_amount";
 const TAXNOTIFICATION_NEW_AMOUNT: &str = "taxnotification.new_amount";
 const TAXNOTIFICATION_NEW_TAX_AMOUNT: &str = "taxnotification.new_tax_amount";
 const TAXNOTIFICATION_NEW_TOTAL_AMOUNT: &str =
-    "taxnotification.new_total_amount";
+	"taxnotification.new_total_amount";
 const TAXNOTIFICATION_BILLING_INTERVAL: &str =
-    "taxnotification.billing_interval";
+	"taxnotification.billing_interval";
 const TAXNOTIFICATION_DUE: &str = "taxnotification.due";
 const TAXNOTIFICATION_SERVICE: &str = "taxnotification.service";
 
@@ -96,343 +96,343 @@ const DISCORD_LINK_URL: &str = "discord.link_url";
 
 #[derive(Clone)]
 pub struct MailingIdentity {
-    from_name: String,
-    from_address: String,
-    reply_name: Option<String>,
-    reply_address: Option<String>,
+	from_name: String,
+	from_address: String,
+	reply_name: Option<String>,
+	reply_address: Option<String>,
 }
 
 impl MailingIdentity {
-    pub fn from_env() -> Self {
-        Self {
-            from_name: ENV.SMTP_FROM_NAME.clone(),
-            from_address: ENV.SMTP_FROM_ADDRESS.clone(),
-            reply_name: if ENV.SMTP_REPLY_TO_NAME.is_empty() {
-                None
-            } else {
-                Some(ENV.SMTP_REPLY_TO_NAME.clone())
-            },
-            reply_address: if ENV.SMTP_REPLY_TO_ADDRESS.is_empty() {
-                None
-            } else {
-                Some(ENV.SMTP_REPLY_TO_ADDRESS.clone())
-            },
-        }
-    }
+	pub fn from_env() -> Self {
+		Self {
+			from_name: ENV.SMTP_FROM_NAME.clone(),
+			from_address: ENV.SMTP_FROM_ADDRESS.clone(),
+			reply_name: if ENV.SMTP_REPLY_TO_NAME.is_empty() {
+				None
+			} else {
+				Some(ENV.SMTP_REPLY_TO_NAME.clone())
+			},
+			reply_address: if ENV.SMTP_REPLY_TO_ADDRESS.is_empty() {
+				None
+			} else {
+				Some(ENV.SMTP_REPLY_TO_ADDRESS.clone())
+			},
+		}
+	}
 }
 
 #[allow(clippy::too_many_arguments)]
 pub async fn build_email(
-    exec: &mut PgTransaction<'_>,
-    redis: &RedisPool,
-    client: &reqwest::Client,
-    user_id: DBUserId,
-    body: &NotificationBody,
-    template: &NotificationTemplate,
-    from: MailingIdentity,
-    to: Mailbox,
+	exec: &mut PgTransaction<'_>,
+	redis: &RedisPool,
+	client: &reqwest::Client,
+	user_id: DBUserId,
+	body: &NotificationBody,
+	template: &NotificationTemplate,
+	from: MailingIdentity,
+	to: Mailbox,
 ) -> Result<Message, ApiError> {
-    let get_html_body = async {
-        let result: Result<Result<String, reqwest::Error>, ApiError> =
-            match template
-                .get_cached_html_data(redis)
-                .await
-                .wrap_internal_err("fetching email template HTML from Redis")?
-            {
-                Some(html_body) => Ok(Ok(html_body)),
-                None => {
-                    let result = client
-                        .get(&template.body_fetch_url)
-                        .timeout(Duration::from_secs(3))
-                        .send()
-                        .and_then(|res| async move { res.error_for_status() })
-                        .and_then(|res| res.text())
-                        .await;
+	let get_html_body = async {
+		let result: Result<Result<String, reqwest::Error>, ApiError> =
+			match template
+				.get_cached_html_data(redis)
+				.await
+				.wrap_internal_err("fetching email template HTML from Redis")?
+			{
+				Some(html_body) => Ok(Ok(html_body)),
+				None => {
+					let result = client
+						.get(&template.body_fetch_url)
+						.timeout(Duration::from_secs(3))
+						.send()
+						.and_then(|res| async move { res.error_for_status() })
+						.and_then(|res| res.text())
+						.await;
 
-                    if let Ok(ref body) = result {
-                        template
-                            .set_cached_html_data(body.clone(), redis)
-                            .await
-                            .wrap_internal_err(
-                                "updating database records for `build_email`",
-                            )?;
-                    }
+					if let Ok(ref body) = result {
+						template
+							.set_cached_html_data(body.clone(), redis)
+							.await
+							.wrap_internal_err(
+								"updating database records for `build_email`",
+							)?;
+					}
 
-                    Ok(result)
-                }
-            };
+					Ok(result)
+				}
+			};
 
-        result
-    };
+		result
+	};
 
-    let MailingIdentity {
-        from_name,
-        from_address,
-        reply_name,
-        reply_address,
-    } = from;
+	let MailingIdentity {
+		from_name,
+		from_address,
+		reply_name,
+		reply_address,
+	} = from;
 
-    let db_user = DBUser::get_id(user_id, &mut *exec, redis)
-        .await
-        .wrap_internal_err("fetching user from database")?
-        .wrap_internal_err("finding email recipient in database")?;
+	let db_user = DBUser::get_id(user_id, &mut *exec, redis)
+		.await
+		.wrap_internal_err("fetching user from database")?
+		.wrap_internal_err("finding email recipient in database")?;
 
-    let map = [
-        (USER_NAME, db_user.username),
-        (USER_EMAIL, to.email.to_string()),
-    ]
-    .into_iter()
-    .collect();
+	let map = [
+		(USER_NAME, db_user.username),
+		(USER_EMAIL, to.email.to_string()),
+	]
+	.into_iter()
+	.collect();
 
-    let (html_body_result, either) = futures::try_join!(
-        get_html_body,
-        collect_template_variables(exec, redis, user_id, body, map)
-    )
-    .wrap_api_err("executing `collect_template_variables`")?;
+	let (html_body_result, either) = futures::try_join!(
+		get_html_body,
+		collect_template_variables(exec, redis, user_id, body, map)
+	)
+	.wrap_api_err("executing `collect_template_variables`")?;
 
-    let mut message_builder = Message::builder().from(Mailbox::new(
-        Some(from_name),
-        from_address
-            .parse()
-            .map_err(MailError::from)
-            .wrap_internal_err("reading HTTP response body")?,
-    ));
+	let mut message_builder = Message::builder().from(Mailbox::new(
+		Some(from_name),
+		from_address
+			.parse()
+			.map_err(MailError::from)
+			.wrap_internal_err("reading HTTP response body")?,
+	));
 
-    if let Some((name, address)) = reply_name.zip(reply_address) {
-        message_builder = message_builder.reply_to(Mailbox::new(
-            Some(name),
-            address
-                .parse()
-                .map_err(MailError::from)
-                .wrap_internal_err("reading HTTP response body")?,
-        ));
-    }
+	if let Some((name, address)) = reply_name.zip(reply_address) {
+		message_builder = message_builder.reply_to(Mailbox::new(
+			Some(name),
+			address
+				.parse()
+				.map_err(MailError::from)
+				.wrap_internal_err("reading HTTP response body")?,
+		));
+	}
 
-    struct Body {
-        plaintext: Option<String>,
-        html: Option<String>,
-    }
+	struct Body {
+		plaintext: Option<String>,
+		html: Option<String>,
+	}
 
-    let (body, subject) = match either {
-        EmailTemplate::Static(variables) => {
-            let plaintext_filled_body =
-                fill_template(&template.plaintext_fallback, &variables);
+	let (body, subject) = match either {
+		EmailTemplate::Static(variables) => {
+			let plaintext_filled_body =
+				fill_template(&template.plaintext_fallback, &variables);
 
-            let email_body = Body {
-                plaintext: Some(plaintext_filled_body),
-                html: match html_body_result {
-                    Ok(html_body) => {
-                        Some(fill_template(&html_body, &variables))
-                    }
-                    Err(error) => {
-                        error!(%error, "Failed to fetch template body");
-                        None
-                    }
-                },
-            };
+			let email_body = Body {
+				plaintext: Some(plaintext_filled_body),
+				html: match html_body_result {
+					Ok(html_body) => {
+						Some(fill_template(&html_body, &variables))
+					}
+					Err(error) => {
+						error!(%error, "Failed to fetch template body");
+						None
+					}
+				},
+			};
 
-            let subject = fill_template(&template.subject_line, &variables);
+			let subject = fill_template(&template.subject_line, &variables);
 
-            (email_body, subject)
-        }
+			(email_body, subject)
+		}
 
-        EmailTemplate::Dynamic {
-            variables,
-            body,
-            title,
-        } => {
-            let body = Body {
-                plaintext: None,
-                html: Some(fill_template(&body, &variables)),
-            };
+		EmailTemplate::Dynamic {
+			variables,
+			body,
+			title,
+		} => {
+			let body = Body {
+				plaintext: None,
+				html: Some(fill_template(&body, &variables)),
+			};
 
-            (body, fill_template(&title, &variables))
-        }
-    };
+			(body, fill_template(&title, &variables))
+		}
+	};
 
-    message_builder = message_builder.to(to).subject(subject);
+	message_builder = message_builder.to(to).subject(subject);
 
-    let email_message = match body {
-        Body {
-            plaintext: Some(plaintext),
-            html: Some(html),
-        } => message_builder
-            .multipart(MultiPart::alternative_plain_html(plaintext, html))
-            .map_err(MailError::from)
-            .wrap_internal_err(
-                "executing `MultiPart::alternative_plain_html`",
-            )?,
+	let email_message = match body {
+		Body {
+			plaintext: Some(plaintext),
+			html: Some(html),
+		} => message_builder
+			.multipart(MultiPart::alternative_plain_html(plaintext, html))
+			.map_err(MailError::from)
+			.wrap_internal_err(
+				"executing `MultiPart::alternative_plain_html`",
+			)?,
 
-        Body {
-            plaintext: Some(plaintext),
-            html: None,
-        } => message_builder
-            .singlepart(SinglePart::plain(plaintext))
-            .map_err(MailError::from)
-            .wrap_internal_err("executing `SinglePart::plain`")?,
+		Body {
+			plaintext: Some(plaintext),
+			html: None,
+		} => message_builder
+			.singlepart(SinglePart::plain(plaintext))
+			.map_err(MailError::from)
+			.wrap_internal_err("executing `SinglePart::plain`")?,
 
-        Body {
-            plaintext: None,
-            html: Some(html),
-        } => message_builder
-            .singlepart(SinglePart::html(html))
-            .map_err(MailError::from)
-            .wrap_internal_err("executing `SinglePart::html`")?,
+		Body {
+			plaintext: None,
+			html: Some(html),
+		} => message_builder
+			.singlepart(SinglePart::html(html))
+			.map_err(MailError::from)
+			.wrap_internal_err("executing `SinglePart::html`")?,
 
-        Body {
-            plaintext: None,
-            html: None,
-        } => {
-            return Err(ApiError::Internal(eyre::eyre!(
-                "Neither HTML or plaintext could be generated"
-            )));
-        }
-    };
+		Body {
+			plaintext: None,
+			html: None,
+		} => {
+			return Err(ApiError::Internal(eyre::eyre!(
+				"Neither HTML or plaintext could be generated"
+			)));
+		}
+	};
 
-    Ok(email_message)
+	Ok(email_message)
 }
 
 fn fill_template(
-    mut text: &str,
-    variables: &HashMap<&'static str, String>,
+	mut text: &str,
+	variables: &HashMap<&'static str, String>,
 ) -> String {
-    let mut buffer = String::with_capacity(text.len());
+	let mut buffer = String::with_capacity(text.len());
 
-    loop {
-        if let Some((previous, start_variable)) = text.split_once('{') {
-            buffer.push_str(previous);
+	loop {
+		if let Some((previous, start_variable)) = text.split_once('{') {
+			buffer.push_str(previous);
 
-            if let Some((variable_name, rest)) = start_variable.split_once('}')
-            {
-                // Replace variable with an empty string if it isn't matched
-                buffer.push_str(
-                    variables
-                        .get(variable_name)
-                        .map(|s| s.as_str())
-                        .unwrap_or_default(),
-                );
-                text = rest;
-            } else {
-                warn!("Unmatched open brace in template");
-                text = start_variable;
-            }
-        } else {
-            buffer.push_str(text);
-            break;
-        }
-    }
+			if let Some((variable_name, rest)) = start_variable.split_once('}')
+			{
+				// Replace variable with an empty string if it isn't matched
+				buffer.push_str(
+					variables
+						.get(variable_name)
+						.map(|s| s.as_str())
+						.unwrap_or_default(),
+				);
+				text = rest;
+			} else {
+				warn!("Unmatched open brace in template");
+				text = start_variable;
+			}
+		} else {
+			buffer.push_str(text);
+			break;
+		}
+	}
 
-    buffer
+	buffer
 }
 
 enum EmailTemplate {
-    Static(HashMap<&'static str, String>),
-    Dynamic {
-        variables: HashMap<&'static str, String>,
-        body: String,
-        title: String,
-    },
+	Static(HashMap<&'static str, String>),
+	Dynamic {
+		variables: HashMap<&'static str, String>,
+		body: String,
+		title: String,
+	},
 }
 
 #[derive(Deserialize)]
 struct SharedInstance {
-    name: String,
+	name: String,
 }
 
 async fn resolve_report_title(
-    exec: &mut PgTransaction<'_>,
-    report_id: DBReportId,
-    title: String,
+	exec: &mut PgTransaction<'_>,
+	report_id: DBReportId,
+	title: String,
 ) -> Result<String, ApiError> {
-    if title != "unknown" {
-        return Ok(title);
-    }
+	if title != "unknown" {
+		return Ok(title);
+	}
 
-    let Some(report) = DBReport::get(report_id, &mut *exec)
-        .await
-        .wrap_internal_err("fetching report from database")?
-    else {
-        return Ok(title);
-    };
-    let Some(shared_instance_id) = report.shared_instance_id else {
-        return Ok(title);
-    };
+	let Some(report) = DBReport::get(report_id, &mut *exec)
+		.await
+		.wrap_internal_err("fetching report from database")?
+	else {
+		return Ok(title);
+	};
+	let Some(shared_instance_id) = report.shared_instance_id else {
+		return Ok(title);
+	};
 
-    let instance_id = to_base62(shared_instance_id.0 as u64);
-    let with_version = |name: String| match report.shared_instance_version_id {
-        Some(version) => format!("{name} (version {version})"),
-        None => name,
-    };
-    let fallback = with_version(format!("shared instance {instance_id}"));
-    let response = HTTP_CLIENT
-        .get(format!(
-            "{}/v1/instances/{instance_id}",
-            ENV.SHARED_INSTANCES_URL
-        ))
-        .bearer_auth(&ENV.SHARED_INSTANCES_KEY)
-        .send()
-        .await
-        .and_then(reqwest::Response::error_for_status);
+	let instance_id = to_base62(shared_instance_id.0 as u64);
+	let with_version = |name: String| match report.shared_instance_version_id {
+		Some(version) => format!("{name} (version {version})"),
+		None => name,
+	};
+	let fallback = with_version(format!("shared instance {instance_id}"));
+	let response = HTTP_CLIENT
+		.get(format!(
+			"{}/v1/instances/{instance_id}",
+			ENV.SHARED_INSTANCES_URL
+		))
+		.bearer_auth(&ENV.SHARED_INSTANCES_KEY)
+		.send()
+		.await
+		.and_then(reqwest::Response::error_for_status);
 
-    let response = match response {
-        Ok(response) => response,
-        Err(error) => {
-            warn!(
-                %error,
-                report_id = report_id.0,
-                %instance_id,
-                "Failed to fetch shared instance name for report email"
-            );
-            return Ok(fallback);
-        }
-    };
+	let response = match response {
+		Ok(response) => response,
+		Err(error) => {
+			warn!(
+				%error,
+				report_id = report_id.0,
+				%instance_id,
+				"Failed to fetch shared instance name for report email"
+			);
+			return Ok(fallback);
+		}
+	};
 
-    match response.json::<SharedInstance>().await {
-        Ok(instance) => Ok(with_version(instance.name)),
-        Err(error) => {
-            warn!(
-                %error,
-                report_id = report_id.0,
-                %instance_id,
-                "Failed to parse shared instance name for report email"
-            );
-            Ok(fallback)
-        }
-    }
+	match response.json::<SharedInstance>().await {
+		Ok(instance) => Ok(with_version(instance.name)),
+		Err(error) => {
+			warn!(
+				%error,
+				report_id = report_id.0,
+				%instance_id,
+				"Failed to parse shared instance name for report email"
+			);
+			Ok(fallback)
+		}
+	}
 }
 
 async fn collect_template_variables(
-    exec: &mut PgTransaction<'_>,
-    redis: &RedisPool,
-    user_id: DBUserId,
-    n: &NotificationBody,
-    mut map: HashMap<&'static str, String>,
+	exec: &mut PgTransaction<'_>,
+	redis: &RedisPool,
+	user_id: DBUserId,
+	n: &NotificationBody,
+	mut map: HashMap<&'static str, String>,
 ) -> Result<EmailTemplate, ApiError> {
-    match &n {
-        NotificationBody::PatCreated { token_name } => {
-            map.insert(NEWPAT_TOKEN_NAME, token_name.clone());
-            Ok(EmailTemplate::Static(map))
-        }
+	match &n {
+		NotificationBody::PatCreated { token_name } => {
+			map.insert(NEWPAT_TOKEN_NAME, token_name.clone());
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::ModerationMessageReceived { project_id, .. } => {
-            let result = DBProject::get_id(
-                DBProjectId(project_id.0 as i64),
-                exec,
-                redis,
-            )
-            .await
-            .wrap_internal_err("fetching email project")?
-            .wrap_internal_err("finding email project in database")?
-            .inner;
+		NotificationBody::ModerationMessageReceived { project_id, .. } => {
+			let result = DBProject::get_id(
+				DBProjectId(project_id.0 as i64),
+				exec,
+				redis,
+			)
+			.await
+			.wrap_internal_err("fetching email project")?
+			.wrap_internal_err("finding email project in database")?
+			.inner;
 
-            map.insert(PROJECT_ID, to_base62(project_id.0));
-            map.insert(PROJECT_NAME, result.name);
-            map.insert(PROJECT_ICON_URL, result.icon_url.unwrap_or_default());
-            Ok(EmailTemplate::Static(map))
-        }
+			map.insert(PROJECT_ID, to_base62(project_id.0));
+			map.insert(PROJECT_NAME, result.name);
+			map.insert(PROJECT_ICON_URL, result.icon_url.unwrap_or_default());
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::ReportStatusUpdated { report_id } => {
-            let result = query!(
+		NotificationBody::ReportStatusUpdated { report_id } => {
+			let result = query!(
                 r#"
                 SELECT
                   r.created,
@@ -448,23 +448,23 @@ async fn collect_template_variables(
             .fetch_one(&mut *exec)
             .await.wrap_internal_err("querying database for `collect_template_variables`")?;
 
-            map.insert(REPORT_ID, to_base62(report_id.0));
-            map.insert(
-                REPORT_TITLE,
-                resolve_report_title(
-                    exec,
-                    DBReportId(report_id.0 as i64),
-                    result.title,
-                )
-                .await
-                .wrap_api_err("executing `resolve_report_title`")?,
-            );
-            map.insert(REPORT_DATE, date_human_readable(result.created));
-            Ok(EmailTemplate::Static(map))
-        }
+			map.insert(REPORT_ID, to_base62(report_id.0));
+			map.insert(
+				REPORT_TITLE,
+				resolve_report_title(
+					exec,
+					DBReportId(report_id.0 as i64),
+					result.title,
+				)
+				.await
+				.wrap_api_err("executing `resolve_report_title`")?,
+			);
+			map.insert(REPORT_DATE, date_human_readable(result.created));
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::ReportSubmitted { report_id } => {
-            let result = query!(
+		NotificationBody::ReportSubmitted { report_id } => {
+			let result = query!(
                 r#"
                 SELECT
                   COALESCE(m.name, v.version_number, u.username, 'unknown') "title!"
@@ -479,126 +479,126 @@ async fn collect_template_variables(
             .fetch_one(&mut *exec)
             .await.wrap_internal_err("querying database for `collect_template_variables`")?;
 
-            map.insert(
-                REPORT_TITLE,
-                resolve_report_title(
-                    exec,
-                    DBReportId(report_id.0 as i64),
-                    result.title,
-                )
-                .await
-                .wrap_api_err("executing `resolve_report_title`")?,
-            );
-            map.insert(NEWREPORT_ID, to_base62(report_id.0));
-            Ok(EmailTemplate::Static(map))
-        }
+			map.insert(
+				REPORT_TITLE,
+				resolve_report_title(
+					exec,
+					DBReportId(report_id.0 as i64),
+					result.title,
+				)
+				.await
+				.wrap_api_err("executing `resolve_report_title`")?,
+			);
+			map.insert(NEWREPORT_ID, to_base62(report_id.0));
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::ProjectStatusApproved { project_id } => {
-            let result = query!(
-                r#"
+		NotificationBody::ProjectStatusApproved { project_id } => {
+			let result = query!(
+				r#"
                 SELECT name, icon_url FROM mods WHERE id = $1
                 "#,
-                project_id.0 as i64
-            )
-            .fetch_one(&mut *exec)
-            .await
-            .wrap_internal_err(
-                "querying database for `collect_template_variables`",
-            )?;
+				project_id.0 as i64
+			)
+			.fetch_one(&mut *exec)
+			.await
+			.wrap_internal_err(
+				"querying database for `collect_template_variables`",
+			)?;
 
-            map.insert(PROJECT_ID, to_base62(project_id.0));
-            map.insert(PROJECT_NAME, result.name);
-            map.insert(PROJECT_ICON_URL, result.icon_url.unwrap_or_default());
-            Ok(EmailTemplate::Static(map))
-        }
+			map.insert(PROJECT_ID, to_base62(project_id.0));
+			map.insert(PROJECT_NAME, result.name);
+			map.insert(PROJECT_ICON_URL, result.icon_url.unwrap_or_default());
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::ProjectStatusNeutral {
-            project_id,
-            old_status,
-            new_status,
-        } => {
-            let result = DBProject::get_id(
-                DBProjectId(project_id.0 as i64),
-                exec,
-                redis,
-            )
-            .await
-            .wrap_internal_err("fetching email project")?
-            .wrap_internal_err("finding email project in database")?
-            .inner;
+		NotificationBody::ProjectStatusNeutral {
+			project_id,
+			old_status,
+			new_status,
+		} => {
+			let result = DBProject::get_id(
+				DBProjectId(project_id.0 as i64),
+				exec,
+				redis,
+			)
+			.await
+			.wrap_internal_err("fetching email project")?
+			.wrap_internal_err("finding email project in database")?
+			.inner;
 
-            map.insert(PROJECT_ID, to_base62(project_id.0));
-            map.insert(PROJECT_NAME, result.name);
-            map.insert(PROJECT_ICON_URL, result.icon_url.unwrap_or_default());
-            map.insert(PROJECT_OLD_STATUS, old_status.as_str().to_string());
-            map.insert(PROJECT_NEW_STATUS, new_status.as_str().to_string());
-            Ok(EmailTemplate::Static(map))
-        }
+			map.insert(PROJECT_ID, to_base62(project_id.0));
+			map.insert(PROJECT_NAME, result.name);
+			map.insert(PROJECT_ICON_URL, result.icon_url.unwrap_or_default());
+			map.insert(PROJECT_OLD_STATUS, old_status.as_str().to_string());
+			map.insert(PROJECT_NEW_STATUS, new_status.as_str().to_string());
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::ProjectTransferred {
-            project_id,
-            new_owner_user_id,
-            new_owner_organization_id,
-        } => {
-            let project = DBProject::get_id(
-                DBProjectId(project_id.0 as i64),
-                &mut *exec,
-                redis,
-            )
-            .await
-            .wrap_internal_err("fetching email project")?
-            .wrap_internal_err("finding email project in database")?
-            .inner;
+		NotificationBody::ProjectTransferred {
+			project_id,
+			new_owner_user_id,
+			new_owner_organization_id,
+		} => {
+			let project = DBProject::get_id(
+				DBProjectId(project_id.0 as i64),
+				&mut *exec,
+				redis,
+			)
+			.await
+			.wrap_internal_err("fetching email project")?
+			.wrap_internal_err("finding email project in database")?
+			.inner;
 
-            map.insert(PROJECT_ID, to_base62(project_id.0));
-            map.insert(PROJECT_NAME, project.name);
-            map.insert(PROJECT_ICON_URL, project.icon_url.unwrap_or_default());
+			map.insert(PROJECT_ID, to_base62(project_id.0));
+			map.insert(PROJECT_NAME, project.name);
+			map.insert(PROJECT_ICON_URL, project.icon_url.unwrap_or_default());
 
-            if let Some(new_owner_user_id) = new_owner_user_id {
-                let user = DBUser::get_id(
-                    DBUserId(new_owner_user_id.0 as i64),
-                    &mut *exec,
-                    redis,
-                )
-                .await
-                .wrap_internal_err("fetching user from database")?
-                .wrap_internal_err("finding new owner user in database")?;
+			if let Some(new_owner_user_id) = new_owner_user_id {
+				let user = DBUser::get_id(
+					DBUserId(new_owner_user_id.0 as i64),
+					&mut *exec,
+					redis,
+				)
+				.await
+				.wrap_internal_err("fetching user from database")?
+				.wrap_internal_err("finding new owner user in database")?;
 
-                map.insert(NEWOWNER_TYPE, "user".to_string());
-                map.insert(NEWOWNER_TYPE_CAPITALIZED, "User".to_string());
-                map.insert(NEWOWNER_NAME, user.username);
-            } else if let Some(new_owner_organization_id) =
-                new_owner_organization_id
-            {
-                let org = DBOrganization::get_id(
-                    DBOrganizationId(new_owner_organization_id.0 as i64),
-                    &mut *exec,
-                    redis,
-                )
-                .await
-                .wrap_internal_err("fetching organization from database")?
-                .wrap_internal_err(
-                    "finding new owner organization in database",
-                )?;
+				map.insert(NEWOWNER_TYPE, "user".to_string());
+				map.insert(NEWOWNER_TYPE_CAPITALIZED, "User".to_string());
+				map.insert(NEWOWNER_NAME, user.username);
+			} else if let Some(new_owner_organization_id) =
+				new_owner_organization_id
+			{
+				let org = DBOrganization::get_id(
+					DBOrganizationId(new_owner_organization_id.0 as i64),
+					&mut *exec,
+					redis,
+				)
+				.await
+				.wrap_internal_err("fetching organization from database")?
+				.wrap_internal_err(
+					"finding new owner organization in database",
+				)?;
 
-                map.insert(NEWOWNER_TYPE, "organization".to_string());
-                map.insert(
-                    NEWOWNER_TYPE_CAPITALIZED,
-                    "Organization".to_string(),
-                );
-                map.insert(NEWOWNER_NAME, org.name);
-            }
+				map.insert(NEWOWNER_TYPE, "organization".to_string());
+				map.insert(
+					NEWOWNER_TYPE_CAPITALIZED,
+					"Organization".to_string(),
+				);
+				map.insert(NEWOWNER_NAME, org.name);
+			}
 
-            Ok(EmailTemplate::Static(map))
-        }
-        NotificationBody::TeamInvite {
-            team_id: _,
-            project_id,
-            invited_by,
-            role,
-        } => {
-            let result = query!(
-                r#"
+			Ok(EmailTemplate::Static(map))
+		}
+		NotificationBody::TeamInvite {
+			team_id: _,
+			project_id,
+			invited_by,
+			role,
+		} => {
+			let result = query!(
+				r#"
                 SELECT
                   users.username "user_name!",
                   users.email "user_email",
@@ -609,31 +609,31 @@ async fn collect_template_variables(
                 INNER JOIN mods project ON project.id = $2
                 WHERE users.id = $3
                 "#,
-                invited_by.0 as i64,
-                project_id.0 as i64,
-                user_id.0 as i64
-            )
-            .fetch_one(&mut *exec)
-            .await
-            .wrap_internal_err(
-                "querying database for `collect_template_variables`",
-            )?;
+				invited_by.0 as i64,
+				project_id.0 as i64,
+				user_id.0 as i64
+			)
+			.fetch_one(&mut *exec)
+			.await
+			.wrap_internal_err(
+				"querying database for `collect_template_variables`",
+			)?;
 
-            map.insert(TEAMINVITE_INVITER_NAME, result.inviter_name);
-            map.insert(TEAMINVITE_PROJECT_NAME, result.project_name);
-            map.insert(TEAMINVITE_ROLE_NAME, role.clone());
+			map.insert(TEAMINVITE_INVITER_NAME, result.inviter_name);
+			map.insert(TEAMINVITE_PROJECT_NAME, result.project_name);
+			map.insert(TEAMINVITE_ROLE_NAME, role.clone());
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::OrganizationInvite {
-            organization_id,
-            invited_by,
-            team_id: _,
-            role,
-        } => {
-            let result = query!(
-                r#"
+		NotificationBody::OrganizationInvite {
+			organization_id,
+			invited_by,
+			team_id: _,
+			role,
+		} => {
+			let result = query!(
+				r#"
                 SELECT
                   users.username "user_name!",
                   users.email "user_email",
@@ -644,30 +644,30 @@ async fn collect_template_variables(
                 INNER JOIN organizations organization ON organization.id = $2
                 WHERE users.id = $3
                 "#,
-                invited_by.0 as i64,
-                organization_id.0 as i64,
-                user_id.0 as i64
-            )
-            .fetch_one(&mut *exec)
-            .await
-            .wrap_internal_err(
-                "querying database for `collect_template_variables`",
-            )?;
+				invited_by.0 as i64,
+				organization_id.0 as i64,
+				user_id.0 as i64
+			)
+			.fetch_one(&mut *exec)
+			.await
+			.wrap_internal_err(
+				"querying database for `collect_template_variables`",
+			)?;
 
-            map.insert(ORGINVITE_INVITER_NAME, result.inviter_name);
-            map.insert(ORGINVITE_ORG_NAME, result.organization_name);
-            map.insert(ORGINVITE_ROLE_NAME, role.clone());
+			map.insert(ORGINVITE_INVITER_NAME, result.inviter_name);
+			map.insert(ORGINVITE_ORG_NAME, result.organization_name);
+			map.insert(ORGINVITE_ROLE_NAME, role.clone());
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::StatusChange {
-            project_id,
-            old_status,
-            new_status,
-        } => {
-            let result = query!(
-                r#"
+		NotificationBody::StatusChange {
+			project_id,
+			old_status,
+			new_status,
+		} => {
+			let result = query!(
+				r#"
                 SELECT
                   users.username "user_name!",
                   users.email "user_email",
@@ -676,174 +676,174 @@ async fn collect_template_variables(
                 INNER JOIN mods project ON project.id = $1
                 WHERE users.id = $2
                 "#,
-                project_id.0 as i64,
-                user_id.0 as i64,
-            )
-            .fetch_one(&mut *exec)
-            .await
-            .wrap_internal_err(
-                "querying database for `collect_template_variables`",
-            )?;
+				project_id.0 as i64,
+				user_id.0 as i64,
+			)
+			.fetch_one(&mut *exec)
+			.await
+			.wrap_internal_err(
+				"querying database for `collect_template_variables`",
+			)?;
 
-            map.insert(STATUSCHANGE_PROJECT_NAME, result.project_name);
-            map.insert(STATUSCHANGE_OLD_STATUS, old_status.as_str().to_owned());
-            map.insert(STATUSCHANGE_NEW_STATUS, new_status.as_str().to_owned());
+			map.insert(STATUSCHANGE_PROJECT_NAME, result.project_name);
+			map.insert(STATUSCHANGE_OLD_STATUS, old_status.as_str().to_owned());
+			map.insert(STATUSCHANGE_NEW_STATUS, new_status.as_str().to_owned());
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::ResetPassword { flow } => {
-            let url = format!(
-                "{}/{}?flow={}",
-                ENV.SITE_URL, ENV.SITE_RESET_PASSWORD_PATH, flow
-            );
+		NotificationBody::ResetPassword { flow } => {
+			let url = format!(
+				"{}/{}?flow={}",
+				ENV.SITE_URL, ENV.SITE_RESET_PASSWORD_PATH, flow
+			);
 
-            map.insert(RESETPASSWORD_URL, url);
+			map.insert(RESETPASSWORD_URL, url);
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::VerifyEmail { flow } => {
-            let url = format!(
-                "{}/{}?flow={}",
-                ENV.SITE_URL, ENV.SITE_VERIFY_EMAIL_PATH, flow
-            );
+		NotificationBody::VerifyEmail { flow } => {
+			let url = format!(
+				"{}/{}?flow={}",
+				ENV.SITE_URL, ENV.SITE_VERIFY_EMAIL_PATH, flow
+			);
 
-            map.insert(VERIFYEMAIL_URL, url);
+			map.insert(VERIFYEMAIL_URL, url);
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::AuthProviderAdded { provider }
-        | NotificationBody::AuthProviderRemoved { provider } => {
-            map.insert(AUTHPROVIDER_NAME, provider.clone());
+		NotificationBody::AuthProviderAdded { provider }
+		| NotificationBody::AuthProviderRemoved { provider } => {
+			map.insert(AUTHPROVIDER_NAME, provider.clone());
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::TwoFactorEnabled
-        | NotificationBody::TwoFactorRemoved
-        | NotificationBody::PasswordChanged
-        | NotificationBody::PasswordRemoved => Ok(EmailTemplate::Static(map)),
+		NotificationBody::TwoFactorEnabled
+		| NotificationBody::TwoFactorRemoved
+		| NotificationBody::PasswordChanged
+		| NotificationBody::PasswordRemoved => Ok(EmailTemplate::Static(map)),
 
-        NotificationBody::DiscordRoleCreatorClub => {
-            map.insert(
-                DISCORD_LINK_URL,
-                format!("{}/discord/link", ENV.SITE_URL.trim_end_matches('/')),
-            );
+		NotificationBody::DiscordRoleCreatorClub => {
+			map.insert(
+				DISCORD_LINK_URL,
+				format!("{}/discord/link", ENV.SITE_URL.trim_end_matches('/')),
+			);
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::EmailChanged {
-            new_email,
-            to_email: _,
-        } => {
-            map.insert(EMAILCHANGED_NEW_EMAIL, new_email.clone());
+		NotificationBody::EmailChanged {
+			new_email,
+			to_email: _,
+		} => {
+			map.insert(EMAILCHANGED_NEW_EMAIL, new_email.clone());
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::PaymentFailed { amount, service } => {
-            let url = format!("{}/{}", ENV.SITE_URL, ENV.SITE_BILLING_PATH,);
+		NotificationBody::PaymentFailed { amount, service } => {
+			let url = format!("{}/{}", ENV.SITE_URL, ENV.SITE_BILLING_PATH,);
 
-            let mut map = HashMap::new();
-            map.insert(PAYMENTFAILED_AMOUNT, amount.clone());
-            map.insert(PAYMENTFAILED_SERVICE, service.clone());
-            map.insert(BILLING_URL, url);
+			let mut map = HashMap::new();
+			map.insert(PAYMENTFAILED_AMOUNT, amount.clone());
+			map.insert(PAYMENTFAILED_SERVICE, service.clone());
+			map.insert(BILLING_URL, url);
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::PayoutAvailable {
-            amount,
-            date_available,
-        } => {
-            if let Some(period_month) =
-                date_available.checked_sub_months(chrono::Months::new(2))
-            {
-                map.insert(
-                    PAYOUTAVAILABLE_PERIOD,
-                    period_month.format("%B %Y").to_string(),
-                );
-            }
+		NotificationBody::PayoutAvailable {
+			amount,
+			date_available,
+		} => {
+			if let Some(period_month) =
+				date_available.checked_sub_months(chrono::Months::new(2))
+			{
+				map.insert(
+					PAYOUTAVAILABLE_PERIOD,
+					period_month.format("%B %Y").to_string(),
+				);
+			}
 
-            map.insert(
-                PAYOUTAVAILABLE_AMOUNT,
-                format!("${:.2} USD", *amount as f64 / 100.0),
-            );
+			map.insert(
+				PAYOUTAVAILABLE_AMOUNT,
+				format!("${:.2} USD", *amount as f64 / 100.0),
+			);
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::TaxNotification {
-            subscription_id,
-            old_amount,
-            old_tax_amount,
-            new_amount,
-            new_tax_amount,
-            billing_interval,
-            currency,
-            due,
-            service,
-        } => {
-            map.insert(
-                TAXNOTIFICATION_OLD_AMOUNT,
-                fmt_money(*old_amount, currency),
-            );
-            map.insert(
-                TAXNOTIFICATION_OLD_TAX_AMOUNT,
-                fmt_money(*old_tax_amount, currency),
-            );
-            map.insert(
-                TAXNOTIFICATION_OLD_TOTAL_AMOUNT,
-                fmt_money(*old_amount + *old_tax_amount, currency),
-            );
-            map.insert(
-                TAXNOTIFICATION_NEW_AMOUNT,
-                fmt_money(*new_amount, currency),
-            );
-            map.insert(
-                TAXNOTIFICATION_NEW_TAX_AMOUNT,
-                fmt_money(*new_tax_amount, currency),
-            );
-            map.insert(
-                TAXNOTIFICATION_NEW_TOTAL_AMOUNT,
-                fmt_money(*new_amount + *new_tax_amount, currency),
-            );
-            map.insert(
-                TAXNOTIFICATION_BILLING_INTERVAL,
-                billing_interval.as_str().to_owned(),
-            );
-            map.insert(TAXNOTIFICATION_DUE, date_human_readable(*due));
-            map.insert(TAXNOTIFICATION_SERVICE, service.clone());
-            map.insert(SUBSCRIPTION_ID, to_base62(subscription_id.0));
-            Ok(EmailTemplate::Static(map))
-        }
+		NotificationBody::TaxNotification {
+			subscription_id,
+			old_amount,
+			old_tax_amount,
+			new_amount,
+			new_tax_amount,
+			billing_interval,
+			currency,
+			due,
+			service,
+		} => {
+			map.insert(
+				TAXNOTIFICATION_OLD_AMOUNT,
+				fmt_money(*old_amount, currency),
+			);
+			map.insert(
+				TAXNOTIFICATION_OLD_TAX_AMOUNT,
+				fmt_money(*old_tax_amount, currency),
+			);
+			map.insert(
+				TAXNOTIFICATION_OLD_TOTAL_AMOUNT,
+				fmt_money(*old_amount + *old_tax_amount, currency),
+			);
+			map.insert(
+				TAXNOTIFICATION_NEW_AMOUNT,
+				fmt_money(*new_amount, currency),
+			);
+			map.insert(
+				TAXNOTIFICATION_NEW_TAX_AMOUNT,
+				fmt_money(*new_tax_amount, currency),
+			);
+			map.insert(
+				TAXNOTIFICATION_NEW_TOTAL_AMOUNT,
+				fmt_money(*new_amount + *new_tax_amount, currency),
+			);
+			map.insert(
+				TAXNOTIFICATION_BILLING_INTERVAL,
+				billing_interval.as_str().to_owned(),
+			);
+			map.insert(TAXNOTIFICATION_DUE, date_human_readable(*due));
+			map.insert(TAXNOTIFICATION_SERVICE, service.clone());
+			map.insert(SUBSCRIPTION_ID, to_base62(subscription_id.0));
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::SubscriptionCredited {
-            subscription_id,
-            days,
-            previous_due,
-            next_due,
-            header_message,
-        } => {
-            map.insert(
-                CREDIT_DAYS,
-                format!("{days} day{}", if *days == 1 { "" } else { "s" }),
-            );
-            map.insert(CREDIT_PREVIOUS_DUE, date_human_readable(*previous_due));
-            map.insert(CREDIT_NEXT_DUE, date_human_readable(*next_due));
-            map.insert(SUBSCRIPTION_ID, to_base62(subscription_id.0));
+		NotificationBody::SubscriptionCredited {
+			subscription_id,
+			days,
+			previous_due,
+			next_due,
+			header_message,
+		} => {
+			map.insert(
+				CREDIT_DAYS,
+				format!("{days} day{}", if *days == 1 { "" } else { "s" }),
+			);
+			map.insert(CREDIT_PREVIOUS_DUE, date_human_readable(*previous_due));
+			map.insert(CREDIT_NEXT_DUE, date_human_readable(*next_due));
+			map.insert(SUBSCRIPTION_ID, to_base62(subscription_id.0));
 
-            // Only insert header message if provided; frontend sets default fallback
-            if let Some(h) = header_message.clone() {
-                map.insert(CREDIT_HEADER_MESSAGE, h);
-            }
+			// Only insert header message if provided; frontend sets default fallback
+			if let Some(h) = header_message.clone() {
+				map.insert(CREDIT_HEADER_MESSAGE, h);
+			}
 
-            // Derive subscription type label for templates
-            // Resolve product metadata via price_id join
-            if let Some(info) = crate::database::models::user_subscription_item::DBUserSubscription::get(
+			// Derive subscription type label for templates
+			// Resolve product metadata via price_id join
+			if let Some(info) = crate::database::models::user_subscription_item::DBUserSubscription::get(
                 (*subscription_id).into(),
                 &mut *exec,
             )
@@ -859,93 +859,93 @@ async fn collect_template_variables(
                     map.insert(CREDIT_SUBSCRIPTION_TYPE, label);
                 }
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::Custom {
-            title,
-            body_md,
-            key,
-        } => Ok(EmailTemplate::Dynamic {
-            variables: map,
-            body: dynamic_email_body(redis, title, body_md, key)
-                .await
-                .wrap_api_err("executing `dynamic_email_body`")?,
-            title: title.to_string(),
-        }),
+		NotificationBody::Custom {
+			title,
+			body_md,
+			key,
+		} => Ok(EmailTemplate::Dynamic {
+			variables: map,
+			body: dynamic_email_body(redis, title, body_md, key)
+				.await
+				.wrap_api_err("executing `dynamic_email_body`")?,
+			title: title.to_string(),
+		}),
 
-        NotificationBody::ServerInvite {
-            server_name,
-            invited_by,
-            role,
-            ..
-        } => {
-            let inviter = DBUser::get_id(
-                DBUserId(invited_by.0 as i64),
-                &mut *exec,
-                redis,
-            )
-            .await
-            .wrap_internal_err("fetching user from database")?
-            .wrap_internal_err("finding server invite sender in database")?;
+		NotificationBody::ServerInvite {
+			server_name,
+			invited_by,
+			role,
+			..
+		} => {
+			let inviter = DBUser::get_id(
+				DBUserId(invited_by.0 as i64),
+				&mut *exec,
+				redis,
+			)
+			.await
+			.wrap_internal_err("fetching user from database")?
+			.wrap_internal_err("finding server invite sender in database")?;
 
-            map.insert(SERVERINVITE_INVITER_NAME, inviter.username);
-            map.insert(SERVERINVITE_SERVER_NAME, server_name.clone());
-            map.insert(SERVERINVITE_ROLE_NAME, role.clone());
+			map.insert(SERVERINVITE_INVITER_NAME, inviter.username);
+			map.insert(SERVERINVITE_SERVER_NAME, server_name.clone());
+			map.insert(SERVERINVITE_ROLE_NAME, role.clone());
 
-            Ok(EmailTemplate::Static(map))
-        }
+			Ok(EmailTemplate::Static(map))
+		}
 
-        NotificationBody::ProjectUpdate { .. }
-        | NotificationBody::SharedInstanceInvite { .. }
-        | NotificationBody::ModeratorMessage { .. }
-        | NotificationBody::LegacyMarkdown { .. }
-        | NotificationBody::Unknown => Ok(EmailTemplate::Static(map)),
-    }
+		NotificationBody::ProjectUpdate { .. }
+		| NotificationBody::SharedInstanceInvite { .. }
+		| NotificationBody::ModeratorMessage { .. }
+		| NotificationBody::LegacyMarkdown { .. }
+		| NotificationBody::Unknown => Ok(EmailTemplate::Static(map)),
+	}
 }
 
 async fn dynamic_email_body(
-    redis: &RedisPool,
-    title: &str,
-    body_md: &str,
-    key: &str,
+	redis: &RedisPool,
+	title: &str,
+	body_md: &str,
+	key: &str,
 ) -> Result<String, ApiError> {
-    get_or_set_cached_dynamic_html(redis, key, || async {
-        let site_url = &ENV.SITE_URL;
-        let site_url = site_url.trim_end_matches('/');
+	get_or_set_cached_dynamic_html(redis, key, || async {
+		let site_url = &ENV.SITE_URL;
+		let site_url = site_url.trim_end_matches('/');
 
-        let url = format!("{site_url}/_internal/templates/email/dynamic");
+		let url = format!("{site_url}/_internal/templates/email/dynamic");
 
-        std::str::from_utf8(
-            reqwest::Client::new()
-                .post(url)
-                .json(&serde_json::json!({
-                    "title": title,
-                    "body": body_md,
-                }))
-                .send()
-                .await
-                .and_then(|res| res.error_for_status())
-                .wrap_internal_err("deserializing HTTP response")?
-                .bytes()
-                .await
-                .wrap_internal_err("deserializing HTTP response")?
-                .as_ref(),
-        )
-        .wrap_internal_err("email body is not valid UTF-8")
-        .map(ToOwned::to_owned)
-    })
-    .await
+		std::str::from_utf8(
+			reqwest::Client::new()
+				.post(url)
+				.json(&serde_json::json!({
+					"title": title,
+					"body": body_md,
+				}))
+				.send()
+				.await
+				.and_then(|res| res.error_for_status())
+				.wrap_internal_err("deserializing HTTP response")?
+				.bytes()
+				.await
+				.wrap_internal_err("deserializing HTTP response")?
+				.as_ref(),
+		)
+		.wrap_internal_err("email body is not valid UTF-8")
+		.map(ToOwned::to_owned)
+	})
+	.await
 }
 
 fn date_human_readable(date: chrono::DateTime<chrono::Utc>) -> String {
-    date.format("%B %d, %Y").to_string()
+	date.format("%B %d, %Y").to_string()
 }
 
 fn fmt_money(amount: i64, currency: &str) -> String {
-    rusty_money::Money::from_minor(
-        amount,
-        rusty_money::iso::find(currency).unwrap_or(rusty_money::iso::USD),
-    )
-    .to_string()
+	rusty_money::Money::from_minor(
+		amount,
+		rusty_money::iso::find(currency).unwrap_or(rusty_money::iso::USD),
+	)
+	.to_string()
 }

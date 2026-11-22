@@ -7,33 +7,33 @@
 use itertools::Itertools;
 
 use crate::{
-    database::{
-        PgTransaction,
-        models::{DBProjectId, DBThreadId, thread_item::ThreadMessageBuilder},
-    },
-    models::threads::MessageBody,
-    routes::ApiError,
-    util::error::Context,
+	database::{
+		PgTransaction,
+		models::{DBProjectId, DBThreadId, thread_item::ThreadMessageBuilder},
+	},
+	models::threads::MessageBody,
+	routes::ApiError,
+	util::error::Context,
 };
 
 #[derive(Debug, Clone, Copy)]
 pub enum TechReviewRemovalReason {
-    RulesChanged,
-    ScanCompleted,
-    FileDeleted,
+	RulesChanged,
+	ScanCompleted,
+	FileDeleted,
 }
 
 pub async fn add_projects(
-    project_ids: &[DBProjectId],
-    txn: &mut PgTransaction<'_>,
+	project_ids: &[DBProjectId],
+	txn: &mut PgTransaction<'_>,
 ) -> Result<(), ApiError> {
-    let project_ids = project_ids.iter().copied().unique().collect::<Vec<_>>();
-    if project_ids.is_empty() {
-        return Ok(());
-    }
+	let project_ids = project_ids.iter().copied().unique().collect::<Vec<_>>();
+	if project_ids.is_empty() {
+		return Ok(());
+	}
 
-    let rows = sqlx::query!(
-        r#"
+	let rows = sqlx::query!(
+		r#"
         WITH inserted AS (
             INSERT INTO delphi_tech_review_queue (project_id)
             SELECT unnest($1::bigint[])
@@ -51,39 +51,39 @@ pub async fn add_projects(
             ) AS "thread_id!: DBThreadId"
         FROM inserted
         "#,
-        &project_ids.iter().map(|id| id.0).collect::<Vec<_>>(),
-    )
-    .fetch_all(&mut *txn)
-    .await
-    .wrap_internal_err("failed to add projects to technical review queue")?;
+		&project_ids.iter().map(|id| id.0).collect::<Vec<_>>(),
+	)
+	.fetch_all(&mut *txn)
+	.await
+	.wrap_internal_err("failed to add projects to technical review queue")?;
 
-    for row in rows {
-        ThreadMessageBuilder {
-            author_id: None,
-            body: MessageBody::TechReviewEntered,
-            thread_id: row.thread_id,
-            hide_identity: false,
-        }
-        .insert(txn)
-        .await
-        .wrap_internal_err("failed to add entering technical review message")?;
-    }
+	for row in rows {
+		ThreadMessageBuilder {
+			author_id: None,
+			body: MessageBody::TechReviewEntered,
+			thread_id: row.thread_id,
+			hide_identity: false,
+		}
+		.insert(txn)
+		.await
+		.wrap_internal_err("failed to add entering technical review message")?;
+	}
 
-    Ok(())
+	Ok(())
 }
 
 pub async fn remove_projects(
-    project_ids: &[DBProjectId],
-    reason: TechReviewRemovalReason,
-    txn: &mut PgTransaction<'_>,
+	project_ids: &[DBProjectId],
+	reason: TechReviewRemovalReason,
+	txn: &mut PgTransaction<'_>,
 ) -> Result<(), ApiError> {
-    let project_ids = project_ids.iter().copied().unique().collect::<Vec<_>>();
-    if project_ids.is_empty() {
-        return Ok(());
-    }
+	let project_ids = project_ids.iter().copied().unique().collect::<Vec<_>>();
+	if project_ids.is_empty() {
+		return Ok(());
+	}
 
-    let rows = sqlx::query!(
-        r#"
+	let rows = sqlx::query!(
+		r#"
         WITH removed AS (
             DELETE FROM delphi_tech_review_queue
             WHERE project_id = ANY($1::bigint[])
@@ -100,51 +100,49 @@ pub async fn remove_projects(
             ) AS "thread_id!: DBThreadId"
         FROM removed
         "#,
-        &project_ids.iter().map(|id| id.0).collect::<Vec<_>>(),
-    )
-    .fetch_all(&mut *txn)
-    .await
-    .wrap_internal_err(
-        "failed to remove projects from technical review queue",
-    )?;
+		&project_ids.iter().map(|id| id.0).collect::<Vec<_>>(),
+	)
+	.fetch_all(&mut *txn)
+	.await
+	.wrap_internal_err(
+		"failed to remove projects from technical review queue",
+	)?;
 
-    let body = match reason {
-        TechReviewRemovalReason::RulesChanged
-        | TechReviewRemovalReason::ScanCompleted => {
-            MessageBody::TechReviewExited
-        }
-        TechReviewRemovalReason::FileDeleted => {
-            MessageBody::TechReviewExitFileDeleted
-        }
-    };
+	let body = match reason {
+		TechReviewRemovalReason::RulesChanged
+		| TechReviewRemovalReason::ScanCompleted => MessageBody::TechReviewExited,
+		TechReviewRemovalReason::FileDeleted => {
+			MessageBody::TechReviewExitFileDeleted
+		}
+	};
 
-    for row in rows {
-        ThreadMessageBuilder {
-            author_id: None,
-            body: body.clone(),
-            thread_id: row.thread_id,
-            hide_identity: false,
-        }
-        .insert(txn)
-        .await
-        .wrap_internal_err("failed to add exiting technical review message")?;
-    }
+	for row in rows {
+		ThreadMessageBuilder {
+			author_id: None,
+			body: body.clone(),
+			thread_id: row.thread_id,
+			hide_identity: false,
+		}
+		.insert(txn)
+		.await
+		.wrap_internal_err("failed to add exiting technical review message")?;
+	}
 
-    Ok(())
+	Ok(())
 }
 
 pub async fn sync_projects(
-    project_ids: &[DBProjectId],
-    removal_reason: TechReviewRemovalReason,
-    txn: &mut PgTransaction<'_>,
+	project_ids: &[DBProjectId],
+	removal_reason: TechReviewRemovalReason,
+	txn: &mut PgTransaction<'_>,
 ) -> Result<(), ApiError> {
-    let project_ids = project_ids.iter().copied().unique().collect::<Vec<_>>();
-    if project_ids.is_empty() {
-        return Ok(());
-    }
+	let project_ids = project_ids.iter().copied().unique().collect::<Vec<_>>();
+	if project_ids.is_empty() {
+		return Ok(());
+	}
 
-    let rows = sqlx::query!(
-        r#"
+	let rows = sqlx::query!(
+		r#"
         WITH current_details AS (
             SELECT
                 detail.project_id,
@@ -177,32 +175,32 @@ pub async fn sync_projects(
             ON current_details.project_id = requested.project_id
         GROUP BY requested.project_id
         "#,
-        &project_ids.iter().map(|id| id.0).collect::<Vec<_>>(),
-    )
-    .fetch_all(&mut *txn)
-    .await
-    .wrap_internal_err(
-        "failed to determine technical review queue membership",
-    )?;
+		&project_ids.iter().map(|id| id.0).collect::<Vec<_>>(),
+	)
+	.fetch_all(&mut *txn)
+	.await
+	.wrap_internal_err(
+		"failed to determine technical review queue membership",
+	)?;
 
-    add_projects(
-        &rows
-            .iter()
-            .filter(|row| row.needs_review)
-            .map(|row| row.project_id)
-            .collect::<Vec<_>>(),
-        txn,
-    )
-    .await?;
+	add_projects(
+		&rows
+			.iter()
+			.filter(|row| row.needs_review)
+			.map(|row| row.project_id)
+			.collect::<Vec<_>>(),
+		txn,
+	)
+	.await?;
 
-    remove_projects(
-        &rows
-            .into_iter()
-            .filter(|row| !row.has_details)
-            .map(|row| row.project_id)
-            .collect::<Vec<_>>(),
-        removal_reason,
-        txn,
-    )
-    .await
+	remove_projects(
+		&rows
+			.into_iter()
+			.filter(|row| !row.has_details)
+			.map(|row| row.project_id)
+			.collect::<Vec<_>>(),
+		removal_reason,
+		txn,
+	)
+	.await
 }

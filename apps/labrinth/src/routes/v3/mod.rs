@@ -33,51 +33,51 @@ pub mod versions;
 pub mod oauth_clients;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    cfg.service(
-        web::scope("/v3/analytics")
-            .wrap(default_cors())
-            .configure(analytics_get::config),
-    );
-    if ENV.MONETIZATION_ENABLED {
-        cfg.service(
-            web::scope("/v3/payout")
-                .wrap(default_cors())
-                .configure(payouts::config)
-                .service(payouts::paypal_webhook)
-                .service(payouts::tremendous_webhook),
-        );
-    }
-    cfg.service(
-        web::scope("/v3/project")
-            .wrap(default_cors())
-            .configure(projects::project_config)
-            .configure(project_creation::config)
-            .configure(disclosures::config)
-            .configure(server_access::config),
-    );
-    cfg.service(
-        web::scope("/v3")
-            .wrap(default_cors())
-            .configure(analytics_event::config)
-            .configure(limits::config)
-            .configure(collections::config)
-            .configure(images::config)
-            .configure(notifications::config)
-            .configure(oauth_clients::config)
-            .configure(organizations::config)
-            .configure(projects::config)
-            .configure(reports::config)
-            .configure(statistics::config)
-            .configure(tags::config)
-            .configure(teams::config)
-            .configure(threads::config)
-            .configure(users::config)
-            .configure(version_file::config)
-            .configure(versions::config)
-            .configure(friends::config)
-            .configure(blocked_users::config)
-            .configure(content::config),
-    );
+	cfg.service(
+		web::scope("/v3/analytics")
+			.wrap(default_cors())
+			.configure(analytics_get::config),
+	);
+	if ENV.MONETIZATION_ENABLED {
+		cfg.service(
+			web::scope("/v3/payout")
+				.wrap(default_cors())
+				.configure(payouts::config)
+				.service(payouts::paypal_webhook)
+				.service(payouts::tremendous_webhook),
+		);
+	}
+	cfg.service(
+		web::scope("/v3/project")
+			.wrap(default_cors())
+			.configure(projects::project_config)
+			.configure(project_creation::config)
+			.configure(disclosures::config)
+			.configure(server_access::config),
+	);
+	cfg.service(
+		web::scope("/v3")
+			.wrap(default_cors())
+			.configure(analytics_event::config)
+			.configure(limits::config)
+			.configure(collections::config)
+			.configure(images::config)
+			.configure(notifications::config)
+			.configure(oauth_clients::config)
+			.configure(organizations::config)
+			.configure(projects::config)
+			.configure(reports::config)
+			.configure(statistics::config)
+			.configure(tags::config)
+			.configure(teams::config)
+			.configure(threads::config)
+			.configure(users::config)
+			.configure(version_file::config)
+			.configure(versions::config)
+			.configure(friends::config)
+			.configure(blocked_users::config)
+			.configure(content::config),
+	);
 }
 
 #[derive(utoipa::OpenApi)]
@@ -252,18 +252,18 @@ pub struct ApiDoc;
 struct V3PathModifier;
 
 impl utoipa::Modify for V3PathModifier {
-    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-        super::prefix_openapi_paths(openapi, "/v3", |path| {
-            path.starts_with("/analytics/")
-                || path.starts_with("/maven/")
-                || path.starts_with("/updates/")
-                || path.starts_with("/debug/")
-        });
-    }
+	fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+		super::prefix_openapi_paths(openapi, "/v3", |path| {
+			path.starts_with("/analytics/")
+				|| path.starts_with("/maven/")
+				|| path.starts_with("/updates/")
+				|| path.starts_with("/debug/")
+		});
+	}
 }
 
 pub async fn hello_world() -> Result<HttpResponse, ApiError> {
-    Ok(HttpResponse::Ok().json(json!({
-        "hello": "world",
-    })))
+	Ok(HttpResponse::Ok().json(json!({
+		"hello": "world",
+	})))
 }

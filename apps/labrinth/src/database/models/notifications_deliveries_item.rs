@@ -1,30 +1,30 @@
 use super::ids::*;
 use crate::models::v3::notifications::{
-    NotificationChannel, NotificationDeliveryStatus,
+	NotificationChannel, NotificationDeliveryStatus,
 };
 use chrono::{DateTime, Utc};
 use eyre::{Result, WrapErr};
 
 pub struct DBNotificationDelivery {
-    pub id: i64,
-    pub notification_id: DBNotificationId,
-    pub user_id: DBUserId,
-    pub channel: NotificationChannel,
-    pub delivery_priority: i32,
-    pub status: NotificationDeliveryStatus,
-    pub next_attempt: DateTime<Utc>,
-    pub attempt_count: i32,
+	pub id: i64,
+	pub notification_id: DBNotificationId,
+	pub user_id: DBUserId,
+	pub channel: NotificationChannel,
+	pub delivery_priority: i32,
+	pub status: NotificationDeliveryStatus,
+	pub next_attempt: DateTime<Utc>,
+	pub attempt_count: i32,
 }
 
 struct NotificationDeliveryQueryResult {
-    id: i64,
-    notification_id: i64,
-    user_id: i64,
-    channel: String,
-    delivery_priority: i32,
-    status: String,
-    next_attempt: DateTime<Utc>,
-    attempt_count: i32,
+	id: i64,
+	notification_id: i64,
+	user_id: i64,
+	channel: String,
+	delivery_priority: i32,
+	status: String,
+	next_attempt: DateTime<Utc>,
+	attempt_count: i32,
 }
 
 macro_rules! select_notification_deliveries_with_predicate {
@@ -43,47 +43,47 @@ macro_rules! select_notification_deliveries_with_predicate {
 }
 
 impl From<NotificationDeliveryQueryResult> for DBNotificationDelivery {
-    fn from(r: NotificationDeliveryQueryResult) -> Self {
-        DBNotificationDelivery {
-            id: r.id,
-            notification_id: DBNotificationId(r.notification_id),
-            user_id: DBUserId(r.user_id),
-            channel: NotificationChannel::from_str_or_default(&r.channel),
-            delivery_priority: r.delivery_priority,
-            status: NotificationDeliveryStatus::from_str_or_default(&r.status),
-            next_attempt: r.next_attempt,
-            attempt_count: r.attempt_count,
-        }
-    }
+	fn from(r: NotificationDeliveryQueryResult) -> Self {
+		DBNotificationDelivery {
+			id: r.id,
+			notification_id: DBNotificationId(r.notification_id),
+			user_id: DBUserId(r.user_id),
+			channel: NotificationChannel::from_str_or_default(&r.channel),
+			delivery_priority: r.delivery_priority,
+			status: NotificationDeliveryStatus::from_str_or_default(&r.status),
+			next_attempt: r.next_attempt,
+			attempt_count: r.attempt_count,
+		}
+	}
 }
 
 impl DBNotificationDelivery {
-    pub async fn get_all_user(
-        user_id: DBUserId,
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Vec<DBNotificationDelivery>> {
-        let user_id = user_id.0;
-        let results = select_notification_deliveries_with_predicate!(
-            "WHERE user_id = $1",
-            user_id
-        )
-        .fetch_all(exec)
-        .await
-        .wrap_err("fetching notification deliveries for user")?;
+	pub async fn get_all_user(
+		user_id: DBUserId,
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Vec<DBNotificationDelivery>> {
+		let user_id = user_id.0;
+		let results = select_notification_deliveries_with_predicate!(
+			"WHERE user_id = $1",
+			user_id
+		)
+		.fetch_all(exec)
+		.await
+		.wrap_err("fetching notification deliveries for user")?;
 
-        Ok(results.into_iter().map(|r| r.into()).collect())
-    }
+		Ok(results.into_iter().map(|r| r.into()).collect())
+	}
 
-    /// Returns deliveries that should be processed next for a given channel using a row-level
-    /// `UPDATE` lock, barring the provided limit.
-    pub async fn lock_channel_processable(
-        channel: NotificationChannel,
-        limit: i64,
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Vec<DBNotificationDelivery>> {
-        // This follows the `idx_notifications_deliveries_composite_queue` index.
-        Ok(select_notification_deliveries_with_predicate!(
-            "WHERE
+	/// Returns deliveries that should be processed next for a given channel using a row-level
+	/// `UPDATE` lock, barring the provided limit.
+	pub async fn lock_channel_processable(
+		channel: NotificationChannel,
+		limit: i64,
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Vec<DBNotificationDelivery>> {
+		// This follows the `idx_notifications_deliveries_composite_queue` index.
+		Ok(select_notification_deliveries_with_predicate!(
+			"WHERE
               status = $3
               AND channel = $1
               AND next_attempt <= NOW()
@@ -94,24 +94,24 @@ impl DBNotificationDelivery {
             FOR UPDATE
             SKIP LOCKED
             ",
-            channel.as_str(),
-            limit,
-            NotificationDeliveryStatus::Pending.as_str()
-        )
-        .fetch_all(exec)
-        .await
-        .wrap_err("locking processable notification deliveries")?
-        .into_iter()
-        .map(Into::into)
-        .collect())
-    }
+			channel.as_str(),
+			limit,
+			NotificationDeliveryStatus::Pending.as_str()
+		)
+		.fetch_all(exec)
+		.await
+		.wrap_err("locking processable notification deliveries")?
+		.into_iter()
+		.map(Into::into)
+		.collect())
+	}
 
-    /// Inserts the row into the table and updates its ID.
-    pub async fn insert(
-        &mut self,
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<()> {
-        let id = sqlx::query_scalar!(
+	/// Inserts the row into the table and updates its ID.
+	pub async fn insert(
+		&mut self,
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<()> {
+		let id = sqlx::query_scalar!(
             "
             INSERT INTO notifications_deliveries (
                 notification_id, user_id, channel, delivery_priority, status, next_attempt, attempt_count
@@ -131,18 +131,18 @@ impl DBNotificationDelivery {
         .await
         .wrap_err("inserting notification delivery")?;
 
-        self.id = id;
+		self.id = id;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    /// Updates semantically mutable columns of the row.
-    pub async fn update(
-        &self,
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<()> {
-        sqlx::query!(
-            "
+	/// Updates semantically mutable columns of the row.
+	pub async fn update(
+		&self,
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<()> {
+		sqlx::query!(
+			"
             UPDATE notifications_deliveries
             SET
               delivery_priority = $2,
@@ -151,16 +151,16 @@ impl DBNotificationDelivery {
               attempt_count = $5
             WHERE id = $1
             ",
-            self.id,
-            self.delivery_priority,
-            self.status.as_str(),
-            self.next_attempt,
-            self.attempt_count,
-        )
-        .execute(exec)
-        .await
-        .wrap_err("updating notification delivery")?;
+			self.id,
+			self.delivery_priority,
+			self.status.as_str(),
+			self.next_attempt,
+			self.attempt_count,
+		)
+		.execute(exec)
+		.await
+		.wrap_err("updating notification delivery")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 }

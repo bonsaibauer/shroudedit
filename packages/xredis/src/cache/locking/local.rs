@@ -9,102 +9,102 @@ use tokio::time::{Instant, timeout_at};
 
 #[derive(Clone)]
 pub(in crate::cache) struct LockCoordinator {
-    locks: Arc<DashMap<String, Arc<LockState>>>,
+	locks: Arc<DashMap<String, Arc<LockState>>>,
 }
 
 impl LockCoordinator {
-    pub(in crate::cache) fn new() -> Self {
-        Self {
-            locks: Arc::new(DashMap::with_capacity(2048)),
-        }
-    }
+	pub(in crate::cache) fn new() -> Self {
+		Self {
+			locks: Arc::new(DashMap::with_capacity(2048)),
+		}
+	}
 
-    pub(in crate::cache) fn acquire(&self, key: String) -> LockAcquisition {
-        match self.locks.entry(key.clone()) {
-            Entry::Occupied(entry) => LockAcquisition::Waiting(LockWaiter {
-                state: entry.get().clone(),
-            }),
-            Entry::Vacant(entry) => {
-                let state = Arc::new(LockState::new());
-                entry.insert(state.clone());
-                LockAcquisition::Owned(OwnedLockGuard {
-                    locks: self.locks.clone(),
-                    key,
-                    state,
-                    released: false,
-                })
-            }
-        }
-    }
+	pub(in crate::cache) fn acquire(&self, key: String) -> LockAcquisition {
+		match self.locks.entry(key.clone()) {
+			Entry::Occupied(entry) => LockAcquisition::Waiting(LockWaiter {
+				state: entry.get().clone(),
+			}),
+			Entry::Vacant(entry) => {
+				let state = Arc::new(LockState::new());
+				entry.insert(state.clone());
+				LockAcquisition::Owned(OwnedLockGuard {
+					locks: self.locks.clone(),
+					key,
+					state,
+					released: false,
+				})
+			}
+		}
+	}
 }
 
 pub(in crate::cache) enum LockAcquisition {
-    Owned(OwnedLockGuard),
-    Waiting(LockWaiter),
+	Owned(OwnedLockGuard),
+	Waiting(LockWaiter),
 }
 
 pub(in crate::cache) struct OwnedLockGuard {
-    locks: Arc<DashMap<String, Arc<LockState>>>,
-    key: String,
-    state: Arc<LockState>,
-    released: bool,
+	locks: Arc<DashMap<String, Arc<LockState>>>,
+	key: String,
+	state: Arc<LockState>,
+	released: bool,
 }
 
 impl OwnedLockGuard {
-    fn release_inner(&mut self) {
-        if self.released {
-            return;
-        }
+	fn release_inner(&mut self) {
+		if self.released {
+			return;
+		}
 
-        self.released = true;
-        self.locks
-            .remove_if(&self.key, |_, state| Arc::ptr_eq(state, &self.state));
-        self.state.released.store(true, Ordering::Release);
-        self.state.notify.notify_waiters();
-    }
+		self.released = true;
+		self.locks
+			.remove_if(&self.key, |_, state| Arc::ptr_eq(state, &self.state));
+		self.state.released.store(true, Ordering::Release);
+		self.state.notify.notify_waiters();
+	}
 }
 
 impl Drop for OwnedLockGuard {
-    fn drop(&mut self) {
-        self.release_inner();
-    }
+	fn drop(&mut self) {
+		self.release_inner();
+	}
 }
 
 pub(in crate::cache) struct LockWaiter {
-    state: Arc<LockState>,
+	state: Arc<LockState>,
 }
 
 impl LockWaiter {
-    pub(in crate::cache) async fn wait(self, deadline: Instant) -> Result<()> {
-        loop {
-            if self.state.released.load(Ordering::Acquire) {
-                return Ok(());
-            }
+	pub(in crate::cache) async fn wait(self, deadline: Instant) -> Result<()> {
+		loop {
+			if self.state.released.load(Ordering::Acquire) {
+				return Ok(());
+			}
 
-            let notified = self.state.notify.notified();
-            tokio::pin!(notified);
-            notified.as_mut().enable();
-            if self.state.released.load(Ordering::Acquire) {
-                return Ok(());
-            }
+			let notified = self.state.notify.notified();
+			tokio::pin!(notified);
+			notified.as_mut().enable();
+			if self.state.released.load(Ordering::Acquire) {
+				return Ok(());
+			}
 
-            timeout_at(deadline, notified)
-                .await
-                .wrap_err("waiting for local Redis cache lock")?;
-        }
-    }
+			timeout_at(deadline, notified)
+				.await
+				.wrap_err("waiting for local Redis cache lock")?;
+		}
+	}
 }
 
 struct LockState {
-    released: AtomicBool,
-    notify: Notify,
+	released: AtomicBool,
+	notify: Notify,
 }
 
 impl LockState {
-    fn new() -> Self {
-        Self {
-            released: AtomicBool::new(false),
-            notify: Notify::new(),
-        }
-    }
+	fn new() -> Self {
+		Self {
+			released: AtomicBool::new(false),
+			notify: Notify::new(),
+		}
+	}
 }

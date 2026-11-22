@@ -1,6 +1,6 @@
 use crate::{
-    database::PgTransaction,
-    models::payouts::{PayoutMethodType, PayoutStatus},
+	database::PgTransaction,
+	models::payouts::{PayoutMethodType, PayoutStatus},
 };
 use chrono::{DateTime, Utc};
 use eyre::{Result, WrapErr};
@@ -11,28 +11,28 @@ use super::{DBPayoutId, DBUserId};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct DBPayout {
-    pub id: DBPayoutId,
-    pub user_id: DBUserId,
-    pub created: DateTime<Utc>,
-    pub status: PayoutStatus,
-    pub amount: Decimal,
+	pub id: DBPayoutId,
+	pub user_id: DBUserId,
+	pub created: DateTime<Utc>,
+	pub status: PayoutStatus,
+	pub amount: Decimal,
 
-    pub fee: Option<Decimal>,
-    pub method: Option<PayoutMethodType>,
-    /// See [`crate::models::v3::payouts::Payout::method_id`].
-    pub method_id: Option<String>,
-    /// See [`crate::models::v3::payouts::Payout::method_address`].
-    pub method_address: Option<String>,
-    /// See [`crate::models::v3::payouts::Payout::platform_id`].
-    pub platform_id: Option<String>,
+	pub fee: Option<Decimal>,
+	pub method: Option<PayoutMethodType>,
+	/// See [`crate::models::v3::payouts::Payout::method_id`].
+	pub method_id: Option<String>,
+	/// See [`crate::models::v3::payouts::Payout::method_address`].
+	pub method_address: Option<String>,
+	/// See [`crate::models::v3::payouts::Payout::platform_id`].
+	pub platform_id: Option<String>,
 }
 
 impl DBPayout {
-    pub async fn insert(
-        &self,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        sqlx::query!(
+	pub async fn insert(
+		&self,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		sqlx::query!(
             "
             INSERT INTO payouts (
                 id, amount, fee, user_id, status, method, method_id, method_address, platform_id
@@ -55,32 +55,32 @@ impl DBPayout {
         .await
         .wrap_err("inserting payout")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    pub async fn get<'a, 'b, E>(
-        id: DBPayoutId,
-        executor: E,
-    ) -> Result<Option<DBPayout>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        DBPayout::get_many(&[id], executor)
-            .await
-            .wrap_err("fetching payout")
-            .map(|x| x.into_iter().next())
-    }
+	pub async fn get<'a, 'b, E>(
+		id: DBPayoutId,
+		executor: E,
+	) -> Result<Option<DBPayout>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		DBPayout::get_many(&[id], executor)
+			.await
+			.wrap_err("fetching payout")
+			.map(|x| x.into_iter().next())
+	}
 
-    pub async fn get_many<'a, E>(
-        payout_ids: &[DBPayoutId],
-        exec: E,
-    ) -> Result<Vec<DBPayout>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        use futures::TryStreamExt;
+	pub async fn get_many<'a, E>(
+		payout_ids: &[DBPayoutId],
+		exec: E,
+	) -> Result<Vec<DBPayout>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		use futures::TryStreamExt;
 
-        let results = sqlx::query!(
+		let results = sqlx::query!(
             "
             SELECT id, user_id, created, amount, status, method, method_id, method_address, platform_id, fee
             FROM payouts
@@ -105,28 +105,28 @@ impl DBPayout {
         .await
         .wrap_err("fetching payouts")?;
 
-        Ok(results)
-    }
+		Ok(results)
+	}
 
-    pub async fn get_all_for_user(
-        user_id: DBUserId,
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Vec<DBPayoutId>> {
-        let results = sqlx::query!(
-            "
+	pub async fn get_all_for_user(
+		user_id: DBUserId,
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Vec<DBPayoutId>> {
+		let results = sqlx::query!(
+			"
             SELECT id
             FROM payouts
             WHERE user_id = $1
             ",
-            user_id.0
-        )
-        .fetch_all(exec)
-        .await
-        .wrap_err("fetching payouts for user")?;
+			user_id.0
+		)
+		.fetch_all(exec)
+		.await
+		.wrap_err("fetching payouts for user")?;
 
-        Ok(results
-            .into_iter()
-            .map(|r| DBPayoutId(r.id))
-            .collect::<Vec<_>>())
-    }
+		Ok(results
+			.into_iter()
+			.map(|r| DBPayoutId(r.id))
+			.collect::<Vec<_>>())
+	}
 }

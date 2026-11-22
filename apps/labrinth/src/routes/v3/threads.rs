@@ -23,42 +23,43 @@ use serde::Deserialize;
 use xredis::RedisPool;
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    cfg.service(thread_get_route)
-        .service(thread_send_message_route)
-        .service(message_delete_route)
-        .service(threads_get_route);
+	cfg.service(thread_get_route)
+		.service(thread_send_message_route)
+		.service(message_delete_route)
+		.service(threads_get_route);
 }
 
 pub async fn is_authorized_thread(
-    thread: &database::models::DBThread,
-    user: &User,
-    pool: &PgPool,
+	thread: &database::models::DBThread,
+	user: &User,
+	pool: &PgPool,
 ) -> Result<bool, ApiError> {
-    if user.role.is_mod() {
-        return Ok(true);
-    }
+	if user.role.is_mod() {
+		return Ok(true);
+	}
 
-    let user_id: database::models::DBUserId = user.id.into();
-    Ok(match thread.type_ {
-        ThreadType::Report => {
-            if let Some(report_id) = thread.report_id {
-                let report_exists = sqlx::query!(
-                    "SELECT EXISTS(SELECT 1 FROM reports WHERE id = $1 AND reporter = $2)",
-                    report_id as database::models::ids::DBReportId,
-                    user_id as database::models::ids::DBUserId,
-                )
-                .fetch_one(pool)
-                .await.wrap_internal_err("fetching report exists from database")?
-                .exists;
+	let user_id: database::models::DBUserId = user.id.into();
+	Ok(match thread.type_ {
+		ThreadType::Report => {
+			if let Some(report_id) = thread.report_id {
+				let report_exists = sqlx::query!(
+					"SELECT EXISTS(SELECT 1 FROM reports WHERE id = $1 AND reporter = $2)",
+					report_id as database::models::ids::DBReportId,
+					user_id as database::models::ids::DBUserId,
+				)
+				.fetch_one(pool)
+				.await
+				.wrap_internal_err("fetching report exists from database")?
+				.exists;
 
-                report_exists.unwrap_or(false)
-            } else {
-                false
-            }
-        }
-        ThreadType::Project => {
-            if let Some(project_id) = thread.project_id {
-                let project_exists = sqlx::query!(
+				report_exists.unwrap_or(false)
+			} else {
+				false
+			}
+		}
+		ThreadType::Project => {
+			if let Some(project_id) = thread.project_id {
+				let project_exists = sqlx::query!(
                     "SELECT EXISTS(SELECT 1 FROM mods m INNER JOIN team_members tm ON tm.team_id = m.team_id AND tm.user_id = $2 WHERE m.id = $1)",
                     project_id as database::models::ids::DBProjectId,
                     user_id as database::models::ids::DBUserId,
@@ -67,8 +68,8 @@ pub async fn is_authorized_thread(
                     .await.wrap_internal_err("fetching project exists from database")?
                     .exists;
 
-                if !project_exists.unwrap_or(false) {
-                    let org_exists = sqlx::query!(
+				if !project_exists.unwrap_or(false) {
+					let org_exists = sqlx::query!(
                         "SELECT EXISTS(SELECT 1 FROM mods m INNER JOIN organizations o ON m.organization_id = o.id INNER JOIN team_members tm ON tm.team_id = o.team_id AND tm.user_id = $2 WHERE m.id = $1)",
                         project_id as database::models::ids::DBProjectId,
                         user_id as database::models::ids::DBUserId,
@@ -77,49 +78,49 @@ pub async fn is_authorized_thread(
                         .await.wrap_internal_err("fetching organization exists from database")?
                         .exists;
 
-                    org_exists.unwrap_or(false)
-                } else {
-                    true
-                }
-            } else {
-                false
-            }
-        }
-        ThreadType::DirectMessage => thread.members.contains(&user_id),
-    })
+					org_exists.unwrap_or(false)
+				} else {
+					true
+				}
+			} else {
+				false
+			}
+		}
+		ThreadType::DirectMessage => thread.members.contains(&user_id),
+	})
 }
 
 pub async fn filter_authorized_threads(
-    threads: Vec<database::models::DBThread>,
-    user: &User,
-    pool: &web::Data<PgPool>,
-    redis: &RedisPool,
+	threads: Vec<database::models::DBThread>,
+	user: &User,
+	pool: &web::Data<PgPool>,
+	redis: &RedisPool,
 ) -> Result<Vec<Thread>, ApiError> {
-    let user_id: database::models::DBUserId = user.id.into();
+	let user_id: database::models::DBUserId = user.id.into();
 
-    let mut return_threads = Vec::new();
-    let mut check_threads = Vec::new();
+	let mut return_threads = Vec::new();
+	let mut check_threads = Vec::new();
 
-    for thread in threads {
-        if user.role.is_mod()
-            || (thread.type_ == ThreadType::DirectMessage
-                && thread.members.contains(&user_id))
-        {
-            return_threads.push(thread);
-        } else {
-            check_threads.push(thread);
-        }
-    }
+	for thread in threads {
+		if user.role.is_mod()
+			|| (thread.type_ == ThreadType::DirectMessage
+				&& thread.members.contains(&user_id))
+		{
+			return_threads.push(thread);
+		} else {
+			check_threads.push(thread);
+		}
+	}
 
-    if !check_threads.is_empty() {
-        let project_thread_ids = check_threads
-            .iter()
-            .filter(|x| x.type_ == ThreadType::Project)
-            .filter_map(|x| x.project_id.map(|x| x.0))
-            .collect::<Vec<_>>();
+	if !check_threads.is_empty() {
+		let project_thread_ids = check_threads
+			.iter()
+			.filter(|x| x.type_ == ThreadType::Project)
+			.filter_map(|x| x.project_id.map(|x| x.0))
+			.collect::<Vec<_>>();
 
-        if !project_thread_ids.is_empty() {
-            sqlx::query!(
+		if !project_thread_ids.is_empty() {
+			sqlx::query!(
                 "
                 SELECT m.id FROM mods m
                 INNER JOIN team_members tm ON tm.team_id = m.team_id AND user_id = $2
@@ -142,15 +143,15 @@ pub async fn filter_authorized_threads(
             })
             .try_collect::<Vec<()>>()
             .await.wrap_internal_err("fetching query results from database")?;
-        }
+		}
 
-        let mut org_project_thread_ids = check_threads
-            .iter()
-            .filter(|x| x.type_ == ThreadType::Project)
-            .filter_map(|x| x.project_id.map(|x| x.0));
+		let mut org_project_thread_ids = check_threads
+			.iter()
+			.filter(|x| x.type_ == ThreadType::Project)
+			.filter_map(|x| x.project_id.map(|x| x.0));
 
-        if org_project_thread_ids.next().is_some() {
-            sqlx::query!(
+		if org_project_thread_ids.next().is_some() {
+			sqlx::query!(
                 "
                 SELECT m.id FROM mods m
                 INNER JOIN organizations o ON o.id = m.organization_id
@@ -174,171 +175,171 @@ pub async fn filter_authorized_threads(
             })
             .try_collect::<Vec<()>>()
             .await.wrap_internal_err("fetching query results from database")?;
-        }
+		}
 
-        let report_thread_ids = check_threads
-            .iter()
-            .filter(|x| x.type_ == ThreadType::Report)
-            .filter_map(|x| x.report_id.map(|x| x.0))
-            .collect::<Vec<_>>();
+		let report_thread_ids = check_threads
+			.iter()
+			.filter(|x| x.type_ == ThreadType::Report)
+			.filter_map(|x| x.report_id.map(|x| x.0))
+			.collect::<Vec<_>>();
 
-        if !report_thread_ids.is_empty() {
-            sqlx::query!(
-                "
+		if !report_thread_ids.is_empty() {
+			sqlx::query!(
+				"
                 SELECT id FROM reports
                 WHERE id = ANY($1) AND reporter = $2
                 ",
-                &*report_thread_ids,
-                user_id as database::models::ids::DBUserId,
-            )
-            .fetch(&***pool)
-            .map_ok(|row| {
-                check_threads.retain(|x| {
-                    let bool = x.report_id.map(|x| x.0) == Some(row.id);
+				&*report_thread_ids,
+				user_id as database::models::ids::DBUserId,
+			)
+			.fetch(&***pool)
+			.map_ok(|row| {
+				check_threads.retain(|x| {
+					let bool = x.report_id.map(|x| x.0) == Some(row.id);
 
-                    if bool {
-                        return_threads.push(x.clone());
-                    }
+					if bool {
+						return_threads.push(x.clone());
+					}
 
-                    !bool
-                });
-            })
-            .try_collect::<Vec<()>>()
-            .await
-            .wrap_internal_err("fetching query results from database")?;
-        }
-    }
+					!bool
+				});
+			})
+			.try_collect::<Vec<()>>()
+			.await
+			.wrap_internal_err("fetching query results from database")?;
+		}
+	}
 
-    let mut user_ids = return_threads
-        .iter()
-        .flat_map(|x| x.members.clone())
-        .collect::<Vec<database::models::DBUserId>>();
-    user_ids.append(
-        &mut return_threads
-            .iter()
-            .flat_map(|x| {
-                x.messages
-                    .iter()
-                    .filter_map(|x| x.author_id)
-                    .collect::<Vec<_>>()
-            })
-            .collect::<Vec<database::models::DBUserId>>(),
-    );
+	let mut user_ids = return_threads
+		.iter()
+		.flat_map(|x| x.members.clone())
+		.collect::<Vec<database::models::DBUserId>>();
+	user_ids.append(
+		&mut return_threads
+			.iter()
+			.flat_map(|x| {
+				x.messages
+					.iter()
+					.filter_map(|x| x.author_id)
+					.collect::<Vec<_>>()
+			})
+			.collect::<Vec<database::models::DBUserId>>(),
+	);
 
-    let users: Vec<User> =
-        database::models::DBUser::get_many_ids(&user_ids, &***pool, redis)
-            .await
-            .wrap_internal_err("fetching users from database")?
-            .into_iter()
-            .map(From::from)
-            .collect();
+	let users: Vec<User> =
+		database::models::DBUser::get_many_ids(&user_ids, &***pool, redis)
+			.await
+			.wrap_internal_err("fetching users from database")?
+			.into_iter()
+			.map(From::from)
+			.collect();
 
-    let mut final_threads = Vec::new();
+	let mut final_threads = Vec::new();
 
-    for thread in return_threads {
-        let mut authors = thread.members.clone();
+	for thread in return_threads {
+		let mut authors = thread.members.clone();
 
-        authors.append(
-            &mut thread
-                .messages
-                .iter()
-                .filter_map(|x| {
-                    if x.hide_identity && !user.role.is_mod() {
-                        None
-                    } else {
-                        x.author_id
-                    }
-                })
-                .collect::<Vec<_>>(),
-        );
+		authors.append(
+			&mut thread
+				.messages
+				.iter()
+				.filter_map(|x| {
+					if x.hide_identity && !user.role.is_mod() {
+						None
+					} else {
+						x.author_id
+					}
+				})
+				.collect::<Vec<_>>(),
+		);
 
-        final_threads.push(Thread::from(
-            thread,
-            users
-                .iter()
-                .filter(|x| authors.contains(&x.id.into()))
-                .cloned()
-                .collect(),
-            user,
-        ));
-    }
+		final_threads.push(Thread::from(
+			thread,
+			users
+				.iter()
+				.filter(|x| authors.contains(&x.id.into()))
+				.cloned()
+				.collect(),
+			user,
+		));
+	}
 
-    Ok(final_threads)
+	Ok(final_threads)
 }
 
 #[utoipa::path(tag = "threads", responses((status = OK, body = Thread)))]
 #[get("/thread/{id}")]
 pub async fn thread_get_route(
-    req: HttpRequest,
-    info: web::Path<(ThreadId,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(ThreadId,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    thread_get(req, info, pool, redis, session_queue).await
+	thread_get(req, info, pool, redis, session_queue).await
 }
 
 pub async fn thread_get(
-    req: HttpRequest,
-    info: web::Path<(ThreadId,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(ThreadId,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let string = info.into_inner().0.into();
+	let string = info.into_inner().0.into();
 
-    let thread_data = database::models::DBThread::get(string, &**pool)
-        .await
-        .wrap_internal_err("fetching thread from database")?;
+	let thread_data = database::models::DBThread::get(string, &**pool)
+		.await
+		.wrap_internal_err("fetching thread from database")?;
 
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::THREAD_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::THREAD_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    if let Some(mut data) = thread_data
-        && is_authorized_thread(&data, &user, &pool)
-            .await
-            .wrap_api_err("checking thread authorization")?
-    {
-        let authors = &mut data.members;
+	if let Some(mut data) = thread_data
+		&& is_authorized_thread(&data, &user, &pool)
+			.await
+			.wrap_api_err("checking thread authorization")?
+	{
+		let authors = &mut data.members;
 
-        authors.append(
-            &mut data
-                .messages
-                .iter()
-                .filter_map(|x| {
-                    if x.hide_identity && !user.role.is_mod() {
-                        None
-                    } else {
-                        x.author_id
-                    }
-                })
-                .collect::<Vec<_>>(),
-        );
+		authors.append(
+			&mut data
+				.messages
+				.iter()
+				.filter_map(|x| {
+					if x.hide_identity && !user.role.is_mod() {
+						None
+					} else {
+						x.author_id
+					}
+				})
+				.collect::<Vec<_>>(),
+		);
 
-        let users: Vec<User> =
-            database::models::DBUser::get_many_ids(authors, &**pool, &redis)
-                .await
-                .wrap_internal_err("fetching users from database")?
-                .into_iter()
-                .map(From::from)
-                .collect();
+		let users: Vec<User> =
+			database::models::DBUser::get_many_ids(authors, &**pool, &redis)
+				.await
+				.wrap_internal_err("fetching users from database")?
+				.into_iter()
+				.map(From::from)
+				.collect();
 
-        return Ok(HttpResponse::Ok().json(Thread::from(data, users, &user)));
-    }
-    Err(ApiError::NotFound(eyre::eyre!("resource not found")))
+		return Ok(HttpResponse::Ok().json(Thread::from(data, users, &user)));
+	}
+	Err(ApiError::NotFound(eyre::eyre!("resource not found")))
 }
 
 #[derive(Deserialize)]
 pub struct ThreadIds {
-    pub ids: String,
+	pub ids: String,
 }
 
 #[utoipa::path(
@@ -348,417 +349,423 @@ pub struct ThreadIds {
 )]
 #[get("/threads")]
 pub async fn threads_get_route(
-    req: HttpRequest,
-    ids: web::Query<ThreadIds>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	ids: web::Query<ThreadIds>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    threads_get(req, ids, pool, redis, session_queue).await
+	threads_get(req, ids, pool, redis, session_queue).await
 }
 
 pub async fn threads_get(
-    req: HttpRequest,
-    web::Query(ids): web::Query<ThreadIds>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	web::Query(ids): web::Query<ThreadIds>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::THREAD_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::THREAD_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    let thread_ids: Vec<database::models::ids::DBThreadId> =
-        serde_json::from_str::<Vec<ThreadId>>(&ids.ids)
-            .wrap_request_err("deserializing JSON data")?
-            .into_iter()
-            .map(|x| x.into())
-            .collect();
+	let thread_ids: Vec<database::models::ids::DBThreadId> =
+		serde_json::from_str::<Vec<ThreadId>>(&ids.ids)
+			.wrap_request_err("deserializing JSON data")?
+			.into_iter()
+			.map(|x| x.into())
+			.collect();
 
-    let threads_data =
-        database::models::DBThread::get_many(&thread_ids, &**pool)
-            .await
-            .wrap_internal_err("fetching threads from database")?;
+	let threads_data =
+		database::models::DBThread::get_many(&thread_ids, &**pool)
+			.await
+			.wrap_internal_err("fetching threads from database")?;
 
-    let threads = filter_authorized_threads(threads_data, &user, &pool, &redis)
-        .await
-        .wrap_api_err("filtering authorized threads")?;
+	let threads = filter_authorized_threads(threads_data, &user, &pool, &redis)
+		.await
+		.wrap_api_err("filtering authorized threads")?;
 
-    Ok(HttpResponse::Ok().json(threads))
+	Ok(HttpResponse::Ok().json(threads))
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
 pub struct NewThreadMessage {
-    pub body: MessageBody,
+	pub body: MessageBody,
 }
 
 #[utoipa::path(tag = "threads", responses((status = NO_CONTENT)))]
 #[post("/thread/{id}")]
 pub async fn thread_send_message_route(
-    req: HttpRequest,
-    info: web::Path<(ThreadId,)>,
-    pool: web::Data<PgPool>,
-    new_message: web::Json<NewThreadMessage>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(ThreadId,)>,
+	pool: web::Data<PgPool>,
+	new_message: web::Json<NewThreadMessage>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    thread_send_message(req, info, pool, new_message, redis, session_queue)
-        .await
+	thread_send_message(req, info, pool, new_message, redis, session_queue)
+		.await
 }
 
 pub async fn thread_send_message(
-    req: HttpRequest,
-    info: web::Path<(ThreadId,)>,
-    pool: web::Data<PgPool>,
-    new_message: web::Json<NewThreadMessage>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(ThreadId,)>,
+	pool: web::Data<PgPool>,
+	new_message: web::Json<NewThreadMessage>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::THREAD_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::THREAD_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    thread_send_message_internal(
-        &user,
-        info.into_inner().0,
-        &pool,
-        new_message.into_inner(),
-        &redis,
-    )
-    .await
-    .wrap_api_err("sending thread message")?;
-    Ok(HttpResponse::NoContent().finish())
+	thread_send_message_internal(
+		&user,
+		info.into_inner().0,
+		&pool,
+		new_message.into_inner(),
+		&redis,
+	)
+	.await
+	.wrap_api_err("sending thread message")?;
+	Ok(HttpResponse::NoContent().finish())
 }
 
 pub async fn thread_send_message_internal(
-    user: &User,
-    thread_id: ThreadId,
-    pool: &PgPool,
-    new_message: NewThreadMessage,
-    redis: &RedisPool,
+	user: &User,
+	thread_id: ThreadId,
+	pool: &PgPool,
+	new_message: NewThreadMessage,
+	redis: &RedisPool,
 ) -> Result<(), ApiError> {
-    let string: database::models::DBThreadId = thread_id.into();
+	let string: database::models::DBThreadId = thread_id.into();
 
-    let is_private: bool;
+	let is_private: bool;
 
-    if let MessageBody::Text {
-        body,
-        replying_to,
-        private,
-        ..
-    } = &new_message.body
-    {
-        if body.len() > 65536 {
-            return Err(ApiError::Request(eyre::eyre!(
-                "Input body is too long!",
-            )));
-        }
+	if let MessageBody::Text {
+		body,
+		replying_to,
+		private,
+		..
+	} = &new_message.body
+	{
+		if body.len() > 65536 {
+			return Err(ApiError::Request(eyre::eyre!(
+				"Input body is too long!",
+			)));
+		}
 
-        if *private && !user.role.is_mod() {
-            return Err(ApiError::Request(eyre::eyre!(
-                "You are not allowed to send private messages!",
-            )));
-        }
+		if *private && !user.role.is_mod() {
+			return Err(ApiError::Request(eyre::eyre!(
+				"You are not allowed to send private messages!",
+			)));
+		}
 
-        if let Some(replying_to) = replying_to {
-            let thread_message = database::models::DBThreadMessage::get(
-                (*replying_to).into(),
-                pool,
-            )
-            .await
-            .wrap_internal_err("fetching thread message from database")?;
+		if let Some(replying_to) = replying_to {
+			let thread_message = database::models::DBThreadMessage::get(
+				(*replying_to).into(),
+				pool,
+			)
+			.await
+			.wrap_internal_err("fetching thread message from database")?;
 
-            if let Some(thread_message) = thread_message {
-                if thread_message.thread_id != string {
-                    return Err(ApiError::Request(eyre::eyre!(
-                        "Message replied to is from another thread!",
-                    )));
-                }
-            } else {
-                return Err(ApiError::Request(eyre::eyre!(
-                    "Message replied to does not exist!",
-                )));
-            }
-        }
+			if let Some(thread_message) = thread_message {
+				if thread_message.thread_id != string {
+					return Err(ApiError::Request(eyre::eyre!(
+						"Message replied to is from another thread!",
+					)));
+				}
+			} else {
+				return Err(ApiError::Request(eyre::eyre!(
+					"Message replied to does not exist!",
+				)));
+			}
+		}
 
-        is_private = *private;
-    } else {
-        return Err(ApiError::Request(eyre::eyre!(
-            "You may only send text messages through this route!",
-        )));
-    }
+		is_private = *private;
+	} else {
+		return Err(ApiError::Request(eyre::eyre!(
+			"You may only send text messages through this route!",
+		)));
+	}
 
-    let result = database::models::DBThread::get(string, pool)
-        .await
-        .wrap_internal_err("fetching thread from database")?;
+	let result = database::models::DBThread::get(string, pool)
+		.await
+		.wrap_internal_err("fetching thread from database")?;
 
-    if let Some(thread) = result {
-        if !is_authorized_thread(&thread, user, pool)
-            .await
-            .wrap_api_err("checking thread authorization")?
-        {
-            return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
-        }
+	if let Some(thread) = result {
+		if !is_authorized_thread(&thread, user, pool)
+			.await
+			.wrap_api_err("checking thread authorization")?
+		{
+			return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
+		}
 
-        let mut transaction = pool
-            .begin()
-            .await
-            .wrap_internal_err("starting database transaction")?;
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_internal_err("starting database transaction")?;
 
-        let id = ThreadMessageBuilder {
-            author_id: Some(user.id.into()),
-            body: new_message.body.clone(),
-            thread_id: thread.id,
-            hide_identity: user.role.is_mod(),
-        }
-        .insert(&mut transaction)
-        .await
-        .wrap_internal_err(
-            "inserting database records for `thread_send_message_internal`",
-        )?;
+		let id = ThreadMessageBuilder {
+			author_id: Some(user.id.into()),
+			body: new_message.body.clone(),
+			thread_id: thread.id,
+			hide_identity: user.role.is_mod(),
+		}
+		.insert(&mut transaction)
+		.await
+		.wrap_internal_err(
+			"inserting database records for `thread_send_message_internal`",
+		)?;
 
-        if let Some(project_id) = thread.project_id {
-            let project =
-                database::models::DBProject::get_id(project_id, pool, redis)
-                    .await
-                    .wrap_internal_err("fetching thread project")?;
+		if let Some(project_id) = thread.project_id {
+			let project =
+				database::models::DBProject::get_id(project_id, pool, redis)
+					.await
+					.wrap_internal_err("fetching thread project")?;
 
-            if let Some(project) = project
-                && project.inner.status != ProjectStatus::Processing
-                && user.role.is_mod()
-                && !is_private
-            {
-                let members =
-                    database::models::DBTeamMember::get_from_team_full(
-                        project.inner.team_id,
-                        pool,
-                        redis,
-                    )
-                    .await
-                    .wrap_internal_err("fetching team members from database")?;
+			if let Some(project) = project
+				&& project.inner.status != ProjectStatus::Processing
+				&& user.role.is_mod()
+				&& !is_private
+			{
+				let members =
+					database::models::DBTeamMember::get_from_team_full(
+						project.inner.team_id,
+						pool,
+						redis,
+					)
+					.await
+					.wrap_internal_err("fetching team members from database")?;
 
-                NotificationBuilder {
-                    body: NotificationBody::ModeratorMessage {
-                        thread_id: thread.id.into(),
-                        message_id: id.into(),
-                        project_id: Some(project.inner.id.into()),
-                        report_id: None,
-                    },
-                }
-                .insert_many(
-                    members.iter().map(|x| x.user_id).collect(),
-                    &mut transaction,
-                    redis,
-                )
-                .await
-                .wrap_internal_err("inserting database records for `thread_send_message_internal`")?;
+				NotificationBuilder {
+					body: NotificationBody::ModeratorMessage {
+						thread_id: thread.id.into(),
+						message_id: id.into(),
+						project_id: Some(project.inner.id.into()),
+						report_id: None,
+					},
+				}
+				.insert_many(
+					members.iter().map(|x| x.user_id).collect(),
+					&mut transaction,
+					redis,
+				)
+				.await
+				.wrap_internal_err(
+					"inserting database records for `thread_send_message_internal`",
+				)?;
 
-                NotificationBuilder {
-                    body: NotificationBody::ModerationMessageReceived {
-                        project_id: project.inner.id.into(),
-                    },
-                }
-                .insert_many(
-                    members.iter().map(|x| x.user_id).collect(),
-                    &mut transaction,
-                    redis,
-                )
-                .await
-                .wrap_internal_err("inserting database records for `thread_send_message_internal`")?;
-            }
-        } else if let Some(report_id) = thread.report_id {
-            let report =
-                database::models::report_item::DBReport::get(report_id, pool)
-                    .await
-                    .wrap_internal_err("fetching report from database")?;
+				NotificationBuilder {
+					body: NotificationBody::ModerationMessageReceived {
+						project_id: project.inner.id.into(),
+					},
+				}
+				.insert_many(
+					members.iter().map(|x| x.user_id).collect(),
+					&mut transaction,
+					redis,
+				)
+				.await
+				.wrap_internal_err(
+					"inserting database records for `thread_send_message_internal`",
+				)?;
+			}
+		} else if let Some(report_id) = thread.report_id {
+			let report =
+				database::models::report_item::DBReport::get(report_id, pool)
+					.await
+					.wrap_internal_err("fetching report from database")?;
 
-            if let Some(report) = report {
-                if report.closed && !user.role.is_mod() {
-                    return Err(ApiError::Request(eyre::eyre!(
-                        "You may not reply to a closed report",
-                    )));
-                }
+			if let Some(report) = report {
+				if report.closed && !user.role.is_mod() {
+					return Err(ApiError::Request(eyre::eyre!(
+						"You may not reply to a closed report",
+					)));
+				}
 
-                if user.id != report.reporter.into() && !is_private {
-                    NotificationBuilder {
-                        body: NotificationBody::ModeratorMessage {
-                            thread_id: thread.id.into(),
-                            message_id: id.into(),
-                            project_id: None,
-                            report_id: Some(report.id.into()),
-                        },
-                    }
-                    .insert(report.reporter, &mut transaction, redis)
-                    .await
-                    .wrap_internal_err("inserting database records for `thread_send_message_internal`")?;
-                }
-            }
-        }
+				if user.id != report.reporter.into() && !is_private {
+					NotificationBuilder {
+						body: NotificationBody::ModeratorMessage {
+							thread_id: thread.id.into(),
+							message_id: id.into(),
+							project_id: None,
+							report_id: Some(report.id.into()),
+						},
+					}
+					.insert(report.reporter, &mut transaction, redis)
+					.await
+					.wrap_internal_err(
+						"inserting database records for `thread_send_message_internal`",
+					)?;
+				}
+			}
+		}
 
-        if let MessageBody::Text {
-            associated_images, ..
-        } = &new_message.body
-        {
-            for image_id in associated_images {
-                if let Some(db_image) = image_item::DBImage::get(
-                    (*image_id).into(),
-                    &mut transaction,
-                    redis,
-                )
-                .await
-                .wrap_internal_err("fetching image from database")?
-                {
-                    let image: Image = db_image.into();
-                    if !matches!(
-                        image.context,
-                        ImageContext::ThreadMessage { .. }
-                    ) || image.context.inner_id().is_some()
-                    {
-                        return Err(ApiError::Request(eyre::eyre!(format!(
-                            "Image {image_id} is not unused and in the 'thread_message' context"
-                        ))));
-                    }
+		if let MessageBody::Text {
+			associated_images, ..
+		} = &new_message.body
+		{
+			for image_id in associated_images {
+				if let Some(db_image) = image_item::DBImage::get(
+					(*image_id).into(),
+					&mut transaction,
+					redis,
+				)
+				.await
+				.wrap_internal_err("fetching image from database")?
+				{
+					let image: Image = db_image.into();
+					if !matches!(
+						image.context,
+						ImageContext::ThreadMessage { .. }
+					) || image.context.inner_id().is_some()
+					{
+						return Err(ApiError::Request(eyre::eyre!(format!(
+							"Image {image_id} is not unused and in the 'thread_message' context"
+						))));
+					}
 
-                    sqlx::query!(
-                        "
+					sqlx::query!(
+						"
                         UPDATE uploaded_images
                         SET thread_message_id = $1
                         WHERE id = $2
                         ",
-                        thread.id.0,
-                        image_id.0 as i64
-                    )
-                    .execute(&mut transaction)
-                    .await
-                    .wrap_internal_err(
-                        "querying database for `thread_send_message_internal`",
-                    )?;
+						thread.id.0,
+						image_id.0 as i64
+					)
+					.execute(&mut transaction)
+					.await
+					.wrap_internal_err(
+						"querying database for `thread_send_message_internal`",
+					)?;
 
-                    image_item::DBImage::clear_cache(image.id.into(), redis)
-                        .await
-                        .wrap_internal_err("clearing cached data from Redis")?;
-                } else {
-                    return Err(ApiError::Request(eyre::eyre!(format!(
-                        "Image {image_id} does not exist"
-                    ))));
-                }
-            }
-        }
+					image_item::DBImage::clear_cache(image.id.into(), redis)
+						.await
+						.wrap_internal_err("clearing cached data from Redis")?;
+				} else {
+					return Err(ApiError::Request(eyre::eyre!(format!(
+						"Image {image_id} does not exist"
+					))));
+				}
+			}
+		}
 
-        transaction
-            .commit()
-            .await
-            .wrap_internal_err("committing database transaction")?;
+		transaction
+			.commit()
+			.await
+			.wrap_internal_err("committing database transaction")?;
 
-        Ok(())
-    } else {
-        Err(ApiError::NotFound(eyre::eyre!("resource not found")))
-    }
+		Ok(())
+	} else {
+		Err(ApiError::NotFound(eyre::eyre!("resource not found")))
+	}
 }
 
 #[utoipa::path(tag = "threads", responses((status = NO_CONTENT)))]
 #[delete("/message/{id}")]
 pub async fn message_delete_route(
-    req: HttpRequest,
-    info: web::Path<(ThreadMessageId,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    file_host: web::Data<dyn FileHost>,
+	req: HttpRequest,
+	info: web::Path<(ThreadMessageId,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	file_host: web::Data<dyn FileHost>,
 ) -> Result<HttpResponse, ApiError> {
-    message_delete(req, info, pool, redis, session_queue, file_host).await
+	message_delete(req, info, pool, redis, session_queue, file_host).await
 }
 
 pub async fn message_delete(
-    req: HttpRequest,
-    info: web::Path<(ThreadMessageId,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    file_host: web::Data<dyn FileHost>,
+	req: HttpRequest,
+	info: web::Path<(ThreadMessageId,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	file_host: web::Data<dyn FileHost>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::THREAD_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::THREAD_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    let result = database::models::DBThreadMessage::get(
-        info.into_inner().0.into(),
-        &**pool,
-    )
-    .await
-    .wrap_internal_err("fetching thread message from database")?;
+	let result = database::models::DBThreadMessage::get(
+		info.into_inner().0.into(),
+		&**pool,
+	)
+	.await
+	.wrap_internal_err("fetching thread message from database")?;
 
-    if let Some(thread) = result {
-        if !user.role.is_mod() && thread.author_id != Some(user.id.into()) {
-            return Err(ApiError::Auth(eyre::eyre!(
-                "You cannot delete this message!",
-            )));
-        }
+	if let Some(thread) = result {
+		if !user.role.is_mod() && thread.author_id != Some(user.id.into()) {
+			return Err(ApiError::Auth(eyre::eyre!(
+				"You cannot delete this message!",
+			)));
+		}
 
-        let mut transaction = pool
-            .begin()
-            .await
-            .wrap_internal_err("starting database transaction")?;
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_internal_err("starting database transaction")?;
 
-        let context = ImageContext::ThreadMessage {
-            thread_message_id: Some(thread.id.into()),
-        };
-        let images =
-            database::DBImage::get_many_contexted(context, &mut transaction)
-                .await
-                .wrap_internal_err("fetching images from database")?;
-        for image in images {
-            let name = image.url.split(&format!("{}/", ENV.CDN_URL)).nth(1);
-            if let Some(icon_path) = name {
-                file_host
-                    .delete_file(
-                        icon_path,
-                        FileHostPublicity::Public, // FIXME: Consider using private file storage?
-                    )
-                    .await
-                    .wrap_internal_err("deleting file from file host")?;
-            }
-            database::DBImage::remove(image.id, &mut transaction, &redis)
-                .await
-                .wrap_internal_err("deleting image from database")?;
-        }
+		let context = ImageContext::ThreadMessage {
+			thread_message_id: Some(thread.id.into()),
+		};
+		let images =
+			database::DBImage::get_many_contexted(context, &mut transaction)
+				.await
+				.wrap_internal_err("fetching images from database")?;
+		for image in images {
+			let name = image.url.split(&format!("{}/", ENV.CDN_URL)).nth(1);
+			if let Some(icon_path) = name {
+				file_host
+					.delete_file(
+						icon_path,
+						FileHostPublicity::Public, // FIXME: Consider using private file storage?
+					)
+					.await
+					.wrap_internal_err("deleting file from file host")?;
+			}
+			database::DBImage::remove(image.id, &mut transaction, &redis)
+				.await
+				.wrap_internal_err("deleting image from database")?;
+		}
 
-        let private = thread.body.is_private();
-        database::models::DBThreadMessage::remove_full(
-            thread.id,
-            private,
-            &mut transaction,
-        )
-        .await
-        .wrap_internal_err("deleting thread message from database")?;
-        transaction
-            .commit()
-            .await
-            .wrap_internal_err("committing database transaction")?;
+		let private = thread.body.is_private();
+		database::models::DBThreadMessage::remove_full(
+			thread.id,
+			private,
+			&mut transaction,
+		)
+		.await
+		.wrap_internal_err("deleting thread message from database")?;
+		transaction
+			.commit()
+			.await
+			.wrap_internal_err("committing database transaction")?;
 
-        Ok(HttpResponse::NoContent().body(""))
-    } else {
-        Err(ApiError::NotFound(eyre::eyre!("resource not found")))
-    }
+		Ok(HttpResponse::NoContent().body(""))
+	} else {
+		Err(ApiError::NotFound(eyre::eyre!("resource not found")))
+	}
 }

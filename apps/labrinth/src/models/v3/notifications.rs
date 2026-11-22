@@ -4,8 +4,8 @@ use crate::database::models::notification_item::DBNotificationAction;
 use crate::database::models::notifications_deliveries_item::DBNotificationDelivery;
 use crate::models::billing::PriceDuration;
 use crate::models::ids::{
-    NotificationId, ProjectId, ReportId, TeamId, ThreadId, ThreadMessageId,
-    VersionId,
+	NotificationId, ProjectId, ReportId, TeamId, ThreadId, ThreadMessageId,
+	VersionId,
 };
 use crate::models::projects::ProjectStatus;
 use crate::routes::ApiError;
@@ -17,371 +17,371 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct Notification {
-    pub id: NotificationId,
-    pub user_id: UserId,
-    pub read: bool,
-    pub created: DateTime<Utc>,
-    pub body: NotificationBody,
+	pub id: NotificationId,
+	pub user_id: UserId,
+	pub read: bool,
+	pub created: DateTime<Utc>,
+	pub body: NotificationBody,
 
-    pub name: String,
-    pub text: String,
-    pub link: String,
-    pub actions: Vec<NotificationAction>,
+	pub name: String,
+	pub text: String,
+	pub link: String,
+	pub actions: Vec<NotificationAction>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, Eq, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum NotificationType {
-    // If adding a notification type, add a variant in `NotificationBody` of the same name!
-    ProjectUpdate,
-    TeamInvite,
-    OrganizationInvite,
-    ServerInvite,
-    SharedInstanceInvite,
-    StatusChange,
-    ModeratorMessage,
-    LegacyMarkdown,
-    ResetPassword,
-    VerifyEmail,
-    AuthProviderAdded,
-    AuthProviderRemoved,
-    TwoFactorEnabled,
-    TwoFactorRemoved,
-    PasswordChanged,
-    PasswordRemoved,
-    EmailChanged,
-    SubscriptionCredited,
-    PaymentFailed,
-    TaxNotification,
-    PatCreated,
-    ModerationMessageReceived,
-    ReportStatusUpdated,
-    ReportSubmitted,
-    ProjectStatusApproved,
-    ProjectStatusNeutral,
-    ProjectTransferred,
-    PayoutAvailable,
-    DiscordRoleCreatorClub,
-    Custom,
-    Unknown,
+	// If adding a notification type, add a variant in `NotificationBody` of the same name!
+	ProjectUpdate,
+	TeamInvite,
+	OrganizationInvite,
+	ServerInvite,
+	SharedInstanceInvite,
+	StatusChange,
+	ModeratorMessage,
+	LegacyMarkdown,
+	ResetPassword,
+	VerifyEmail,
+	AuthProviderAdded,
+	AuthProviderRemoved,
+	TwoFactorEnabled,
+	TwoFactorRemoved,
+	PasswordChanged,
+	PasswordRemoved,
+	EmailChanged,
+	SubscriptionCredited,
+	PaymentFailed,
+	TaxNotification,
+	PatCreated,
+	ModerationMessageReceived,
+	ReportStatusUpdated,
+	ReportSubmitted,
+	ProjectStatusApproved,
+	ProjectStatusNeutral,
+	ProjectTransferred,
+	PayoutAvailable,
+	DiscordRoleCreatorClub,
+	Custom,
+	Unknown,
 }
 
 impl NotificationType {
-    pub fn as_str(self) -> &'static str {
-        match self {
-            NotificationType::ProjectUpdate => "project_update",
-            NotificationType::TeamInvite => "team_invite",
-            NotificationType::OrganizationInvite => "organization_invite",
-            NotificationType::ServerInvite => "server_invite",
-            NotificationType::SharedInstanceInvite => "shared_instance_invite",
-            NotificationType::StatusChange => "status_change",
-            NotificationType::ModeratorMessage => "moderator_message",
-            NotificationType::LegacyMarkdown => "legacy_markdown",
-            NotificationType::ResetPassword => "reset_password",
-            NotificationType::VerifyEmail => "verify_email",
-            NotificationType::AuthProviderAdded => "auth_provider_added",
-            NotificationType::AuthProviderRemoved => "auth_provider_removed",
-            NotificationType::TwoFactorEnabled => "two_factor_enabled",
-            NotificationType::TwoFactorRemoved => "two_factor_removed",
-            NotificationType::PasswordChanged => "password_changed",
-            NotificationType::PasswordRemoved => "password_removed",
-            NotificationType::EmailChanged => "email_changed",
-            NotificationType::SubscriptionCredited => "subscription_credited",
-            NotificationType::PaymentFailed => "payment_failed",
-            NotificationType::TaxNotification => "tax_notification",
-            NotificationType::PatCreated => "pat_created",
-            NotificationType::PayoutAvailable => "payout_available",
-            NotificationType::ModerationMessageReceived => {
-                "moderation_message_received"
-            }
-            NotificationType::ReportStatusUpdated => "report_status_updated",
-            NotificationType::ReportSubmitted => "report_submitted",
-            NotificationType::ProjectStatusApproved => {
-                "project_status_approved"
-            }
-            NotificationType::Custom => "custom",
-            NotificationType::ProjectStatusNeutral => "project_status_neutral",
-            NotificationType::ProjectTransferred => "project_transferred",
-            NotificationType::DiscordRoleCreatorClub => {
-                "discord_role_creator_club"
-            }
-            NotificationType::Unknown => "unknown",
-        }
-    }
+	pub fn as_str(self) -> &'static str {
+		match self {
+			NotificationType::ProjectUpdate => "project_update",
+			NotificationType::TeamInvite => "team_invite",
+			NotificationType::OrganizationInvite => "organization_invite",
+			NotificationType::ServerInvite => "server_invite",
+			NotificationType::SharedInstanceInvite => "shared_instance_invite",
+			NotificationType::StatusChange => "status_change",
+			NotificationType::ModeratorMessage => "moderator_message",
+			NotificationType::LegacyMarkdown => "legacy_markdown",
+			NotificationType::ResetPassword => "reset_password",
+			NotificationType::VerifyEmail => "verify_email",
+			NotificationType::AuthProviderAdded => "auth_provider_added",
+			NotificationType::AuthProviderRemoved => "auth_provider_removed",
+			NotificationType::TwoFactorEnabled => "two_factor_enabled",
+			NotificationType::TwoFactorRemoved => "two_factor_removed",
+			NotificationType::PasswordChanged => "password_changed",
+			NotificationType::PasswordRemoved => "password_removed",
+			NotificationType::EmailChanged => "email_changed",
+			NotificationType::SubscriptionCredited => "subscription_credited",
+			NotificationType::PaymentFailed => "payment_failed",
+			NotificationType::TaxNotification => "tax_notification",
+			NotificationType::PatCreated => "pat_created",
+			NotificationType::PayoutAvailable => "payout_available",
+			NotificationType::ModerationMessageReceived => {
+				"moderation_message_received"
+			}
+			NotificationType::ReportStatusUpdated => "report_status_updated",
+			NotificationType::ReportSubmitted => "report_submitted",
+			NotificationType::ProjectStatusApproved => {
+				"project_status_approved"
+			}
+			NotificationType::Custom => "custom",
+			NotificationType::ProjectStatusNeutral => "project_status_neutral",
+			NotificationType::ProjectTransferred => "project_transferred",
+			NotificationType::DiscordRoleCreatorClub => {
+				"discord_role_creator_club"
+			}
+			NotificationType::Unknown => "unknown",
+		}
+	}
 
-    pub fn from_str_or_default(s: &str) -> Self {
-        match s {
-            "project_update" => NotificationType::ProjectUpdate,
-            "team_invite" => NotificationType::TeamInvite,
-            "organization_invite" => NotificationType::OrganizationInvite,
-            "server_invite" => NotificationType::ServerInvite,
-            "shared_instance_invite" => NotificationType::SharedInstanceInvite,
-            "status_change" => NotificationType::StatusChange,
-            "moderator_message" => NotificationType::ModeratorMessage,
-            "legacy_markdown" => NotificationType::LegacyMarkdown,
-            "reset_password" => NotificationType::ResetPassword,
-            "verify_email" => NotificationType::VerifyEmail,
-            "auth_provider_added" => NotificationType::AuthProviderAdded,
-            "auth_provider_removed" => NotificationType::AuthProviderRemoved,
-            "two_factor_enabled" => NotificationType::TwoFactorEnabled,
-            "two_factor_removed" => NotificationType::TwoFactorRemoved,
-            "password_changed" => NotificationType::PasswordChanged,
-            "password_removed" => NotificationType::PasswordRemoved,
-            "email_changed" => NotificationType::EmailChanged,
-            "subscription_credited" => NotificationType::SubscriptionCredited,
-            "payment_failed" => NotificationType::PaymentFailed,
-            "tax_notification" => NotificationType::TaxNotification,
-            "payout_available" => NotificationType::PayoutAvailable,
-            "moderation_message_received" => {
-                NotificationType::ModerationMessageReceived
-            }
-            "report_status_updated" => NotificationType::ReportStatusUpdated,
-            "report_submitted" => NotificationType::ReportSubmitted,
-            "project_status_approved" => {
-                NotificationType::ProjectStatusApproved
-            }
-            "project_status_neutral" => NotificationType::ProjectStatusNeutral,
-            "project_transferred" => NotificationType::ProjectTransferred,
-            "discord_role_creator_club" => {
-                NotificationType::DiscordRoleCreatorClub
-            }
-            "custom" => NotificationType::Custom,
-            "unknown" => NotificationType::Unknown,
-            _ => NotificationType::Unknown,
-        }
-    }
+	pub fn from_str_or_default(s: &str) -> Self {
+		match s {
+			"project_update" => NotificationType::ProjectUpdate,
+			"team_invite" => NotificationType::TeamInvite,
+			"organization_invite" => NotificationType::OrganizationInvite,
+			"server_invite" => NotificationType::ServerInvite,
+			"shared_instance_invite" => NotificationType::SharedInstanceInvite,
+			"status_change" => NotificationType::StatusChange,
+			"moderator_message" => NotificationType::ModeratorMessage,
+			"legacy_markdown" => NotificationType::LegacyMarkdown,
+			"reset_password" => NotificationType::ResetPassword,
+			"verify_email" => NotificationType::VerifyEmail,
+			"auth_provider_added" => NotificationType::AuthProviderAdded,
+			"auth_provider_removed" => NotificationType::AuthProviderRemoved,
+			"two_factor_enabled" => NotificationType::TwoFactorEnabled,
+			"two_factor_removed" => NotificationType::TwoFactorRemoved,
+			"password_changed" => NotificationType::PasswordChanged,
+			"password_removed" => NotificationType::PasswordRemoved,
+			"email_changed" => NotificationType::EmailChanged,
+			"subscription_credited" => NotificationType::SubscriptionCredited,
+			"payment_failed" => NotificationType::PaymentFailed,
+			"tax_notification" => NotificationType::TaxNotification,
+			"payout_available" => NotificationType::PayoutAvailable,
+			"moderation_message_received" => {
+				NotificationType::ModerationMessageReceived
+			}
+			"report_status_updated" => NotificationType::ReportStatusUpdated,
+			"report_submitted" => NotificationType::ReportSubmitted,
+			"project_status_approved" => {
+				NotificationType::ProjectStatusApproved
+			}
+			"project_status_neutral" => NotificationType::ProjectStatusNeutral,
+			"project_transferred" => NotificationType::ProjectTransferred,
+			"discord_role_creator_club" => {
+				NotificationType::DiscordRoleCreatorClub
+			}
+			"custom" => NotificationType::Custom,
+			"unknown" => NotificationType::Unknown,
+			_ => NotificationType::Unknown,
+		}
+	}
 }
 
 #[derive(Clone)]
 #[serde_binhum]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum NotificationBody {
-    ProjectUpdate {
-        project_id: ProjectId,
-        version_id: VersionId,
-    },
-    TeamInvite {
-        project_id: ProjectId,
-        team_id: TeamId,
-        invited_by: UserId,
-        role: String,
-    },
-    OrganizationInvite {
-        organization_id: OrganizationId,
-        invited_by: UserId,
-        team_id: TeamId,
-        role: String,
-    },
-    ServerInvite {
-        server_id: Uuid,
-        server_name: String,
-        invited_by: UserId,
-        role: String,
-    },
-    SharedInstanceInvite {
-        shared_instance_id: String,
-        shared_instance_name: String,
-        shared_instance_icon: Option<String>,
-        invited_by: UserId,
-    },
-    StatusChange {
-        project_id: ProjectId,
-        old_status: ProjectStatus,
-        new_status: ProjectStatus,
-    },
-    /// This is for website notifications only. Email notifications have `ModerationMessageReceived`.
-    ModeratorMessage {
-        thread_id: ThreadId,
-        message_id: ThreadMessageId,
+	ProjectUpdate {
+		project_id: ProjectId,
+		version_id: VersionId,
+	},
+	TeamInvite {
+		project_id: ProjectId,
+		team_id: TeamId,
+		invited_by: UserId,
+		role: String,
+	},
+	OrganizationInvite {
+		organization_id: OrganizationId,
+		invited_by: UserId,
+		team_id: TeamId,
+		role: String,
+	},
+	ServerInvite {
+		server_id: Uuid,
+		server_name: String,
+		invited_by: UserId,
+		role: String,
+	},
+	SharedInstanceInvite {
+		shared_instance_id: String,
+		shared_instance_name: String,
+		shared_instance_icon: Option<String>,
+		invited_by: UserId,
+	},
+	StatusChange {
+		project_id: ProjectId,
+		old_status: ProjectStatus,
+		new_status: ProjectStatus,
+	},
+	/// This is for website notifications only. Email notifications have `ModerationMessageReceived`.
+	ModeratorMessage {
+		thread_id: ThreadId,
+		message_id: ThreadMessageId,
 
-        project_id: Option<ProjectId>,
-        report_id: Option<ReportId>,
-    },
-    PatCreated {
-        token_name: String,
-    },
-    /// This differs from ModeratorMessage as this notification is only for project threads and
-    /// email notifications, not for site notifications.
-    ModerationMessageReceived {
-        project_id: ProjectId,
-    },
-    ReportStatusUpdated {
-        report_id: ReportId,
-    },
-    ReportSubmitted {
-        report_id: ReportId,
-    },
-    ProjectStatusApproved {
-        project_id: ProjectId,
-    },
-    ProjectStatusNeutral {
-        project_id: ProjectId,
-        old_status: ProjectStatus,
-        new_status: ProjectStatus,
-    },
-    ProjectTransferred {
-        project_id: ProjectId,
-        new_owner_user_id: Option<UserId>,
-        new_owner_organization_id: Option<OrganizationId>,
-    },
-    LegacyMarkdown {
-        notification_type: Option<String>,
-        name: String,
-        text: String,
-        link: String,
-        actions: Vec<NotificationAction>,
-    },
-    ResetPassword {
-        flow: String,
-    },
-    VerifyEmail {
-        flow: String,
-    },
-    AuthProviderAdded {
-        provider: String,
-    },
-    AuthProviderRemoved {
-        provider: String,
-    },
-    TwoFactorEnabled,
-    TwoFactorRemoved,
-    PasswordChanged,
-    PasswordRemoved,
-    EmailChanged {
-        new_email: String,
-        to_email: String,
-    },
-    SubscriptionCredited {
-        subscription_id: UserSubscriptionId,
-        days: i32,
-        previous_due: DateTime<Utc>,
-        next_due: DateTime<Utc>,
-        header_message: Option<String>,
-    },
-    PaymentFailed {
-        amount: String,
-        service: String,
-    },
-    TaxNotification {
-        subscription_id: UserSubscriptionId,
-        new_amount: i64,
-        new_tax_amount: i64,
-        old_amount: i64,
-        old_tax_amount: i64,
-        billing_interval: PriceDuration,
-        currency: String,
-        due: DateTime<Utc>,
-        service: String,
-    },
-    PayoutAvailable {
-        date_available: DateTime<Utc>,
-        amount: u64,
-    },
-    DiscordRoleCreatorClub,
-    Custom {
-        key: String,
-        title: String,
-        body_md: String,
-    },
-    Unknown,
+		project_id: Option<ProjectId>,
+		report_id: Option<ReportId>,
+	},
+	PatCreated {
+		token_name: String,
+	},
+	/// This differs from ModeratorMessage as this notification is only for project threads and
+	/// email notifications, not for site notifications.
+	ModerationMessageReceived {
+		project_id: ProjectId,
+	},
+	ReportStatusUpdated {
+		report_id: ReportId,
+	},
+	ReportSubmitted {
+		report_id: ReportId,
+	},
+	ProjectStatusApproved {
+		project_id: ProjectId,
+	},
+	ProjectStatusNeutral {
+		project_id: ProjectId,
+		old_status: ProjectStatus,
+		new_status: ProjectStatus,
+	},
+	ProjectTransferred {
+		project_id: ProjectId,
+		new_owner_user_id: Option<UserId>,
+		new_owner_organization_id: Option<OrganizationId>,
+	},
+	LegacyMarkdown {
+		notification_type: Option<String>,
+		name: String,
+		text: String,
+		link: String,
+		actions: Vec<NotificationAction>,
+	},
+	ResetPassword {
+		flow: String,
+	},
+	VerifyEmail {
+		flow: String,
+	},
+	AuthProviderAdded {
+		provider: String,
+	},
+	AuthProviderRemoved {
+		provider: String,
+	},
+	TwoFactorEnabled,
+	TwoFactorRemoved,
+	PasswordChanged,
+	PasswordRemoved,
+	EmailChanged {
+		new_email: String,
+		to_email: String,
+	},
+	SubscriptionCredited {
+		subscription_id: UserSubscriptionId,
+		days: i32,
+		previous_due: DateTime<Utc>,
+		next_due: DateTime<Utc>,
+		header_message: Option<String>,
+	},
+	PaymentFailed {
+		amount: String,
+		service: String,
+	},
+	TaxNotification {
+		subscription_id: UserSubscriptionId,
+		new_amount: i64,
+		new_tax_amount: i64,
+		old_amount: i64,
+		old_tax_amount: i64,
+		billing_interval: PriceDuration,
+		currency: String,
+		due: DateTime<Utc>,
+		service: String,
+	},
+	PayoutAvailable {
+		date_available: DateTime<Utc>,
+		amount: u64,
+	},
+	DiscordRoleCreatorClub,
+	Custom {
+		key: String,
+		title: String,
+		body_md: String,
+	},
+	Unknown,
 }
 
 impl NotificationBody {
-    pub fn notification_type(&self) -> NotificationType {
-        match &self {
-            NotificationBody::ProjectUpdate { .. } => {
-                NotificationType::ProjectUpdate
-            }
-            NotificationBody::TeamInvite { .. } => NotificationType::TeamInvite,
-            NotificationBody::OrganizationInvite { .. } => {
-                NotificationType::OrganizationInvite
-            }
-            NotificationBody::ServerInvite { .. } => {
-                NotificationType::ServerInvite
-            }
-            NotificationBody::SharedInstanceInvite { .. } => {
-                NotificationType::SharedInstanceInvite
-            }
-            NotificationBody::StatusChange { .. } => {
-                NotificationType::StatusChange
-            }
-            NotificationBody::ModeratorMessage { .. } => {
-                NotificationType::ModeratorMessage
-            }
-            NotificationBody::PatCreated { .. } => NotificationType::PatCreated,
-            NotificationBody::ModerationMessageReceived { .. } => {
-                NotificationType::ModerationMessageReceived
-            }
-            NotificationBody::ReportStatusUpdated { .. } => {
-                NotificationType::ReportStatusUpdated
-            }
-            NotificationBody::ReportSubmitted { .. } => {
-                NotificationType::ReportSubmitted
-            }
-            NotificationBody::ProjectStatusApproved { .. } => {
-                NotificationType::ProjectStatusApproved
-            }
-            NotificationBody::ProjectStatusNeutral { .. } => {
-                NotificationType::ProjectStatusNeutral
-            }
-            NotificationBody::ProjectTransferred { .. } => {
-                NotificationType::ProjectTransferred
-            }
-            NotificationBody::LegacyMarkdown { .. } => {
-                NotificationType::LegacyMarkdown
-            }
-            NotificationBody::ResetPassword { .. } => {
-                NotificationType::ResetPassword
-            }
-            NotificationBody::VerifyEmail { .. } => {
-                NotificationType::VerifyEmail
-            }
-            NotificationBody::AuthProviderAdded { .. } => {
-                NotificationType::AuthProviderAdded
-            }
-            NotificationBody::AuthProviderRemoved { .. } => {
-                NotificationType::AuthProviderRemoved
-            }
-            NotificationBody::TwoFactorEnabled => {
-                NotificationType::TwoFactorEnabled
-            }
-            NotificationBody::TwoFactorRemoved => {
-                NotificationType::TwoFactorRemoved
-            }
-            NotificationBody::PasswordChanged => {
-                NotificationType::PasswordChanged
-            }
-            NotificationBody::PasswordRemoved => {
-                NotificationType::PasswordRemoved
-            }
-            NotificationBody::EmailChanged { .. } => {
-                NotificationType::EmailChanged
-            }
-            NotificationBody::SubscriptionCredited { .. } => {
-                NotificationType::SubscriptionCredited
-            }
-            NotificationBody::PaymentFailed { .. } => {
-                NotificationType::PaymentFailed
-            }
-            NotificationBody::TaxNotification { .. } => {
-                NotificationType::TaxNotification
-            }
-            NotificationBody::PayoutAvailable { .. } => {
-                NotificationType::PayoutAvailable
-            }
-            NotificationBody::DiscordRoleCreatorClub => {
-                NotificationType::DiscordRoleCreatorClub
-            }
-            NotificationBody::Custom { .. } => NotificationType::Custom,
-            NotificationBody::Unknown => NotificationType::Unknown,
-        }
-    }
+	pub fn notification_type(&self) -> NotificationType {
+		match &self {
+			NotificationBody::ProjectUpdate { .. } => {
+				NotificationType::ProjectUpdate
+			}
+			NotificationBody::TeamInvite { .. } => NotificationType::TeamInvite,
+			NotificationBody::OrganizationInvite { .. } => {
+				NotificationType::OrganizationInvite
+			}
+			NotificationBody::ServerInvite { .. } => {
+				NotificationType::ServerInvite
+			}
+			NotificationBody::SharedInstanceInvite { .. } => {
+				NotificationType::SharedInstanceInvite
+			}
+			NotificationBody::StatusChange { .. } => {
+				NotificationType::StatusChange
+			}
+			NotificationBody::ModeratorMessage { .. } => {
+				NotificationType::ModeratorMessage
+			}
+			NotificationBody::PatCreated { .. } => NotificationType::PatCreated,
+			NotificationBody::ModerationMessageReceived { .. } => {
+				NotificationType::ModerationMessageReceived
+			}
+			NotificationBody::ReportStatusUpdated { .. } => {
+				NotificationType::ReportStatusUpdated
+			}
+			NotificationBody::ReportSubmitted { .. } => {
+				NotificationType::ReportSubmitted
+			}
+			NotificationBody::ProjectStatusApproved { .. } => {
+				NotificationType::ProjectStatusApproved
+			}
+			NotificationBody::ProjectStatusNeutral { .. } => {
+				NotificationType::ProjectStatusNeutral
+			}
+			NotificationBody::ProjectTransferred { .. } => {
+				NotificationType::ProjectTransferred
+			}
+			NotificationBody::LegacyMarkdown { .. } => {
+				NotificationType::LegacyMarkdown
+			}
+			NotificationBody::ResetPassword { .. } => {
+				NotificationType::ResetPassword
+			}
+			NotificationBody::VerifyEmail { .. } => {
+				NotificationType::VerifyEmail
+			}
+			NotificationBody::AuthProviderAdded { .. } => {
+				NotificationType::AuthProviderAdded
+			}
+			NotificationBody::AuthProviderRemoved { .. } => {
+				NotificationType::AuthProviderRemoved
+			}
+			NotificationBody::TwoFactorEnabled => {
+				NotificationType::TwoFactorEnabled
+			}
+			NotificationBody::TwoFactorRemoved => {
+				NotificationType::TwoFactorRemoved
+			}
+			NotificationBody::PasswordChanged => {
+				NotificationType::PasswordChanged
+			}
+			NotificationBody::PasswordRemoved => {
+				NotificationType::PasswordRemoved
+			}
+			NotificationBody::EmailChanged { .. } => {
+				NotificationType::EmailChanged
+			}
+			NotificationBody::SubscriptionCredited { .. } => {
+				NotificationType::SubscriptionCredited
+			}
+			NotificationBody::PaymentFailed { .. } => {
+				NotificationType::PaymentFailed
+			}
+			NotificationBody::TaxNotification { .. } => {
+				NotificationType::TaxNotification
+			}
+			NotificationBody::PayoutAvailable { .. } => {
+				NotificationType::PayoutAvailable
+			}
+			NotificationBody::DiscordRoleCreatorClub => {
+				NotificationType::DiscordRoleCreatorClub
+			}
+			NotificationBody::Custom { .. } => NotificationType::Custom,
+			NotificationBody::Unknown => NotificationType::Unknown,
+		}
+	}
 }
 
 impl From<DBNotification> for Notification {
-    fn from(notif: DBNotification) -> Self {
-        let (name, text, link, actions) = {
-            match &notif.body {
+	fn from(notif: DBNotification) -> Self {
+		let (name, text, link, actions) = {
+			match &notif.body {
                 NotificationBody::ProjectUpdate {
                     project_id,
                     version_id,
@@ -693,136 +693,136 @@ impl From<DBNotification> for Notification {
                     ("".to_string(), "".to_string(), "#".to_string(), vec![])
                 }
             }
-        };
+		};
 
-        Self {
-            id: notif.id.into(),
-            user_id: notif.user_id.into(),
-            body: notif.body,
-            read: notif.read,
-            created: notif.created,
+		Self {
+			id: notif.id.into(),
+			user_id: notif.user_id.into(),
+			body: notif.body,
+			read: notif.read,
+			created: notif.created,
 
-            name,
-            text,
-            link,
-            actions,
-        }
-    }
+			name,
+			text,
+			link,
+			actions,
+		}
+	}
 }
 
 #[derive(Serialize, Deserialize, Clone, utoipa::ToSchema)]
 pub struct NotificationAction {
-    pub name: String,
-    /// The route to call when this notification action is called. Formatted HTTP Method, route
-    pub action_route: (String, String),
+	pub name: String,
+	/// The route to call when this notification action is called. Formatted HTTP Method, route
+	pub action_route: (String, String),
 }
 
 impl From<DBNotificationAction> for NotificationAction {
-    fn from(act: DBNotificationAction) -> Self {
-        Self {
-            name: act.name,
-            action_route: (act.action_route_method, act.action_route),
-        }
-    }
+	fn from(act: DBNotificationAction) -> Self {
+		Self {
+			name: act.name,
+			action_route: (act.action_route_method, act.action_route),
+		}
+	}
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum NotificationChannel {
-    Email,
+	Email,
 }
 
 impl NotificationChannel {
-    pub fn list() -> &'static [Self] {
-        &[NotificationChannel::Email]
-    }
+	pub fn list() -> &'static [Self] {
+		&[NotificationChannel::Email]
+	}
 
-    pub fn as_str(self) -> &'static str {
-        match self {
-            NotificationChannel::Email => "email",
-        }
-    }
+	pub fn as_str(self) -> &'static str {
+		match self {
+			NotificationChannel::Email => "email",
+		}
+	}
 
-    pub fn from_str_or_default(s: &str) -> Self {
-        match s {
-            "email" => NotificationChannel::Email,
-            _ => NotificationChannel::Email,
-        }
-    }
+	pub fn from_str_or_default(s: &str) -> Self {
+		match s {
+			"email" => NotificationChannel::Email,
+			_ => NotificationChannel::Email,
+		}
+	}
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum NotificationDeliveryStatus {
-    Pending,
-    SkippedPreferences,
-    SkippedDefault,
-    Delivered,
-    PermanentlyFailed,
+	Pending,
+	SkippedPreferences,
+	SkippedDefault,
+	Delivered,
+	PermanentlyFailed,
 }
 
 impl NotificationDeliveryStatus {
-    pub fn as_user_error(self) -> Result<(), ApiError> {
-        match self {
+	pub fn as_user_error(self) -> Result<(), ApiError> {
+		match self {
             NotificationDeliveryStatus::Delivered => Ok(()),
             NotificationDeliveryStatus::SkippedPreferences |
             NotificationDeliveryStatus::SkippedDefault |
             NotificationDeliveryStatus::Pending => Err(ApiError::Request(eyre::eyre!("An error occurred while sending an email to your email address. Please try again later.".to_owned()))),
             NotificationDeliveryStatus::PermanentlyFailed => Err(ApiError::Request(eyre::eyre!("This email address doesn't exist! Please try another one.".to_owned()))),
         }
-    }
+	}
 
-    pub fn as_str(self) -> &'static str {
-        match self {
-            NotificationDeliveryStatus::Pending => "pending",
-            NotificationDeliveryStatus::SkippedPreferences => {
-                "skipped_preferences"
-            }
-            NotificationDeliveryStatus::SkippedDefault => "skipped_default",
-            NotificationDeliveryStatus::Delivered => "delivered",
-            NotificationDeliveryStatus::PermanentlyFailed => {
-                "permanently_failed"
-            }
-        }
-    }
+	pub fn as_str(self) -> &'static str {
+		match self {
+			NotificationDeliveryStatus::Pending => "pending",
+			NotificationDeliveryStatus::SkippedPreferences => {
+				"skipped_preferences"
+			}
+			NotificationDeliveryStatus::SkippedDefault => "skipped_default",
+			NotificationDeliveryStatus::Delivered => "delivered",
+			NotificationDeliveryStatus::PermanentlyFailed => {
+				"permanently_failed"
+			}
+		}
+	}
 
-    pub fn from_str_or_default(s: &str) -> Self {
-        match s {
-            "pending" => NotificationDeliveryStatus::Pending,
-            "skipped_preferences" => {
-                NotificationDeliveryStatus::SkippedPreferences
-            }
-            "skipped_default" => NotificationDeliveryStatus::SkippedDefault,
-            "delivered" => NotificationDeliveryStatus::Delivered,
-            "permanently_failed" => {
-                NotificationDeliveryStatus::PermanentlyFailed
-            }
-            _ => NotificationDeliveryStatus::Pending,
-        }
-    }
+	pub fn from_str_or_default(s: &str) -> Self {
+		match s {
+			"pending" => NotificationDeliveryStatus::Pending,
+			"skipped_preferences" => {
+				NotificationDeliveryStatus::SkippedPreferences
+			}
+			"skipped_default" => NotificationDeliveryStatus::SkippedDefault,
+			"delivered" => NotificationDeliveryStatus::Delivered,
+			"permanently_failed" => {
+				NotificationDeliveryStatus::PermanentlyFailed
+			}
+			_ => NotificationDeliveryStatus::Pending,
+		}
+	}
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct NotificationDelivery {
-    pub notification_id: NotificationId,
-    pub user_id: UserId,
-    pub channel: NotificationChannel,
-    pub delivery_priority: i32,
-    pub status: NotificationDeliveryStatus,
-    pub next_attempt: DateTime<Utc>,
-    pub attempt_count: i32,
+	pub notification_id: NotificationId,
+	pub user_id: UserId,
+	pub channel: NotificationChannel,
+	pub delivery_priority: i32,
+	pub status: NotificationDeliveryStatus,
+	pub next_attempt: DateTime<Utc>,
+	pub attempt_count: i32,
 }
 
 impl From<DBNotificationDelivery> for NotificationDelivery {
-    fn from(delivery: DBNotificationDelivery) -> Self {
-        Self {
-            notification_id: delivery.notification_id.into(),
-            user_id: delivery.user_id.into(),
-            channel: delivery.channel,
-            delivery_priority: delivery.delivery_priority,
-            status: delivery.status,
-            next_attempt: delivery.next_attempt,
-            attempt_count: delivery.attempt_count,
-        }
-    }
+	fn from(delivery: DBNotificationDelivery) -> Self {
+		Self {
+			notification_id: delivery.notification_id.into(),
+			user_id: delivery.user_id.into(),
+			channel: delivery.channel,
+			delivery_priority: delivery.delivery_priority,
+			status: delivery.status,
+			next_attempt: delivery.next_attempt,
+			attempt_count: delivery.attempt_count,
+		}
+	}
 }

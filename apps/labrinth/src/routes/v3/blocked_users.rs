@@ -13,131 +13,131 @@ use eyre::eyre;
 use xredis::RedisPool;
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    cfg.service(block_user);
-    cfg.service(unblock_user);
-    cfg.service(get_blocked_users);
+	cfg.service(block_user);
+	cfg.service(unblock_user);
+	cfg.service(get_blocked_users);
 }
 
 /// Block a user.
 #[utoipa::path(tag = "blocked_users", responses((status = NO_CONTENT)))]
 #[post("/block/{id}")]
 pub async fn block_user(
-    req: HttpRequest,
-    info: web::Path<(String,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(String,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<(), ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    let user_id = info.into_inner().0;
-    let Some(blocked) = DBUser::get(&user_id, &**pool, &redis)
-        .await
-        .wrap_internal_err("fetching user from database")?
-    else {
-        return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
-    };
+	let user_id = info.into_inner().0;
+	let Some(blocked) = DBUser::get(&user_id, &**pool, &redis)
+		.await
+		.wrap_internal_err("fetching user from database")?
+	else {
+		return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
+	};
 
-    if blocked.id == user.id.into() {
-        return Err(ApiError::Request(eyre!("you cannot block yourself")));
-    }
+	if blocked.id == user.id.into() {
+		return Err(ApiError::Request(eyre!("you cannot block yourself")));
+	}
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("starting database transaction")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
 
-    DBFriend::remove(user.id.into(), blocked.id, &mut transaction)
-        .await
-        .wrap_internal_err("deleting friend from database")?;
+	DBFriend::remove(user.id.into(), blocked.id, &mut transaction)
+		.await
+		.wrap_internal_err("deleting friend from database")?;
 
-    DBBlockedUser {
-        user_id: user.id.into(),
-        blocked_id: blocked.id,
-    }
-    .insert(&mut transaction)
-    .await
-    .wrap_internal_err("inserting database records for `block_user`")?;
+	DBBlockedUser {
+		user_id: user.id.into(),
+		blocked_id: blocked.id,
+	}
+	.insert(&mut transaction)
+	.await
+	.wrap_internal_err("inserting database records for `block_user`")?;
 
-    transaction
-        .commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
 
-    Ok(())
+	Ok(())
 }
 
 /// Unblock a user.
 #[utoipa::path(tag = "blocked_users", responses((status = NO_CONTENT)))]
 #[delete("/block/{id}")]
 pub async fn unblock_user(
-    req: HttpRequest,
-    info: web::Path<(String,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(String,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<(), ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    let user_id = info.into_inner().0;
-    let Some(blocked) = DBUser::get(&user_id, &**pool, &redis)
-        .await
-        .wrap_internal_err("fetching user from database")?
-    else {
-        return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
-    };
+	let user_id = info.into_inner().0;
+	let Some(blocked) = DBUser::get(&user_id, &**pool, &redis)
+		.await
+		.wrap_internal_err("fetching user from database")?
+	else {
+		return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
+	};
 
-    DBBlockedUser::remove(user.id.into(), blocked.id, &**pool)
-        .await
-        .wrap_internal_err("deleting blocked user from database")?;
+	DBBlockedUser::remove(user.id.into(), blocked.id, &**pool)
+		.await
+		.wrap_internal_err("deleting blocked user from database")?;
 
-    Ok(())
+	Ok(())
 }
 
 /// List the users blocked by the current user.
 #[utoipa::path(tag = "blocked_users", responses((status = OK, body = Vec<UserId>)))]
 #[get("/blocks")]
 pub async fn get_blocked_users(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<web::Json<Vec<UserId>>, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    let blocked = DBBlockedUser::get_blocked_for_user(user.id.into(), &**pool)
-        .await
-        .wrap_internal_err("fetching blocked user from database")?
-        .into_iter()
-        .map(UserId::from)
-        .collect();
+	let blocked = DBBlockedUser::get_blocked_for_user(user.id.into(), &**pool)
+		.await
+		.wrap_internal_err("fetching blocked user from database")?
+		.into_iter()
+		.map(UserId::from)
+		.collect();
 
-    Ok(web::Json(blocked))
+	Ok(web::Json(blocked))
 }

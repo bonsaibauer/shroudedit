@@ -9,37 +9,37 @@ use ariadne::ids::base62_impl::parse_base62;
 use serde::Serialize;
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    cfg.service(block_status);
+	cfg.service(block_status);
 }
 
 #[derive(Serialize, utoipa::ToSchema)]
 pub struct BlockStatus {
-    pub blocked: bool,
+	pub blocked: bool,
 }
 
 /// Check whether one user has blocked another.
 #[utoipa::path(tag = "blocked_users", responses((status = OK, body = BlockStatus)))]
 #[get("/block/{user_id}/{target_id}", guard = "admin_key_guard")]
 pub async fn block_status(
-    info: web::Path<(String, String)>,
-    pool: web::Data<PgPool>,
+	info: web::Path<(String, String)>,
+	pool: web::Data<PgPool>,
 ) -> Result<web::Json<BlockStatus>, ApiError> {
-    let (user_id, target_id) = info.into_inner();
+	let (user_id, target_id) = info.into_inner();
 
-    let user_id = DBUserId(
-        parse_base62(&user_id)
-            .map_err(|err| eyre::eyre!(err))
-            .wrap_request_err("invalid user_id".to_string())? as i64,
-    );
-    let target_id = DBUserId(
-        parse_base62(&target_id)
-            .map_err(|err| eyre::eyre!(err))
-            .wrap_request_err("invalid target_id".to_string())? as i64,
-    );
+	let user_id = DBUserId(
+		parse_base62(&user_id)
+			.map_err(|err| eyre::eyre!(err))
+			.wrap_request_err("invalid user_id".to_string())? as i64,
+	);
+	let target_id = DBUserId(
+		parse_base62(&target_id)
+			.map_err(|err| eyre::eyre!(err))
+			.wrap_request_err("invalid target_id".to_string())? as i64,
+	);
 
-    let blocked = DBBlockedUser::is_blocked(user_id, target_id, &**pool)
-        .await
-        .wrap_internal_err("checking whether user is blocked")?;
+	let blocked = DBBlockedUser::is_blocked(user_id, target_id, &**pool)
+		.await
+		.wrap_internal_err("checking whether user is blocked")?;
 
-    Ok(web::Json(BlockStatus { blocked }))
+	Ok(web::Json(BlockStatus { blocked }))
 }

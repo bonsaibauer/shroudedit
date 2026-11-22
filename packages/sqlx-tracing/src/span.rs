@@ -46,43 +46,43 @@ macro_rules! instrument {
 /// Records that a single row was returned in the current tracing span.
 /// Used for fetch_one operations.
 pub fn record_one<T>(_value: &T) {
-    let span = tracing::Span::current();
-    span.record("db.response.returned_rows", 1);
+	let span = tracing::Span::current();
+	span.record("db.response.returned_rows", 1);
 }
 
 /// Records whether an optional row was returned in the current tracing span.
 /// Used for fetch_optional operations.
 pub fn record_optional<T>(value: &Option<T>) {
-    let span = tracing::Span::current();
-    span.record(
-        "db.response.returned_rows",
-        if value.is_some() { 1 } else { 0 },
-    );
+	let span = tracing::Span::current();
+	span.record(
+		"db.response.returned_rows",
+		if value.is_some() { 1 } else { 0 },
+	);
 }
 
 /// Records error details in the current tracing span for a SQLx error.
 /// Sets OpenTelemetry status and error fields for observability backends.
 pub fn record_error(err: &sqlx::Error) {
-    let span = tracing::Span::current();
-    // Mark the span as an error for OpenTelemetry
-    span.record("otel.status_code", "error");
-    span.record("otel.status_description", err.to_string());
-    // Classify error type as client or server
-    match err {
-        sqlx::Error::ColumnIndexOutOfBounds { .. }
-        | sqlx::Error::ColumnDecode { .. }
-        | sqlx::Error::ColumnNotFound(_)
-        | sqlx::Error::Decode { .. }
-        | sqlx::Error::Encode { .. }
-        | sqlx::Error::RowNotFound
-        | sqlx::Error::TypeNotFound { .. } => {
-            span.record("error.type", "client");
-        }
-        _ => {
-            span.record("error.type", "server");
-        }
-    }
-    // Attach error message and stacktrace for debugging
-    span.record("error.message", err.to_string());
-    span.record("error.stacktrace", format!("{err:?}"));
+	let span = tracing::Span::current();
+	// Mark the span as an error for OpenTelemetry
+	span.record("otel.status_code", "error");
+	span.record("otel.status_description", err.to_string());
+	// Classify error type as client or server
+	match err {
+		sqlx::Error::ColumnIndexOutOfBounds { .. }
+		| sqlx::Error::ColumnDecode { .. }
+		| sqlx::Error::ColumnNotFound(_)
+		| sqlx::Error::Decode { .. }
+		| sqlx::Error::Encode { .. }
+		| sqlx::Error::RowNotFound
+		| sqlx::Error::TypeNotFound { .. } => {
+			span.record("error.type", "client");
+		}
+		_ => {
+			span.record("error.type", "server");
+		}
+	}
+	// Attach error message and stacktrace for debugging
+	span.record("error.message", err.to_string());
+	span.record("error.stacktrace", format!("{err:?}"));
 }

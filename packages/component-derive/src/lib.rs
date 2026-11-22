@@ -8,8 +8,8 @@ mod component;
 
 #[proc_macro_derive(Component, attributes(component))]
 pub fn component(input: TokenStream) -> TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
-    component::derive(&input)
-        .unwrap_or_else(|err| err.to_compile_error())
-        .into()
+	let input = parse_macro_input!(input as DeriveInput);
+	component::derive(&input)
+		.unwrap_or_else(|err| err.to_compile_error())
+		.into()
 }

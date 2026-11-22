@@ -43,7 +43,9 @@ fn game_versions(fields: &[VersionField]) -> Option<&[LoaderFieldEnumValue]> {
 		(field.field_name == "game_versions")
 			.then_some(&field.value)
 			.and_then(|value| match value {
-				VersionFieldValue::ArrayEnum(_, values) => Some(values.as_slice()),
+				VersionFieldValue::ArrayEnum(_, values) => {
+					Some(values.as_slice())
+				}
 				_ => None,
 			})
 	})
@@ -85,10 +87,14 @@ fn validate_voxel_channel(
 		.checked_mul(u64::from(dimensions[1]))?
 		.checked_mul(u64::from(dimensions[2]))?;
 	if dimensions.contains(&0)
-		|| dimensions.iter().any(|dimension| *dimension > MAXIMUM_DIMENSION)
+		|| dimensions
+			.iter()
+			.any(|dimension| *dimension > MAXIMUM_DIMENSION)
 		|| cell_count > MAXIMUM_VOXEL_CELLS
 		|| offset.iter().any(|value| !value.is_finite())
-		|| cell_size.iter().any(|value| !value.is_finite() || *value <= 0.0)
+		|| cell_size
+			.iter()
+			.any(|value| !value.is_finite() || *value <= 0.0)
 	{
 		return None;
 	}
@@ -133,7 +139,8 @@ fn validate_props<'a>(
 
 		let mut transform = [0.0_f64; 10];
 		for value in &mut transform {
-			let Some(parsed) = fields.next().and_then(parse_finite_number) else {
+			let Some(parsed) = fields.next().and_then(parse_finite_number)
+			else {
 				return false;
 			};
 			*value = parsed;
@@ -183,7 +190,9 @@ pub async fn validate_file(
 	}
 
 	if game_versions(&fields).is_none_or(|versions| versions.len() != 1) {
-		return Err(invalid("SFBP blueprints must target exactly one game version"));
+		return Err(invalid(
+			"SFBP blueprints must target exactly one game version",
+		));
 	}
 
 	if integer_field(&fields, "schematic_format_version") != Some(7) {
@@ -222,11 +231,12 @@ pub async fn validate_file(
 		return Err(invalid("SFBP rotation axis must be x, y, or z"));
 	}
 
-	let extent = lines
+	let extent = lines.next().and_then(parse_triplet).ok_or_else(|| {
+		invalid("SFBP extent must contain three finite numbers")
+	})?;
+	let kind = lines
 		.next()
-		.and_then(parse_triplet)
-		.ok_or_else(|| invalid("SFBP extent must contain three finite numbers"))?;
-	let kind = lines.next().ok_or_else(|| invalid("SFBP blueprint kind is missing"))?;
+		.ok_or_else(|| invalid("SFBP blueprint kind is missing"))?;
 	if extent.iter().any(|value| *value < 0.0)
 		|| (kind == "props" && extent.iter().any(|value| *value <= 0.0))
 	{
@@ -254,11 +264,7 @@ pub async fn validate_file(
 				.next()
 				.ok_or_else(|| invalid("SFBP voxel coverage is missing"))?;
 			validate_voxel_channel(
-				dimensions,
-				offset,
-				cell_size,
-				cells,
-				coverage,
+				dimensions, offset, cell_size, cells, coverage,
 			)
 			.ok_or_else(|| invalid("SFBP voxel channel data is invalid"))?
 		}
@@ -269,18 +275,18 @@ pub async fn validate_file(
 				|| lines.next() != Some("-")
 				|| lines.next() != Some("-")
 			{
-				return Err(invalid("Props-only SFBP must not contain voxel data"));
+				return Err(invalid(
+					"Props-only SFBP must not contain voxel data",
+				));
 			}
 			extent.map(|value| value.ceil() as u32)
 		}
 		_ => return Err(invalid("SFBP blueprint kind must be voxel or props")),
 	};
 
-	if embedded_dimensions
-		.iter()
-		.zip(metadata_dimensions)
-		.any(|(embedded, metadata)| i32::try_from(*embedded).ok() != Some(metadata))
-	{
+	if embedded_dimensions.iter().zip(metadata_dimensions).any(
+		|(embedded, metadata)| i32::try_from(*embedded).ok() != Some(metadata),
+	) {
 		return Err(invalid(
 			"SFBP file dimensions do not match the published blueprint dimensions",
 		));
@@ -290,9 +296,13 @@ pub async fn validate_file(
 		.next()
 		.and_then(|value| value.parse::<usize>().ok())
 		.filter(|count| *count <= MAXIMUM_PROPS)
-		.ok_or_else(|| invalid("SFBP prop count is invalid or exceeds one million"))?;
+		.ok_or_else(|| {
+			invalid("SFBP prop count is invalid or exceeds one million")
+		})?;
 	if !validate_props(lines, prop_count) {
-		return Err(invalid("SFBP contains invalid prop data or an invalid row count"));
+		return Err(invalid(
+			"SFBP contains invalid prop data or an invalid row count",
+		));
 	}
 
 	Ok(ValidationResult::Pass)

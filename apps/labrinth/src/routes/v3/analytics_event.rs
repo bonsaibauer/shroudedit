@@ -2,14 +2,14 @@ use actix_web::{get, web};
 use xredis::RedisPool;
 
 use crate::{
-    database::{PgPool, models::DBAnalyticsEvent},
-    models::v3::analytics_event::AnalyticsEvent,
-    routes::ApiError,
-    util::error::Context,
+	database::{PgPool, models::DBAnalyticsEvent},
+	models::v3::analytics_event::AnalyticsEvent,
+	routes::ApiError,
+	util::error::Context,
 };
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    cfg.service(analytics_events_get);
+	cfg.service(analytics_events_get);
 }
 
 /// List analytics events.
@@ -18,15 +18,15 @@ pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
 )]
 #[get("/analytics-event")]
 pub async fn analytics_events_get(
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
 ) -> Result<web::Json<Vec<AnalyticsEvent>>, ApiError> {
-    let events = DBAnalyticsEvent::get_all(&**pool, &redis)
-        .await
-        .wrap_internal_err("failed to fetch analytics events")?
-        .into_iter()
-        .map(AnalyticsEvent::from)
-        .collect();
+	let events = DBAnalyticsEvent::get_all(&**pool, &redis)
+		.await
+		.wrap_internal_err("failed to fetch analytics events")?
+		.into_iter()
+		.map(AnalyticsEvent::from)
+		.collect();
 
-    Ok(web::Json(events))
+	Ok(web::Json(events))
 }

@@ -8,42 +8,42 @@ use sqlx::PgPool;
 use tracing::{debug, info};
 
 use crate::{
-    database::DBProject, models::ids::ProjectId,
-    routes::analytics::ENSHROUDED_SERVER_PLAYS, util::error::Context,
+	database::DBProject, models::ids::ProjectId,
+	routes::analytics::ENSHROUDED_SERVER_PLAYS, util::error::Context,
 };
 
 pub const ENSHROUDED_SERVER_ANALYTICS: &str = "enshrouded_server_analytics:v4";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EnshroudedServerAnalytics {
-    pub verified_plays_2w: u64,
-    pub verified_plays_4w: u64,
+	pub verified_plays_2w: u64,
+	pub verified_plays_4w: u64,
 }
 
 /// Queries server project analytics (e.g. number of verified plays in last
 /// 2 weeks for server projects) and caches them in Redis.
 pub async fn cache_analytics(
-    db: &PgPool,
-    redis_pool: &RedisPool,
-    clickhouse: &clickhouse::Client,
+	db: &PgPool,
+	redis_pool: &RedisPool,
+	clickhouse: &clickhouse::Client,
 ) -> Result<()> {
-    #[derive(Debug, clickhouse::Row, Deserialize)]
-    struct Row {
-        project_id: u64,
-        plays_2w: u64,
-        plays_4w: u64,
-    }
+	#[derive(Debug, clickhouse::Row, Deserialize)]
+	struct Row {
+		project_id: u64,
+		plays_2w: u64,
+		plays_4w: u64,
+	}
 
-    // for each project..
-    // - count last 2 weeks and 4 weeks of play rows
-    // for each play row...
-    // - build a per-actor key per project id
-    //   - user_id` when `user_id != 0`
-    //   - otherwise `enshrouded_uuid
-    // - keep only rows where the rolling 24h count per actor is <= 3
-    let rows = clickhouse
-        .query(formatcp!(
-            "
+	// for each project..
+	// - count last 2 weeks and 4 weeks of play rows
+	// for each play row...
+	// - build a per-actor key per project id
+	//   - user_id` when `user_id != 0`
+	//   - otherwise `enshrouded_uuid
+	// - keep only rows where the rolling 24h count per actor is <= 3
+	let rows = clickhouse
+		.query(formatcp!(
+			"
             SELECT
                 project_id,
                 countIf(
@@ -72,69 +72,69 @@ pub async fn cache_analytics(
             WHERE plays_per_actor_24h <= 3
             GROUP BY project_id
             "
-        ))
-        .fetch_all::<Row>()
-        .await
-        .wrap_err("failed to create cursor for total server plays")?;
+		))
+		.fetch_all::<Row>()
+		.await
+		.wrap_err("failed to create cursor for total server plays")?;
 
-    info!(
-        "Caching Enshrouded server analytics for {} projects",
-        rows.len()
-    );
+	info!(
+		"Caching Enshrouded server analytics for {} projects",
+		rows.len()
+	);
 
-    let project_slugs = sqlx::query!(
-        "
+	let project_slugs = sqlx::query!(
+		"
         SELECT id, slug FROM mods
         WHERE id = ANY($1)
         ",
-        &rows
-            .iter()
-            .map(|row| row.project_id.cast_signed())
-            .collect::<Vec<_>>(),
-    )
-    .fetch_all(db)
-    .await
-    .wrap_internal_err("failed to get slugs for projects to cache analytics")?
-    .into_iter()
-    .filter_map(|row| {
-        row.slug
-            .map(|slug| (ProjectId(row.id.cast_unsigned()), slug))
-    })
-    .collect::<HashMap<_, _>>();
+		&rows
+			.iter()
+			.map(|row| row.project_id.cast_signed())
+			.collect::<Vec<_>>(),
+	)
+	.fetch_all(db)
+	.await
+	.wrap_internal_err("failed to get slugs for projects to cache analytics")?
+	.into_iter()
+	.filter_map(|row| {
+		row.slug
+			.map(|slug| (ProjectId(row.id.cast_unsigned()), slug))
+	})
+	.collect::<HashMap<_, _>>();
 
-    let mut redis = redis_pool
-        .connect()
-        .await
-        .wrap_err("failed to connect to redis")?;
+	let mut redis = redis_pool
+		.connect()
+		.await
+		.wrap_err("failed to connect to redis")?;
 
-    for row in rows {
-        let project_id = ProjectId(row.project_id);
-        let analytics = EnshroudedServerAnalytics {
-            verified_plays_2w: row.plays_2w,
-            verified_plays_4w: row.plays_4w,
-        };
+	for row in rows {
+		let project_id = ProjectId(row.project_id);
+		let analytics = EnshroudedServerAnalytics {
+			verified_plays_2w: row.plays_2w,
+			verified_plays_4w: row.plays_4w,
+		};
 
-        debug!("Caching analytics for {project_id}: {analytics:?}");
-        let key = redis.key().entity(ENSHROUDED_SERVER_ANALYTICS, project_id);
-        redis
-            .set_serialized(&key, analytics, None)
-            .await
-            .wrap_err_with(|| {
-                eyre!("failed to set analytics for project '{project_id}'")
-            })?;
+		debug!("Caching analytics for {project_id}: {analytics:?}");
+		let key = redis.key().entity(ENSHROUDED_SERVER_ANALYTICS, project_id);
+		redis
+			.set_serialized(&key, analytics, None)
+			.await
+			.wrap_err_with(|| {
+				eyre!("failed to set analytics for project '{project_id}'")
+			})?;
 
-        DBProject::clear_cache(
-            project_id.into(),
-            project_slugs.get(&project_id).cloned(),
-            None,
-            redis_pool,
-        )
-        .await
-        .wrap_err_with(|| {
-            eyre!("failed to clear cache for project '{project_id}'")
-        })?;
-    }
+		DBProject::clear_cache(
+			project_id.into(),
+			project_slugs.get(&project_id).cloned(),
+			None,
+			redis_pool,
+		)
+		.await
+		.wrap_err_with(|| {
+			eyre!("failed to clear cache for project '{project_id}'")
+		})?;
+	}
 
-    info!("Cached Enshrouded server analytics");
-    Ok(())
+	info!("Cached Enshrouded server analytics");
+	Ok(())
 }

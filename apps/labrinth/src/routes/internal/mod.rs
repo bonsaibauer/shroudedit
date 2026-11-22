@@ -29,39 +29,39 @@ use crate::util::cors::default_cors;
 use actix_web::web;
 
 pub fn config(cfg: &mut web::ServiceConfig) {
-    let mut internal_scope = web::scope("/_internal")
-        .wrap(default_cors())
-        .configure(admin::config)
-        .configure(blocked_users::config)
-        .configure(privacy::config)
-        .configure(session::config)
-        .configure(flows::config)
-        .configure(pats::config)
-        .configure(oauth_clients::config)
-        .service(
-            web::scope("/analytics-event").configure(analytics_event::config),
-        )
-        .service(web::scope("/moderation").configure(moderation::config))
-        .service(web::scope("/search-management").configure(search::config))
-        .service(web::scope("/globals").configure(globals::config))
-        .service(web::scope("/server-ping").configure(server_ping::config))
-        .service(web::scope("/attribution").configure(attribution::config))
-        .configure(delphi::config)
-        .configure(external_notifications::config)
-        .configure(gdpr::config)
-        .configure(gotenberg::config)
-        .configure(medal::config)
-        .configure(mural::config)
-        .configure(statuses::config);
+	let mut internal_scope = web::scope("/_internal")
+		.wrap(default_cors())
+		.configure(admin::config)
+		.configure(blocked_users::config)
+		.configure(privacy::config)
+		.configure(session::config)
+		.configure(flows::config)
+		.configure(pats::config)
+		.configure(oauth_clients::config)
+		.service(
+			web::scope("/analytics-event").configure(analytics_event::config),
+		)
+		.service(web::scope("/moderation").configure(moderation::config))
+		.service(web::scope("/search-management").configure(search::config))
+		.service(web::scope("/globals").configure(globals::config))
+		.service(web::scope("/server-ping").configure(server_ping::config))
+		.service(web::scope("/attribution").configure(attribution::config))
+		.configure(delphi::config)
+		.configure(external_notifications::config)
+		.configure(gdpr::config)
+		.configure(gotenberg::config)
+		.configure(medal::config)
+		.configure(mural::config)
+		.configure(statuses::config);
 
-    if ENV.MONETIZATION_ENABLED {
-        internal_scope = internal_scope
-            .service(web::scope("/affiliate").configure(affiliate::config))
-            .service(web::scope("/campaign").configure(campaign::config))
-            .configure(billing::config);
-    }
+	if ENV.MONETIZATION_ENABLED {
+		internal_scope = internal_scope
+			.service(web::scope("/affiliate").configure(affiliate::config))
+			.service(web::scope("/campaign").configure(campaign::config))
+			.configure(billing::config);
+	}
 
-    cfg.service(internal_scope);
+	cfg.service(internal_scope);
 }
 
 #[derive(utoipa::OpenApi)]
@@ -206,9 +206,9 @@ pub struct ApiDoc;
 struct InternalPathModifier;
 
 impl utoipa::Modify for InternalPathModifier {
-    fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
-        super::prefix_openapi_paths(openapi, "/_internal", |path| {
-            path.starts_with("/v3/")
-        });
-    }
+	fn modify(&self, openapi: &mut utoipa::openapi::OpenApi) {
+		super::prefix_openapi_paths(openapi, "/_internal", |path| {
+			path.starts_with("/v3/")
+		});
+	}
 }

@@ -26,63 +26,63 @@ const USERS_PROJECTS_NAMESPACE: &str = "users_projects:v4";
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct DBUser {
-    pub id: DBUserId,
+	pub id: DBUserId,
 
-    pub github_id: Option<i64>,
-    pub discord_id: Option<i64>,
-    pub gitlab_id: Option<i64>,
-    pub google_id: Option<String>,
-    pub steam_id: Option<i64>,
-    pub microsoft_id: Option<String>,
-    pub password: Option<String>,
+	pub github_id: Option<i64>,
+	pub discord_id: Option<i64>,
+	pub gitlab_id: Option<i64>,
+	pub google_id: Option<String>,
+	pub steam_id: Option<i64>,
+	pub microsoft_id: Option<String>,
+	pub password: Option<String>,
 
-    pub paypal_id: Option<String>,
-    pub paypal_country: Option<String>,
-    pub paypal_email: Option<String>,
-    pub venmo_handle: Option<String>,
-    pub stripe_customer_id: Option<String>,
+	pub paypal_id: Option<String>,
+	pub paypal_country: Option<String>,
+	pub paypal_email: Option<String>,
+	pub venmo_handle: Option<String>,
+	pub stripe_customer_id: Option<String>,
 
-    pub totp_secret: Option<String>,
+	pub totp_secret: Option<String>,
 
-    pub username: String,
-    pub email: Option<String>,
-    pub email_verified: bool,
-    pub avatar_url: Option<String>,
-    pub raw_avatar_url: Option<String>,
-    pub bio: Option<String>,
-    pub created: DateTime<Utc>,
-    pub role: String,
-    pub badges: Badges,
-    #[serde(default)]
-    pub campaign_pride_26: Option<Pride26CampaignDonation>,
+	pub username: String,
+	pub email: Option<String>,
+	pub email_verified: bool,
+	pub avatar_url: Option<String>,
+	pub raw_avatar_url: Option<String>,
+	pub bio: Option<String>,
+	pub created: DateTime<Utc>,
+	pub role: String,
+	pub badges: Badges,
+	#[serde(default)]
+	pub campaign_pride_26: Option<Pride26CampaignDonation>,
 
-    pub allow_friend_requests: bool,
+	pub allow_friend_requests: bool,
 
-    pub is_subscribed_to_newsletter: bool,
+	pub is_subscribed_to_newsletter: bool,
 
-    pub eligibility_verified_at: Option<DateTime<Utc>>,
+	pub eligibility_verified_at: Option<DateTime<Utc>>,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
 pub struct DBSearchUser {
-    pub id: DBUserId,
-    pub username: String,
-    pub avatar_url: Option<String>,
+	pub id: DBUserId,
+	pub username: String,
+	pub avatar_url: Option<String>,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, utoipa::ToSchema)]
 pub struct Pride26CampaignDonation {
-    pub last_donated_at: DateTime<Utc>,
-    pub has_badge: bool,
-    pub has_midas: bool,
+	pub last_donated_at: DateTime<Utc>,
+	pub has_badge: bool,
+	pub has_midas: bool,
 }
 
 impl DBUser {
-    pub async fn insert(
-        &self,
-        transaction: &mut PgTransaction<'_>,
-    ) -> std::result::Result<(), sqlx::error::Error> {
-        sqlx::query!(
+	pub async fn insert(
+		&self,
+		transaction: &mut PgTransaction<'_>,
+	) -> std::result::Result<(), sqlx::error::Error> {
+		sqlx::query!(
             "
             INSERT INTO users (
                 id, username, email,
@@ -127,69 +127,69 @@ impl DBUser {
         .execute(&mut *transaction)
         .await?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    pub async fn get<'a, 'b, E>(
-        string: &str,
-        executor: E,
-        redis: &RedisPool,
-    ) -> Result<Option<DBUser>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        DBUser::get_many(&[string], executor, redis)
-            .await
-            .map(|x| x.into_iter().next())
-            .wrap_err("getting user")
-    }
+	pub async fn get<'a, 'b, E>(
+		string: &str,
+		executor: E,
+		redis: &RedisPool,
+	) -> Result<Option<DBUser>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		DBUser::get_many(&[string], executor, redis)
+			.await
+			.map(|x| x.into_iter().next())
+			.wrap_err("getting user")
+	}
 
-    pub async fn get_id<'a, 'b, E>(
-        id: DBUserId,
-        executor: E,
-        redis: &RedisPool,
-    ) -> Result<Option<DBUser>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        DBUser::get_many(&[ariadne::ids::UserId::from(id)], executor, redis)
-            .await
-            .map(|x| x.into_iter().next())
-            .wrap_err("getting user by id")
-    }
+	pub async fn get_id<'a, 'b, E>(
+		id: DBUserId,
+		executor: E,
+		redis: &RedisPool,
+	) -> Result<Option<DBUser>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		DBUser::get_many(&[ariadne::ids::UserId::from(id)], executor, redis)
+			.await
+			.map(|x| x.into_iter().next())
+			.wrap_err("getting user by id")
+	}
 
-    pub async fn get_many_ids<'a, E>(
-        user_ids: &[DBUserId],
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<DBUser>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let ids = user_ids
-            .iter()
-            .map(|x| ariadne::ids::UserId::from(*x))
-            .collect::<Vec<_>>();
-        DBUser::get_many(&ids, exec, redis)
-            .await
-            .wrap_err("getting users by id")
-    }
+	pub async fn get_many_ids<'a, E>(
+		user_ids: &[DBUserId],
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<DBUser>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let ids = user_ids
+			.iter()
+			.map(|x| ariadne::ids::UserId::from(*x))
+			.collect::<Vec<_>>();
+		DBUser::get_many(&ids, exec, redis)
+			.await
+			.wrap_err("getting users by id")
+	}
 
-    pub async fn get_many<
-        'a,
-        E,
-        T: Display + Hash + Eq + PartialEq + Clone + Debug,
-    >(
-        users_strings: &[T],
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<DBUser>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        use futures::TryStreamExt;
+	pub async fn get_many<
+		'a,
+		E,
+		T: Display + Hash + Eq + PartialEq + Clone + Debug,
+	>(
+		users_strings: &[T],
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<DBUser>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		use futures::TryStreamExt;
 
-        let val = redis.get_cached_keys_with_slug(
+		let val = redis.get_cached_keys_with_slug(
             USERS_NAMESPACE,
             USER_USERNAMES_NAMESPACE,
             false,
@@ -282,156 +282,156 @@ impl DBUser {
                     .await
             }).await
             .wrap_err("getting users from cache or database")?;
-        Ok(val)
-    }
+		Ok(val)
+	}
 
-    pub async fn search<'a, E>(
-        query: &str,
-        exec: E,
-    ) -> std::result::Result<Vec<DBSearchUser>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        if query.is_empty() {
-            return Ok(Vec::new());
-        }
+	pub async fn search<'a, E>(
+		query: &str,
+		exec: E,
+	) -> std::result::Result<Vec<DBSearchUser>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		if query.is_empty() {
+			return Ok(Vec::new());
+		}
 
-        let lowercase_query = query.to_lowercase();
-        let escaped_query = format!("{}%", escape_like(&lowercase_query));
+		let lowercase_query = query.to_lowercase();
+		let escaped_query = format!("{}%", escape_like(&lowercase_query));
 
-        let users = sqlx::query!(
-            r#"
+		let users = sqlx::query!(
+			r#"
             SELECT id, username, avatar_url
             FROM users
             WHERE LOWER(username) LIKE $1 ESCAPE '\'
             ORDER BY LOWER(username) = $2 DESC, LOWER(username), username
             LIMIT 25
             "#,
-            escaped_query,
-            lowercase_query
-        )
-        .fetch_all(exec)
-        .await?
-        .into_iter()
-        .map(|row| DBSearchUser {
-            id: DBUserId(row.id),
-            username: row.username,
-            avatar_url: row.avatar_url,
-        })
-        .collect();
+			escaped_query,
+			lowercase_query
+		)
+		.fetch_all(exec)
+		.await?
+		.into_iter()
+		.map(|row| DBSearchUser {
+			id: DBUserId(row.id),
+			username: row.username,
+			avatar_url: row.avatar_url,
+		})
+		.collect();
 
-        Ok(users)
-    }
+		Ok(users)
+	}
 
-    pub async fn get_by_discord_id<'a, E>(
-        discord_id: u64,
-        exec: E,
-    ) -> std::result::Result<Option<DBUserId>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let Ok(discord_id) = i64::try_from(discord_id) else {
-            return Ok(None);
-        };
+	pub async fn get_by_discord_id<'a, E>(
+		discord_id: u64,
+		exec: E,
+	) -> std::result::Result<Option<DBUserId>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let Ok(discord_id) = i64::try_from(discord_id) else {
+			return Ok(None);
+		};
 
-        sqlx::query_scalar!(
-            r#"SELECT id FROM users WHERE discord_id = $1"#,
-            discord_id
-        )
-        .fetch_optional(exec)
-        .await
-        .map(|id| id.map(DBUserId))
-    }
+		sqlx::query_scalar!(
+			r#"SELECT id FROM users WHERE discord_id = $1"#,
+			discord_id
+		)
+		.fetch_optional(exec)
+		.await
+		.map(|id| id.map(DBUserId))
+	}
 
-    pub async fn get_by_email<'a, E>(
-        email: &str,
-        exec: E,
-    ) -> std::result::Result<Option<DBUserId>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let user = sqlx::query!(
-            "
+	pub async fn get_by_email<'a, E>(
+		email: &str,
+		exec: E,
+	) -> std::result::Result<Option<DBUserId>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let user = sqlx::query!(
+			"
             SELECT id FROM users
             WHERE email = $1
             ",
-            email
-        )
-        .map(|row| DBUserId(row.id))
-        .fetch_optional(exec)
-        .await?;
+			email
+		)
+		.map(|row| DBUserId(row.id))
+		.fetch_optional(exec)
+		.await?;
 
-        Ok(user)
-    }
+		Ok(user)
+	}
 
-    pub async fn get_by_case_insensitive_email<'a, E>(
-        email: &str,
-        exec: E,
-    ) -> std::result::Result<Vec<DBUserId>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let users = sqlx::query!(
-            "
+	pub async fn get_by_case_insensitive_email<'a, E>(
+		email: &str,
+		exec: E,
+	) -> std::result::Result<Vec<DBUserId>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let users = sqlx::query!(
+			"
             SELECT id FROM users
             WHERE LOWER(email) = LOWER($1)
             ",
-            email
-        )
-        .map(|row| DBUserId(row.id))
-        .fetch_all(exec)
-        .await?;
+			email
+		)
+		.map(|row| DBUserId(row.id))
+		.fetch_all(exec)
+		.await?;
 
-        Ok(users)
-    }
+		Ok(users)
+	}
 
-    /// Returns `false` if any of the specified user IDs do not exist.
-    pub async fn exists_many<'a, E>(
-        user_ids: &[DBUserId],
-        exec: E,
-    ) -> std::result::Result<bool, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let ids = user_ids.iter().map(|x| x.0).collect::<Vec<_>>();
-        let count = sqlx::query_scalar!(
-            r#"SELECT COUNT(*) "count!" FROM users WHERE id = ANY($1)"#,
-            &ids
-        )
-        .fetch_one(exec)
-        .await?;
+	/// Returns `false` if any of the specified user IDs do not exist.
+	pub async fn exists_many<'a, E>(
+		user_ids: &[DBUserId],
+		exec: E,
+	) -> std::result::Result<bool, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let ids = user_ids.iter().map(|x| x.0).collect::<Vec<_>>();
+		let count = sqlx::query_scalar!(
+			r#"SELECT COUNT(*) "count!" FROM users WHERE id = ANY($1)"#,
+			&ids
+		)
+		.fetch_one(exec)
+		.await?;
 
-        Ok(count as usize == user_ids.len())
-    }
+		Ok(count as usize == user_ids.len())
+	}
 
-    pub async fn get_projects<'a, E>(
-        user_id: DBUserId,
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<DBProjectId>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        use futures::stream::TryStreamExt;
+	pub async fn get_projects<'a, E>(
+		user_id: DBUserId,
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<DBProjectId>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		use futures::stream::TryStreamExt;
 
-        {
-            let mut redis = redis
-                .connect()
-                .await
-                .wrap_err("connecting to redis for user projects")?;
-            let key = redis.key().entity(USERS_PROJECTS_NAMESPACE, user_id.0);
+		{
+			let mut redis = redis
+				.connect()
+				.await
+				.wrap_err("connecting to redis for user projects")?;
+			let key = redis.key().entity(USERS_PROJECTS_NAMESPACE, user_id.0);
 
-            let cached_projects = redis
-                .get_deserialized::<Vec<DBProjectId>>(&key)
-                .await
-                .wrap_err("getting cached user projects")?;
+			let cached_projects = redis
+				.get_deserialized::<Vec<DBProjectId>>(&key)
+				.await
+				.wrap_err("getting cached user projects")?;
 
-            if let Some(projects) = cached_projects {
-                return Ok(projects);
-            }
-        }
+			if let Some(projects) = cached_projects {
+				return Ok(projects);
+			}
+		}
 
-        let db_projects = sqlx::query!(
+		let db_projects = sqlx::query!(
             "
             SELECT m.id FROM mods m
             INNER JOIN team_members tm ON tm.team_id = m.team_id AND tm.accepted = TRUE
@@ -446,30 +446,30 @@ impl DBUser {
         .await
         .wrap_err("fetching user projects from database")?;
 
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to cache user projects")?;
-        let key = redis.key().entity(USERS_PROJECTS_NAMESPACE, user_id.0);
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to cache user projects")?;
+		let key = redis.key().entity(USERS_PROJECTS_NAMESPACE, user_id.0);
 
-        redis
-            .set_serialized(&key, &db_projects, None)
-            .await
-            .wrap_err("caching user projects")?;
+		redis
+			.set_serialized(&key, &db_projects, None)
+			.await
+			.wrap_err("caching user projects")?;
 
-        Ok(db_projects)
-    }
+		Ok(db_projects)
+	}
 
-    pub async fn get_organizations<'a, E>(
-        user_id: DBUserId,
-        exec: E,
-    ) -> std::result::Result<Vec<DBOrganizationId>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        use futures::stream::TryStreamExt;
+	pub async fn get_organizations<'a, E>(
+		user_id: DBUserId,
+		exec: E,
+	) -> std::result::Result<Vec<DBOrganizationId>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		use futures::stream::TryStreamExt;
 
-        let orgs = sqlx::query!(
+		let orgs = sqlx::query!(
             "
             SELECT o.id FROM organizations o
             INNER JOIN team_members tm ON tm.team_id = o.team_id AND tm.accepted = TRUE
@@ -482,179 +482,179 @@ impl DBUser {
         .try_collect::<Vec<DBOrganizationId>>()
         .await?;
 
-        Ok(orgs)
-    }
+		Ok(orgs)
+	}
 
-    pub async fn get_collections<'a, E>(
-        user_id: DBUserId,
-        exec: E,
-    ) -> std::result::Result<Vec<DBCollectionId>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        use futures::stream::TryStreamExt;
+	pub async fn get_collections<'a, E>(
+		user_id: DBUserId,
+		exec: E,
+	) -> std::result::Result<Vec<DBCollectionId>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		use futures::stream::TryStreamExt;
 
-        let projects = sqlx::query!(
-            "
+		let projects = sqlx::query!(
+			"
             SELECT c.id FROM collections c
             WHERE c.user_id = $1
             ",
-            user_id as DBUserId,
-        )
-        .fetch(exec)
-        .map_ok(|m| DBCollectionId(m.id))
-        .try_collect::<Vec<DBCollectionId>>()
-        .await?;
+			user_id as DBUserId,
+		)
+		.fetch(exec)
+		.map_ok(|m| DBCollectionId(m.id))
+		.try_collect::<Vec<DBCollectionId>>()
+		.await?;
 
-        Ok(projects)
-    }
+		Ok(projects)
+	}
 
-    pub async fn get_follows<'a, E>(
-        user_id: DBUserId,
-        exec: E,
-    ) -> std::result::Result<Vec<DBProjectId>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        use futures::stream::TryStreamExt;
+	pub async fn get_follows<'a, E>(
+		user_id: DBUserId,
+		exec: E,
+	) -> std::result::Result<Vec<DBProjectId>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		use futures::stream::TryStreamExt;
 
-        let projects = sqlx::query!(
-            "
+		let projects = sqlx::query!(
+			"
             SELECT mf.mod_id FROM mod_follows mf
             WHERE mf.follower_id = $1
             ",
-            user_id as DBUserId,
-        )
-        .fetch(exec)
-        .map_ok(|m| DBProjectId(m.mod_id))
-        .try_collect::<Vec<DBProjectId>>()
-        .await?;
+			user_id as DBUserId,
+		)
+		.fetch(exec)
+		.map_ok(|m| DBProjectId(m.mod_id))
+		.try_collect::<Vec<DBProjectId>>()
+		.await?;
 
-        Ok(projects)
-    }
+		Ok(projects)
+	}
 
-    pub async fn get_reports<'a, E>(
-        user_id: DBUserId,
-        exec: E,
-    ) -> std::result::Result<Vec<DBReportId>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        use futures::stream::TryStreamExt;
+	pub async fn get_reports<'a, E>(
+		user_id: DBUserId,
+		exec: E,
+	) -> std::result::Result<Vec<DBReportId>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		use futures::stream::TryStreamExt;
 
-        let reports = sqlx::query!(
-            "
+		let reports = sqlx::query!(
+			"
             SELECT r.id FROM reports r
             WHERE r.user_id = $1
             ",
-            user_id as DBUserId,
-        )
-        .fetch(exec)
-        .map_ok(|m| DBReportId(m.id))
-        .try_collect::<Vec<DBReportId>>()
-        .await?;
+			user_id as DBUserId,
+		)
+		.fetch(exec)
+		.map_ok(|m| DBReportId(m.id))
+		.try_collect::<Vec<DBReportId>>()
+		.await?;
 
-        Ok(reports)
-    }
+		Ok(reports)
+	}
 
-    pub async fn get_backup_codes<'a, E>(
-        user_id: DBUserId,
-        exec: E,
-    ) -> std::result::Result<Vec<String>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        use futures::stream::TryStreamExt;
+	pub async fn get_backup_codes<'a, E>(
+		user_id: DBUserId,
+		exec: E,
+	) -> std::result::Result<Vec<String>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		use futures::stream::TryStreamExt;
 
-        let codes = sqlx::query!(
-            "
+		let codes = sqlx::query!(
+			"
             SELECT code FROM user_backup_codes
             WHERE user_id = $1
             ",
-            user_id as DBUserId,
-        )
-        .fetch(exec)
-        .map_ok(|m| to_base62(m.code as u64))
-        .try_collect::<Vec<String>>()
-        .await?;
+			user_id as DBUserId,
+		)
+		.fetch(exec)
+		.map_ok(|m| to_base62(m.code as u64))
+		.try_collect::<Vec<String>>()
+		.await?;
 
-        Ok(codes)
-    }
+		Ok(codes)
+	}
 
-    pub async fn clear_caches(
-        user_ids: &[(DBUserId, Option<String>)],
-        redis: &RedisPool,
-    ) -> Result<()> {
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to clear user caches")?;
-        let keys = user_ids
-            .iter()
-            .flat_map(|(id, username)| {
-                [
-                    Some(redis.key().entity(USERS_NAMESPACE, id.0)),
-                    username.as_ref().map(|username| {
-                        redis.key().entity(
-                            USER_USERNAMES_NAMESPACE,
-                            username.to_lowercase(),
-                        )
-                    }),
-                ]
-                .into_iter()
-                .flatten()
-            })
-            .collect::<Vec<_>>();
+	pub async fn clear_caches(
+		user_ids: &[(DBUserId, Option<String>)],
+		redis: &RedisPool,
+	) -> Result<()> {
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to clear user caches")?;
+		let keys = user_ids
+			.iter()
+			.flat_map(|(id, username)| {
+				[
+					Some(redis.key().entity(USERS_NAMESPACE, id.0)),
+					username.as_ref().map(|username| {
+						redis.key().entity(
+							USER_USERNAMES_NAMESPACE,
+							username.to_lowercase(),
+						)
+					}),
+				]
+				.into_iter()
+				.flatten()
+			})
+			.collect::<Vec<_>>();
 
-        redis
-            .delete_many(&keys)
-            .await
-            .wrap_err("clearing user caches")?;
-        Ok(())
-    }
+		redis
+			.delete_many(&keys)
+			.await
+			.wrap_err("clearing user caches")?;
+		Ok(())
+	}
 
-    pub async fn clear_project_cache(
-        user_ids: &[DBUserId],
-        redis: &RedisPool,
-    ) -> Result<()> {
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to clear user project caches")?;
-        let keys = user_ids
-            .iter()
-            .map(|id| redis.key().entity(USERS_PROJECTS_NAMESPACE, id.0))
-            .collect::<Vec<_>>();
+	pub async fn clear_project_cache(
+		user_ids: &[DBUserId],
+		redis: &RedisPool,
+	) -> Result<()> {
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to clear user project caches")?;
+		let keys = user_ids
+			.iter()
+			.map(|id| redis.key().entity(USERS_PROJECTS_NAMESPACE, id.0))
+			.collect::<Vec<_>>();
 
-        redis
-            .delete_many(&keys)
-            .await
-            .wrap_err("clearing user project caches")?;
+		redis
+			.delete_many(&keys)
+			.await
+			.wrap_err("clearing user project caches")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    pub async fn remove(
-        id: DBUserId,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<Option<()>> {
-        let user = Self::get_id(id, &mut *transaction, redis)
-            .await
-            .wrap_err("failed to get user by ID")?;
+	pub async fn remove(
+		id: DBUserId,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<Option<()>> {
+		let user = Self::get_id(id, &mut *transaction, redis)
+			.await
+			.wrap_err("failed to get user by ID")?;
 
-        if let Some(delete_user) = user {
-            let username = delete_user.username.clone();
-            DBUser::clear_caches(&[(id, Some(delete_user.username))], redis)
-                .await
-                .wrap_err("failed to clear caches")?;
+		if let Some(delete_user) = user {
+			let username = delete_user.username.clone();
+			DBUser::clear_caches(&[(id, Some(delete_user.username))], redis)
+				.await
+				.wrap_err("failed to clear caches")?;
 
-            let deleted_user: DBUserId =
-                crate::models::users::DELETED_USER.into();
-            let user_id_str = ariadne::ids::UserId::from(id).to_string();
+			let deleted_user: DBUserId =
+				crate::models::users::DELETED_USER.into();
+			let user_id_str = ariadne::ids::UserId::from(id).to_string();
 
-            let owned_projects = sqlx::query!(
-                r#"
+			let owned_projects = sqlx::query!(
+				r#"
                 SELECT
                     m.id AS "id!",
                     m.status AS "status!",
@@ -667,17 +667,17 @@ impl DBUser {
                     AND tm.is_owner = TRUE
                 INNER JOIN threads t ON t.mod_id = m.id
                 "#,
-                id as DBUserId,
-            )
-            .fetch(&mut *transaction)
-            .try_collect::<Vec<_>>()
-            .await
-            .wrap_err("failed to fetch projects owned by deleted user")?;
+				id as DBUserId,
+			)
+			.fetch(&mut *transaction)
+			.try_collect::<Vec<_>>()
+			.await
+			.wrap_err("failed to fetch projects owned by deleted user")?;
 
-            for project in &owned_projects {
-                let thread_id = DBThreadId(project.thread_id);
+			for project in &owned_projects {
+				let thread_id = DBThreadId(project.thread_id);
 
-                ThreadMessageBuilder {
+				ThreadMessageBuilder {
                     author_id: Some(deleted_user),
                     body: MessageBody::Text {
                         body: format!(
@@ -696,10 +696,10 @@ impl DBUser {
                     "failed to insert project transfer thread message",
                 )?;
 
-                if ProjectStatus::from_string(&project.status)
-                    == ProjectStatus::Processing
-                {
-                    ThreadMessageBuilder {
+				if ProjectStatus::from_string(&project.status)
+					== ProjectStatus::Processing
+				{
+					ThreadMessageBuilder {
                         author_id: Some(deleted_user),
                         body: MessageBody::Text {
                             body: format!(
@@ -718,510 +718,510 @@ impl DBUser {
                         "failed to insert automatic rejection thread message",
                     )?;
 
-                    ThreadMessageBuilder {
-                        author_id: Some(deleted_user),
-                        body: MessageBody::StatusChange {
-                            new_status: ProjectStatus::Rejected,
-                            old_status: ProjectStatus::Processing,
-                        },
-                        thread_id,
-                        hide_identity: false,
-                    }
-                    .insert(&mut *transaction)
-                    .await
-                    .wrap_err(
-                        "failed to insert automatic rejection status change",
-                    )?;
+					ThreadMessageBuilder {
+						author_id: Some(deleted_user),
+						body: MessageBody::StatusChange {
+							new_status: ProjectStatus::Rejected,
+							old_status: ProjectStatus::Processing,
+						},
+						thread_id,
+						hide_identity: false,
+					}
+					.insert(&mut *transaction)
+					.await
+					.wrap_err(
+						"failed to insert automatic rejection status change",
+					)?;
 
-                    sqlx::query!(
-                        r#"
+					sqlx::query!(
+						r#"
                         UPDATE mods
                         SET status = $1
                         WHERE id = $2
                         "#,
-                        ProjectStatus::Rejected.as_str(),
-                        project.id,
-                    )
-                    .execute(&mut *transaction)
-                    .await
-                    .wrap_err(
-                        "failed to reject processing project owned by deleted user",
-                    )?;
-                }
+						ProjectStatus::Rejected.as_str(),
+						project.id,
+					)
+					.execute(&mut *transaction)
+					.await
+					.wrap_err(
+						"failed to reject processing project owned by deleted user",
+					)?;
+				}
 
-                models::DBProject::clear_cache(
-                    DBProjectId(project.id),
-                    project.slug.clone(),
-                    None,
-                    redis,
-                )
-                .await
-                .wrap_err("failed to clear project cache")?;
-            }
+				models::DBProject::clear_cache(
+					DBProjectId(project.id),
+					project.slug.clone(),
+					None,
+					redis,
+				)
+				.await
+				.wrap_err("failed to clear project cache")?;
+			}
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE team_members
                 SET user_id = $1
                 WHERE (user_id = $2 AND is_owner = TRUE)
                 ",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update team_members owner")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update team_members owner")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE versions
                 SET author_id = $1
                 WHERE (author_id = $2)
                 ",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update versions author_id")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update versions author_id")?;
 
-            let notifications: Vec<i64> = sqlx::query!(
-                "
+			let notifications: Vec<i64> = sqlx::query!(
+				"
                 SELECT n.id FROM notifications n
                 WHERE n.user_id = $1
                 ",
-                id as DBUserId,
-            )
-            .fetch(&mut *transaction)
-            .map_ok(|m| m.id)
-            .try_collect::<Vec<i64>>()
-            .await
-            .wrap_err("failed to fetch notifications")?;
+				id as DBUserId,
+			)
+			.fetch(&mut *transaction)
+			.map_ok(|m| m.id)
+			.try_collect::<Vec<i64>>()
+			.await
+			.wrap_err("failed to fetch notifications")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				DELETE FROM notifications_actions
 				 WHERE notification_id = ANY($1)
 				",
-                &notifications
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete notifications_actions")?;
+				&notifications
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete notifications_actions")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				DELETE FROM notifications_deliveries
 				WHERE notification_id = ANY($1)
 				",
-                &notifications
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete notifications_deliveries")?;
+				&notifications
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete notifications_deliveries")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				DELETE FROM notifications_deliveries
 				WHERE user_id = $1
 				",
-                id as DBUserId
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete notifications_deliveries")?;
+				id as DBUserId
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete notifications_deliveries")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM notifications
                 WHERE user_id = $1
                 ",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete notifications")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete notifications")?;
 
-            let user_collections = sqlx::query!(
-                "
+			let user_collections = sqlx::query!(
+				"
                 SELECT id
                 FROM collections
                 WHERE user_id = $1
                 ",
-                id as DBUserId,
-            )
-            .fetch(&mut *transaction)
-            .map_ok(|x| DBCollectionId(x.id))
-            .try_collect::<Vec<_>>()
-            .await
-            .wrap_err("failed to fetch user collections")?;
+				id as DBUserId,
+			)
+			.fetch(&mut *transaction)
+			.map_ok(|x| DBCollectionId(x.id))
+			.try_collect::<Vec<_>>()
+			.await
+			.wrap_err("failed to fetch user collections")?;
 
-            for collection_id in user_collections {
-                models::DBCollection::remove(collection_id, transaction, redis)
-                    .await
-                    .wrap_err("failed to remove collection")?;
-            }
+			for collection_id in user_collections {
+				models::DBCollection::remove(collection_id, transaction, redis)
+					.await
+					.wrap_err("failed to remove collection")?;
+			}
 
-            let report_threads = sqlx::query!(
-                "
+			let report_threads = sqlx::query!(
+				"
                 SELECT t.id
                 FROM threads t
                 INNER JOIN reports r ON t.report_id = r.id AND r.reporter = $1
                 WHERE report_id IS NOT NULL
                 ",
-                id as DBUserId,
-            )
-            .fetch(&mut *transaction)
-            .map_ok(|x| DBThreadId(x.id))
-            .try_collect::<Vec<_>>()
-            .await
-            .wrap_err("failed to fetch report threads")?;
+				id as DBUserId,
+			)
+			.fetch(&mut *transaction)
+			.map_ok(|x| DBThreadId(x.id))
+			.try_collect::<Vec<_>>()
+			.await
+			.wrap_err("failed to fetch report threads")?;
 
-            for thread_id in report_threads {
-                models::DBThread::remove_full(thread_id, transaction)
-                    .await
-                    .wrap_err("failed to remove thread")?;
-            }
+			for thread_id in report_threads {
+				models::DBThread::remove_full(thread_id, transaction)
+					.await
+					.wrap_err("failed to remove thread")?;
+			}
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM reports
                 WHERE reporter = $1
                 ",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete reports")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete reports")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE reports
                 SET user_id = $1
                 WHERE user_id = $2
                 ",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update reports user_id")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update reports user_id")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM mod_follows
                 WHERE follower_id = $1
                 ",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete mod_follows")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete mod_follows")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM team_members
                 WHERE user_id = $1
                 ",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete team_members")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete team_members")?;
 
-            sqlx::query!(
-                r#"
+			sqlx::query!(
+				r#"
                 UPDATE threads_messages
                 SET body = '{"type": "deleted"}', author_id = $2
                 WHERE author_id = $1
                 "#,
-                id as DBUserId,
-                deleted_user as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update threads_messages")?;
+				id as DBUserId,
+				deleted_user as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update threads_messages")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM threads_members
                 WHERE user_id = $1
                 ",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete threads_members")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete threads_members")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE uploaded_images
                 SET owner_id = $1
                 WHERE owner_id = $2
                 ",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update uploaded_images owner_id")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update uploaded_images owner_id")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM sessions
                 WHERE user_id = $1
                 ",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete sessions")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete sessions")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM pats
                 WHERE user_id = $1
                 ",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete pats")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete pats")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM friends
                 WHERE user_id = $1 OR friend_id = $1
                 ",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete friends")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete friends")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE affiliate_codes
                 SET created_by = $1
                 WHERE created_by = $2",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update affiliate_codes created_by")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update affiliate_codes created_by")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM affiliate_codes
                 WHERE affiliate = $1",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete affiliate_codes")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete affiliate_codes")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				UPDATE payouts_values
 				SET user_id = $1
 				WHERE user_id = $2",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update payouts_values user_id")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update payouts_values user_id")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				UPDATE payouts
 				SET user_id = $1
 				WHERE user_id = $2",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update payouts user_id")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update payouts user_id")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM payouts_values_notifications
                 WHERE user_id = $1",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete payouts_values_notifications")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete payouts_values_notifications")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE charges
                 SET user_id = $1
                 WHERE user_id = $2
                 ",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update charges user_id")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update charges user_id")?;
 
-            let open_subscriptions =
-                DBUserSubscription::get_all_user(id, &mut *transaction)
-                    .await
-                    .wrap_err("failed to get user subscriptions")?;
+			let open_subscriptions =
+				DBUserSubscription::get_all_user(id, &mut *transaction)
+					.await
+					.wrap_err("failed to get user subscriptions")?;
 
-            for x in open_subscriptions {
-                let charge =
-                    DBCharge::get_open_subscription(x.id, &mut *transaction)
-                        .await
-                        .wrap_err("failed to get open subscription charge")?;
-                if let Some(mut charge) = charge {
-                    charge.status = ChargeStatus::Cancelled;
-                    charge.due = Utc::now();
-                    charge.user_id = deleted_user;
+			for x in open_subscriptions {
+				let charge =
+					DBCharge::get_open_subscription(x.id, &mut *transaction)
+						.await
+						.wrap_err("failed to get open subscription charge")?;
+				if let Some(mut charge) = charge {
+					charge.status = ChargeStatus::Cancelled;
+					charge.due = Utc::now();
+					charge.user_id = deleted_user;
 
-                    charge
-                        .upsert(transaction)
-                        .await
-                        .wrap_err("failed to upsert charge")?;
-                }
-            }
+					charge
+						.upsert(transaction)
+						.await
+						.wrap_err("failed to upsert charge")?;
+				}
+			}
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE users_subscriptions
                 SET user_id = $1
                 WHERE user_id = $2
                 ",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update users_subscriptions user_id")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update users_subscriptions user_id")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM user_backup_codes
                 WHERE user_id = $1
                 ",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete user_backup_codes")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete user_backup_codes")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				UPDATE oauth_clients
 				SET created_by = $1
 				WHERE created_by = $2
 				",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to update oauth_clients created_by")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to update oauth_clients created_by")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				DELETE FROM users
 				WHERE id = $1
 				",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete user")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete user")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				DELETE FROM oauth_client_authorizations
 				WHERE user_id = $1
 				",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete oauth_client_authorizations")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete oauth_client_authorizations")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				UPDATE users_redeemals
 				SET user_id = $1
 				WHERE user_id = $2
 				",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete users_redeemals")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete users_redeemals")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				UPDATE users_compliance
 				SET user_id = $1
 				WHERE user_id = $2
 				",
-                deleted_user as DBUserId,
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete users_compliance")?;
+				deleted_user as DBUserId,
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete users_compliance")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				DELETE FROM user_limits
 				WHERE user_id = $1
 				",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete user_limits")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete user_limits")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				DELETE FROM users_notifications_preferences
 				WHERE user_id = $1
 				",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete users_notifications_preferences")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete users_notifications_preferences")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
 				DELETE FROM moderation_locks
 				WHERE moderator_id = $1
 				",
-                id as DBUserId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("failed to delete moderation_locks")?;
+				id as DBUserId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("failed to delete moderation_locks")?;
 
-            Ok(Some(()))
-        } else {
-            Ok(None)
-        }
-    }
+			Ok(Some(()))
+		} else {
+			Ok(None)
+		}
+	}
 }
 
 fn escape_like(query: &str) -> String {
-    let mut escaped = String::with_capacity(query.len());
-    for ch in query.chars() {
-        if matches!(ch, '\\' | '%' | '_') {
-            escaped.push('\\');
-        }
-        escaped.push(ch);
-    }
-    escaped
+	let mut escaped = String::with_capacity(query.len());
+	for ch in query.chars() {
+		if matches!(ch, '\\' | '%' | '_') {
+			escaped.push('\\');
+		}
+		escaped.push(ch);
+	}
+	escaped
 }

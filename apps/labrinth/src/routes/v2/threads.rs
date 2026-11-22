@@ -11,13 +11,13 @@ use serde::Deserialize;
 use xredis::RedisPool;
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    cfg.service(
-        web::scope("/thread")
-            .service(thread_get)
-            .service(thread_send_message),
-    );
-    cfg.service(web::scope("/message").service(message_delete));
-    cfg.service(threads_get);
+	cfg.service(
+		web::scope("/thread")
+			.service(thread_get)
+			.service(thread_send_message),
+	);
+	cfg.service(web::scope("/message").service(message_delete));
+	cfg.service(threads_get);
 }
 
 /// Get a thread by ID.  
@@ -40,20 +40,20 @@ pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
 )]
 #[get("/{id}")]
 pub async fn thread_get(
-    req: HttpRequest,
-    info: web::Path<(ThreadId,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(ThreadId,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    v3::threads::thread_get(req, info, pool, redis, session_queue)
-        .await
-        .or_else(v2_reroute::flatten_404_error)
+	v3::threads::thread_get(req, info, pool, redis, session_queue)
+		.await
+		.or_else(v2_reroute::flatten_404_error)
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
 pub struct ThreadIds {
-    pub ids: String,
+	pub ids: String,
 }
 
 /// Get multiple threads by ID.  
@@ -75,39 +75,39 @@ pub struct ThreadIds {
 )]
 #[get("/threads")]
 pub async fn threads_get(
-    req: HttpRequest,
-    web::Query(ids): web::Query<ThreadIds>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	web::Query(ids): web::Query<ThreadIds>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let response = v3::threads::threads_get(
-        req,
-        web::Query(v3::threads::ThreadIds { ids: ids.ids }),
-        pool,
-        redis,
-        session_queue,
-    )
-    .await
-    .or_else(v2_reroute::flatten_404_error)
-    .wrap_api_err("flattening v2 not-found response")?;
+	let response = v3::threads::threads_get(
+		req,
+		web::Query(v3::threads::ThreadIds { ids: ids.ids }),
+		pool,
+		redis,
+		session_queue,
+	)
+	.await
+	.or_else(v2_reroute::flatten_404_error)
+	.wrap_api_err("flattening v2 not-found response")?;
 
-    // Convert response to V2 format
-    match v2_reroute::extract_ok_json::<Vec<Thread>>(response).await {
-        Ok(threads) => {
-            let threads = threads
-                .into_iter()
-                .map(LegacyThread::from)
-                .collect::<Vec<_>>();
-            Ok(HttpResponse::Ok().json(threads))
-        }
-        Err(response) => Ok(response),
-    }
+	// Convert response to V2 format
+	match v2_reroute::extract_ok_json::<Vec<Thread>>(response).await {
+		Ok(threads) => {
+			let threads = threads
+				.into_iter()
+				.map(LegacyThread::from)
+				.collect::<Vec<_>>();
+			Ok(HttpResponse::Ok().json(threads))
+		}
+		Err(response) => Ok(response),
+	}
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
 pub struct NewThreadMessage {
-    pub body: MessageBody,
+	pub body: MessageBody,
 }
 
 /// Send a message to a thread.  
@@ -132,27 +132,27 @@ pub struct NewThreadMessage {
 )]
 #[post("/{id}")]
 pub async fn thread_send_message(
-    req: HttpRequest,
-    info: web::Path<(ThreadId,)>,
-    pool: web::Data<PgPool>,
-    new_message: web::Json<NewThreadMessage>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(ThreadId,)>,
+	pool: web::Data<PgPool>,
+	new_message: web::Json<NewThreadMessage>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let new_message = new_message.into_inner();
-    // Returns NoContent, so we don't need to convert the response
-    v3::threads::thread_send_message(
-        req,
-        info,
-        pool,
-        web::Json(v3::threads::NewThreadMessage {
-            body: new_message.body,
-        }),
-        redis,
-        session_queue,
-    )
-    .await
-    .or_else(v2_reroute::flatten_404_error)
+	let new_message = new_message.into_inner();
+	// Returns NoContent, so we don't need to convert the response
+	v3::threads::thread_send_message(
+		req,
+		info,
+		pool,
+		web::Json(v3::threads::NewThreadMessage {
+			body: new_message.body,
+		}),
+		redis,
+		session_queue,
+	)
+	.await
+	.or_else(v2_reroute::flatten_404_error)
 }
 
 /// Delete a thread message by ID.  
@@ -179,22 +179,22 @@ pub async fn thread_send_message(
 )]
 #[delete("/{id}")]
 pub async fn message_delete(
-    req: HttpRequest,
-    info: web::Path<(ThreadMessageId,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    file_host: web::Data<dyn FileHost>,
+	req: HttpRequest,
+	info: web::Path<(ThreadMessageId,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	file_host: web::Data<dyn FileHost>,
 ) -> Result<HttpResponse, ApiError> {
-    // Returns NoContent, so we don't need to convert the response
-    v3::threads::message_delete(
-        req,
-        info,
-        pool,
-        redis,
-        session_queue,
-        file_host,
-    )
-    .await
-    .or_else(v2_reroute::flatten_404_error)
+	// Returns NoContent, so we don't need to convert the response
+	v3::threads::message_delete(
+		req,
+		info,
+		pool,
+		redis,
+		session_queue,
+		file_host,
+	)
+	.await
+	.or_else(v2_reroute::flatten_404_error)
 }

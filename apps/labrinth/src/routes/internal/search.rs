@@ -1,13 +1,13 @@
 use crate::util::error::Context as _;
 use crate::util::guards::admin_key_guard;
 use crate::{
-    routes::ApiError,
-    search::{SearchBackend, TasksCancelFilter},
+	routes::ApiError,
+	search::{SearchBackend, TasksCancelFilter},
 };
 use actix_web::{delete, get, web};
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    cfg.service(tasks).service(tasks_cancel);
+	cfg.service(tasks).service(tasks_cancel);
 }
 
 /// List search tasks.  
@@ -18,14 +18,14 @@ pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
 )]
 #[get("/tasks", guard = "admin_key_guard")]
 pub async fn tasks(
-    search: web::Data<dyn SearchBackend>,
+	search: web::Data<dyn SearchBackend>,
 ) -> Result<web::Json<serde_json::Value>, ApiError> {
-    Ok(web::Json(
-        search
-            .tasks()
-            .await
-            .wrap_internal_err("fetching search tasks")?,
-    ))
+	Ok(web::Json(
+		search
+			.tasks()
+			.await
+			.wrap_internal_err("fetching search tasks")?,
+	))
 }
 
 /// Cancel search tasks.  
@@ -36,12 +36,12 @@ pub async fn tasks(
 )]
 #[delete("/tasks", guard = "admin_key_guard")]
 pub async fn tasks_cancel(
-    search: web::Data<dyn SearchBackend>,
-    body: web::Json<TasksCancelFilter>,
+	search: web::Data<dyn SearchBackend>,
+	body: web::Json<TasksCancelFilter>,
 ) -> Result<(), ApiError> {
-    search
-        .tasks_cancel(&body)
-        .await
-        .wrap_internal_err("cancelling search tasks")?;
-    Ok(())
+	search
+		.tasks_cancel(&body)
+		.await
+		.wrap_internal_err("cancelling search tasks")?;
+	Ok(())
 }

@@ -14,33 +14,33 @@ use crate::models::ids::OrganizationId;
 use crate::routes::v3::organizations::OrganizationIds;
 use crate::routes::v3::users::UserIds;
 use crate::{
-    auth::check_is_moderator_from_headers,
-    database::{
-        DBProject,
-        models::{
-            DBFileId, DBProjectId, DBThread, DBThreadId, DBUser, DBUserId,
-            DBVersion, DBVersionId, DelphiReportId, DelphiReportIssueDetailsId,
-            DelphiReportIssueId,
-            delphi_report_item::{
-                DelphiSeverity, DelphiStatus, DelphiVerdict, ReportIssueDetail,
-            },
-            thread_item::ThreadMessageBuilder,
-            version_item::VersionQueryResult,
-        },
-    },
-    models::{
-        ids::{FileId, ProjectId, ThreadId, ThreadMessageId, VersionId},
-        pats::Scopes,
-        projects::{Project, ProjectStatus},
-        threads::{MessageBody, Thread},
-    },
-    queue::session::AuthQueue,
-    routes::{
-        ApiError,
-        internal::{delphi::tech_review_queue, moderation::Ownership},
-    },
-    search::SearchState,
-    util::error::Context,
+	auth::check_is_moderator_from_headers,
+	database::{
+		DBProject,
+		models::{
+			DBFileId, DBProjectId, DBThread, DBThreadId, DBUser, DBUserId,
+			DBVersion, DBVersionId, DelphiReportId, DelphiReportIssueDetailsId,
+			DelphiReportIssueId,
+			delphi_report_item::{
+				DelphiSeverity, DelphiStatus, DelphiVerdict, ReportIssueDetail,
+			},
+			thread_item::ThreadMessageBuilder,
+			version_item::VersionQueryResult,
+		},
+	},
+	models::{
+		ids::{FileId, ProjectId, ThreadId, ThreadMessageId, VersionId},
+		pats::Scopes,
+		projects::{Project, ProjectStatus},
+		threads::{MessageBody, Thread},
+	},
+	queue::session::AuthQueue,
+	routes::{
+		ApiError,
+		internal::{delphi::tech_review_queue, moderation::Ownership},
+	},
+	search::SearchState,
+	util::error::Context,
 };
 use ariadne::ids::UserId;
 use eyre::eyre;
@@ -51,127 +51,127 @@ pub mod rules;
 pub mod rules_scan;
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    cfg.service(search_projects)
-        .configure(global::config)
-        .configure(rules::config)
-        .configure(rules_scan::config)
-        .service(get_project_report)
-        .service(get_report)
-        .service(get_issue)
-        .service(submit_report)
-        .service(update_issue_details)
-        .service(update_global_issue_details)
-        .service(get_user_flagged_projects)
-        .service(get_users_flagged_projects)
-        .service(get_organization_flagged_projects)
-        .service(get_organizations_flagged_projects);
+	cfg.service(search_projects)
+		.configure(global::config)
+		.configure(rules::config)
+		.configure(rules_scan::config)
+		.service(get_project_report)
+		.service(get_report)
+		.service(get_issue)
+		.service(submit_report)
+		.service(update_issue_details)
+		.service(update_global_issue_details)
+		.service(get_user_flagged_projects)
+		.service(get_users_flagged_projects)
+		.service(get_organization_flagged_projects)
+		.service(get_organizations_flagged_projects);
 }
 
 /// Arguments for searching project technical reviews.
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct SearchProjects {
-    #[serde(default = "default_limit")]
-    #[schema(default = 20)]
-    pub limit: u64,
-    #[serde(default)]
-    #[schema(default = 0)]
-    pub page: u64,
-    #[serde(default)]
-    pub filter: SearchProjectsFilter,
-    #[serde(default = "default_sort_by")]
-    pub sort_by: SearchProjectsSort,
+	#[serde(default = "default_limit")]
+	#[schema(default = 20)]
+	pub limit: u64,
+	#[serde(default)]
+	#[schema(default = 0)]
+	pub page: u64,
+	#[serde(default)]
+	pub filter: SearchProjectsFilter,
+	#[serde(default = "default_sort_by")]
+	pub sort_by: SearchProjectsSort,
 }
 
 fn default_limit() -> u64 {
-    20
+	20
 }
 
 fn default_sort_by() -> SearchProjectsSort {
-    SearchProjectsSort::CreatedAsc
+	SearchProjectsSort::CreatedAsc
 }
 
 #[derive(Debug, Clone, Default, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct SearchProjectsFilter {
-    #[serde(default)]
-    pub project_type: Vec<String>,
-    #[serde(default)]
-    pub replied_to: Option<RepliedTo>,
-    #[serde(default)]
-    pub project_status: Vec<ProjectStatus>,
-    #[serde(default)]
-    pub issue_type: Vec<String>,
+	#[serde(default)]
+	pub project_type: Vec<String>,
+	#[serde(default)]
+	pub replied_to: Option<RepliedTo>,
+	#[serde(default)]
+	pub project_status: Vec<ProjectStatus>,
+	#[serde(default)]
+	pub issue_type: Vec<String>,
 }
 
 /// Filter by whether a moderator has replied to the last message in the
 /// project's moderation thread.
 #[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Serialize,
-    Deserialize,
-    utoipa::ToSchema,
+	Debug,
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Hash,
+	Serialize,
+	Deserialize,
+	utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum RepliedTo {
-    /// Last message in the thread is from a moderator, indicating a moderator
-    /// has replied to it.
-    Replied,
-    /// Last message in the thread is not from a moderator.
-    Unreplied,
+	/// Last message in the thread is from a moderator, indicating a moderator
+	/// has replied to it.
+	Replied,
+	/// Last message in the thread is not from a moderator.
+	Unreplied,
 }
 
 #[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Serialize,
-    Deserialize,
-    utoipa::ToSchema,
+	Debug,
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Hash,
+	Serialize,
+	Deserialize,
+	utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum SearchProjectsSort {
-    CreatedAsc,
-    CreatedDesc,
-    SeverityAsc,
-    SeverityDesc,
+	CreatedAsc,
+	CreatedDesc,
+	SeverityAsc,
+	SeverityDesc,
 }
 
 impl fmt::Display for SearchProjectsSort {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let s = serde_json::to_value(*self).unwrap();
-        let s = s.as_str().unwrap();
-        write!(f, "{s}")
-    }
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		let s = serde_json::to_value(*self).unwrap();
+		let s = s.as_str().unwrap();
+		write!(f, "{s}")
+	}
 }
 
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct FileReport {
-    /// ID of this report.
-    pub report_id: DelphiReportId,
-    /// ID of the file that was scanned.
-    pub file_id: FileId,
-    /// When the report for this file was created.
-    pub created: DateTime<Utc>,
-    /// Why this project was flagged.
-    pub flag_reason: FlagReason,
-    /// According to this report, how likely is the project malicious?
-    pub severity: DelphiSeverity,
-    /// Name of the flagged file.
-    pub file_name: String,
-    /// Size of the flagged file, in bytes.
-    pub file_size: i32,
-    /// URL to download the flagged file.
-    pub download_url: String,
-    /// What issues appeared in the file.
-    #[serde(default)]
-    pub issues: Vec<FileIssue>,
+	/// ID of this report.
+	pub report_id: DelphiReportId,
+	/// ID of the file that was scanned.
+	pub file_id: FileId,
+	/// When the report for this file was created.
+	pub created: DateTime<Utc>,
+	/// Why this project was flagged.
+	pub flag_reason: FlagReason,
+	/// According to this report, how likely is the project malicious?
+	pub severity: DelphiSeverity,
+	/// Name of the flagged file.
+	pub file_name: String,
+	/// Size of the flagged file, in bytes.
+	pub file_size: i32,
+	/// URL to download the flagged file.
+	pub download_url: String,
+	/// What issues appeared in the file.
+	#[serde(default)]
+	pub issues: Vec<FileIssue>,
 }
 
 /// Issue raised by Delphi in a flagged file.
@@ -180,43 +180,43 @@ pub struct FileReport {
 /// raised because they appeared in a class - see [`FileIssueDetails`].
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct FileIssue {
-    /// ID of the issue.
-    pub id: DelphiReportIssueId,
-    /// ID of the report this issue is a part of.
-    pub report_id: DelphiReportId,
-    /// Delphi-determined kind of issue that this is, e.g. `OBFUSCATED_NAMES`.
-    ///
-    /// Labrinth does not know the full set of kinds of issues, so this is kept
-    /// as a string.
-    pub issue_type: String,
-    /// Details of why this issue might have been raised, such as what file it
-    /// was found in.
-    #[serde(default)]
-    pub details: Vec<ReportIssueDetail>,
+	/// ID of the issue.
+	pub id: DelphiReportIssueId,
+	/// ID of the report this issue is a part of.
+	pub report_id: DelphiReportId,
+	/// Delphi-determined kind of issue that this is, e.g. `OBFUSCATED_NAMES`.
+	///
+	/// Labrinth does not know the full set of kinds of issues, so this is kept
+	/// as a string.
+	pub issue_type: String,
+	/// Details of why this issue might have been raised, such as what file it
+	/// was found in.
+	#[serde(default)]
+	pub details: Vec<ReportIssueDetail>,
 }
 
 /// Why a project was flagged for technical review.
 #[derive(
-    Debug,
-    Clone,
-    Copy,
-    PartialEq,
-    Eq,
-    Hash,
-    Serialize,
-    Deserialize,
-    utoipa::ToSchema,
+	Debug,
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Hash,
+	Serialize,
+	Deserialize,
+	utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum FlagReason {
-    /// Delphi anti-malware scanner flagged a file in the project.
-    Delphi,
+	/// Delphi anti-malware scanner flagged a file in the project.
+	Delphi,
 }
 
 #[derive(Debug, Deserialize, utoipa::IntoParams)]
 pub struct GetIssue {
-    #[serde(default)]
-    pub include_hidden: bool,
+	#[serde(default)]
+	pub include_hidden: bool,
 }
 
 /// Get a Delphi report issue.
@@ -229,26 +229,26 @@ pub struct GetIssue {
 )]
 #[get("/issue/{issue_id}")]
 pub async fn get_issue(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    path: web::Path<(DelphiReportIssueId,)>,
-    query: web::Query<GetIssue>,
+	req: HttpRequest,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	path: web::Path<(DelphiReportIssueId,)>,
+	query: web::Query<GetIssue>,
 ) -> Result<web::Json<FileIssue>, ApiError> {
-    check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?;
+	check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
 
-    let (issue_id,) = path.into_inner();
-    let row = sqlx::query!(
-        r#"
+	let (issue_id,) = path.into_inner();
+	let row = sqlx::query!(
+		r#"
         SELECT
             to_jsonb(dri)
             || jsonb_build_object(
@@ -277,15 +277,15 @@ pub async fn get_issue(
         FROM delphi_report_issues dri
         WHERE dri.id = $1
         "#,
-        issue_id as DelphiReportIssueId,
-        query.include_hidden,
-    )
-    .fetch_optional(&**pool)
-    .await
-    .wrap_internal_err("failed to fetch issue from database")?
-    .wrap_not_found_err("resource not found")?;
+		issue_id as DelphiReportIssueId,
+		query.include_hidden,
+	)
+	.fetch_optional(&**pool)
+	.await
+	.wrap_internal_err("failed to fetch issue from database")?
+	.wrap_not_found_err("resource not found")?;
 
-    Ok(web::Json(row.data.0))
+	Ok(web::Json(row.data.0))
 }
 
 /// Get a project technical report.
@@ -297,25 +297,25 @@ pub async fn get_issue(
 )]
 #[get("/report/{id}")]
 pub async fn get_report(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    path: web::Path<(DelphiReportId,)>,
+	req: HttpRequest,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	path: web::Path<(DelphiReportId,)>,
 ) -> Result<web::Json<FileReport>, ApiError> {
-    check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?;
+	check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
 
-    let (report_id,) = path.into_inner();
+	let (report_id,) = path.into_inner();
 
-    let row = sqlx::query!(
+	let row = sqlx::query!(
         r#"
         SELECT DISTINCT ON (dr.id)
             to_jsonb(dr)
@@ -389,120 +389,120 @@ pub async fn get_report(
     .wrap_internal_err("failed to fetch report from database")?
     .wrap_not_found_err("resource not found")?;
 
-    Ok(web::Json(row.data.0))
+	Ok(web::Json(row.data.0))
 }
 
 /// See [`search_projects`].
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct SearchResponse {
-    /// List of reported projects returned, and their report data.
-    pub project_reports: Vec<ProjectReport>,
-    /// Fetched project information for projects in the returned reports.
-    pub projects: HashMap<ProjectId, ProjectModerationInfo>,
-    /// Fetched moderation threads for projects in the returned reports.
-    pub threads: HashMap<ThreadId, Thread>,
-    /// Fetched owner information for projects.
-    pub ownership: HashMap<ProjectId, Ownership>,
+	/// List of reported projects returned, and their report data.
+	pub project_reports: Vec<ProjectReport>,
+	/// Fetched project information for projects in the returned reports.
+	pub projects: HashMap<ProjectId, ProjectModerationInfo>,
+	/// Fetched moderation threads for projects in the returned reports.
+	pub threads: HashMap<ThreadId, Thread>,
+	/// Fetched owner information for projects.
+	pub ownership: HashMap<ProjectId, Ownership>,
 }
 
 /// Response for a single project's technical review report.
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ProjectReportResponse {
-    /// The project's technical review report.
-    pub project_report: Option<ProjectReport>,
-    /// The moderation thread for this project.
-    pub thread: Thread,
+	/// The project's technical review report.
+	pub project_report: Option<ProjectReport>,
+	/// The moderation thread for this project.
+	pub thread: Thread,
 }
 
 /// Single project's reports from a search response.
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ProjectReport {
-    /// ID of the project this report is for.
-    pub project_id: ProjectId,
-    /// Highest severity of any report of any file of any version under this
-    /// project.
-    pub max_severity: Option<DelphiSeverity>,
-    /// Reports for this project's versions.
-    #[serde(default)]
-    pub versions: Vec<VersionReport>,
+	/// ID of the project this report is for.
+	pub project_id: ProjectId,
+	/// Highest severity of any report of any file of any version under this
+	/// project.
+	pub max_severity: Option<DelphiSeverity>,
+	/// Reports for this project's versions.
+	#[serde(default)]
+	pub versions: Vec<VersionReport>,
 }
 
 /// Single project version's reports from a search response.
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct VersionReport {
-    /// ID of the project version this report is for.
-    pub version_id: VersionId,
-    /// Version number of the project version this report is for.
-    pub version_number: String,
-    /// Reports for this version's files.
-    #[serde(default)]
-    pub files: Vec<FileReport>,
+	/// ID of the project version this report is for.
+	pub version_id: VersionId,
+	/// Version number of the project version this report is for.
+	pub version_number: String,
+	/// Reports for this version's files.
+	#[serde(default)]
+	pub files: Vec<FileReport>,
 }
 
 /// Limited set of project information returned by [`search_projects`].
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ProjectModerationInfo {
-    /// Project ID.
-    pub id: ProjectId,
-    /// Project moderation thread ID.
-    pub thread_id: ThreadId,
-    /// Project name.
-    pub name: String,
-    /// Current project status.
-    pub status: ProjectStatus,
-    /// The aggregated project typos of the versions of this project
-    #[serde(default)]
-    pub project_types: Vec<String>,
-    /// The URL of the icon of the project
-    pub icon_url: Option<String>,
+	/// Project ID.
+	pub id: ProjectId,
+	/// Project moderation thread ID.
+	pub thread_id: ThreadId,
+	/// Project name.
+	pub name: String,
+	/// Current project status.
+	pub status: ProjectStatus,
+	/// The aggregated project typos of the versions of this project
+	#[serde(default)]
+	pub project_types: Vec<String>,
+	/// The URL of the icon of the project
+	pub icon_url: Option<String>,
 }
 
 async fn fetch_project_reports(
-    project_ids: &[DBProjectId],
-    pool: &PgPool,
-    redis: &RedisPool,
-    include_hidden: bool,
+	project_ids: &[DBProjectId],
+	pool: &PgPool,
+	redis: &RedisPool,
+	include_hidden: bool,
 ) -> Result<Vec<ProjectReport>, ApiError> {
-    struct FileRow {
-        file_id: DBFileId,
-        version_id: DBVersionId,
-        url: String,
-        filename: String,
-        size: i32,
-    }
+	struct FileRow {
+		file_id: DBFileId,
+		version_id: DBVersionId,
+		url: String,
+		filename: String,
+		size: i32,
+	}
 
-    struct DelphiReportRow {
-        report_id: DelphiReportId,
-        file_id: DBFileId,
-        created: DateTime<Utc>,
-        severity: DelphiSeverity,
-    }
+	struct DelphiReportRow {
+		report_id: DelphiReportId,
+		file_id: DBFileId,
+		created: DateTime<Utc>,
+		severity: DelphiSeverity,
+	}
 
-    struct DelphiReportIssueRow {
-        id: DelphiReportIssueId,
-        report_id: DelphiReportId,
-        issue_type: String,
-    }
+	struct DelphiReportIssueRow {
+		id: DelphiReportIssueId,
+		report_id: DelphiReportId,
+		issue_type: String,
+	}
 
-    let version_id_rows = sqlx::query!(
-        "SELECT id FROM versions WHERE mod_id = ANY($1::bigint[]) ORDER BY id",
-        &project_ids.iter().map(|id| id.0).collect::<Vec<_>>()
-    )
-    .fetch_all(pool)
-    .await
-    .wrap_internal_err("failed to fetch version ids")?;
+	let version_id_rows = sqlx::query!(
+		"SELECT id FROM versions WHERE mod_id = ANY($1::bigint[]) ORDER BY id",
+		&project_ids.iter().map(|id| id.0).collect::<Vec<_>>()
+	)
+	.fetch_all(pool)
+	.await
+	.wrap_internal_err("failed to fetch version ids")?;
 
-    let version_ids: Vec<DBVersionId> = version_id_rows
-        .into_iter()
-        .map(|r| DBVersionId(r.id))
-        .collect();
+	let version_ids: Vec<DBVersionId> = version_id_rows
+		.into_iter()
+		.map(|r| DBVersionId(r.id))
+		.collect();
 
-    let versions = DBVersion::get_many(&version_ids, pool, redis)
-        .await
-        .wrap_internal_err("failed to fetch versions")?;
+	let versions = DBVersion::get_many(&version_ids, pool, redis)
+		.await
+		.wrap_internal_err("failed to fetch versions")?;
 
-    let file_rows = sqlx::query!(
-        r#"
+	let file_rows = sqlx::query!(
+		r#"
         SELECT
             id AS "file_id: DBFileId",
             version_id AS "version_id: DBVersionId",
@@ -513,14 +513,14 @@ async fn fetch_project_reports(
         WHERE version_id = ANY($1::bigint[])
         ORDER BY version_id, id
         "#,
-        &version_ids.iter().map(|id| id.0).collect::<Vec<_>>()
-    )
-    .fetch_all(pool)
-    .await
-    .wrap_internal_err("failed to fetch files")?;
+		&version_ids.iter().map(|id| id.0).collect::<Vec<_>>()
+	)
+	.fetch_all(pool)
+	.await
+	.wrap_internal_err("failed to fetch files")?;
 
-    let report_rows = sqlx::query!(
-        r#"
+	let report_rows = sqlx::query!(
+		r#"
         SELECT DISTINCT ON (file_id)
             id AS "report_id!: DelphiReportId",
             file_id AS "file_id!: DBFileId",
@@ -532,14 +532,14 @@ async fn fetch_project_reports(
             AND file_id = ANY($1::bigint[])
         ORDER BY file_id, delphi_version DESC
         "#,
-        &file_rows.iter().map(|f| f.file_id.0).collect::<Vec<_>>()
-    )
-    .fetch_all(pool)
-    .await
-    .wrap_internal_err("failed to fetch delphi reports")?;
+		&file_rows.iter().map(|f| f.file_id.0).collect::<Vec<_>>()
+	)
+	.fetch_all(pool)
+	.await
+	.wrap_internal_err("failed to fetch delphi reports")?;
 
-    let issue_rows = sqlx::query!(
-        r#"
+	let issue_rows = sqlx::query!(
+		r#"
         SELECT
             id AS "id: DelphiReportIssueId",
             report_id AS "report_id: DelphiReportId",
@@ -548,19 +548,19 @@ async fn fetch_project_reports(
         WHERE report_id = ANY($1::bigint[])
         ORDER BY report_id, id
         "#,
-        &report_rows
-            .iter()
-            .map(|r| r.report_id.0)
-            .collect::<Vec<_>>()
-    )
-    .fetch_all(pool)
-    .await
-    .wrap_internal_err("failed to fetch delphi report issues")?;
+		&report_rows
+			.iter()
+			.map(|r| r.report_id.0)
+			.collect::<Vec<_>>()
+	)
+	.fetch_all(pool)
+	.await
+	.wrap_internal_err("failed to fetch delphi report issues")?;
 
-    let issue_ids: Vec<DelphiReportIssueId> =
-        issue_rows.iter().map(|i| i.id).collect();
+	let issue_ids: Vec<DelphiReportIssueId> =
+		issue_rows.iter().map(|i| i.id).collect();
 
-    let detail_rows = sqlx::query!(
+	let detail_rows = sqlx::query!(
         r#"
         SELECT
             didws.id AS "id!: DelphiReportIssueDetailsId",
@@ -586,158 +586,158 @@ async fn fetch_project_reports(
     .await
     .wrap_internal_err("failed to fetch delphi issue details")?;
 
-    let versions_by_project: HashMap<DBProjectId, Vec<VersionQueryResult>> =
-        versions
-            .into_iter()
-            .into_group_map_by(|v| v.inner.project_id);
+	let versions_by_project: HashMap<DBProjectId, Vec<VersionQueryResult>> =
+		versions
+			.into_iter()
+			.into_group_map_by(|v| v.inner.project_id);
 
-    let files_by_version: HashMap<DBVersionId, Vec<FileRow>> = file_rows
-        .into_iter()
-        .map(|r| FileRow {
-            file_id: r.file_id,
-            version_id: r.version_id,
-            url: r.url,
-            filename: r.filename,
-            size: r.size,
-        })
-        .into_group_map_by(|f| f.version_id);
+	let files_by_version: HashMap<DBVersionId, Vec<FileRow>> = file_rows
+		.into_iter()
+		.map(|r| FileRow {
+			file_id: r.file_id,
+			version_id: r.version_id,
+			url: r.url,
+			filename: r.filename,
+			size: r.size,
+		})
+		.into_group_map_by(|f| f.version_id);
 
-    let reports_by_file: HashMap<DBFileId, Vec<DelphiReportRow>> = report_rows
-        .into_iter()
-        .map(|r| DelphiReportRow {
-            report_id: r.report_id,
-            file_id: r.file_id,
-            created: r.created,
-            severity: r.severity,
-        })
-        .into_group_map_by(|r| r.file_id);
+	let reports_by_file: HashMap<DBFileId, Vec<DelphiReportRow>> = report_rows
+		.into_iter()
+		.map(|r| DelphiReportRow {
+			report_id: r.report_id,
+			file_id: r.file_id,
+			created: r.created,
+			severity: r.severity,
+		})
+		.into_group_map_by(|r| r.file_id);
 
-    let issues_by_report: HashMap<DelphiReportId, Vec<DelphiReportIssueRow>> =
-        issue_rows
-            .into_iter()
-            .map(|i| DelphiReportIssueRow {
-                id: i.id,
-                report_id: i.report_id,
-                issue_type: i.issue_type,
-            })
-            .into_group_map_by(|i| i.report_id);
+	let issues_by_report: HashMap<DelphiReportId, Vec<DelphiReportIssueRow>> =
+		issue_rows
+			.into_iter()
+			.map(|i| DelphiReportIssueRow {
+				id: i.id,
+				report_id: i.report_id,
+				issue_type: i.issue_type,
+			})
+			.into_group_map_by(|i| i.report_id);
 
-    let details_by_issue: HashMap<DelphiReportIssueId, Vec<ReportIssueDetail>> =
-        detail_rows
-            .into_iter()
-            .map(|d| ReportIssueDetail {
-                id: d.id,
-                issue_id: d.issue_id,
-                key: d.key,
-                jar: d.jar,
-                file_path: d.file_path,
-                decompiled_source: None,
-                data: d.data.0,
-                severity: d.severity,
-                local_status: d.local_status,
-                global_status: d.global_status,
-                status: d.status,
-            })
-            .into_group_map_by(|d| d.issue_id);
+	let details_by_issue: HashMap<DelphiReportIssueId, Vec<ReportIssueDetail>> =
+		detail_rows
+			.into_iter()
+			.map(|d| ReportIssueDetail {
+				id: d.id,
+				issue_id: d.issue_id,
+				key: d.key,
+				jar: d.jar,
+				file_path: d.file_path,
+				decompiled_source: None,
+				data: d.data.0,
+				severity: d.severity,
+				local_status: d.local_status,
+				global_status: d.global_status,
+				status: d.status,
+			})
+			.into_group_map_by(|d| d.issue_id);
 
-    let empty_versions: Vec<VersionQueryResult> = vec![];
-    let empty_files: Vec<FileRow> = vec![];
-    let empty_reports: Vec<DelphiReportRow> = vec![];
-    let empty_issues: Vec<DelphiReportIssueRow> = vec![];
-    let empty_details: Vec<ReportIssueDetail> = vec![];
+	let empty_versions: Vec<VersionQueryResult> = vec![];
+	let empty_files: Vec<FileRow> = vec![];
+	let empty_reports: Vec<DelphiReportRow> = vec![];
+	let empty_issues: Vec<DelphiReportIssueRow> = vec![];
+	let empty_details: Vec<ReportIssueDetail> = vec![];
 
-    let mut project_reports = Vec::<ProjectReport>::new();
+	let mut project_reports = Vec::<ProjectReport>::new();
 
-    for project_id in project_ids {
-        let project_versions = versions_by_project
-            .get(project_id)
-            .unwrap_or(&empty_versions);
+	for project_id in project_ids {
+		let project_versions = versions_by_project
+			.get(project_id)
+			.unwrap_or(&empty_versions);
 
-        let mut version_reports = Vec::new();
+		let mut version_reports = Vec::new();
 
-        for version_query in project_versions {
-            let version_files = files_by_version
-                .get(&version_query.inner.id)
-                .unwrap_or(&empty_files);
+		for version_query in project_versions {
+			let version_files = files_by_version
+				.get(&version_query.inner.id)
+				.unwrap_or(&empty_files);
 
-            let mut file_reports = Vec::new();
+			let mut file_reports = Vec::new();
 
-            for file_row in version_files {
-                let report_list = reports_by_file
-                    .get(&file_row.file_id)
-                    .unwrap_or(&empty_reports);
+			for file_row in version_files {
+				let report_list = reports_by_file
+					.get(&file_row.file_id)
+					.unwrap_or(&empty_reports);
 
-                for report_row in report_list {
-                    let report_issues = issues_by_report
-                        .get(&report_row.report_id)
-                        .unwrap_or(&empty_issues);
+				for report_row in report_list {
+					let report_issues = issues_by_report
+						.get(&report_row.report_id)
+						.unwrap_or(&empty_issues);
 
-                    let mut file_issues = Vec::new();
+					let mut file_issues = Vec::new();
 
-                    for issue_row in report_issues {
-                        let issue_details = details_by_issue
-                            .get(&issue_row.id)
-                            .unwrap_or(&empty_details);
+					for issue_row in report_issues {
+						let issue_details = details_by_issue
+							.get(&issue_row.id)
+							.unwrap_or(&empty_details);
 
-                        if issue_details.is_empty() {
-                            continue;
-                        }
+						if issue_details.is_empty() {
+							continue;
+						}
 
-                        file_issues.push(FileIssue {
-                            id: issue_row.id,
-                            report_id: issue_row.report_id,
-                            issue_type: issue_row.issue_type.clone(),
-                            details: issue_details.clone(),
-                        });
-                    }
+						file_issues.push(FileIssue {
+							id: issue_row.id,
+							report_id: issue_row.report_id,
+							issue_type: issue_row.issue_type.clone(),
+							details: issue_details.clone(),
+						});
+					}
 
-                    if file_issues.is_empty() {
-                        continue;
-                    }
+					if file_issues.is_empty() {
+						continue;
+					}
 
-                    let severity = file_issues
-                        .iter()
-                        .flat_map(|issue| issue.details.iter())
-                        .map(|detail| detail.severity)
-                        .max()
-                        .unwrap_or(report_row.severity);
+					let severity = file_issues
+						.iter()
+						.flat_map(|issue| issue.details.iter())
+						.map(|detail| detail.severity)
+						.max()
+						.unwrap_or(report_row.severity);
 
-                    file_reports.push(FileReport {
-                        report_id: report_row.report_id,
-                        file_id: FileId::from(file_row.file_id),
-                        created: report_row.created,
-                        flag_reason: FlagReason::Delphi,
-                        severity,
-                        file_name: file_row.filename.clone(),
-                        file_size: file_row.size,
-                        download_url: file_row.url.clone(),
-                        issues: file_issues,
-                    });
-                }
-            }
+					file_reports.push(FileReport {
+						report_id: report_row.report_id,
+						file_id: FileId::from(file_row.file_id),
+						created: report_row.created,
+						flag_reason: FlagReason::Delphi,
+						severity,
+						file_name: file_row.filename.clone(),
+						file_size: file_row.size,
+						download_url: file_row.url.clone(),
+						issues: file_issues,
+					});
+				}
+			}
 
-            version_reports.push(VersionReport {
-                version_id: VersionId::from(version_query.inner.id),
-                version_number: version_query.inner.version_number.clone(),
-                files: file_reports,
-            });
-        }
+			version_reports.push(VersionReport {
+				version_id: VersionId::from(version_query.inner.id),
+				version_number: version_query.inner.version_number.clone(),
+				files: file_reports,
+			});
+		}
 
-        let max_severity = version_reports
-            .iter()
-            .flat_map(|vr| vr.files.iter())
-            .map(|fr| fr.severity)
-            .max();
-        let project_report = ProjectReport {
-            project_id: ProjectId::from(*project_id),
-            max_severity,
-            versions: version_reports,
-        };
+		let max_severity = version_reports
+			.iter()
+			.flat_map(|vr| vr.files.iter())
+			.map(|fr| fr.severity)
+			.max();
+		let project_report = ProjectReport {
+			project_id: ProjectId::from(*project_id),
+			max_severity,
+			versions: version_reports,
+		};
 
-        project_reports.push(project_report);
-    }
+		project_reports.push(project_report);
+	}
 
-    Ok(project_reports)
+	Ok(project_reports)
 }
 
 /// Search projects awaiting technical review.
@@ -749,40 +749,40 @@ async fn fetch_project_reports(
 )]
 #[post("/search")]
 pub async fn search_projects(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    search_req: web::Json<SearchProjects>,
+	req: HttpRequest,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	search_req: web::Json<SearchProjects>,
 ) -> Result<web::Json<SearchResponse>, ApiError> {
-    let user = check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?;
+	let user = check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
 
-    let sort_by = search_req.sort_by.to_string();
-    let limit = search_req.limit.max(50);
-    let offset = limit.saturating_mul(search_req.page);
+	let sort_by = search_req.sort_by.to_string();
+	let limit = search_req.limit.max(50);
+	let offset = limit.saturating_mul(search_req.page);
 
-    let limit =
-        i64::try_from(limit).wrap_request_err("limit cannot fit into `i64`")?;
-    let offset = i64::try_from(offset)
-        .wrap_request_err("offset cannot fit into `i64`")?;
+	let limit =
+		i64::try_from(limit).wrap_request_err("limit cannot fit into `i64`")?;
+	let offset = i64::try_from(offset)
+		.wrap_request_err("offset cannot fit into `i64`")?;
 
-    let replied_to_filter = search_req.filter.replied_to.map(|r| match r {
-        RepliedTo::Replied => "replied",
-        RepliedTo::Unreplied => "unreplied",
-    });
+	let replied_to_filter = search_req.filter.replied_to.map(|r| match r {
+		RepliedTo::Replied => "replied",
+		RepliedTo::Unreplied => "unreplied",
+	});
 
-    let mut project_ids = Vec::<DBProjectId>::new();
-    let mut thread_ids = Vec::<DBThreadId>::new();
+	let mut project_ids = Vec::<DBProjectId>::new();
+	let mut thread_ids = Vec::<DBThreadId>::new();
 
-    let rows = sqlx::query!(
+	let rows = sqlx::query!(
         r#"
         SELECT
             m.id AS "project_id: DBProjectId",
@@ -908,83 +908,83 @@ pub async fn search_projects(
     .await
     .wrap_internal_err("failed to fetch projects")?;
 
-    for row in rows {
-        project_ids.push(row.project_id);
-        thread_ids.push(row.thread_id);
-    }
+	for row in rows {
+		project_ids.push(row.project_id);
+		thread_ids.push(row.thread_id);
+	}
 
-    let project_reports =
-        fetch_project_reports(&project_ids, &pool, &redis, false)
-            .await
-            .wrap_api_err("fetching project reports")?;
+	let project_reports =
+		fetch_project_reports(&project_ids, &pool, &redis, false)
+			.await
+			.wrap_api_err("fetching project reports")?;
 
-    let projects = DBProject::get_many_ids(&project_ids, &**pool, &redis)
-        .await
-        .wrap_internal_err("failed to fetch projects")?
-        .into_iter()
-        .map(|project| {
-            (ProjectId::from(project.inner.id), Project::from(project))
-        })
-        .collect::<HashMap<_, _>>();
-    let db_threads = DBThread::get_many(&thread_ids, &**pool)
-        .await
-        .wrap_internal_err("failed to fetch threads")?;
-    let thread_author_ids = db_threads
-        .iter()
-        .flat_map(|thread| {
-            thread
-                .messages
-                .iter()
-                .filter_map(|message| message.author_id)
-        })
-        .collect::<Vec<_>>();
-    let thread_authors =
-        DBUser::get_many_ids(&thread_author_ids, &**pool, &redis)
-            .await
-            .wrap_internal_err("failed to fetch thread authors")?
-            .into_iter()
-            .map(From::from)
-            .collect::<Vec<_>>();
-    let threads = db_threads
-        .into_iter()
-        .map(|thread| {
-            let thread = Thread::from(thread, thread_authors.clone(), &user);
-            (thread.id, thread)
-        })
-        .collect::<HashMap<_, _>>();
+	let projects = DBProject::get_many_ids(&project_ids, &**pool, &redis)
+		.await
+		.wrap_internal_err("failed to fetch projects")?
+		.into_iter()
+		.map(|project| {
+			(ProjectId::from(project.inner.id), Project::from(project))
+		})
+		.collect::<HashMap<_, _>>();
+	let db_threads = DBThread::get_many(&thread_ids, &**pool)
+		.await
+		.wrap_internal_err("failed to fetch threads")?;
+	let thread_author_ids = db_threads
+		.iter()
+		.flat_map(|thread| {
+			thread
+				.messages
+				.iter()
+				.filter_map(|message| message.author_id)
+		})
+		.collect::<Vec<_>>();
+	let thread_authors =
+		DBUser::get_many_ids(&thread_author_ids, &**pool, &redis)
+			.await
+			.wrap_internal_err("failed to fetch thread authors")?
+			.into_iter()
+			.map(From::from)
+			.collect::<Vec<_>>();
+	let threads = db_threads
+		.into_iter()
+		.map(|thread| {
+			let thread = Thread::from(thread, thread_authors.clone(), &user);
+			(thread.id, thread)
+		})
+		.collect::<HashMap<_, _>>();
 
-    let project_list: Vec<Project> = projects.values().cloned().collect();
+	let project_list: Vec<Project> = projects.values().cloned().collect();
 
-    let ownerships = get_projects_ownership(&project_list, &pool, &redis)
-        .await
-        .wrap_internal_err("failed to fetch project ownerships")?;
-    let ownership = projects
-        .keys()
-        .copied()
-        .zip(ownerships)
-        .collect::<HashMap<_, _>>();
+	let ownerships = get_projects_ownership(&project_list, &pool, &redis)
+		.await
+		.wrap_internal_err("failed to fetch project ownerships")?;
+	let ownership = projects
+		.keys()
+		.copied()
+		.zip(ownerships)
+		.collect::<HashMap<_, _>>();
 
-    Ok(web::Json(SearchResponse {
-        project_reports,
-        projects: projects
-            .into_iter()
-            .map(|(id, project)| {
-                (
-                    id,
-                    ProjectModerationInfo {
-                        id,
-                        thread_id: project.thread_id,
-                        name: project.name,
-                        status: project.status,
-                        project_types: project.project_types,
-                        icon_url: project.icon_url,
-                    },
-                )
-            })
-            .collect(),
-        threads,
-        ownership,
-    }))
+	Ok(web::Json(SearchResponse {
+		project_reports,
+		projects: projects
+			.into_iter()
+			.map(|(id, project)| {
+				(
+					id,
+					ProjectModerationInfo {
+						id,
+						thread_id: project.thread_id,
+						name: project.name,
+						status: project.status,
+						project_types: project.project_types,
+						icon_url: project.icon_url,
+					},
+				)
+			})
+			.collect(),
+		threads,
+		ownership,
+	}))
 }
 
 /// Get a project technical review report.
@@ -996,91 +996,91 @@ pub async fn search_projects(
 )]
 #[get("/project/{id}")]
 pub async fn get_project_report(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    path: web::Path<(ProjectId,)>,
+	req: HttpRequest,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	path: web::Path<(ProjectId,)>,
 ) -> Result<web::Json<ProjectReportResponse>, ApiError> {
-    let user = check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?;
+	let user = check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
 
-    let (project_id,) = path.into_inner();
-    let db_project_id = DBProjectId::from(project_id);
+	let (project_id,) = path.into_inner();
+	let db_project_id = DBProjectId::from(project_id);
 
-    let row = sqlx::query!(
-        r#"
+	let row = sqlx::query!(
+		r#"
         SELECT t.id AS "thread_id: DBThreadId"
         FROM threads t
         WHERE t.mod_id = $1
         "#,
-        db_project_id as _,
-    )
-    .fetch_optional(&**pool)
-    .await
-    .wrap_internal_err("failed to fetch thread")?
-    .wrap_not_found_err("resource not found")?;
+		db_project_id as _,
+	)
+	.fetch_optional(&**pool)
+	.await
+	.wrap_internal_err("failed to fetch thread")?
+	.wrap_not_found_err("resource not found")?;
 
-    let project_reports =
-        fetch_project_reports(&[db_project_id], &pool, &redis, true)
-            .await
-            .wrap_api_err("fetching project reports")?;
+	let project_reports =
+		fetch_project_reports(&[db_project_id], &pool, &redis, true)
+			.await
+			.wrap_api_err("fetching project reports")?;
 
-    let project_report = project_reports.into_iter().next();
+	let project_report = project_reports.into_iter().next();
 
-    let db_threads = DBThread::get_many(&[row.thread_id], &**pool)
-        .await
-        .wrap_internal_err("failed to fetch thread")?;
-    let thread_author_ids = db_threads
-        .iter()
-        .flat_map(|thread| {
-            thread
-                .messages
-                .iter()
-                .filter_map(|message| message.author_id)
-        })
-        .collect::<Vec<_>>();
-    let thread_authors =
-        DBUser::get_many_ids(&thread_author_ids, &**pool, &redis)
-            .await
-            .wrap_internal_err("failed to fetch thread authors")?
-            .into_iter()
-            .map(From::from)
-            .collect::<Vec<_>>();
-    let threads = db_threads
-        .into_iter()
-        .map(|thread| {
-            let thread = Thread::from(thread, thread_authors.clone(), &user);
-            (thread.id, thread)
-        })
-        .collect::<HashMap<_, _>>();
+	let db_threads = DBThread::get_many(&[row.thread_id], &**pool)
+		.await
+		.wrap_internal_err("failed to fetch thread")?;
+	let thread_author_ids = db_threads
+		.iter()
+		.flat_map(|thread| {
+			thread
+				.messages
+				.iter()
+				.filter_map(|message| message.author_id)
+		})
+		.collect::<Vec<_>>();
+	let thread_authors =
+		DBUser::get_many_ids(&thread_author_ids, &**pool, &redis)
+			.await
+			.wrap_internal_err("failed to fetch thread authors")?
+			.into_iter()
+			.map(From::from)
+			.collect::<Vec<_>>();
+	let threads = db_threads
+		.into_iter()
+		.map(|thread| {
+			let thread = Thread::from(thread, thread_authors.clone(), &user);
+			(thread.id, thread)
+		})
+		.collect::<HashMap<_, _>>();
 
-    let thread = threads
-        .get(&row.thread_id.into())
-        .cloned()
-        .wrap_not_found_err("resource not found")?;
+	let thread = threads
+		.get(&row.thread_id.into())
+		.cloned()
+		.wrap_not_found_err("resource not found")?;
 
-    Ok(web::Json(ProjectReportResponse {
-        project_report,
-        thread,
-    }))
+	Ok(web::Json(ProjectReportResponse {
+		project_report,
+		thread,
+	}))
 }
 
 /// See [`submit_report`].
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct SubmitReport {
-    /// Does the moderator think this report shows that the project is safe or
-    /// unsafe?
-    pub verdict: DelphiVerdict,
-    /// Moderator message to send to the thread when rejecting the project.
-    pub message: Option<String>,
+	/// Does the moderator think this report shows that the project is safe or
+	/// unsafe?
+	pub verdict: DelphiVerdict,
+	/// Moderator message to send to the thread when rejecting the project.
+	pub message: Option<String>,
 }
 
 /// Submit a technical review verdict.
@@ -1097,32 +1097,32 @@ pub struct SubmitReport {
 )]
 #[post("/submit/{project_id}")]
 pub async fn submit_report(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    search_state: web::Data<SearchState>,
-    web::Json(submit_report): web::Json<SubmitReport>,
-    path: web::Path<(ProjectId,)>,
+	req: HttpRequest,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	search_state: web::Data<SearchState>,
+	web::Json(submit_report): web::Json<SubmitReport>,
+	path: web::Path<(ProjectId,)>,
 ) -> Result<(), ApiError> {
-    let user = check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?;
-    let (project_id,) = path.into_inner();
-    let project_id = DBProjectId::from(project_id);
+	let user = check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
+	let (project_id,) = path.into_inner();
+	let project_id = DBProjectId::from(project_id);
 
-    let mut txn = pool
-        .begin()
-        .await
-        .wrap_internal_err("failed to begin transaction")?;
+	let mut txn = pool
+		.begin()
+		.await
+		.wrap_internal_err("failed to begin transaction")?;
 
-    let pending_issue_details = sqlx::query!(
+	let pending_issue_details = sqlx::query!(
         r#"
         SELECT
             didws.id AS "issue_detail_id!"
@@ -1151,73 +1151,73 @@ pub async fn submit_report(
     .await
     .wrap_internal_err("failed to fetch pending issues")?;
 
-    if !pending_issue_details.is_empty() {
-        let details = pending_issue_details
-            .into_iter()
-            .map(|record| DelphiReportIssueDetailsId(record.issue_detail_id))
-            .collect_vec();
-        return Err(ApiError::Request(eyre::eyre!(
-            "report still has issue details with no verdict: {details:?}"
-        )));
-    }
+	if !pending_issue_details.is_empty() {
+		let details = pending_issue_details
+			.into_iter()
+			.map(|record| DelphiReportIssueDetailsId(record.issue_detail_id))
+			.collect_vec();
+		return Err(ApiError::Request(eyre::eyre!(
+			"report still has issue details with no verdict: {details:?}"
+		)));
+	}
 
-    sqlx::query_scalar!(
-        r#"
+	sqlx::query_scalar!(
+		r#"
         DELETE FROM delphi_tech_review_queue
         WHERE project_id = $1
         RETURNING project_id AS "project_id: DBProjectId"
         "#,
-        project_id as DBProjectId,
-    )
-    .fetch_optional(&mut txn)
-    .await
-    .wrap_internal_err("failed to remove project from technical review queue")?
-    .wrap_not_found_err("project not found in technical review queue")?;
+		project_id as DBProjectId,
+	)
+	.fetch_optional(&mut txn)
+	.await
+	.wrap_internal_err("failed to remove project from technical review queue")?
+	.wrap_not_found_err("project not found in technical review queue")?;
 
-    let record = sqlx::query!(
-        r#"
+	let record = sqlx::query!(
+		r#"
         SELECT t.id AS "thread_id: DBThreadId"
         FROM mods m
         INNER JOIN threads t ON t.mod_id = m.id
         WHERE m.id = $1
         "#,
-        project_id as _,
-    )
-    .fetch_one(&mut txn)
-    .await
-    .wrap_internal_err("failed to update reports")?;
+		project_id as _,
+	)
+	.fetch_one(&mut txn)
+	.await
+	.wrap_internal_err("failed to update reports")?;
 
-    if let Some(body) = submit_report.message {
-        ThreadMessageBuilder {
-            author_id: Some(user.id.into()),
-            body: MessageBody::Text {
-                body,
-                private: true,
-                replying_to: None,
-                associated_images: Vec::new(),
-            },
-            thread_id: record.thread_id,
-            hide_identity: user.role.is_mod(),
-        }
-        .insert(&mut txn)
-        .await
-        .wrap_internal_err("failed to add moderator message")?;
-    }
+	if let Some(body) = submit_report.message {
+		ThreadMessageBuilder {
+			author_id: Some(user.id.into()),
+			body: MessageBody::Text {
+				body,
+				private: true,
+				replying_to: None,
+				associated_images: Vec::new(),
+			},
+			thread_id: record.thread_id,
+			hide_identity: user.role.is_mod(),
+		}
+		.insert(&mut txn)
+		.await
+		.wrap_internal_err("failed to add moderator message")?;
+	}
 
-    let verdict = submit_report.verdict;
-    ThreadMessageBuilder {
-        author_id: Some(user.id.into()),
-        body: MessageBody::TechReview { verdict },
-        thread_id: record.thread_id,
-        hide_identity: user.role.is_mod(),
-    }
-    .insert(&mut txn)
-    .await
-    .wrap_internal_err("failed to add tech review message")?;
+	let verdict = submit_report.verdict;
+	ThreadMessageBuilder {
+		author_id: Some(user.id.into()),
+		body: MessageBody::TechReview { verdict },
+		thread_id: record.thread_id,
+		hide_identity: user.role.is_mod(),
+	}
+	.insert(&mut txn)
+	.await
+	.wrap_internal_err("failed to add tech review message")?;
 
-    if verdict == DelphiVerdict::Unsafe {
-        let record = sqlx::query!(
-            r#"
+	if verdict == DelphiVerdict::Unsafe {
+		let record = sqlx::query!(
+			r#"
             WITH old AS (
               SELECT id, status
               FROM mods
@@ -1238,68 +1238,68 @@ pub async fn submit_report(
             FROM updated
             INNER JOIN old ON old.id = updated.id
             "#,
-            ProjectStatus::Rejected.as_str(),
-            project_id as _,
-        )
-        .fetch_one(&mut txn)
-        .await
-        .wrap_internal_err("failed to mark project as rejected")?;
+			ProjectStatus::Rejected.as_str(),
+			project_id as _,
+		)
+		.fetch_one(&mut txn)
+		.await
+		.wrap_internal_err("failed to mark project as rejected")?;
 
-        ThreadMessageBuilder {
-            author_id: Some(user.id.into()),
-            body: MessageBody::StatusChange {
-                new_status: ProjectStatus::Rejected,
-                old_status: ProjectStatus::from_string(&record.old_status),
-            },
-            thread_id: record.thread_id,
-            hide_identity: user.role.is_mod(),
-        }
-        .insert(&mut txn)
-        .await
-        .wrap_internal_err("failed to add tech review message")?;
-    }
+		ThreadMessageBuilder {
+			author_id: Some(user.id.into()),
+			body: MessageBody::StatusChange {
+				new_status: ProjectStatus::Rejected,
+				old_status: ProjectStatus::from_string(&record.old_status),
+			},
+			thread_id: record.thread_id,
+			hide_identity: user.role.is_mod(),
+		}
+		.insert(&mut txn)
+		.await
+		.wrap_internal_err("failed to add tech review message")?;
+	}
 
-    txn.commit()
-        .await
-        .wrap_internal_err("failed to commit transaction")?;
+	txn.commit()
+		.await
+		.wrap_internal_err("failed to commit transaction")?;
 
-    if verdict == DelphiVerdict::Unsafe {
-        crate::routes::v3::projects::clear_project_cache_and_queue_search(
-            &redis,
-            &search_state,
-            project_id,
-            None,
-            None,
-        )
-        .await
-        .wrap_api_err(
-            "executing `projects::clear_project_cache_and_queue_search`",
-        )?;
-    }
+	if verdict == DelphiVerdict::Unsafe {
+		crate::routes::v3::projects::clear_project_cache_and_queue_search(
+			&redis,
+			&search_state,
+			project_id,
+			None,
+			None,
+		)
+		.await
+		.wrap_api_err(
+			"executing `projects::clear_project_cache_and_queue_search`",
+		)?;
+	}
 
-    Ok(())
+	Ok(())
 }
 
 /// See [`update_issue`].
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct UpdateIssue {
-    /// ID of the issue detail to update.
-    pub detail_id: DelphiReportIssueDetailsId,
-    /// What the moderator has decided the outcome of this issue is.
-    ///
-    /// `pending` removes the project-local verdict for this issue detail.
-    pub verdict: DelphiStatus,
+	/// ID of the issue detail to update.
+	pub detail_id: DelphiReportIssueDetailsId,
+	/// What the moderator has decided the outcome of this issue is.
+	///
+	/// `pending` removes the project-local verdict for this issue detail.
+	pub verdict: DelphiStatus,
 }
 
 /// See [`update_global_issue_details`].
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct UpdateGlobalIssue {
-    /// Key of the issue detail to update globally.
-    pub detail_key: String,
-    /// What the moderator has decided the outcome of this issue is globally.
-    ///
-    /// `pending` removes the global verdict for this issue detail key.
-    pub verdict: DelphiStatus,
+	/// Key of the issue detail to update globally.
+	pub detail_key: String,
+	/// What the moderator has decided the outcome of this issue is globally.
+	///
+	/// `pending` removes the global verdict for this issue detail key.
+	pub verdict: DelphiStatus,
 }
 
 /// Update technical review issue details.
@@ -1314,39 +1314,39 @@ pub struct UpdateGlobalIssue {
 )]
 #[patch("/issue-detail")]
 pub async fn update_issue_details(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    update_reqs: web::Json<Vec<UpdateIssue>>,
+	req: HttpRequest,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	update_reqs: web::Json<Vec<UpdateIssue>>,
 ) -> Result<(), ApiError> {
-    check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_WRITE,
-    )
-    .await
-    .wrap_auth_err("updating database records for `update_issue_details`")?;
+	check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_WRITE,
+	)
+	.await
+	.wrap_auth_err("updating database records for `update_issue_details`")?;
 
-    let mut txn = pool
-        .begin()
-        .await
-        .wrap_internal_err("failed to start transaction")?;
+	let mut txn = pool
+		.begin()
+		.await
+		.wrap_internal_err("failed to start transaction")?;
 
-    let updates = update_reqs.into_inner();
-    let detail_ids = updates.iter().map(|u| u.detail_id.0).collect::<Vec<_>>();
-    let verdicts = updates
-        .iter()
-        .map(|u| match u.verdict {
-            DelphiStatus::Safe => "safe".to_string(),
-            DelphiStatus::Unsafe => "unsafe".to_string(),
-            DelphiStatus::Pending => "pending".to_string(),
-        })
-        .collect::<Vec<_>>();
+	let updates = update_reqs.into_inner();
+	let detail_ids = updates.iter().map(|u| u.detail_id.0).collect::<Vec<_>>();
+	let verdicts = updates
+		.iter()
+		.map(|u| match u.verdict {
+			DelphiStatus::Safe => "safe".to_string(),
+			DelphiStatus::Unsafe => "unsafe".to_string(),
+			DelphiStatus::Pending => "pending".to_string(),
+		})
+		.collect::<Vec<_>>();
 
-    let record = sqlx::query!(
+	let record = sqlx::query!(
         r#"
         WITH incoming AS (
             SELECT *
@@ -1416,42 +1416,42 @@ pub async fn update_issue_details(
     .await
     .wrap_internal_err("failed to update issue details")?;
 
-    if !record.all_found {
-        return Err(ApiError::Request(eyre!("issue detail does not exist")));
-    }
+	if !record.all_found {
+		return Err(ApiError::Request(eyre!("issue detail does not exist")));
+	}
 
-    let affected_projects = sqlx::query!(
-        r#"
+	let affected_projects = sqlx::query!(
+		r#"
         SELECT DISTINCT didws.project_id AS "project_id!: DBProjectId"
         FROM delphi_issue_details_with_statuses didws
         WHERE didws.id = ANY($1::bigint[])
         "#,
-        &detail_ids,
-    )
-    .fetch_all(&mut txn)
-    .await
-    .wrap_internal_err(
-        "failed to fetch projects affected by issue detail updates",
-    )?;
+		&detail_ids,
+	)
+	.fetch_all(&mut txn)
+	.await
+	.wrap_internal_err(
+		"failed to fetch projects affected by issue detail updates",
+	)?;
 
-    let affected_project_ids = affected_projects
-        .into_iter()
-        .map(|row| row.project_id)
-        .collect::<Vec<_>>();
+	let affected_project_ids = affected_projects
+		.into_iter()
+		.map(|row| row.project_id)
+		.collect::<Vec<_>>();
 
-    tech_review_queue::sync_projects(
-        &affected_project_ids,
-        tech_review_queue::TechReviewRemovalReason::RulesChanged,
-        &mut txn,
-    )
-    .await
-    .wrap_api_err("executing `tech_review_queue::sync_projects`")?;
+	tech_review_queue::sync_projects(
+		&affected_project_ids,
+		tech_review_queue::TechReviewRemovalReason::RulesChanged,
+		&mut txn,
+	)
+	.await
+	.wrap_api_err("executing `tech_review_queue::sync_projects`")?;
 
-    txn.commit()
-        .await
-        .wrap_internal_err("failed to commit transaction")?;
+	txn.commit()
+		.await
+		.wrap_internal_err("failed to commit transaction")?;
 
-    Ok(())
+	Ok(())
 }
 
 /// Update global technical review issue detail verdicts.
@@ -1466,54 +1466,54 @@ pub async fn update_issue_details(
 )]
 #[post("/global-traces")]
 pub async fn update_global_issue_details(
-    req: HttpRequest,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
-    update_reqs: web::Json<Vec<UpdateGlobalIssue>>,
+	req: HttpRequest,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	update_reqs: web::Json<Vec<UpdateGlobalIssue>>,
 ) -> Result<(), ApiError> {
-    check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_WRITE,
-    )
-    .await
-    .wrap_auth_err(
-        "updating database records for `update_global_issue_details`",
-    )?;
+	check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_WRITE,
+	)
+	.await
+	.wrap_auth_err(
+		"updating database records for `update_global_issue_details`",
+	)?;
 
-    let updates = update_reqs.into_inner();
+	let updates = update_reqs.into_inner();
 
-    if updates.iter().any(|u| {
-        u.detail_key.is_empty() || u.detail_key.starts_with("<no-key-")
-    }) {
-        return Err(ApiError::Request(eyre!(
-            "detail key cannot be empty or generated fallback key"
-        )));
-    }
+	if updates.iter().any(|u| {
+		u.detail_key.is_empty() || u.detail_key.starts_with("<no-key-")
+	}) {
+		return Err(ApiError::Request(eyre!(
+			"detail key cannot be empty or generated fallback key"
+		)));
+	}
 
-    let detail_keys = updates
-        .iter()
-        .map(|u| u.detail_key.clone())
-        .collect::<Vec<_>>();
-    let verdicts = updates
-        .iter()
-        .map(|u| match u.verdict {
-            DelphiStatus::Safe => "safe".to_string(),
-            DelphiStatus::Unsafe => "unsafe".to_string(),
-            DelphiStatus::Pending => "pending".to_string(),
-        })
-        .collect::<Vec<_>>();
+	let detail_keys = updates
+		.iter()
+		.map(|u| u.detail_key.clone())
+		.collect::<Vec<_>>();
+	let verdicts = updates
+		.iter()
+		.map(|u| match u.verdict {
+			DelphiStatus::Safe => "safe".to_string(),
+			DelphiStatus::Unsafe => "unsafe".to_string(),
+			DelphiStatus::Pending => "pending".to_string(),
+		})
+		.collect::<Vec<_>>();
 
-    let mut txn = pool
-        .begin()
-        .await
-        .wrap_internal_err("failed to start transaction")?;
+	let mut txn = pool
+		.begin()
+		.await
+		.wrap_internal_err("failed to start transaction")?;
 
-    sqlx::query!(
-        r#"
+	sqlx::query!(
+		r#"
         WITH incoming AS (
             SELECT *
             FROM unnest($1::text[], $2::text[]) WITH ORDINALITY
@@ -1550,56 +1550,56 @@ pub async fn update_global_issue_details(
             verdict = EXCLUDED.verdict,
             updated_at = EXCLUDED.updated_at
         "#,
-        &detail_keys,
-        &verdicts,
-    )
-    .execute(&mut txn)
-    .await
-    .wrap_internal_err("failed to update global issue details")?;
+		&detail_keys,
+		&verdicts,
+	)
+	.execute(&mut txn)
+	.await
+	.wrap_internal_err("failed to update global issue details")?;
 
-    let affected_projects = sqlx::query!(
-        r#"
+	let affected_projects = sqlx::query!(
+		r#"
         SELECT DISTINCT detail.project_id AS "project_id!: DBProjectId"
         FROM delphi_issue_details_with_statuses detail
         WHERE detail.key = ANY($1::text[])
         "#,
-        &detail_keys,
-    )
-    .fetch_all(&mut txn)
-    .await
-    .wrap_internal_err(
-        "failed to fetch projects affected by global detail updates",
-    )?;
+		&detail_keys,
+	)
+	.fetch_all(&mut txn)
+	.await
+	.wrap_internal_err(
+		"failed to fetch projects affected by global detail updates",
+	)?;
 
-    tech_review_queue::sync_projects(
-        &affected_projects
-            .into_iter()
-            .map(|row| row.project_id)
-            .collect::<Vec<_>>(),
-        tech_review_queue::TechReviewRemovalReason::RulesChanged,
-        &mut txn,
-    )
-    .await
-    .wrap_api_err("executing `tech_review_queue::sync_projects`")?;
+	tech_review_queue::sync_projects(
+		&affected_projects
+			.into_iter()
+			.map(|row| row.project_id)
+			.collect::<Vec<_>>(),
+		tech_review_queue::TechReviewRemovalReason::RulesChanged,
+		&mut txn,
+	)
+	.await
+	.wrap_api_err("executing `tech_review_queue::sync_projects`")?;
 
-    txn.commit()
-        .await
-        .wrap_internal_err("failed to commit transaction")?;
+	txn.commit()
+		.await
+		.wrap_internal_err("failed to commit transaction")?;
 
-    Ok(())
+	Ok(())
 }
 
 /// A user's project that is stuck in `processing` or `rejected` because the
 /// most recent technical review verdict posted to its thread was `unsafe`.
 #[derive(Debug, Clone, Serialize, utoipa::ToSchema)]
 pub struct FlaggedProject {
-    pub project_id: ProjectId,
-    pub thread_id: ThreadId,
-    pub status: ProjectStatus,
-    /// The `tech_review` message that carried the `unsafe` verdict.
-    pub message_id: ThreadMessageId,
-    /// When that verdict was posted.
-    pub reviewed: DateTime<Utc>,
+	pub project_id: ProjectId,
+	pub thread_id: ThreadId,
+	pub status: ProjectStatus,
+	/// The `tech_review` message that carried the `unsafe` verdict.
+	pub message_id: ThreadMessageId,
+	/// When that verdict was posted.
+	pub reviewed: DateTime<Utc>,
 }
 
 /// Get all of a user's `processing`/`rejected` projects whose most recent
@@ -1612,31 +1612,31 @@ pub struct FlaggedProject {
 )]
 #[get("/user/{user_id}/flagged-projects")]
 pub async fn get_user_flagged_projects(
-    req: HttpRequest,
-    info: web::Path<(String,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(String,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<web::Json<Vec<FlaggedProject>>, ApiError> {
-    check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?;
+	check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
 
-    let target_user = DBUser::get(&info.into_inner().0, &**pool, &redis)
-        .await
-        .wrap_internal_err("fetching user from database")?
-        .wrap_not_found_err("resource not found")?;
+	let target_user = DBUser::get(&info.into_inner().0, &**pool, &redis)
+		.await
+		.wrap_internal_err("fetching user from database")?
+		.wrap_not_found_err("resource not found")?;
 
-    let flagged =
-        user_flagged_projects(target_user.id, &**pool, &redis).await?;
+	let flagged =
+		user_flagged_projects(target_user.id, &**pool, &redis).await?;
 
-    Ok(web::Json(flagged))
+	Ok(web::Json(flagged))
 }
 
 /// Get all of multiple users' `processing`/`rejected` projects whose most
@@ -1652,49 +1652,49 @@ pub async fn get_user_flagged_projects(
 )]
 #[get("/users/flagged-projects")]
 pub async fn get_users_flagged_projects(
-    req: HttpRequest,
-    ids: web::Query<UserIds>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	ids: web::Query<UserIds>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<web::Json<HashMap<UserId, Vec<FlaggedProject>>>, ApiError> {
-    check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?;
+	check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
 
-    let user_ids = serde_json::from_str::<Vec<String>>(&ids.ids)
-        .wrap_request_err("deserializing JSON data")?;
+	let user_ids = serde_json::from_str::<Vec<String>>(&ids.ids)
+		.wrap_request_err("deserializing JSON data")?;
 
-    if user_ids.is_empty() {
-        return Ok(web::Json(HashMap::new()));
-    }
+	if user_ids.is_empty() {
+		return Ok(web::Json(HashMap::new()));
+	}
 
-    let target_users = DBUser::get_many(&user_ids, &**pool, &redis)
-        .await
-        .wrap_internal_err("fetching users from database")?;
+	let target_users = DBUser::get_many(&user_ids, &**pool, &redis)
+		.await
+		.wrap_internal_err("fetching users from database")?;
 
-    let pool_ref = &**pool;
-    let redis_ref = &*redis;
+	let pool_ref = &**pool;
+	let redis_ref = &*redis;
 
-    let flagged_by_user =
-        try_join_all(target_users.into_iter().map(|target_user| async move {
-            let flagged =
-                user_flagged_projects(target_user.id, pool_ref, redis_ref)
-                    .await?;
+	let flagged_by_user =
+		try_join_all(target_users.into_iter().map(|target_user| async move {
+			let flagged =
+				user_flagged_projects(target_user.id, pool_ref, redis_ref)
+					.await?;
 
-            Ok::<_, ApiError>((UserId::from(target_user.id), flagged))
-        }))
-        .await?
-        .into_iter()
-        .collect::<HashMap<_, _>>();
+			Ok::<_, ApiError>((UserId::from(target_user.id), flagged))
+		}))
+		.await?
+		.into_iter()
+		.collect::<HashMap<_, _>>();
 
-    Ok(web::Json(flagged_by_user))
+	Ok(web::Json(flagged_by_user))
 }
 
 /// Get all of an organization's `processing`/`rejected` projects whose most
@@ -1707,31 +1707,31 @@ pub async fn get_users_flagged_projects(
 )]
 #[get("/organization/{organization_id}/flagged-projects")]
 pub async fn get_organization_flagged_projects(
-    req: HttpRequest,
-    info: web::Path<(String,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	info: web::Path<(String,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<web::Json<Vec<FlaggedProject>>, ApiError> {
-    check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?;
+	check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
 
-    let target_org = DBOrganization::get(&info.into_inner().0, &**pool, &redis)
-        .await
-        .wrap_internal_err("fetching organization from database")?
-        .wrap_not_found_err("resource not found")?;
+	let target_org = DBOrganization::get(&info.into_inner().0, &**pool, &redis)
+		.await
+		.wrap_internal_err("fetching organization from database")?
+		.wrap_not_found_err("resource not found")?;
 
-    let flagged =
-        organization_flagged_projects(target_org.id, &**pool, &redis).await?;
+	let flagged =
+		organization_flagged_projects(target_org.id, &**pool, &redis).await?;
 
-    Ok(web::Json(flagged))
+	Ok(web::Json(flagged))
 }
 
 /// Get all of multiple organizations' `processing`/`rejected` projects
@@ -1748,73 +1748,73 @@ pub async fn get_organization_flagged_projects(
 )]
 #[get("/organizations/flagged-projects")]
 pub async fn get_organizations_flagged_projects(
-    req: HttpRequest,
-    ids: web::Query<OrganizationIds>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	ids: web::Query<OrganizationIds>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<web::Json<HashMap<OrganizationId, Vec<FlaggedProject>>>, ApiError> {
-    check_is_moderator_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::PROJECT_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?;
+	check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
 
-    let organization_ids = serde_json::from_str::<Vec<String>>(&ids.ids)
-        .wrap_request_err("deserializing JSON data")?;
+	let organization_ids = serde_json::from_str::<Vec<String>>(&ids.ids)
+		.wrap_request_err("deserializing JSON data")?;
 
-    if organization_ids.is_empty() {
-        return Ok(web::Json(HashMap::new()));
-    }
+	if organization_ids.is_empty() {
+		return Ok(web::Json(HashMap::new()));
+	}
 
-    let target_orgs =
-        DBOrganization::get_many(&organization_ids, &**pool, &redis)
-            .await
-            .wrap_internal_err("fetching organizations from database")?;
+	let target_orgs =
+		DBOrganization::get_many(&organization_ids, &**pool, &redis)
+			.await
+			.wrap_internal_err("fetching organizations from database")?;
 
-    let pool_ref = &**pool;
-    let redis_ref = &*redis;
+	let pool_ref = &**pool;
+	let redis_ref = &*redis;
 
-    let flagged_by_org =
-        try_join_all(target_orgs.into_iter().map(|target_org| async move {
-            let flagged = organization_flagged_projects(
-                target_org.id,
-                pool_ref,
-                redis_ref,
-            )
-            .await?;
+	let flagged_by_org =
+		try_join_all(target_orgs.into_iter().map(|target_org| async move {
+			let flagged = organization_flagged_projects(
+				target_org.id,
+				pool_ref,
+				redis_ref,
+			)
+			.await?;
 
-            Ok::<_, ApiError>((OrganizationId::from(target_org.id), flagged))
-        }))
-        .await?
-        .into_iter()
-        .collect::<HashMap<_, _>>();
+			Ok::<_, ApiError>((OrganizationId::from(target_org.id), flagged))
+		}))
+		.await?
+		.into_iter()
+		.collect::<HashMap<_, _>>();
 
-    Ok(web::Json(flagged_by_org))
+	Ok(web::Json(flagged_by_org))
 }
 
 /// Finds a single user's `processing`/`rejected` projects whose most recent
 /// `tech_review` thread message was an `unsafe` verdict. Shared by the
 /// single- and multi-user flagged-projects endpoints.
 async fn user_flagged_projects<'a, E>(
-    user_id: DBUserId,
-    pool: E,
-    redis: &RedisPool,
+	user_id: DBUserId,
+	pool: E,
+	redis: &RedisPool,
 ) -> Result<Vec<FlaggedProject>, ApiError>
 where
-    E: crate::database::Executor<'a, Database = sqlx::Postgres>
-        + crate::database::Acquire<'a, Database = sqlx::Postgres>
-        + Copy,
+	E: crate::database::Executor<'a, Database = sqlx::Postgres>
+		+ crate::database::Acquire<'a, Database = sqlx::Postgres>
+		+ Copy,
 {
-    let project_ids = DBUser::get_projects(user_id, pool, redis)
-        .await
-        .wrap_internal_err("fetching user's projects from database")?;
+	let project_ids = DBUser::get_projects(user_id, pool, redis)
+		.await
+		.wrap_internal_err("fetching user's projects from database")?;
 
-    flagged_projects_among(&project_ids, pool, redis).await
+	flagged_projects_among(&project_ids, pool, redis).await
 }
 
 /// Finds a single organization's `processing`/`rejected` projects whose
@@ -1822,97 +1822,97 @@ where
 /// Shared by the single- and multi-organization flagged-projects
 /// endpoints.
 async fn organization_flagged_projects<'a, E>(
-    organization_id: DBOrganizationId,
-    pool: E,
-    redis: &RedisPool,
+	organization_id: DBOrganizationId,
+	pool: E,
+	redis: &RedisPool,
 ) -> Result<Vec<FlaggedProject>, ApiError>
 where
-    E: crate::database::Executor<'a, Database = sqlx::Postgres>
-        + crate::database::Acquire<'a, Database = sqlx::Postgres>
-        + Copy,
+	E: crate::database::Executor<'a, Database = sqlx::Postgres>
+		+ crate::database::Acquire<'a, Database = sqlx::Postgres>
+		+ Copy,
 {
-    let project_ids = DBOrganization::get_projects(organization_id, pool)
-        .await
-        .wrap_internal_err("fetching project IDs from database")?;
+	let project_ids = DBOrganization::get_projects(organization_id, pool)
+		.await
+		.wrap_internal_err("fetching project IDs from database")?;
 
-    flagged_projects_among(&project_ids, pool, redis).await
+	flagged_projects_among(&project_ids, pool, redis).await
 }
 
 /// Finds `processing`/`rejected` projects (from the given ids) whose most
 /// recent `tech_review` thread message was an `unsafe` verdict. Shared by
 /// the user- and organization-scoped flagged-projects helpers above.
 async fn flagged_projects_among<'a, E>(
-    project_ids: &[DBProjectId],
-    pool: E,
-    redis: &RedisPool,
+	project_ids: &[DBProjectId],
+	pool: E,
+	redis: &RedisPool,
 ) -> Result<Vec<FlaggedProject>, ApiError>
 where
-    E: crate::database::Executor<'a, Database = sqlx::Postgres>
-        + crate::database::Acquire<'a, Database = sqlx::Postgres>
-        + Copy,
+	E: crate::database::Executor<'a, Database = sqlx::Postgres>
+		+ crate::database::Acquire<'a, Database = sqlx::Postgres>
+		+ Copy,
 {
-    if project_ids.is_empty() {
-        return Ok(Vec::new());
-    }
+	if project_ids.is_empty() {
+		return Ok(Vec::new());
+	}
 
-    // Only `processing`/`rejected` projects are relevant, so narrow down
-    // before pulling any thread data.
-    let candidate_projects = DBProject::get_many_ids(project_ids, pool, redis)
-        .await
-        .wrap_internal_err("fetching projects from database")?
-        .into_iter()
-        .filter(|project| {
-            matches!(
-                project.inner.status,
-                ProjectStatus::Processing | ProjectStatus::Rejected
-            )
-        })
-        .collect::<Vec<_>>();
+	// Only `processing`/`rejected` projects are relevant, so narrow down
+	// before pulling any thread data.
+	let candidate_projects = DBProject::get_many_ids(project_ids, pool, redis)
+		.await
+		.wrap_internal_err("fetching projects from database")?
+		.into_iter()
+		.filter(|project| {
+			matches!(
+				project.inner.status,
+				ProjectStatus::Processing | ProjectStatus::Rejected
+			)
+		})
+		.collect::<Vec<_>>();
 
-    if candidate_projects.is_empty() {
-        return Ok(Vec::new());
-    }
+	if candidate_projects.is_empty() {
+		return Ok(Vec::new());
+	}
 
-    let thread_ids = candidate_projects
-        .iter()
-        .map(|project| project.thread_id)
-        .collect::<Vec<_>>();
+	let thread_ids = candidate_projects
+		.iter()
+		.map(|project| project.thread_id)
+		.collect::<Vec<_>>();
 
-    let threads = DBThread::get_many(&thread_ids, pool)
-        .await
-        .wrap_internal_err("fetching threads from database")?
-        .into_iter()
-        .map(|thread| (thread.id, thread))
-        .collect::<HashMap<_, _>>();
+	let threads = DBThread::get_many(&thread_ids, pool)
+		.await
+		.wrap_internal_err("fetching threads from database")?
+		.into_iter()
+		.map(|thread| (thread.id, thread))
+		.collect::<HashMap<_, _>>();
 
-    Ok(candidate_projects
-        .into_iter()
-        .filter_map(|project| {
-            let thread = threads.get(&project.thread_id)?;
+	Ok(candidate_projects
+		.into_iter()
+		.filter_map(|project| {
+			let thread = threads.get(&project.thread_id)?;
 
-            // `DBThread::get_many` returns messages sorted oldest-first, so
-            // walking backwards finds the most recent `tech_review` entry
-            // regardless of what (if anything) was posted after it.
-            let last_review = thread.messages.iter().rev().find(|message| {
-                matches!(message.body, MessageBody::TechReview { .. })
-            })?;
+			// `DBThread::get_many` returns messages sorted oldest-first, so
+			// walking backwards finds the most recent `tech_review` entry
+			// regardless of what (if anything) was posted after it.
+			let last_review = thread.messages.iter().rev().find(|message| {
+				matches!(message.body, MessageBody::TechReview { .. })
+			})?;
 
-            let verdict = match &last_review.body {
-                MessageBody::TechReview { verdict } => *verdict,
-                _ => return None,
-            };
+			let verdict = match &last_review.body {
+				MessageBody::TechReview { verdict } => *verdict,
+				_ => return None,
+			};
 
-            if verdict != DelphiVerdict::Unsafe {
-                return None;
-            }
+			if verdict != DelphiVerdict::Unsafe {
+				return None;
+			}
 
-            Some(FlaggedProject {
-                project_id: project.inner.id.into(),
-                thread_id: project.thread_id.into(),
-                status: project.inner.status,
-                message_id: last_review.id.into(),
-                reviewed: last_review.created,
-            })
-        })
-        .collect())
+			Some(FlaggedProject {
+				project_id: project.inner.id.into(),
+				thread_id: project.thread_id.into(),
+				status: project.inner.status,
+				message_id: last_review.id.into(),
+				reviewed: last_review.created,
+			})
+		})
+		.collect())
 }

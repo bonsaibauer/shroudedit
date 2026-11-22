@@ -5,35 +5,35 @@ use serde::{Deserialize, Serialize};
 use xredis::RedisPool;
 
 use crate::{
-    auth::get_user_from_headers,
-    database::{
-        PgPool,
-        models::{
-            DBAnalyticsEvent, DBAnalyticsEventId, generate_analytics_event_id,
-        },
-    },
-    models::{
-        ids::AnalyticsEventId,
-        pats::Scopes,
-        v3::analytics_event::{AnalyticsEvent, AnalyticsEventMeta},
-    },
-    queue::session::AuthQueue,
-    routes::ApiError,
-    util::error::Context,
+	auth::get_user_from_headers,
+	database::{
+		PgPool,
+		models::{
+			DBAnalyticsEvent, DBAnalyticsEventId, generate_analytics_event_id,
+		},
+	},
+	models::{
+		ids::AnalyticsEventId,
+		pats::Scopes,
+		v3::analytics_event::{AnalyticsEvent, AnalyticsEventMeta},
+	},
+	queue::session::AuthQueue,
+	routes::ApiError,
+	util::error::Context,
 };
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    cfg.service(analytics_event_create)
-        .service(analytics_event_edit)
-        .service(analytics_event_delete);
+	cfg.service(analytics_event_create)
+		.service(analytics_event_edit)
+		.service(analytics_event_delete);
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct AnalyticsEventUpsert {
-    #[serde(flatten)]
-    pub meta: AnalyticsEventMeta,
-    pub starts: DateTime<Utc>,
-    pub ends: DateTime<Utc>,
+	#[serde(flatten)]
+	pub meta: AnalyticsEventMeta,
+	pub starts: DateTime<Utc>,
+	pub ends: DateTime<Utc>,
 }
 
 /// Create an analytics event.
@@ -43,57 +43,57 @@ pub struct AnalyticsEventUpsert {
 )]
 #[post("")]
 pub async fn analytics_event_create(
-    req: HttpRequest,
-    event: web::Json<AnalyticsEventUpsert>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	event: web::Json<AnalyticsEventUpsert>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<web::Json<AnalyticsEvent>, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::empty(),
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::empty(),
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    if !user.role.is_admin() {
-        return Err(ApiError::Auth(eyre!(
-            "you do not have permission to manage analytics events"
-        )));
-    }
+	if !user.role.is_admin() {
+		return Err(ApiError::Auth(eyre!(
+			"you do not have permission to manage analytics events"
+		)));
+	}
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("failed to begin transaction")?;
-    let id = generate_analytics_event_id(&mut transaction)
-        .await
-        .wrap_internal_err("failed to generate analytics event ID")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("failed to begin transaction")?;
+	let id = generate_analytics_event_id(&mut transaction)
+		.await
+		.wrap_internal_err("failed to generate analytics event ID")?;
 
-    let event = DBAnalyticsEvent {
-        id,
-        meta: event.meta.clone(),
-        starts: event.starts,
-        ends: event.ends,
-    };
-    event
-        .insert(&mut transaction)
-        .await
-        .wrap_internal_err("failed to insert analytics event")?;
+	let event = DBAnalyticsEvent {
+		id,
+		meta: event.meta.clone(),
+		starts: event.starts,
+		ends: event.ends,
+	};
+	event
+		.insert(&mut transaction)
+		.await
+		.wrap_internal_err("failed to insert analytics event")?;
 
-    transaction
-        .commit()
-        .await
-        .wrap_internal_err("failed to commit transaction")?;
-    DBAnalyticsEvent::clear_cache(&redis)
-        .await
-        .wrap_internal_err("failed to clear analytics event cache")?;
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("failed to commit transaction")?;
+	DBAnalyticsEvent::clear_cache(&redis)
+		.await
+		.wrap_internal_err("failed to clear analytics event cache")?;
 
-    Ok(web::Json(event.into()))
+	Ok(web::Json(event.into()))
 }
 
 /// Update an analytics event.
@@ -103,49 +103,49 @@ pub async fn analytics_event_create(
 )]
 #[patch("/{id}")]
 pub async fn analytics_event_edit(
-    req: HttpRequest,
-    id: web::Path<(AnalyticsEventId,)>,
-    event: web::Json<AnalyticsEventUpsert>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	id: web::Path<(AnalyticsEventId,)>,
+	event: web::Json<AnalyticsEventUpsert>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<web::Json<AnalyticsEvent>, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::empty(),
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::empty(),
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    if !user.role.is_admin() {
-        return Err(ApiError::Auth(eyre!(
-            "you do not have permission to manage analytics events"
-        )));
-    }
+	if !user.role.is_admin() {
+		return Err(ApiError::Auth(eyre!(
+			"you do not have permission to manage analytics events"
+		)));
+	}
 
-    let event = DBAnalyticsEvent {
-        id: DBAnalyticsEventId::from(id.into_inner().0),
-        meta: event.meta.clone(),
-        starts: event.starts,
-        ends: event.ends,
-    };
+	let event = DBAnalyticsEvent {
+		id: DBAnalyticsEventId::from(id.into_inner().0),
+		meta: event.meta.clone(),
+		starts: event.starts,
+		ends: event.ends,
+	};
 
-    let updated = event
-        .update(&**pool)
-        .await
-        .wrap_internal_err("failed to update analytics event")?;
-    if !updated {
-        return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
-    }
-    DBAnalyticsEvent::clear_cache(&redis)
-        .await
-        .wrap_internal_err("failed to clear analytics event cache")?;
+	let updated = event
+		.update(&**pool)
+		.await
+		.wrap_internal_err("failed to update analytics event")?;
+	if !updated {
+		return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
+	}
+	DBAnalyticsEvent::clear_cache(&redis)
+		.await
+		.wrap_internal_err("failed to clear analytics event cache")?;
 
-    Ok(web::Json(event.into()))
+	Ok(web::Json(event.into()))
 }
 
 /// Delete an analytics event.
@@ -155,41 +155,41 @@ pub async fn analytics_event_edit(
 )]
 #[delete("/{id}")]
 pub async fn analytics_event_delete(
-    req: HttpRequest,
-    id: web::Path<(AnalyticsEventId,)>,
-    pool: web::Data<PgPool>,
-    redis: web::Data<RedisPool>,
-    session_queue: web::Data<AuthQueue>,
+	req: HttpRequest,
+	id: web::Path<(AnalyticsEventId,)>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
 ) -> Result<(), ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::empty(),
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::empty(),
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    if !user.role.is_admin() {
-        return Err(ApiError::Auth(eyre!(
-            "you do not have permission to manage analytics events"
-        )));
-    }
+	if !user.role.is_admin() {
+		return Err(ApiError::Auth(eyre!(
+			"you do not have permission to manage analytics events"
+		)));
+	}
 
-    let deleted = DBAnalyticsEvent::remove(
-        DBAnalyticsEventId::from(id.into_inner().0),
-        &**pool,
-    )
-    .await
-    .wrap_internal_err("failed to delete analytics event")?;
-    if !deleted {
-        return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
-    }
-    DBAnalyticsEvent::clear_cache(&redis)
-        .await
-        .wrap_internal_err("failed to clear analytics event cache")?;
+	let deleted = DBAnalyticsEvent::remove(
+		DBAnalyticsEventId::from(id.into_inner().0),
+		&**pool,
+	)
+	.await
+	.wrap_internal_err("failed to delete analytics event")?;
+	if !deleted {
+		return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
+	}
+	DBAnalyticsEvent::clear_cache(&redis)
+		.await
+		.wrap_internal_err("failed to clear analytics event cache")?;
 
-    Ok(())
+	Ok(())
 }

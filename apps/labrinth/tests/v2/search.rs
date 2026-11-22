@@ -18,8 +18,8 @@ use std::sync::Arc;
 
 #[actix_rt::test]
 async fn search_projects() {
-    // Test setup and dummy data
-    with_test_environment(Some(10), |test_env: TestEnvironment<ApiV2>| async move {
+	// Test setup and dummy data
+	with_test_environment(Some(10), |test_env: TestEnvironment<ApiV2>| async move {
         let api = &test_env.api;
         let test_name = test_env.db.database_name.clone();
 

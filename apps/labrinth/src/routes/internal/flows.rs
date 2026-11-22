@@ -1,5 +1,5 @@
 use crate::auth::validate::{
-    get_full_user_from_headers, get_user_record_from_bearer_token,
+	get_full_user_from_headers, get_user_record_from_bearer_token,
 };
 use crate::auth::{AuthProvider, AuthenticationError, get_user_from_headers};
 use crate::database::PgPool;
@@ -26,7 +26,7 @@ use crate::util::ext::get_image_ext;
 use crate::util::img::upload_image_optimized;
 use crate::util::neverbounce::{check_email, email_check_error_generic};
 use crate::util::usercheck::{
-    DecisionAction, check_email_gate, gate_block_error,
+	DecisionAction, check_email_gate, gate_block_error,
 };
 use crate::util::validate::validation_errors_to_string;
 use actix_http::header::LOCATION;
@@ -58,781 +58,781 @@ use url::Url;
 use uuid::Uuid;
 use validator::Validate;
 use webauthn_rs::prelude::{
-    CreationChallengeResponse, CredentialID, DiscoverableKey,
-    PublicKeyCredential, RegisterPublicKeyCredential, RequestChallengeResponse,
-    Webauthn, WebauthnError,
+	CreationChallengeResponse, CredentialID, DiscoverableKey,
+	PublicKeyCredential, RegisterPublicKeyCredential, RequestChallengeResponse,
+	Webauthn, WebauthnError,
 };
 use xredis::RedisPool;
 use zxcvbn::Score;
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    cfg.service(
-        web::scope("/auth")
-            .service(init)
-            .service(auth_callback)
-            .service(delete_auth_provider)
-            .service(create_oauth_account)
-            .service(validate_create_account_with_password)
-            .service(create_account_with_password)
-            .service(login_password)
-            .service(login_2fa)
-            .service(begin_2fa_flow)
-            .service(finish_2fa_flow)
-            .service(remove_2fa)
-            .service(reset_password_begin)
-            .service(change_password)
-            .service(resend_verify_email)
-            .service(set_email)
-            .service(verify_email)
-            .service(subscribe_newsletter)
-            .service(get_newsletter_subscription_status)
-            .service(discord_community_link)
-            .service(register_passkey_start)
-            .service(register_passkey_finish)
-            .service(authenticate_passkey_start)
-            .service(authenticate_passkey_finish)
-            .service(list_passkeys)
-            .service(rename_passkey)
-            .service(delete_passkey),
-    );
+	cfg.service(
+		web::scope("/auth")
+			.service(init)
+			.service(auth_callback)
+			.service(delete_auth_provider)
+			.service(create_oauth_account)
+			.service(validate_create_account_with_password)
+			.service(create_account_with_password)
+			.service(login_password)
+			.service(login_2fa)
+			.service(begin_2fa_flow)
+			.service(finish_2fa_flow)
+			.service(remove_2fa)
+			.service(reset_password_begin)
+			.service(change_password)
+			.service(resend_verify_email)
+			.service(set_email)
+			.service(verify_email)
+			.service(subscribe_newsletter)
+			.service(get_newsletter_subscription_status)
+			.service(discord_community_link)
+			.service(register_passkey_start)
+			.service(register_passkey_finish)
+			.service(authenticate_passkey_start)
+			.service(authenticate_passkey_finish)
+			.service(list_passkeys)
+			.service(rename_passkey)
+			.service(delete_passkey),
+	);
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct TempUser {
-    pub id: String,
-    pub username: String,
-    pub email: Option<String>,
+	pub id: String,
+	pub username: String,
+	pub email: Option<String>,
 
-    pub avatar_url: Option<String>,
-    pub bio: Option<String>,
+	pub avatar_url: Option<String>,
+	pub bio: Option<String>,
 
-    pub country: Option<String>,
+	pub country: Option<String>,
 }
 
 #[derive(Debug, Error)]
 pub enum CreateAccountError {
-    #[error(
-        "User email is already registered on ShroudEdit. Try 'Forgot password' to access your account."
-    )]
-    DuplicateEmail,
-    #[error("Username is already taken on ShroudEdit.")]
-    UsernameTaken,
-    #[error("{}", match .0 {
+	#[error(
+		"User email is already registered on ShroudEdit. Try 'Forgot password' to access your account."
+	)]
+	DuplicateEmail,
+	#[error("Username is already taken on ShroudEdit.")]
+	UsernameTaken,
+	#[error("{}", match .0 {
         Some(feedback) => format!("Password too weak: {feedback}"),
         None => "Specified password is too weak! Please improve its strength.".to_string(),
     })]
-    WeakPassword(Option<String>),
-    #[error("{0}")]
-    InvalidInput(String),
-    #[error(transparent)]
-    Api(#[from] ApiError),
+	WeakPassword(Option<String>),
+	#[error("{0}")]
+	InvalidInput(String),
+	#[error(transparent)]
+	Api(#[from] ApiError),
 }
 
 impl CreateAccountError {
-    fn as_api_error(&self) -> ApiErrorResponse<'_> {
-        match self {
-            Self::UsernameTaken => ApiErrorResponse {
-                error: "username_taken",
-                description: self.to_string(),
-                details: None,
-            },
-            Self::DuplicateEmail => ApiErrorResponse {
-                error: "duplicate_email",
-                description: self.to_string(),
-                details: None,
-            },
-            Self::WeakPassword(_) => ApiErrorResponse {
-                error: "weak_password",
-                description: self.to_string(),
-                details: None,
-            },
-            Self::InvalidInput(_) => ApiErrorResponse {
-                error: "invalid_input",
-                description: self.to_string(),
-                details: None,
-            },
-            Self::Api(error) => error.as_api_error(),
-        }
-    }
+	fn as_api_error(&self) -> ApiErrorResponse<'_> {
+		match self {
+			Self::UsernameTaken => ApiErrorResponse {
+				error: "username_taken",
+				description: self.to_string(),
+				details: None,
+			},
+			Self::DuplicateEmail => ApiErrorResponse {
+				error: "duplicate_email",
+				description: self.to_string(),
+				details: None,
+			},
+			Self::WeakPassword(_) => ApiErrorResponse {
+				error: "weak_password",
+				description: self.to_string(),
+				details: None,
+			},
+			Self::InvalidInput(_) => ApiErrorResponse {
+				error: "invalid_input",
+				description: self.to_string(),
+				details: None,
+			},
+			Self::Api(error) => error.as_api_error(),
+		}
+	}
 }
 
 impl actix_web::ResponseError for CreateAccountError {
-    fn status_code(&self) -> StatusCode {
-        match self {
-            Self::UsernameTaken
-            | Self::DuplicateEmail
-            | Self::WeakPassword(_)
-            | Self::InvalidInput(_) => StatusCode::BAD_REQUEST,
-            Self::Api(error) => actix_web::ResponseError::status_code(error),
-        }
-    }
+	fn status_code(&self) -> StatusCode {
+		match self {
+			Self::UsernameTaken
+			| Self::DuplicateEmail
+			| Self::WeakPassword(_)
+			| Self::InvalidInput(_) => StatusCode::BAD_REQUEST,
+			Self::Api(error) => actix_web::ResponseError::status_code(error),
+		}
+	}
 
-    fn error_response(&self) -> HttpResponse {
-        HttpResponse::build(self.status_code()).json(self.as_api_error())
-    }
+	fn error_response(&self) -> HttpResponse {
+		HttpResponse::build(self.status_code()).json(self.as_api_error())
+	}
 }
 
 impl TempUser {
-    async fn create_account(
-        self,
-        provider: AuthProvider,
-        transaction: &mut PgTransaction<'_>,
-        client: &PgPool,
-        file_host: &dyn FileHost,
-        redis: &RedisPool,
-        username: String,
-        sign_up_newsletter: bool,
-    ) -> Result<DBUserId, CreateAccountError> {
-        if let Some(email) = &self.email
-            && crate::database::models::DBUser::get_by_email(email, client)
-                .await
-                .wrap_internal_err("fetching existing user by email")?
-                .is_some()
-        {
-            return Err(CreateAccountError::DuplicateEmail);
-        }
+	async fn create_account(
+		self,
+		provider: AuthProvider,
+		transaction: &mut PgTransaction<'_>,
+		client: &PgPool,
+		file_host: &dyn FileHost,
+		redis: &RedisPool,
+		username: String,
+		sign_up_newsletter: bool,
+	) -> Result<DBUserId, CreateAccountError> {
+		if let Some(email) = &self.email
+			&& crate::database::models::DBUser::get_by_email(email, client)
+				.await
+				.wrap_internal_err("fetching existing user by email")?
+				.is_some()
+		{
+			return Err(CreateAccountError::DuplicateEmail);
+		}
 
-        let user_id = crate::database::models::generate_user_id(transaction)
-            .await
-            .wrap_internal_err("generating user ID")?;
+		let user_id = crate::database::models::generate_user_id(transaction)
+			.await
+			.wrap_internal_err("generating user ID")?;
 
-        let existing_id = DBUser::get(&username, client, redis)
-            .await
-            .wrap_internal_err("fetching existing user by ID")?;
+		let existing_id = DBUser::get(&username, client, redis)
+			.await
+			.wrap_internal_err("fetching existing user by ID")?;
 
-        if existing_id.is_some() {
-            return Err(CreateAccountError::UsernameTaken);
-        }
+		if existing_id.is_some() {
+			return Err(CreateAccountError::UsernameTaken);
+		}
 
-        let (avatar_url, raw_avatar_url) = if let Some(avatar_url) =
-            self.avatar_url
-        {
-            let res = reqwest::get(&avatar_url)
-                .await
-                .wrap_internal_err("fetching OAuth user avatar")?;
-            let headers = res.headers().clone();
+		let (avatar_url, raw_avatar_url) = if let Some(avatar_url) =
+			self.avatar_url
+		{
+			let res = reqwest::get(&avatar_url)
+				.await
+				.wrap_internal_err("fetching OAuth user avatar")?;
+			let headers = res.headers().clone();
 
-            let img_data = if let Some(content_type) = headers
-                .get(reqwest::header::CONTENT_TYPE)
-                .and_then(|ct| ct.to_str().ok())
-            {
-                get_image_ext(content_type)
-            } else {
-                avatar_url.rsplit('.').next()
-            };
+			let img_data = if let Some(content_type) = headers
+				.get(reqwest::header::CONTENT_TYPE)
+				.and_then(|ct| ct.to_str().ok())
+			{
+				get_image_ext(content_type)
+			} else {
+				avatar_url.rsplit('.').next()
+			};
 
-            if let Some(ext) = img_data {
-                let bytes = res
-                    .bytes()
-                    .await
-                    .wrap_internal_err("reading OAuth user avatar")?;
+			if let Some(ext) = img_data {
+				let bytes = res
+					.bytes()
+					.await
+					.wrap_internal_err("reading OAuth user avatar")?;
 
-                let upload_result = upload_image_optimized(
-                    &format!("user/{}", ariadne::ids::UserId::from(user_id)),
-                    FileHostPublicity::Public,
-                    bytes,
-                    ext,
-                    Some(96),
-                    Some(1.0),
-                    file_host,
-                )
-                .await;
+				let upload_result = upload_image_optimized(
+					&format!("user/{}", ariadne::ids::UserId::from(user_id)),
+					FileHostPublicity::Public,
+					bytes,
+					ext,
+					Some(96),
+					Some(1.0),
+					file_host,
+				)
+				.await;
 
-                if let Ok(upload_result) = upload_result {
-                    (Some(upload_result.url), Some(upload_result.raw_url))
-                } else {
-                    (None, None)
-                }
-            } else {
-                (None, None)
-            }
-        } else {
-            (None, None)
-        };
+				if let Ok(upload_result) = upload_result {
+					(Some(upload_result.url), Some(upload_result.raw_url))
+				} else {
+					(None, None)
+				}
+			} else {
+				(None, None)
+			}
+		} else {
+			(None, None)
+		};
 
-        DBUser {
-            id: user_id,
-            github_id: if provider == AuthProvider::GitHub {
-                Some(
-                    self.id
-                        .clone()
-                        .parse()
-                        .wrap_internal_err("parsing GitHub user ID")?,
-                )
-            } else {
-                None
-            },
-            discord_id: if provider == AuthProvider::Discord {
-                Some(
-                    self.id
-                        .parse()
-                        .wrap_internal_err("parsing Discord user ID")?,
-                )
-            } else {
-                None
-            },
-            gitlab_id: if provider == AuthProvider::GitLab {
-                Some(
-                    self.id
-                        .parse()
-                        .wrap_internal_err("parsing GitLab user ID")?,
-                )
-            } else {
-                None
-            },
-            google_id: if provider == AuthProvider::Google {
-                Some(self.id.clone())
-            } else {
-                None
-            },
-            steam_id: if provider == AuthProvider::Steam {
-                Some(
-                    self.id
-                        .parse()
-                        .wrap_internal_err("parsing Steam user ID")?,
-                )
-            } else {
-                None
-            },
-            microsoft_id: if provider == AuthProvider::Microsoft {
-                Some(self.id.clone())
-            } else {
-                None
-            },
-            password: None,
-            paypal_id: if provider == AuthProvider::PayPal {
-                Some(self.id)
-            } else {
-                None
-            },
-            paypal_country: self.country,
-            paypal_email: if provider == AuthProvider::PayPal {
-                self.email.clone()
-            } else {
-                None
-            },
-            venmo_handle: None,
-            stripe_customer_id: None,
-            totp_secret: None,
-            username,
-            email: self.email.clone(),
-            email_verified: false,
-            avatar_url,
-            raw_avatar_url,
-            bio: self.bio,
-            created: Utc::now(),
-            role: Role::Developer.to_string(),
-            badges: Badges::default(),
-            campaign_pride_26: None,
-            allow_friend_requests: true,
-            is_subscribed_to_newsletter: sign_up_newsletter,
-            eligibility_verified_at: Some(Utc::now()),
-        }
-        .insert(transaction)
-        .await
-        .wrap_internal_err("inserting user into database")?;
+		DBUser {
+			id: user_id,
+			github_id: if provider == AuthProvider::GitHub {
+				Some(
+					self.id
+						.clone()
+						.parse()
+						.wrap_internal_err("parsing GitHub user ID")?,
+				)
+			} else {
+				None
+			},
+			discord_id: if provider == AuthProvider::Discord {
+				Some(
+					self.id
+						.parse()
+						.wrap_internal_err("parsing Discord user ID")?,
+				)
+			} else {
+				None
+			},
+			gitlab_id: if provider == AuthProvider::GitLab {
+				Some(
+					self.id
+						.parse()
+						.wrap_internal_err("parsing GitLab user ID")?,
+				)
+			} else {
+				None
+			},
+			google_id: if provider == AuthProvider::Google {
+				Some(self.id.clone())
+			} else {
+				None
+			},
+			steam_id: if provider == AuthProvider::Steam {
+				Some(
+					self.id
+						.parse()
+						.wrap_internal_err("parsing Steam user ID")?,
+				)
+			} else {
+				None
+			},
+			microsoft_id: if provider == AuthProvider::Microsoft {
+				Some(self.id.clone())
+			} else {
+				None
+			},
+			password: None,
+			paypal_id: if provider == AuthProvider::PayPal {
+				Some(self.id)
+			} else {
+				None
+			},
+			paypal_country: self.country,
+			paypal_email: if provider == AuthProvider::PayPal {
+				self.email.clone()
+			} else {
+				None
+			},
+			venmo_handle: None,
+			stripe_customer_id: None,
+			totp_secret: None,
+			username,
+			email: self.email.clone(),
+			email_verified: false,
+			avatar_url,
+			raw_avatar_url,
+			bio: self.bio,
+			created: Utc::now(),
+			role: Role::Developer.to_string(),
+			badges: Badges::default(),
+			campaign_pride_26: None,
+			allow_friend_requests: true,
+			is_subscribed_to_newsletter: sign_up_newsletter,
+			eligibility_verified_at: Some(Utc::now()),
+		}
+		.insert(transaction)
+		.await
+		.wrap_internal_err("inserting user into database")?;
 
-        Ok(user_id)
-    }
+		Ok(user_id)
+	}
 }
 
 impl AuthProvider {
-    pub fn get_redirect_url(
-        &self,
-        state: String,
-    ) -> Result<String, AuthenticationError> {
-        let self_addr = &ENV.SELF_ADDR;
-        let raw_redirect_uri = format!("{self_addr}/v2/auth/callback");
-        let redirect_uri = urlencoding::encode(&raw_redirect_uri);
+	pub fn get_redirect_url(
+		&self,
+		state: String,
+	) -> Result<String, AuthenticationError> {
+		let self_addr = &ENV.SELF_ADDR;
+		let raw_redirect_uri = format!("{self_addr}/v2/auth/callback");
+		let redirect_uri = urlencoding::encode(&raw_redirect_uri);
 
-        Ok(match self {
-            AuthProvider::GitHub => {
-                let client_id = &ENV.GITHUB_CLIENT_ID;
+		Ok(match self {
+			AuthProvider::GitHub => {
+				let client_id = &ENV.GITHUB_CLIENT_ID;
 
-                format!(
-                    "https://github.com/login/oauth/authorize?client_id={client_id}&prompt=select_account&state={state}&scope=read%3Auser%20user%3Aemail&redirect_uri={redirect_uri}",
-                )
-            }
-            AuthProvider::Discord => {
-                let client_id = &ENV.DISCORD_CLIENT_ID;
+				format!(
+					"https://github.com/login/oauth/authorize?client_id={client_id}&prompt=select_account&state={state}&scope=read%3Auser%20user%3Aemail&redirect_uri={redirect_uri}",
+				)
+			}
+			AuthProvider::Discord => {
+				let client_id = &ENV.DISCORD_CLIENT_ID;
 
-                format!(
-                    "https://discord.com/api/oauth2/authorize?client_id={client_id}&state={state}&response_type=code&scope=identify%20email&redirect_uri={redirect_uri}"
-                )
-            }
-            AuthProvider::Microsoft => {
-                let client_id = &ENV.MICROSOFT_CLIENT_ID;
+				format!(
+					"https://discord.com/api/oauth2/authorize?client_id={client_id}&state={state}&response_type=code&scope=identify%20email&redirect_uri={redirect_uri}"
+				)
+			}
+			AuthProvider::Microsoft => {
+				let client_id = &ENV.MICROSOFT_CLIENT_ID;
 
-                format!(
-                    "https://login.live.com/oauth20_authorize.srf?client_id={client_id}&response_type=code&scope=user.read&state={state}&prompt=select_account&redirect_uri={redirect_uri}"
-                )
-            }
-            AuthProvider::GitLab => {
-                let client_id = &ENV.GITLAB_CLIENT_ID;
+				format!(
+					"https://login.live.com/oauth20_authorize.srf?client_id={client_id}&response_type=code&scope=user.read&state={state}&prompt=select_account&redirect_uri={redirect_uri}"
+				)
+			}
+			AuthProvider::GitLab => {
+				let client_id = &ENV.GITLAB_CLIENT_ID;
 
-                format!(
-                    "https://gitlab.com/oauth/authorize?client_id={client_id}&state={state}&scope=read_user+profile+email&response_type=code&redirect_uri={redirect_uri}",
-                )
-            }
-            AuthProvider::Google => {
-                let client_id = &ENV.GOOGLE_CLIENT_ID;
+				format!(
+					"https://gitlab.com/oauth/authorize?client_id={client_id}&state={state}&scope=read_user+profile+email&response_type=code&redirect_uri={redirect_uri}",
+				)
+			}
+			AuthProvider::Google => {
+				let client_id = &ENV.GOOGLE_CLIENT_ID;
 
-                format!(
-                    "https://accounts.google.com/o/oauth2/v2/auth?client_id={}&prompt=select_account&state={}&scope={}&response_type=code&redirect_uri={}",
-                    client_id,
-                    state,
-                    urlencoding::encode(
-                        "https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
-                    ),
-                    redirect_uri,
-                )
-            }
-            AuthProvider::Steam => {
-                format!(
-                    "https://steamcommunity.com/openid/login?openid.ns={}&openid.mode={}&openid.return_to={}{}{}&openid.realm={}&openid.identity={}&openid.claimed_id={}",
-                    urlencoding::encode("http://specs.openid.net/auth/2.0"),
-                    "checkid_setup",
-                    redirect_uri,
-                    urlencoding::encode("?state="),
-                    state,
-                    self_addr,
-                    "http://specs.openid.net/auth/2.0/identifier_select",
-                    "http://specs.openid.net/auth/2.0/identifier_select",
-                )
-            }
-            AuthProvider::PayPal => {
-                let api_url = &ENV.PAYPAL_API_URL;
-                let client_id = &ENV.PAYPAL_CLIENT_ID;
+				format!(
+					"https://accounts.google.com/o/oauth2/v2/auth?client_id={}&prompt=select_account&state={}&scope={}&response_type=code&redirect_uri={}",
+					client_id,
+					state,
+					urlencoding::encode(
+						"https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile"
+					),
+					redirect_uri,
+				)
+			}
+			AuthProvider::Steam => {
+				format!(
+					"https://steamcommunity.com/openid/login?openid.ns={}&openid.mode={}&openid.return_to={}{}{}&openid.realm={}&openid.identity={}&openid.claimed_id={}",
+					urlencoding::encode("http://specs.openid.net/auth/2.0"),
+					"checkid_setup",
+					redirect_uri,
+					urlencoding::encode("?state="),
+					state,
+					self_addr,
+					"http://specs.openid.net/auth/2.0/identifier_select",
+					"http://specs.openid.net/auth/2.0/identifier_select",
+				)
+			}
+			AuthProvider::PayPal => {
+				let api_url = &ENV.PAYPAL_API_URL;
+				let client_id = &ENV.PAYPAL_CLIENT_ID;
 
-                let auth_url = if api_url.contains("sandbox") {
-                    "sandbox.paypal.com"
-                } else {
-                    "paypal.com"
-                };
+				let auth_url = if api_url.contains("sandbox") {
+					"sandbox.paypal.com"
+				} else {
+					"paypal.com"
+				};
 
-                format!(
-                    "https://{auth_url}/connect?flowEntry=static&client_id={client_id}&scope={}&response_type=code&redirect_uri={redirect_uri}&state={state}",
-                    urlencoding::encode(
-                        "openid email address https://uri.paypal.com/services/paypalattributes"
-                    ),
-                )
-            }
-        })
-    }
+				format!(
+					"https://{auth_url}/connect?flowEntry=static&client_id={client_id}&scope={}&response_type=code&redirect_uri={redirect_uri}&state={state}",
+					urlencoding::encode(
+						"openid email address https://uri.paypal.com/services/paypalattributes"
+					),
+				)
+			}
+		})
+	}
 
-    pub async fn get_token(
-        &self,
-        query: HashMap<String, String>,
-    ) -> Result<String, AuthenticationError> {
-        let redirect_uri = format!("{}/v2/auth/callback", &ENV.SELF_ADDR);
+	pub async fn get_token(
+		&self,
+		query: HashMap<String, String>,
+	) -> Result<String, AuthenticationError> {
+		let redirect_uri = format!("{}/v2/auth/callback", &ENV.SELF_ADDR);
 
-        #[derive(Deserialize)]
-        struct AccessToken {
-            pub access_token: String,
-        }
+		#[derive(Deserialize)]
+		struct AccessToken {
+			pub access_token: String,
+		}
 
-        let res = match self {
-            AuthProvider::GitHub => {
-                let code = query
-                    .get("code")
-                    .ok_or_else(|| AuthenticationError::InvalidCredentials)?;
-                let client_id = ENV.GITHUB_CLIENT_ID.as_str();
-                let client_secret = ENV.GITHUB_CLIENT_SECRET.as_str();
+		let res = match self {
+			AuthProvider::GitHub => {
+				let code = query
+					.get("code")
+					.ok_or_else(|| AuthenticationError::InvalidCredentials)?;
+				let client_id = ENV.GITHUB_CLIENT_ID.as_str();
+				let client_secret = ENV.GITHUB_CLIENT_SECRET.as_str();
 
-                let url = format!(
-                    "https://github.com/login/oauth/access_token?client_id={client_id}&client_secret={client_secret}&code={code}&redirect_uri={redirect_uri}"
-                );
+				let url = format!(
+					"https://github.com/login/oauth/access_token?client_id={client_id}&client_secret={client_secret}&code={code}&redirect_uri={redirect_uri}"
+				);
 
-                let token: AccessToken = reqwest::Client::new()
-                    .post(&url)
-                    .header(reqwest::header::ACCEPT, "application/json")
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let token: AccessToken = reqwest::Client::new()
+					.post(&url)
+					.header(reqwest::header::ACCEPT, "application/json")
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                token.access_token
-            }
-            AuthProvider::Discord => {
-                let code = query
-                    .get("code")
-                    .ok_or_else(|| AuthenticationError::InvalidCredentials)?;
-                let client_id = ENV.DISCORD_CLIENT_ID.as_str();
-                let client_secret = ENV.DISCORD_CLIENT_SECRET.as_str();
+				token.access_token
+			}
+			AuthProvider::Discord => {
+				let code = query
+					.get("code")
+					.ok_or_else(|| AuthenticationError::InvalidCredentials)?;
+				let client_id = ENV.DISCORD_CLIENT_ID.as_str();
+				let client_secret = ENV.DISCORD_CLIENT_SECRET.as_str();
 
-                let mut map = HashMap::new();
-                map.insert("client_id", client_id);
-                map.insert("client_secret", client_secret);
-                map.insert("code", code);
-                map.insert("grant_type", "authorization_code");
-                map.insert("redirect_uri", &redirect_uri);
+				let mut map = HashMap::new();
+				map.insert("client_id", client_id);
+				map.insert("client_secret", client_secret);
+				map.insert("code", code);
+				map.insert("grant_type", "authorization_code");
+				map.insert("redirect_uri", &redirect_uri);
 
-                let token: AccessToken = reqwest::Client::new()
-                    .post("https://discord.com/api/v10/oauth2/token")
-                    .header(reqwest::header::ACCEPT, "application/json")
-                    .form(&map)
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let token: AccessToken = reqwest::Client::new()
+					.post("https://discord.com/api/v10/oauth2/token")
+					.header(reqwest::header::ACCEPT, "application/json")
+					.form(&map)
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                token.access_token
-            }
-            AuthProvider::Microsoft => {
-                let code = query
-                    .get("code")
-                    .ok_or_else(|| AuthenticationError::InvalidCredentials)?;
-                let client_id = ENV.MICROSOFT_CLIENT_ID.as_str();
-                let client_secret = ENV.MICROSOFT_CLIENT_SECRET.as_str();
+				token.access_token
+			}
+			AuthProvider::Microsoft => {
+				let code = query
+					.get("code")
+					.ok_or_else(|| AuthenticationError::InvalidCredentials)?;
+				let client_id = ENV.MICROSOFT_CLIENT_ID.as_str();
+				let client_secret = ENV.MICROSOFT_CLIENT_SECRET.as_str();
 
-                let mut map = HashMap::new();
-                map.insert("client_id", client_id);
-                map.insert("client_secret", client_secret);
-                map.insert("code", code);
-                map.insert("grant_type", "authorization_code");
-                map.insert("redirect_uri", &redirect_uri);
+				let mut map = HashMap::new();
+				map.insert("client_id", client_id);
+				map.insert("client_secret", client_secret);
+				map.insert("code", code);
+				map.insert("grant_type", "authorization_code");
+				map.insert("redirect_uri", &redirect_uri);
 
-                let token: AccessToken = reqwest::Client::new()
-                    .post("https://login.live.com/oauth20_token.srf")
-                    .header(reqwest::header::ACCEPT, "application/json")
-                    .form(&map)
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let token: AccessToken = reqwest::Client::new()
+					.post("https://login.live.com/oauth20_token.srf")
+					.header(reqwest::header::ACCEPT, "application/json")
+					.form(&map)
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                token.access_token
-            }
-            AuthProvider::GitLab => {
-                let code = query
-                    .get("code")
-                    .ok_or_else(|| AuthenticationError::InvalidCredentials)?;
-                let client_id = ENV.GITLAB_CLIENT_ID.as_str();
-                let client_secret = ENV.GITLAB_CLIENT_SECRET.as_str();
+				token.access_token
+			}
+			AuthProvider::GitLab => {
+				let code = query
+					.get("code")
+					.ok_or_else(|| AuthenticationError::InvalidCredentials)?;
+				let client_id = ENV.GITLAB_CLIENT_ID.as_str();
+				let client_secret = ENV.GITLAB_CLIENT_SECRET.as_str();
 
-                let mut map = HashMap::new();
-                map.insert("client_id", client_id);
-                map.insert("client_secret", client_secret);
-                map.insert("code", code);
-                map.insert("grant_type", "authorization_code");
-                map.insert("redirect_uri", &redirect_uri);
+				let mut map = HashMap::new();
+				map.insert("client_id", client_id);
+				map.insert("client_secret", client_secret);
+				map.insert("code", code);
+				map.insert("grant_type", "authorization_code");
+				map.insert("redirect_uri", &redirect_uri);
 
-                let token: AccessToken = reqwest::Client::new()
-                    .post("https://gitlab.com/oauth/token")
-                    .header(reqwest::header::ACCEPT, "application/json")
-                    .form(&map)
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let token: AccessToken = reqwest::Client::new()
+					.post("https://gitlab.com/oauth/token")
+					.header(reqwest::header::ACCEPT, "application/json")
+					.form(&map)
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                token.access_token
-            }
-            AuthProvider::Google => {
-                let code = query
-                    .get("code")
-                    .ok_or_else(|| AuthenticationError::InvalidCredentials)?;
-                let client_id = ENV.GOOGLE_CLIENT_ID.as_str();
-                let client_secret = ENV.GOOGLE_CLIENT_SECRET.as_str();
+				token.access_token
+			}
+			AuthProvider::Google => {
+				let code = query
+					.get("code")
+					.ok_or_else(|| AuthenticationError::InvalidCredentials)?;
+				let client_id = ENV.GOOGLE_CLIENT_ID.as_str();
+				let client_secret = ENV.GOOGLE_CLIENT_SECRET.as_str();
 
-                let mut map = HashMap::new();
-                map.insert("client_id", client_id);
-                map.insert("client_secret", client_secret);
-                map.insert("code", code);
-                map.insert("grant_type", "authorization_code");
-                map.insert("redirect_uri", &redirect_uri);
+				let mut map = HashMap::new();
+				map.insert("client_id", client_id);
+				map.insert("client_secret", client_secret);
+				map.insert("code", code);
+				map.insert("grant_type", "authorization_code");
+				map.insert("redirect_uri", &redirect_uri);
 
-                let token: AccessToken = reqwest::Client::new()
-                    .post("https://oauth2.googleapis.com/token")
-                    .header(reqwest::header::ACCEPT, "application/json")
-                    .form(&map)
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let token: AccessToken = reqwest::Client::new()
+					.post("https://oauth2.googleapis.com/token")
+					.header(reqwest::header::ACCEPT, "application/json")
+					.form(&map)
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                token.access_token
-            }
-            AuthProvider::Steam => {
-                let mut form = HashMap::new();
+				token.access_token
+			}
+			AuthProvider::Steam => {
+				let mut form = HashMap::new();
 
-                let signed = query
-                    .get("openid.signed")
-                    .ok_or_else(|| AuthenticationError::InvalidCredentials)?;
-                form.insert(
-                    "openid.assoc_handle".to_string(),
-                    &**query.get("openid.assoc_handle").ok_or_else(|| {
-                        AuthenticationError::InvalidCredentials
-                    })?,
-                );
-                form.insert("openid.signed".to_string(), &**signed);
-                form.insert(
-                    "openid.sig".to_string(),
-                    &**query.get("openid.sig").ok_or_else(|| {
-                        AuthenticationError::InvalidCredentials
-                    })?,
-                );
-                form.insert(
-                    "openid.ns".to_string(),
-                    "http://specs.openid.net/auth/2.0",
-                );
-                form.insert("openid.mode".to_string(), "check_authentication");
+				let signed = query
+					.get("openid.signed")
+					.ok_or_else(|| AuthenticationError::InvalidCredentials)?;
+				form.insert(
+					"openid.assoc_handle".to_string(),
+					&**query.get("openid.assoc_handle").ok_or_else(|| {
+						AuthenticationError::InvalidCredentials
+					})?,
+				);
+				form.insert("openid.signed".to_string(), &**signed);
+				form.insert(
+					"openid.sig".to_string(),
+					&**query.get("openid.sig").ok_or_else(|| {
+						AuthenticationError::InvalidCredentials
+					})?,
+				);
+				form.insert(
+					"openid.ns".to_string(),
+					"http://specs.openid.net/auth/2.0",
+				);
+				form.insert("openid.mode".to_string(), "check_authentication");
 
-                for val in signed.split(',') {
-                    if let Some(arr_val) = query.get(&format!("openid.{val}")) {
-                        form.insert(format!("openid.{val}"), &**arr_val);
-                    }
-                }
+				for val in signed.split(',') {
+					if let Some(arr_val) = query.get(&format!("openid.{val}")) {
+						form.insert(format!("openid.{val}"), &**arr_val);
+					}
+				}
 
-                let res = reqwest::Client::new()
-                    .post("https://steamcommunity.com/openid/login")
-                    .header("Accept-language", "en")
-                    .form(&form)
-                    .send()
-                    .await?
-                    .text()
-                    .await?;
+				let res = reqwest::Client::new()
+					.post("https://steamcommunity.com/openid/login")
+					.header("Accept-language", "en")
+					.form(&form)
+					.send()
+					.await?
+					.text()
+					.await?;
 
-                if res.contains("is_valid:true") {
-                    let identity =
-                        query.get("openid.identity").ok_or_else(|| {
-                            AuthenticationError::InvalidCredentials
-                        })?;
+				if res.contains("is_valid:true") {
+					let identity =
+						query.get("openid.identity").ok_or_else(|| {
+							AuthenticationError::InvalidCredentials
+						})?;
 
-                    identity
-                        .rsplit('/')
-                        .next()
-                        .ok_or_else(|| AuthenticationError::InvalidCredentials)?
-                        .to_string()
-                } else {
-                    return Err(AuthenticationError::InvalidCredentials);
-                }
-            }
-            AuthProvider::PayPal => {
-                let code = query
-                    .get("code")
-                    .ok_or_else(|| AuthenticationError::InvalidCredentials)?;
-                let api_url = ENV.PAYPAL_API_URL.as_str();
-                let client_id = ENV.PAYPAL_CLIENT_ID.as_str();
-                let client_secret = ENV.PAYPAL_CLIENT_SECRET.as_str();
+					identity
+						.rsplit('/')
+						.next()
+						.ok_or_else(|| AuthenticationError::InvalidCredentials)?
+						.to_string()
+				} else {
+					return Err(AuthenticationError::InvalidCredentials);
+				}
+			}
+			AuthProvider::PayPal => {
+				let code = query
+					.get("code")
+					.ok_or_else(|| AuthenticationError::InvalidCredentials)?;
+				let api_url = ENV.PAYPAL_API_URL.as_str();
+				let client_id = ENV.PAYPAL_CLIENT_ID.as_str();
+				let client_secret = ENV.PAYPAL_CLIENT_SECRET.as_str();
 
-                let mut map = HashMap::new();
-                map.insert("code", code.as_str());
-                map.insert("grant_type", "authorization_code");
+				let mut map = HashMap::new();
+				map.insert("code", code.as_str());
+				map.insert("grant_type", "authorization_code");
 
-                let token: AccessToken = reqwest::Client::new()
-                    .post(format!("{api_url}oauth2/token"))
-                    .header(reqwest::header::ACCEPT, "application/json")
-                    .header(
-                        AUTHORIZATION,
-                        format!(
-                            "Basic {}",
-                            base64::engine::general_purpose::STANDARD
-                                .encode(format!("{client_id}:{client_secret}"))
-                        ),
-                    )
-                    .form(&map)
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let token: AccessToken = reqwest::Client::new()
+					.post(format!("{api_url}oauth2/token"))
+					.header(reqwest::header::ACCEPT, "application/json")
+					.header(
+						AUTHORIZATION,
+						format!(
+							"Basic {}",
+							base64::engine::general_purpose::STANDARD
+								.encode(format!("{client_id}:{client_secret}"))
+						),
+					)
+					.form(&map)
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                token.access_token
-            }
-        };
+				token.access_token
+			}
+		};
 
-        Ok(res)
-    }
+		Ok(res)
+	}
 
-    pub async fn get_user(
-        &self,
-        token: &str,
-    ) -> Result<TempUser, AuthenticationError> {
-        let res = match self {
-            AuthProvider::GitHub => {
-                let response = reqwest::Client::new()
-                    .get("https://api.github.com/user")
-                    .header(reqwest::header::USER_AGENT, "ShroudEdit")
-                    .header(AUTHORIZATION, format!("token {token}"))
-                    .send()
-                    .await?;
+	pub async fn get_user(
+		&self,
+		token: &str,
+	) -> Result<TempUser, AuthenticationError> {
+		let res = match self {
+			AuthProvider::GitHub => {
+				let response = reqwest::Client::new()
+					.get("https://api.github.com/user")
+					.header(reqwest::header::USER_AGENT, "ShroudEdit")
+					.header(AUTHORIZATION, format!("token {token}"))
+					.send()
+					.await?;
 
-                if token.starts_with("gho_") {
-                    let client_id = response
-                        .headers()
-                        .get("x-oauth-client-id")
-                        .and_then(|x| x.to_str().ok());
+				if token.starts_with("gho_") {
+					let client_id = response
+						.headers()
+						.get("x-oauth-client-id")
+						.and_then(|x| x.to_str().ok());
 
-                    if client_id != Some(ENV.GITHUB_CLIENT_ID.as_str()) {
-                        return Err(AuthenticationError::InvalidClientId);
-                    }
-                }
+					if client_id != Some(ENV.GITHUB_CLIENT_ID.as_str()) {
+						return Err(AuthenticationError::InvalidClientId);
+					}
+				}
 
-                #[derive(Serialize, Deserialize, Debug)]
-                pub struct GitHubUser {
-                    pub login: String,
-                    pub id: u64,
-                    pub avatar_url: String,
-                    pub name: Option<String>,
-                    pub email: Option<String>,
-                    pub bio: Option<String>,
-                }
+				#[derive(Serialize, Deserialize, Debug)]
+				pub struct GitHubUser {
+					pub login: String,
+					pub id: u64,
+					pub avatar_url: String,
+					pub name: Option<String>,
+					pub email: Option<String>,
+					pub bio: Option<String>,
+				}
 
-                let github_user: GitHubUser = response.json().await?;
+				let github_user: GitHubUser = response.json().await?;
 
-                TempUser {
-                    id: github_user.id.to_string(),
-                    username: github_user.login,
-                    email: github_user.email,
-                    avatar_url: Some(github_user.avatar_url),
-                    bio: github_user.bio,
-                    country: None,
-                }
-            }
-            AuthProvider::Discord => {
-                #[derive(Serialize, Deserialize, Debug)]
-                pub struct DiscordUser {
-                    pub username: String,
-                    pub id: String,
-                    pub avatar: Option<String>,
-                    pub global_name: Option<String>,
-                    pub email: Option<String>,
-                }
+				TempUser {
+					id: github_user.id.to_string(),
+					username: github_user.login,
+					email: github_user.email,
+					avatar_url: Some(github_user.avatar_url),
+					bio: github_user.bio,
+					country: None,
+				}
+			}
+			AuthProvider::Discord => {
+				#[derive(Serialize, Deserialize, Debug)]
+				pub struct DiscordUser {
+					pub username: String,
+					pub id: String,
+					pub avatar: Option<String>,
+					pub global_name: Option<String>,
+					pub email: Option<String>,
+				}
 
-                let discord_user: DiscordUser = reqwest::Client::new()
-                    .get("https://discord.com/api/v10/users/@me")
-                    .header(reqwest::header::USER_AGENT, "ShroudEdit")
-                    .header(AUTHORIZATION, format!("Bearer {token}"))
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let discord_user: DiscordUser = reqwest::Client::new()
+					.get("https://discord.com/api/v10/users/@me")
+					.header(reqwest::header::USER_AGENT, "ShroudEdit")
+					.header(AUTHORIZATION, format!("Bearer {token}"))
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                let id = discord_user.id.clone();
-                TempUser {
-                    id: discord_user.id,
-                    username: discord_user.username,
-                    email: discord_user.email,
-                    avatar_url: discord_user.avatar.map(|x| {
-                        format!(
-                            "https://cdn.discordapp.com/avatars/{id}/{x}.webp"
-                        )
-                    }),
-                    bio: None,
-                    country: None,
-                }
-            }
-            AuthProvider::Microsoft => {
-                #[derive(Deserialize, Debug)]
-                #[serde(rename_all = "camelCase")]
-                pub struct MicrosoftUser {
-                    pub id: String,
-                    pub mail: Option<String>,
-                    pub user_principal_name: String,
-                }
+				let id = discord_user.id.clone();
+				TempUser {
+					id: discord_user.id,
+					username: discord_user.username,
+					email: discord_user.email,
+					avatar_url: discord_user.avatar.map(|x| {
+						format!(
+							"https://cdn.discordapp.com/avatars/{id}/{x}.webp"
+						)
+					}),
+					bio: None,
+					country: None,
+				}
+			}
+			AuthProvider::Microsoft => {
+				#[derive(Deserialize, Debug)]
+				#[serde(rename_all = "camelCase")]
+				pub struct MicrosoftUser {
+					pub id: String,
+					pub mail: Option<String>,
+					pub user_principal_name: String,
+				}
 
-                let microsoft_user: MicrosoftUser = reqwest::Client::new()
+				let microsoft_user: MicrosoftUser = reqwest::Client::new()
                     .get("https://graph.microsoft.com/v1.0/me?$select=id,displayName,mail,userPrincipalName")
                     .header(reqwest::header::USER_AGENT, "ShroudEdit")
                     .header(AUTHORIZATION, format!("Bearer {token}"))
                     .send()
                     .await?.json().await?;
 
-                TempUser {
-                    id: microsoft_user.id,
-                    username: microsoft_user
-                        .user_principal_name
-                        .split('@')
-                        .next()
-                        .unwrap_or_default()
-                        .to_string(),
-                    email: microsoft_user.mail,
-                    avatar_url: None,
-                    bio: None,
-                    country: None,
-                }
-            }
-            AuthProvider::GitLab => {
-                #[derive(Serialize, Deserialize, Debug)]
-                pub struct GitLabUser {
-                    pub id: i32,
-                    pub username: String,
-                    pub email: Option<String>,
-                    pub avatar_url: Option<String>,
-                    pub name: Option<String>,
-                    pub bio: Option<String>,
-                }
+				TempUser {
+					id: microsoft_user.id,
+					username: microsoft_user
+						.user_principal_name
+						.split('@')
+						.next()
+						.unwrap_or_default()
+						.to_string(),
+					email: microsoft_user.mail,
+					avatar_url: None,
+					bio: None,
+					country: None,
+				}
+			}
+			AuthProvider::GitLab => {
+				#[derive(Serialize, Deserialize, Debug)]
+				pub struct GitLabUser {
+					pub id: i32,
+					pub username: String,
+					pub email: Option<String>,
+					pub avatar_url: Option<String>,
+					pub name: Option<String>,
+					pub bio: Option<String>,
+				}
 
-                let gitlab_user: GitLabUser = reqwest::Client::new()
-                    .get("https://gitlab.com/api/v4/user")
-                    .header(reqwest::header::USER_AGENT, "ShroudEdit")
-                    .header(AUTHORIZATION, format!("Bearer {token}"))
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let gitlab_user: GitLabUser = reqwest::Client::new()
+					.get("https://gitlab.com/api/v4/user")
+					.header(reqwest::header::USER_AGENT, "ShroudEdit")
+					.header(AUTHORIZATION, format!("Bearer {token}"))
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                TempUser {
-                    id: gitlab_user.id.to_string(),
-                    username: gitlab_user.username,
-                    email: gitlab_user.email,
-                    avatar_url: gitlab_user.avatar_url,
-                    bio: gitlab_user.bio,
-                    country: None,
-                }
-            }
-            AuthProvider::Google => {
-                #[derive(Deserialize, Debug)]
-                pub struct GoogleUser {
-                    pub id: String,
-                    pub email: String,
-                    pub picture: Option<String>,
-                }
+				TempUser {
+					id: gitlab_user.id.to_string(),
+					username: gitlab_user.username,
+					email: gitlab_user.email,
+					avatar_url: gitlab_user.avatar_url,
+					bio: gitlab_user.bio,
+					country: None,
+				}
+			}
+			AuthProvider::Google => {
+				#[derive(Deserialize, Debug)]
+				pub struct GoogleUser {
+					pub id: String,
+					pub email: String,
+					pub picture: Option<String>,
+				}
 
-                let google_user: GoogleUser = reqwest::Client::new()
-                    .get("https://www.googleapis.com/userinfo/v2/me")
-                    .header(reqwest::header::USER_AGENT, "ShroudEdit")
-                    .header(AUTHORIZATION, format!("Bearer {token}"))
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let google_user: GoogleUser = reqwest::Client::new()
+					.get("https://www.googleapis.com/userinfo/v2/me")
+					.header(reqwest::header::USER_AGENT, "ShroudEdit")
+					.header(AUTHORIZATION, format!("Bearer {token}"))
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                TempUser {
-                    id: google_user.id,
-                    username: google_user
-                        .email
-                        .split('@')
-                        .next()
-                        .unwrap_or_default()
-                        .to_string(),
-                    email: Some(google_user.email),
-                    avatar_url: google_user.picture,
-                    bio: None,
-                    country: None,
-                }
-            }
-            AuthProvider::Steam => {
-                let api_key = &ENV.STEAM_API_KEY;
+				TempUser {
+					id: google_user.id,
+					username: google_user
+						.email
+						.split('@')
+						.next()
+						.unwrap_or_default()
+						.to_string(),
+					email: Some(google_user.email),
+					avatar_url: google_user.picture,
+					bio: None,
+					country: None,
+				}
+			}
+			AuthProvider::Steam => {
+				let api_key = &ENV.STEAM_API_KEY;
 
-                #[derive(Deserialize)]
-                struct SteamResponse {
-                    response: Players,
-                }
+				#[derive(Deserialize)]
+				struct SteamResponse {
+					response: Players,
+				}
 
-                #[derive(Deserialize)]
-                struct Players {
-                    players: Vec<Player>,
-                }
+				#[derive(Deserialize)]
+				struct Players {
+					players: Vec<Player>,
+				}
 
-                #[derive(Deserialize)]
-                struct Player {
-                    steamid: String,
-                    profileurl: String,
-                    avatar: Option<String>,
-                }
+				#[derive(Deserialize)]
+				struct Player {
+					steamid: String,
+					profileurl: String,
+					avatar: Option<String>,
+				}
 
-                let response: String = reqwest::get(
+				let response: String = reqwest::get(
                     &format!(
                         "https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key={api_key}&steamids={token}"
                     )
@@ -841,249 +841,249 @@ impl AuthProvider {
                     .text()
                     .await?;
 
-                let mut response: SteamResponse =
-                    serde_json::from_str(&response)?;
+				let mut response: SteamResponse =
+					serde_json::from_str(&response)?;
 
-                if let Some(player) = response.response.players.pop() {
-                    let username = player
-                        .profileurl
-                        .trim_matches('/')
-                        .rsplit('/')
-                        .next()
-                        .unwrap_or(&player.steamid)
-                        .to_string();
-                    TempUser {
-                        id: player.steamid,
-                        username,
-                        email: None,
-                        avatar_url: player.avatar,
-                        bio: None,
-                        country: None,
-                    }
-                } else {
-                    return Err(AuthenticationError::InvalidCredentials);
-                }
-            }
-            AuthProvider::PayPal => {
-                #[derive(Deserialize, Debug)]
-                pub struct PayPalUser {
-                    pub payer_id: String,
-                    pub email: String,
-                    pub picture: Option<String>,
-                    pub address: PayPalAddress,
-                }
+				if let Some(player) = response.response.players.pop() {
+					let username = player
+						.profileurl
+						.trim_matches('/')
+						.rsplit('/')
+						.next()
+						.unwrap_or(&player.steamid)
+						.to_string();
+					TempUser {
+						id: player.steamid,
+						username,
+						email: None,
+						avatar_url: player.avatar,
+						bio: None,
+						country: None,
+					}
+				} else {
+					return Err(AuthenticationError::InvalidCredentials);
+				}
+			}
+			AuthProvider::PayPal => {
+				#[derive(Deserialize, Debug)]
+				pub struct PayPalUser {
+					pub payer_id: String,
+					pub email: String,
+					pub picture: Option<String>,
+					pub address: PayPalAddress,
+				}
 
-                #[derive(Deserialize, Debug)]
-                pub struct PayPalAddress {
-                    pub country: String,
-                }
+				#[derive(Deserialize, Debug)]
+				pub struct PayPalAddress {
+					pub country: String,
+				}
 
-                let api_url = &ENV.PAYPAL_API_URL;
+				let api_url = &ENV.PAYPAL_API_URL;
 
-                let paypal_user: PayPalUser = reqwest::Client::new()
-                    .get(format!(
-                        "{api_url}identity/openidconnect/userinfo?schema=openid"
-                    ))
-                    .header(reqwest::header::USER_AGENT, "ShroudEdit")
-                    .header(AUTHORIZATION, format!("Bearer {token}"))
-                    .send()
-                    .await?
-                    .json()
-                    .await?;
+				let paypal_user: PayPalUser = reqwest::Client::new()
+					.get(format!(
+						"{api_url}identity/openidconnect/userinfo?schema=openid"
+					))
+					.header(reqwest::header::USER_AGENT, "ShroudEdit")
+					.header(AUTHORIZATION, format!("Bearer {token}"))
+					.send()
+					.await?
+					.json()
+					.await?;
 
-                TempUser {
-                    id: paypal_user.payer_id,
-                    username: paypal_user
-                        .email
-                        .split('@')
-                        .next()
-                        .unwrap_or_default()
-                        .to_string(),
-                    email: Some(paypal_user.email),
-                    avatar_url: paypal_user.picture,
-                    bio: None,
-                    country: Some(paypal_user.address.country),
-                }
-            }
-        };
+				TempUser {
+					id: paypal_user.payer_id,
+					username: paypal_user
+						.email
+						.split('@')
+						.next()
+						.unwrap_or_default()
+						.to_string(),
+					email: Some(paypal_user.email),
+					avatar_url: paypal_user.picture,
+					bio: None,
+					country: Some(paypal_user.address.country),
+				}
+			}
+		};
 
-        Ok(res)
-    }
+		Ok(res)
+	}
 
-    pub async fn get_user_id<'a, 'b, E>(
-        &self,
-        id: &str,
-        executor: E,
-    ) -> Result<Option<crate::database::models::DBUserId>, AuthenticationError>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        Ok(match self {
-            AuthProvider::GitHub => {
-                let value = sqlx::query!(
-                    "SELECT id FROM users WHERE github_id = $1",
-                    id.parse::<i64>()
-                        .map_err(|_| AuthenticationError::InvalidCredentials)?
-                )
-                .fetch_optional(executor)
-                .await?;
+	pub async fn get_user_id<'a, 'b, E>(
+		&self,
+		id: &str,
+		executor: E,
+	) -> Result<Option<crate::database::models::DBUserId>, AuthenticationError>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		Ok(match self {
+			AuthProvider::GitHub => {
+				let value = sqlx::query!(
+					"SELECT id FROM users WHERE github_id = $1",
+					id.parse::<i64>()
+						.map_err(|_| AuthenticationError::InvalidCredentials)?
+				)
+				.fetch_optional(executor)
+				.await?;
 
-                value.map(|x| crate::database::models::DBUserId(x.id))
-            }
-            AuthProvider::Discord => {
-                let value = sqlx::query!(
-                    "SELECT id FROM users WHERE discord_id = $1",
-                    id.parse::<i64>()
-                        .map_err(|_| AuthenticationError::InvalidCredentials)?
-                )
-                .fetch_optional(executor)
-                .await?;
+				value.map(|x| crate::database::models::DBUserId(x.id))
+			}
+			AuthProvider::Discord => {
+				let value = sqlx::query!(
+					"SELECT id FROM users WHERE discord_id = $1",
+					id.parse::<i64>()
+						.map_err(|_| AuthenticationError::InvalidCredentials)?
+				)
+				.fetch_optional(executor)
+				.await?;
 
-                value.map(|x| crate::database::models::DBUserId(x.id))
-            }
-            AuthProvider::Microsoft => {
-                let value = sqlx::query!(
-                    "SELECT id FROM users WHERE microsoft_id = $1",
-                    id
-                )
-                .fetch_optional(executor)
-                .await?;
+				value.map(|x| crate::database::models::DBUserId(x.id))
+			}
+			AuthProvider::Microsoft => {
+				let value = sqlx::query!(
+					"SELECT id FROM users WHERE microsoft_id = $1",
+					id
+				)
+				.fetch_optional(executor)
+				.await?;
 
-                value.map(|x| crate::database::models::DBUserId(x.id))
-            }
-            AuthProvider::GitLab => {
-                let value = sqlx::query!(
-                    "SELECT id FROM users WHERE gitlab_id = $1",
-                    id.parse::<i64>()
-                        .map_err(|_| AuthenticationError::InvalidCredentials)?
-                )
-                .fetch_optional(executor)
-                .await?;
+				value.map(|x| crate::database::models::DBUserId(x.id))
+			}
+			AuthProvider::GitLab => {
+				let value = sqlx::query!(
+					"SELECT id FROM users WHERE gitlab_id = $1",
+					id.parse::<i64>()
+						.map_err(|_| AuthenticationError::InvalidCredentials)?
+				)
+				.fetch_optional(executor)
+				.await?;
 
-                value.map(|x| crate::database::models::DBUserId(x.id))
-            }
-            AuthProvider::Google => {
-                let value = sqlx::query!(
-                    "SELECT id FROM users WHERE google_id = $1",
-                    id
-                )
-                .fetch_optional(executor)
-                .await?;
+				value.map(|x| crate::database::models::DBUserId(x.id))
+			}
+			AuthProvider::Google => {
+				let value = sqlx::query!(
+					"SELECT id FROM users WHERE google_id = $1",
+					id
+				)
+				.fetch_optional(executor)
+				.await?;
 
-                value.map(|x| crate::database::models::DBUserId(x.id))
-            }
-            AuthProvider::Steam => {
-                let value = sqlx::query!(
-                    "SELECT id FROM users WHERE steam_id = $1",
-                    id.parse::<i64>()
-                        .map_err(|_| AuthenticationError::InvalidCredentials)?
-                )
-                .fetch_optional(executor)
-                .await?;
+				value.map(|x| crate::database::models::DBUserId(x.id))
+			}
+			AuthProvider::Steam => {
+				let value = sqlx::query!(
+					"SELECT id FROM users WHERE steam_id = $1",
+					id.parse::<i64>()
+						.map_err(|_| AuthenticationError::InvalidCredentials)?
+				)
+				.fetch_optional(executor)
+				.await?;
 
-                value.map(|x| crate::database::models::DBUserId(x.id))
-            }
-            AuthProvider::PayPal => {
-                let value = sqlx::query!(
-                    "SELECT id FROM users WHERE paypal_id = $1",
-                    id
-                )
-                .fetch_optional(executor)
-                .await?;
+				value.map(|x| crate::database::models::DBUserId(x.id))
+			}
+			AuthProvider::PayPal => {
+				let value = sqlx::query!(
+					"SELECT id FROM users WHERE paypal_id = $1",
+					id
+				)
+				.fetch_optional(executor)
+				.await?;
 
-                value.map(|x| crate::database::models::DBUserId(x.id))
-            }
-        })
-    }
+				value.map(|x| crate::database::models::DBUserId(x.id))
+			}
+		})
+	}
 
-    pub async fn update_user_id(
-        &self,
-        user_id: crate::database::models::DBUserId,
-        id: Option<&str>,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<(), AuthenticationError> {
-        match self {
-            AuthProvider::GitHub => {
-                sqlx::query!(
-                    "
+	pub async fn update_user_id(
+		&self,
+		user_id: crate::database::models::DBUserId,
+		id: Option<&str>,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<(), AuthenticationError> {
+		match self {
+			AuthProvider::GitHub => {
+				sqlx::query!(
+					"
                     UPDATE users
                     SET github_id = $2
                     WHERE (id = $1)
                     ",
-                    user_id as crate::database::models::DBUserId,
-                    id.and_then(|x| x.parse::<i64>().ok())
-                )
-                .execute(&mut *transaction)
-                .await?;
-            }
-            AuthProvider::Discord => {
-                sqlx::query!(
-                    "
+					user_id as crate::database::models::DBUserId,
+					id.and_then(|x| x.parse::<i64>().ok())
+				)
+				.execute(&mut *transaction)
+				.await?;
+			}
+			AuthProvider::Discord => {
+				sqlx::query!(
+					"
                     UPDATE users
                     SET discord_id = $2
                     WHERE (id = $1)
                     ",
-                    user_id as crate::database::models::DBUserId,
-                    id.and_then(|x| x.parse::<i64>().ok())
-                )
-                .execute(&mut *transaction)
-                .await?;
-            }
-            AuthProvider::Microsoft => {
-                sqlx::query!(
-                    "
+					user_id as crate::database::models::DBUserId,
+					id.and_then(|x| x.parse::<i64>().ok())
+				)
+				.execute(&mut *transaction)
+				.await?;
+			}
+			AuthProvider::Microsoft => {
+				sqlx::query!(
+					"
                     UPDATE users
                     SET microsoft_id = $2
                     WHERE (id = $1)
                     ",
-                    user_id as crate::database::models::DBUserId,
-                    id,
-                )
-                .execute(&mut *transaction)
-                .await?;
-            }
-            AuthProvider::GitLab => {
-                sqlx::query!(
-                    "
+					user_id as crate::database::models::DBUserId,
+					id,
+				)
+				.execute(&mut *transaction)
+				.await?;
+			}
+			AuthProvider::GitLab => {
+				sqlx::query!(
+					"
                     UPDATE users
                     SET gitlab_id = $2
                     WHERE (id = $1)
                     ",
-                    user_id as crate::database::models::DBUserId,
-                    id.and_then(|x| x.parse::<i64>().ok())
-                )
-                .execute(&mut *transaction)
-                .await?;
-            }
-            AuthProvider::Google => {
-                sqlx::query!(
-                    "
+					user_id as crate::database::models::DBUserId,
+					id.and_then(|x| x.parse::<i64>().ok())
+				)
+				.execute(&mut *transaction)
+				.await?;
+			}
+			AuthProvider::Google => {
+				sqlx::query!(
+					"
                     UPDATE users
                     SET google_id = $2
                     WHERE (id = $1)
                     ",
-                    user_id as crate::database::models::DBUserId,
-                    id,
-                )
-                .execute(&mut *transaction)
-                .await?;
-            }
-            AuthProvider::Steam => {
-                sqlx::query!(
-                    "
+					user_id as crate::database::models::DBUserId,
+					id,
+				)
+				.execute(&mut *transaction)
+				.await?;
+			}
+			AuthProvider::Steam => {
+				sqlx::query!(
+					"
                     UPDATE users
                     SET steam_id = $2
                     WHERE (id = $1)
                     ",
-                    user_id as crate::database::models::DBUserId,
-                    id.and_then(|x| x.parse::<i64>().ok())
-                )
-                .execute(&mut *transaction)
-                .await?;
-            }
-            AuthProvider::PayPal => {
-                if id.is_none() {
-                    sqlx::query!(
+					user_id as crate::database::models::DBUserId,
+					id.and_then(|x| x.parse::<i64>().ok())
+				)
+				.execute(&mut *transaction)
+				.await?;
+			}
+			AuthProvider::PayPal => {
+				if id.is_none() {
+					sqlx::query!(
                         "
                         UPDATE users
                         SET paypal_country = NULL, paypal_email = NULL, paypal_id = NULL
@@ -1093,52 +1093,52 @@ impl AuthProvider {
                     )
                     .execute(&mut *transaction)
                     .await?;
-                } else {
-                    sqlx::query!(
-                        "
+				} else {
+					sqlx::query!(
+						"
                         UPDATE users
                         SET paypal_id = $2
                         WHERE (id = $1)
                         ",
-                        user_id as crate::database::models::DBUserId,
-                        id,
-                    )
-                    .execute(&mut *transaction)
-                    .await?;
-                }
-            }
-        }
+						user_id as crate::database::models::DBUserId,
+						id,
+					)
+					.execute(&mut *transaction)
+					.await?;
+				}
+			}
+		}
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    pub fn as_str(&self) -> &'static str {
-        match self {
-            AuthProvider::GitHub => "GitHub",
-            AuthProvider::Discord => "Discord",
-            AuthProvider::Microsoft => "Microsoft",
-            AuthProvider::GitLab => "GitLab",
-            AuthProvider::Google => "Google",
-            AuthProvider::Steam => "Steam",
-            AuthProvider::PayPal => "PayPal",
-        }
-    }
+	pub fn as_str(&self) -> &'static str {
+		match self {
+			AuthProvider::GitHub => "GitHub",
+			AuthProvider::Discord => "Discord",
+			AuthProvider::Microsoft => "Microsoft",
+			AuthProvider::GitLab => "GitLab",
+			AuthProvider::Google => "Google",
+			AuthProvider::Steam => "Steam",
+			AuthProvider::PayPal => "PayPal",
+		}
+	}
 }
 
 #[derive(Serialize, Deserialize, utoipa::ToSchema)]
 pub struct AuthorizationInit {
-    pub url: Url,
-    #[serde(default)]
-    pub provider: AuthProvider,
-    pub token: Option<String>,
-    /// If the user is already logged in, and is linking a PayPal account,
-    /// this will be set to the user's auth token from the frontend.
-    pub auth_token: Option<String>,
+	pub url: Url,
+	#[serde(default)]
+	pub provider: AuthProvider,
+	pub token: Option<String>,
+	/// If the user is already logged in, and is linking a PayPal account,
+	/// this will be set to the user's auth token from the frontend.
+	pub auth_token: Option<String>,
 }
 #[derive(Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Authorization {
-    pub code: String,
-    pub state: String,
+	pub code: String,
+	pub state: String,
 }
 
 // Init link takes us to GitHub API and calls back to callback endpoint with a code and state
@@ -1156,92 +1156,92 @@ pub struct Authorization {
 )]
 #[get("/init")]
 pub async fn init(
-    req: HttpRequest,
-    Query(info): Query<AuthorizationInit>, // callback url
-    client: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	Query(info): Query<AuthorizationInit>, // callback url
+	client: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<HttpResponse, AuthenticationError> {
-    // If a user is logging into an OAuth method while already logged in,
-    // this may be present.
-    //
-    // This can happen when linking to a PayPal account (logging in) when already
-    // logged in.
-    let existing_user_id = if let Some(auth_token) = &info.auth_token {
-        get_user_record_from_bearer_token(
-            &req,
-            Some(auth_token),
-            &**client,
-            &redis,
-            &session_queue,
-            false,
-        )
-        .await
-        .ok()
-        .flatten()
-        .map(|(_scopes, user)| user.id)
-    } else {
-        None
-    };
+	// If a user is logging into an OAuth method while already logged in,
+	// this may be present.
+	//
+	// This can happen when linking to a PayPal account (logging in) when already
+	// logged in.
+	let existing_user_id = if let Some(auth_token) = &info.auth_token {
+		get_user_record_from_bearer_token(
+			&req,
+			Some(auth_token),
+			&**client,
+			&redis,
+			&session_queue,
+			false,
+		)
+		.await
+		.ok()
+		.flatten()
+		.map(|(_scopes, user)| user.id)
+	} else {
+		None
+	};
 
-    info!(
-        ?existing_user_id,
-        auth_token_present = %info.auth_token.is_some(),
-        "Starting authentication flow"
-    );
+	info!(
+		?existing_user_id,
+		auth_token_present = %info.auth_token.is_some(),
+		"Starting authentication flow"
+	);
 
-    let url = info.url;
-    let domain = url.host_str().ok_or(AuthenticationError::Url)?;
-    if !ENV
-        .ALLOWED_CALLBACK_URLS
-        .iter()
-        .any(|x| domain.ends_with(x))
-        && domain != "shroudedit.com"
-    {
-        return Err(AuthenticationError::Url);
-    }
+	let url = info.url;
+	let domain = url.host_str().ok_or(AuthenticationError::Url)?;
+	if !ENV
+		.ALLOWED_CALLBACK_URLS
+		.iter()
+		.any(|x| domain.ends_with(x))
+		&& domain != "shroudedit.com"
+	{
+		return Err(AuthenticationError::Url);
+	}
 
-    let user_id = if let Some(token) = info.token {
-        // Linking a new auth provider changes how the account can be accessed,
-        // so only first-party session tokens may authorize this flow. OAuth and
-        // PAT tokens can be delegated or stored outside an interactive login.
-        if !token.starts_with("mra_") {
-            return Err(AuthenticationError::InvalidCredentials);
-        }
+	let user_id = if let Some(token) = info.token {
+		// Linking a new auth provider changes how the account can be accessed,
+		// so only first-party session tokens may authorize this flow. OAuth and
+		// PAT tokens can be delegated or stored outside an interactive login.
+		if !token.starts_with("mra_") {
+			return Err(AuthenticationError::InvalidCredentials);
+		}
 
-        let (scopes, user) = get_user_record_from_bearer_token(
-            &req,
-            Some(&token),
-            &**client,
-            &redis,
-            &session_queue,
-            false,
-        )
-        .await?
-        .ok_or_else(|| AuthenticationError::InvalidCredentials)?;
+		let (scopes, user) = get_user_record_from_bearer_token(
+			&req,
+			Some(&token),
+			&**client,
+			&redis,
+			&session_queue,
+			false,
+		)
+		.await?
+		.ok_or_else(|| AuthenticationError::InvalidCredentials)?;
 
-        if !scopes.contains(Scopes::USER_AUTH_WRITE) {
-            return Err(AuthenticationError::InvalidCredentials);
-        }
+		if !scopes.contains(Scopes::USER_AUTH_WRITE) {
+			return Err(AuthenticationError::InvalidCredentials);
+		}
 
-        Some(user.id)
-    } else {
-        None
-    };
+		Some(user.id)
+	} else {
+		None
+	};
 
-    let state = DBFlow::OAuth {
-        user_id,
-        url,
-        provider: info.provider,
-        existing_user_id,
-    }
-    .insert(Duration::minutes(30), &redis)
-    .await?;
+	let state = DBFlow::OAuth {
+		user_id,
+		url,
+		provider: info.provider,
+		existing_user_id,
+	}
+	.insert(Duration::minutes(30), &redis)
+	.await?;
 
-    let url = info.provider.get_redirect_url(state)?;
-    Ok(HttpResponse::TemporaryRedirect()
-        .append_header(("Location", &*url))
-        .json(serde_json::json!({ "url": url })))
+	let url = info.provider.get_redirect_url(state)?;
+	Ok(HttpResponse::TemporaryRedirect()
+		.append_header(("Location", &*url))
+		.json(serde_json::json!({ "url": url })))
 }
 
 #[utoipa::path(
@@ -1250,317 +1250,317 @@ pub async fn init(
 )]
 #[get("/callback")]
 pub async fn auth_callback(
-    req: HttpRequest,
-    Query(query): Query<HashMap<String, String>>,
-    client: Data<PgPool>,
-    redis: Data<RedisPool>,
+	req: HttpRequest,
+	Query(query): Query<HashMap<String, String>>,
+	client: Data<PgPool>,
+	redis: Data<RedisPool>,
 ) -> Result<HttpResponse, crate::auth::templates::ErrorPage> {
-    /// Ensures that the OAuth flow is removed from Redis when dropped.
-    ///
-    /// A guard is used here since it's safer than manually removing the flow
-    /// in each branch.
-    struct FlowGuard {
-        state: Option<String>,
-        redis: Data<RedisPool>,
-    }
+	/// Ensures that the OAuth flow is removed from Redis when dropped.
+	///
+	/// A guard is used here since it's safer than manually removing the flow
+	/// in each branch.
+	struct FlowGuard {
+		state: Option<String>,
+		redis: Data<RedisPool>,
+	}
 
-    impl Drop for FlowGuard {
-        fn drop(&mut self) {
-            let Some(state) = self.state.clone() else {
-                // has been replaced
-                return;
-            };
-            let redis = self.redis.clone();
-            tokio::spawn(async move {
-                if let Err(err) = DBFlow::remove(&state, &redis).await {
-                    error!("failed to remove DB flow state: {err:#}");
-                }
-            });
-        }
-    }
+	impl Drop for FlowGuard {
+		fn drop(&mut self) {
+			let Some(state) = self.state.clone() else {
+				// has been replaced
+				return;
+			};
+			let redis = self.redis.clone();
+			tokio::spawn(async move {
+				if let Err(err) = DBFlow::remove(&state, &redis).await {
+					error!("failed to remove DB flow state: {err:#}");
+				}
+			});
+		}
+	}
 
-    impl FlowGuard {
-        /// Prevents this guard from removing `state` when dropped, instead
-        /// replacing the flow for `state` with the new given `flow`.
-        pub async fn replace_with(
-            mut self,
-            flow: DBFlow,
-        ) -> Result<(), ApiError> {
-            let state = self
-                .state
-                .clone()
-                .expect("`self` should not be dropped yet");
-            let redis = self.redis.clone();
-            self.state = None;
+	impl FlowGuard {
+		/// Prevents this guard from removing `state` when dropped, instead
+		/// replacing the flow for `state` with the new given `flow`.
+		pub async fn replace_with(
+			mut self,
+			flow: DBFlow,
+		) -> Result<(), ApiError> {
+			let state = self
+				.state
+				.clone()
+				.expect("`self` should not be dropped yet");
+			let redis = self.redis.clone();
+			self.state = None;
 
-            flow.insert_with_state(Duration::minutes(10), &redis, &state)
-                .await
-                .wrap_internal_err("failed to insert new flow state")?;
+			flow.insert_with_state(Duration::minutes(10), &redis, &state)
+				.await
+				.wrap_internal_err("failed to insert new flow state")?;
 
-            Ok(())
-        }
-    }
+			Ok(())
+		}
+	}
 
-    let state_string = query
-        .get("state")
-        .ok_or_else(|| AuthenticationError::InvalidCredentials)?
-        .clone();
+	let state_string = query
+		.get("state")
+		.ok_or_else(|| AuthenticationError::InvalidCredentials)?
+		.clone();
 
-    let state = state_string.clone();
-    let res: Result<HttpResponse, AuthenticationError> = async move {
-        let flow = DBFlow::get(&state, &redis)
-            .await
-            .wrap_err("failed to fetch flow state")?
-            .wrap_err("no flow for state")?;
+	let state = state_string.clone();
+	let res: Result<HttpResponse, AuthenticationError> = async move {
+		let flow = DBFlow::get(&state, &redis)
+			.await
+			.wrap_err("failed to fetch flow state")?
+			.wrap_err("no flow for state")?;
 
-        // Extract cookie header from request
-        let DBFlow::OAuth {
-            user_id,
-            provider,
-            url,
-            existing_user_id,
-        } = flow
-        else {
-            return Err(AuthenticationError::Internal(eyre!(
-                "invalid flow kind"
-            )));
-        };
+		// Extract cookie header from request
+		let DBFlow::OAuth {
+			user_id,
+			provider,
+			url,
+			existing_user_id,
+		} = flow
+		else {
+			return Err(AuthenticationError::Internal(eyre!(
+				"invalid flow kind"
+			)));
+		};
 
-        let flow_guard = FlowGuard {
-            state: Some(state.clone()),
-            redis: redis.clone(),
-        };
+		let flow_guard = FlowGuard {
+			state: Some(state.clone()),
+			redis: redis.clone(),
+		};
 
-        let token = provider
-            .get_token(query)
-            .await
-            .wrap_err("failed to get token from provider")?;
-        let oauth_user = provider
-            .get_user(&token)
-            .await
-            .wrap_err("failed to get user from provider")?;
+		let token = provider
+			.get_token(query)
+			.await
+			.wrap_err("failed to get token from provider")?;
+		let oauth_user = provider
+			.get_user(&token)
+			.await
+			.wrap_err("failed to get user from provider")?;
 
-        let user_id_opt = provider
-            .get_user_id(&oauth_user.id, &**client)
-            .await
-            .wrap_err("failed to get user ID from provider")?;
+		let user_id_opt = provider
+			.get_user_id(&oauth_user.id, &**client)
+			.await
+			.wrap_err("failed to get user ID from provider")?;
 
-        let mut transaction = client
-            .begin()
-            .await
-            .wrap_err("failed to begin transaction")?;
+		let mut transaction = client
+			.begin()
+			.await
+			.wrap_err("failed to begin transaction")?;
 
-        // PayPal isn't actually an SSO method; we allow users to link their PayPal
-        // account to their ShroudEdit account via this OAuth flow. However, we MUST
-        // NOT actually create an account with their username.
-        //
-        // Instead, we check who they're already logged in as, and just update
-        // the PayPal info for that account.
-        if provider == AuthProvider::PayPal {
-            let existing_user_id = existing_user_id.wrap_err(
-                "attempting to link a PayPal account without being logged in",
-            )?;
+		// PayPal isn't actually an SSO method; we allow users to link their PayPal
+		// account to their ShroudEdit account via this OAuth flow. However, we MUST
+		// NOT actually create an account with their username.
+		//
+		// Instead, we check who they're already logged in as, and just update
+		// the PayPal info for that account.
+		if provider == AuthProvider::PayPal {
+			let existing_user_id = existing_user_id.wrap_err(
+				"attempting to link a PayPal account without being logged in",
+			)?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 UPDATE users
                 SET paypal_country = $1, paypal_email = $2, paypal_id = $3
                 WHERE id = $4
                 ",
-                oauth_user.country,
-                oauth_user.email,
-                oauth_user.id,
-                existing_user_id as DBUserId,
-            )
-            .execute(&mut transaction)
-            .await
-            .wrap_err("failed to update user PayPal info")?;
+				oauth_user.country,
+				oauth_user.email,
+				oauth_user.id,
+				existing_user_id as DBUserId,
+			)
+			.execute(&mut transaction)
+			.await
+			.wrap_err("failed to update user PayPal info")?;
 
-            transaction
-                .commit()
-                .await
-                .wrap_err("failed to commit transaction")?;
-            crate::database::models::DBUser::clear_caches(
-                &[(existing_user_id, None)],
-                &redis,
-            )
-            .await
-            .wrap_err("failed to clear user caches")?;
+			transaction
+				.commit()
+				.await
+				.wrap_err("failed to commit transaction")?;
+			crate::database::models::DBUser::clear_caches(
+				&[(existing_user_id, None)],
+				&redis,
+			)
+			.await
+			.wrap_err("failed to clear user caches")?;
 
-            return Ok(HttpResponse::TemporaryRedirect()
-                .append_header(("Location", url.as_str()))
-                .json(serde_json::json!({ "url": url })));
-        }
+			return Ok(HttpResponse::TemporaryRedirect()
+				.append_header(("Location", url.as_str()))
+				.json(serde_json::json!({ "url": url })));
+		}
 
-        if let Some(id) = user_id {
-            if user_id_opt.is_some() {
-                return Err(AuthenticationError::ProviderAlreadyLinked);
-            }
+		if let Some(id) = user_id {
+			if user_id_opt.is_some() {
+				return Err(AuthenticationError::ProviderAlreadyLinked);
+			}
 
-            provider
-                .update_user_id(id, Some(&oauth_user.id), &mut transaction)
-                .await?;
+			provider
+				.update_user_id(id, Some(&oauth_user.id), &mut transaction)
+				.await?;
 
-            let user =
-                crate::database::models::DBUser::get_id(id, &**client, &redis)
-                    .await?;
+			let user =
+				crate::database::models::DBUser::get_id(id, &**client, &redis)
+					.await?;
 
-            if let Some(user) = user {
-                NotificationBuilder {
-                    body: NotificationBody::AuthProviderAdded {
-                        provider: provider.as_str().to_string(),
-                    },
-                }
-                .insert(user.id, &mut transaction, &redis)
-                .await?;
-            }
+			if let Some(user) = user {
+				NotificationBuilder {
+					body: NotificationBody::AuthProviderAdded {
+						provider: provider.as_str().to_string(),
+					},
+				}
+				.insert(user.id, &mut transaction, &redis)
+				.await?;
+			}
 
-            transaction.commit().await?;
-            crate::database::models::DBUser::clear_caches(
-                &[(id, None)],
-                &redis,
-            )
-            .await?;
+			transaction.commit().await?;
+			crate::database::models::DBUser::clear_caches(
+				&[(id, None)],
+				&redis,
+			)
+			.await?;
 
-            Ok(HttpResponse::TemporaryRedirect()
-                .append_header(("Location", url.as_str()))
-                .json(serde_json::json!({ "url": url })))
-        } else if let Some(user_id) = user_id_opt {
-            let user = crate::database::models::DBUser::get_id(
-                user_id, &**client, &redis,
-            )
-            .await?
-            .ok_or_else(|| AuthenticationError::InvalidCredentials)?;
+			Ok(HttpResponse::TemporaryRedirect()
+				.append_header(("Location", url.as_str()))
+				.json(serde_json::json!({ "url": url })))
+		} else if let Some(user_id) = user_id_opt {
+			let user = crate::database::models::DBUser::get_id(
+				user_id, &**client, &redis,
+			)
+			.await?
+			.ok_or_else(|| AuthenticationError::InvalidCredentials)?;
 
-            if user.totp_secret.is_some() {
-                let flow = DBFlow::Login2FA { user_id: user.id }
-                    .insert(Duration::minutes(30), &redis)
-                    .await?;
+			if user.totp_secret.is_some() {
+				let flow = DBFlow::Login2FA { user_id: user.id }
+					.insert(Duration::minutes(30), &redis)
+					.await?;
 
-                let mut redirect_url = url.clone();
-                redirect_url
-                    .query_pairs_mut()
-                    .append_pair("error", "2fa_required")
-                    .append_pair("flow", &flow);
+				let mut redirect_url = url.clone();
+				redirect_url
+					.query_pairs_mut()
+					.append_pair("error", "2fa_required")
+					.append_pair("flow", &flow);
 
-                Ok(HttpResponse::TemporaryRedirect()
-                    .append_header((LOCATION, redirect_url.as_str()))
-                    .json(serde_json::json!({ "url": redirect_url })))
-            } else {
-                let session =
-                    issue_session(req, user_id, &mut transaction, &redis, None)
-                        .await?;
-                transaction.commit().await?;
+				Ok(HttpResponse::TemporaryRedirect()
+					.append_header((LOCATION, redirect_url.as_str()))
+					.json(serde_json::json!({ "url": redirect_url })))
+			} else {
+				let session =
+					issue_session(req, user_id, &mut transaction, &redis, None)
+						.await?;
+				transaction.commit().await?;
 
-                let mut redirect_url = url.clone();
-                redirect_url
-                    .query_pairs_mut()
-                    .append_pair("code", &session.session);
+				let mut redirect_url = url.clone();
+				redirect_url
+					.query_pairs_mut()
+					.append_pair("code", &session.session);
 
-                Ok(HttpResponse::TemporaryRedirect()
-                    .append_header((LOCATION, redirect_url.as_str()))
-                    .json(serde_json::json!({ "url": redirect_url })))
-            }
-        } else {
-            // user doesn't already exist; the user wants to create a new ShroudEdit account
-            // linked to their OAuth account.
-            // for this, we redirect them to a frontend page which lets them set a username.
-            // then frontend will call `/create/oauth` with the same state parameter and
-            // chosen settings (username, subscribe to newsletter), and handle navigation.
-            let suggested_username = oauth_user.username.clone();
+				Ok(HttpResponse::TemporaryRedirect()
+					.append_header((LOCATION, redirect_url.as_str()))
+					.json(serde_json::json!({ "url": redirect_url })))
+			}
+		} else {
+			// user doesn't already exist; the user wants to create a new ShroudEdit account
+			// linked to their OAuth account.
+			// for this, we redirect them to a frontend page which lets them set a username.
+			// then frontend will call `/create/oauth` with the same state parameter and
+			// chosen settings (username, subscribe to newsletter), and handle navigation.
+			let suggested_username = oauth_user.username.clone();
 
-            flow_guard
-                .replace_with(DBFlow::OAuthPending {
-                    url: url.clone(),
-                    provider,
-                    user: oauth_user,
-                })
-                .await
-                .wrap_err("failed to replace flow for state")?;
+			flow_guard
+				.replace_with(DBFlow::OAuthPending {
+					url: url.clone(),
+					provider,
+					user: oauth_user,
+				})
+				.await
+				.wrap_err("failed to replace flow for state")?;
 
-            let mut redirect_url = url.clone();
-            redirect_url
-                .query_pairs_mut()
-                .append_pair("state", &state)
-                .append_pair(
-                    "requires_dob",
-                    &requires_dob(provider).to_string(),
-                )
-                .append_pair("username", &suggested_username);
+			let mut redirect_url = url.clone();
+			redirect_url
+				.query_pairs_mut()
+				.append_pair("state", &state)
+				.append_pair(
+					"requires_dob",
+					&requires_dob(provider).to_string(),
+				)
+				.append_pair("username", &suggested_username);
 
-            let redirect_url = redirect_url.to_string();
-            Ok(HttpResponse::TemporaryRedirect()
-                .append_header((LOCATION, &*redirect_url))
-                .json(serde_json::json!({ "url": redirect_url })))
-        }
-    }
-    .await;
+			let redirect_url = redirect_url.to_string();
+			Ok(HttpResponse::TemporaryRedirect()
+				.append_header((LOCATION, &*redirect_url))
+				.json(serde_json::json!({ "url": redirect_url })))
+		}
+	}
+	.await;
 
-    Ok(res?)
+	Ok(res?)
 }
 
 fn requires_dob(provider: AuthProvider) -> bool {
-    matches!(
-        provider,
-        AuthProvider::GitHub | AuthProvider::GitLab | AuthProvider::Steam
-    )
+	matches!(
+		provider,
+		AuthProvider::GitHub | AuthProvider::GitLab | AuthProvider::Steam
+	)
 }
 
 #[derive(Deserialize, Validate, utoipa::ToSchema)]
 struct NewOAuthAccount {
-    // keep in sync with NewAccount
-    #[validate(length(min = 1, max = 39), regex(path = *crate::util::validate::RE_URL_SAFE))]
-    pub username: String,
-    pub state: String,
-    pub challenge: String,
-    pub sign_up_newsletter: bool,
-    #[serde(default)]
-    pub account_consent: bool,
+	// keep in sync with NewAccount
+	#[validate(length(min = 1, max = 39), regex(path = *crate::util::validate::RE_URL_SAFE))]
+	pub username: String,
+	pub state: String,
+	pub challenge: String,
+	pub sign_up_newsletter: bool,
+	#[serde(default)]
+	pub account_consent: bool,
 }
 
 fn validate_account_consent(account_consent: bool) -> Result<(), ApiError> {
-    if account_consent {
-        info!("account consent trigger, denying");
-        return Err(ApiError::Request(eyre!(
-            "Sorry, something went wrong. Please try again"
-        )));
-    }
+	if account_consent {
+		info!("account consent trigger, denying");
+		return Err(ApiError::Request(eyre!(
+			"Sorry, something went wrong. Please try again"
+		)));
+	}
 
-    Ok(())
+	Ok(())
 }
 
 async fn send_verify_email(
-    email_queue: &EmailQueue,
-    txn: &mut PgTransaction<'_>,
-    redis: &RedisPool,
-    user_id: DBUserId,
-    email_address: String,
+	email_queue: &EmailQueue,
+	txn: &mut PgTransaction<'_>,
+	redis: &RedisPool,
+	user_id: DBUserId,
+	email_address: String,
 ) -> Result<(), ApiError> {
-    let mailbox: Mailbox = email_address
-        .parse()
-        .wrap_request_err("invalid email address!".to_string())?;
+	let mailbox: Mailbox = email_address
+		.parse()
+		.wrap_request_err("invalid email address!".to_string())?;
 
-    let flow = DBFlow::ConfirmEmail {
-        user_id,
-        confirm_email: email_address,
-    }
-    .insert(Duration::hours(24), redis)
-    .await
-    .wrap_internal_err("storing email-verification flow in Redis")?;
+	let flow = DBFlow::ConfirmEmail {
+		user_id,
+		confirm_email: email_address,
+	}
+	.insert(Duration::hours(24), redis)
+	.await
+	.wrap_internal_err("storing email-verification flow in Redis")?;
 
-    email_queue
-        .send_one(
-            txn,
-            NotificationBody::VerifyEmail { flow },
-            user_id,
-            mailbox,
-        )
-        .await
-        .wrap_api_err("sending account email")?
-        .as_user_error()
-        .wrap_api_err("validating email delivery status")?;
+	email_queue
+		.send_one(
+			txn,
+			NotificationBody::VerifyEmail { flow },
+			user_id,
+			mailbox,
+		)
+		.await
+		.wrap_api_err("sending account email")?
+		.as_user_error()
+		.wrap_api_err("validating email delivery status")?;
 
-    Ok(())
+	Ok(())
 }
 
 /// Create account with OAuth.
@@ -1576,118 +1576,118 @@ async fn send_verify_email(
 )]
 #[post("/create/oauth")]
 pub async fn create_oauth_account(
-    req: HttpRequest,
-    db: Data<PgPool>,
-    file_host: Data<dyn FileHost>,
-    redis: Data<RedisPool>,
-    email_queue: Data<EmailQueue>,
-    web::Json(new_account): web::Json<NewOAuthAccount>,
+	req: HttpRequest,
+	db: Data<PgPool>,
+	file_host: Data<dyn FileHost>,
+	redis: Data<RedisPool>,
+	email_queue: Data<EmailQueue>,
+	web::Json(new_account): web::Json<NewOAuthAccount>,
 ) -> Result<HttpResponse, CreateAccountError> {
-    new_account
-        .validate()
-        .map_err(|err| eyre::eyre!(err))
-        .wrap_request_err("validating request")?;
+	new_account
+		.validate()
+		.map_err(|err| eyre::eyre!(err))
+		.wrap_request_err("validating request")?;
 
-    validate_account_consent(new_account.account_consent)
-        .wrap_api_err("validating account consent")?;
+	validate_account_consent(new_account.account_consent)
+		.wrap_api_err("validating account consent")?;
 
-    if !check_hcaptcha(&req, &new_account.challenge)
-        .await
-        .wrap_api_err("checking captcha response")?
-    {
-        return Err(ApiError::Request(eyre::eyre!(
-            "captcha validation failed"
-        ))
-        .into());
-    }
+	if !check_hcaptcha(&req, &new_account.challenge)
+		.await
+		.wrap_api_err("checking captcha response")?
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"captcha validation failed"
+		))
+		.into());
+	}
 
-    let flow = DBFlow::get(&new_account.state, &redis)
-        .await
-        .wrap_internal_err("failed to fetch flow state")?
-        .wrap_request_err("no flow for state")?;
+	let flow = DBFlow::get(&new_account.state, &redis)
+		.await
+		.wrap_internal_err("failed to fetch flow state")?
+		.wrap_request_err("no flow for state")?;
 
-    let DBFlow::OAuthPending {
-        url: _url,
-        provider,
-        user,
-    } = flow
-    else {
-        return Err(ApiError::Internal(eyre!("invalid flow kind")).into());
-    };
+	let DBFlow::OAuthPending {
+		url: _url,
+		provider,
+		user,
+	} = flow
+	else {
+		return Err(ApiError::Internal(eyre!("invalid flow kind")).into());
+	};
 
-    if let Some(email) = &user.email {
-        ensure_email_passes_gate(&redis, email)
-            .await
-            .wrap_api_err("validating email passes the signup gate")?;
-    }
+	if let Some(email) = &user.email {
+		ensure_email_passes_gate(&redis, email)
+			.await
+			.wrap_api_err("validating email passes the signup gate")?;
+	}
 
-    let mut txn = db
-        .begin()
-        .await
-        .wrap_internal_err("failed to begin transaction")?;
+	let mut txn = db
+		.begin()
+		.await
+		.wrap_internal_err("failed to begin transaction")?;
 
-    let account_email = user.email.clone();
+	let account_email = user.email.clone();
 
-    let user_id = user
-        .create_account(
-            provider,
-            &mut txn,
-            &db,
-            &**file_host,
-            &redis,
-            new_account.username,
-            new_account.sign_up_newsletter,
-        )
-        .await?;
+	let user_id = user
+		.create_account(
+			provider,
+			&mut txn,
+			&db,
+			&**file_host,
+			&redis,
+			new_account.username,
+			new_account.sign_up_newsletter,
+		)
+		.await?;
 
-    if let Some(email_address) = account_email {
-        // The address comes from the OAuth provider, so the user cannot correct
-        // it here. A failed send shouldn't block signup: they can resend the
-        // verification email once they're signed in.
-        if let Err(error) = send_verify_email(
-            &email_queue,
-            &mut txn,
-            &redis,
-            user_id,
-            email_address,
-        )
-        .await
-        {
-            warn!(%error, "failed to send OAuth signup verification email");
-        }
-    }
+	if let Some(email_address) = account_email {
+		// The address comes from the OAuth provider, so the user cannot correct
+		// it here. A failed send shouldn't block signup: they can resend the
+		// verification email once they're signed in.
+		if let Err(error) = send_verify_email(
+			&email_queue,
+			&mut txn,
+			&redis,
+			user_id,
+			email_address,
+		)
+		.await
+		{
+			warn!(%error, "failed to send OAuth signup verification email");
+		}
+	}
 
-    let session = issue_session(req, user_id, &mut txn, &redis, None)
-        .await
-        .wrap_auth_err("authenticating API request")?;
-    let res = crate::models::sessions::Session::from(session, true, None);
-    txn.commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
+	let session = issue_session(req, user_id, &mut txn, &redis, None)
+		.await
+		.wrap_auth_err("authenticating API request")?;
+	let res = crate::models::sessions::Session::from(session, true, None);
+	txn.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
 
-    Ok(HttpResponse::Ok().json(res))
+	Ok(HttpResponse::Ok().json(res))
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
 pub struct DeleteAuthProvider {
-    pub provider: AuthProvider,
+	pub provider: AuthProvider,
 }
 
 type HmacSha256 = Hmac<Sha256>;
 
 #[derive(Serialize, utoipa::ToSchema)]
 pub struct DiscordCommunityLinkResponse {
-    pub url: String,
+	pub url: String,
 }
 
 #[derive(Serialize)]
 struct DiscordCommunityHandoffPayload {
-    v: u8,
-    shroudedit_user_id: String,
-    discord_user_id: String,
-    iat: i64,
-    exp: i64,
-    nonce: String,
+	v: u8,
+	shroudedit_user_id: String,
+	discord_user_id: String,
+	iat: i64,
+	exp: i64,
+	nonce: String,
 }
 
 /// Link Discord community.
@@ -1704,68 +1704,68 @@ struct DiscordCommunityHandoffPayload {
 )]
 #[post("/discord-community-link")]
 pub async fn discord_community_link(
-    req: HttpRequest,
-    client: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	client: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<web::Json<DiscordCommunityLinkResponse>, ApiError> {
-    if ENV.DISCORD_COMMUNITY_LINK_SECRET.is_empty()
-        || ENV.DISCORD_COMMUNITY_BOT_HANDOFF_URL.is_empty()
-    {
-        return Err(ApiError::Internal(eyre!(
-            "discord community linking is not configured"
-        )));
-    }
+	if ENV.DISCORD_COMMUNITY_LINK_SECRET.is_empty()
+		|| ENV.DISCORD_COMMUNITY_BOT_HANDOFF_URL.is_empty()
+	{
+		return Err(ApiError::Internal(eyre!(
+			"discord community linking is not configured"
+		)));
+	}
 
-    let db_user = get_full_user_from_headers(
-        &req,
-        &**client,
-        &redis,
-        &session_queue,
-        Scopes::SESSION_ACCESS,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let db_user = get_full_user_from_headers(
+		&req,
+		&**client,
+		&redis,
+		&session_queue,
+		Scopes::SESSION_ACCESS,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    let Some(discord_id) = db_user.discord_id else {
-        return Err(ApiError::Request(eyre!("discord account is not linked")));
-    };
+	let Some(discord_id) = db_user.discord_id else {
+		return Err(ApiError::Request(eyre!("discord account is not linked")));
+	};
 
-    let now = Utc::now().timestamp();
-    let nonce = ChaCha20Rng::from_entropy()
-        .sample_iter(&Alphanumeric)
-        .take(32)
-        .map(char::from)
-        .collect::<String>();
+	let now = Utc::now().timestamp();
+	let nonce = ChaCha20Rng::from_entropy()
+		.sample_iter(&Alphanumeric)
+		.take(32)
+		.map(char::from)
+		.collect::<String>();
 
-    let payload = DiscordCommunityHandoffPayload {
-        v: 1,
-        shroudedit_user_id: ariadne::ids::UserId::from(db_user.id).to_string(),
-        discord_user_id: discord_id.to_string(),
-        iat: now,
-        exp: now + 600,
-        nonce,
-    };
+	let payload = DiscordCommunityHandoffPayload {
+		v: 1,
+		shroudedit_user_id: ariadne::ids::UserId::from(db_user.id).to_string(),
+		discord_user_id: discord_id.to_string(),
+		iat: now,
+		exp: now + 600,
+		nonce,
+	};
 
-    let payload_json = serde_json::to_vec(&payload).wrap_internal_err(
-        "failed to serialize discord community handoff payload",
-    )?;
-    let payload_b64 = URL_SAFE_NO_PAD.encode(payload_json);
+	let payload_json = serde_json::to_vec(&payload).wrap_internal_err(
+		"failed to serialize discord community handoff payload",
+	)?;
+	let payload_b64 = URL_SAFE_NO_PAD.encode(payload_json);
 
-    let mut mac = HmacSha256::new_from_slice(
-        ENV.DISCORD_COMMUNITY_LINK_SECRET.as_bytes(),
-    )
-    .wrap_internal_err("failed to initialize discord community link hmac")?;
-    mac.update(payload_b64.as_bytes());
-    let sig = URL_SAFE_NO_PAD.encode(mac.finalize().into_bytes());
+	let mut mac = HmacSha256::new_from_slice(
+		ENV.DISCORD_COMMUNITY_LINK_SECRET.as_bytes(),
+	)
+	.wrap_internal_err("failed to initialize discord community link hmac")?;
+	mac.update(payload_b64.as_bytes());
+	let sig = URL_SAFE_NO_PAD.encode(mac.finalize().into_bytes());
 
-    let url = format!(
-        "{}?payload={}&sig={}",
-        ENV.DISCORD_COMMUNITY_BOT_HANDOFF_URL, payload_b64, sig,
-    );
+	let url = format!(
+		"{}?payload={}&sig={}",
+		ENV.DISCORD_COMMUNITY_BOT_HANDOFF_URL, payload_b64, sig,
+	);
 
-    Ok(web::Json(DiscordCommunityLinkResponse { url }))
+	Ok(web::Json(DiscordCommunityLinkResponse { url }))
 }
 
 /// Remove an auth provider.
@@ -1783,378 +1783,378 @@ pub async fn discord_community_link(
 )]
 #[delete("/provider")]
 pub async fn delete_auth_provider(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    delete_provider: web::Json<DeleteAuthProvider>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	delete_provider: web::Json<DeleteAuthProvider>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    if user.auth_providers.is_none_or(|x| x.len() <= 1)
-        && !user.has_password.unwrap_or(false)
-    {
-        return Err(ApiError::Request(eyre::eyre!(
-            "You must have another authentication method added to this account!",
-        )));
-    }
+	if user.auth_providers.is_none_or(|x| x.len() <= 1)
+		&& !user.has_password.unwrap_or(false)
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"You must have another authentication method added to this account!",
+		)));
+	}
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("starting database transaction")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
 
-    delete_provider
-        .provider
-        .update_user_id(user.id.into(), None, &mut transaction)
-        .await
-        .wrap_auth_err(
-            "updating database records for `delete_auth_provider`",
-        )?;
+	delete_provider
+		.provider
+		.update_user_id(user.id.into(), None, &mut transaction)
+		.await
+		.wrap_auth_err(
+			"updating database records for `delete_auth_provider`",
+		)?;
 
-    if delete_provider.provider != AuthProvider::PayPal {
-        NotificationBuilder {
-            body: NotificationBody::AuthProviderRemoved {
-                provider: delete_provider.provider.as_str().to_string(),
-            },
-        }
-        .insert(user.id.into(), &mut transaction, &redis)
-        .await
-        .wrap_internal_err(
-            "inserting database records for `delete_auth_provider`",
-        )?;
-    }
+	if delete_provider.provider != AuthProvider::PayPal {
+		NotificationBuilder {
+			body: NotificationBody::AuthProviderRemoved {
+				provider: delete_provider.provider.as_str().to_string(),
+			},
+		}
+		.insert(user.id.into(), &mut transaction, &redis)
+		.await
+		.wrap_internal_err(
+			"inserting database records for `delete_auth_provider`",
+		)?;
+	}
 
-    transaction
-        .commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
-    crate::database::models::DBUser::clear_caches(
-        &[(user.id.into(), None)],
-        &redis,
-    )
-    .await
-    .wrap_internal_err("clearing cached data from Redis")?;
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
+	crate::database::models::DBUser::clear_caches(
+		&[(user.id.into(), None)],
+		&redis,
+	)
+	.await
+	.wrap_internal_err("clearing cached data from Redis")?;
 
-    Ok(HttpResponse::NoContent().finish())
+	Ok(HttpResponse::NoContent().finish())
 }
 
 pub async fn check_sendy_subscription(
-    email: &str,
+	email: &str,
 ) -> Result<bool, AuthenticationError> {
-    let url = &ENV.SENDY_URL;
-    let id = &ENV.SENDY_LIST_ID;
-    let api_key = &ENV.SENDY_API_KEY;
+	let url = &ENV.SENDY_URL;
+	let id = &ENV.SENDY_LIST_ID;
+	let api_key = &ENV.SENDY_API_KEY;
 
-    if url.is_empty() || url == "none" {
-        tracing::info!(
-            "Sendy URL not set, returning false for subscription check"
-        );
-        return Ok(false);
-    }
+	if url.is_empty() || url == "none" {
+		tracing::info!(
+			"Sendy URL not set, returning false for subscription check"
+		);
+		return Ok(false);
+	}
 
-    let mut form = HashMap::new();
-    form.insert("api_key", api_key.as_str());
-    form.insert("email", email);
-    form.insert("list_id", id.as_str());
+	let mut form = HashMap::new();
+	form.insert("api_key", api_key.as_str());
+	form.insert("email", email);
+	form.insert("list_id", id.as_str());
 
-    let client = reqwest::Client::new();
-    let response = client
-        .post(format!("{url}/api/subscribers/subscription-status.php"))
-        .form(&form)
-        .send()
-        .await?
-        .text()
-        .await?;
+	let client = reqwest::Client::new();
+	let response = client
+		.post(format!("{url}/api/subscribers/subscription-status.php"))
+		.form(&form)
+		.send()
+		.await?
+		.text()
+		.await?;
 
-    Ok(response.trim() == "Subscribed")
+	Ok(response.trim() == "Subscribed")
 }
 
 #[derive(Deserialize, Validate, utoipa::ToSchema)]
 pub struct NewAccount {
-    // keep in sync with NewOAuthAccount
-    pub username: String,
-    pub password: String,
-    pub email: String,
-    pub challenge: Option<String>,
-    pub sign_up_newsletter: Option<bool>,
-    #[serde(default)]
-    pub account_consent: bool,
+	// keep in sync with NewOAuthAccount
+	pub username: String,
+	pub password: String,
+	pub email: String,
+	pub challenge: Option<String>,
+	pub sign_up_newsletter: Option<bool>,
+	#[serde(default)]
+	pub account_consent: bool,
 }
 
 #[derive(Debug, Validate)]
 struct AccountRegisterFlow {
-    #[validate(length(min = 1, max = 39), regex(path = *crate::util::validate::RE_URL_SAFE))]
-    username: String,
-    #[validate(length(min = 8, max = 256))]
-    password: String,
-    #[validate(email)]
-    email: String,
-    sign_up_newsletter: bool,
+	#[validate(length(min = 1, max = 39), regex(path = *crate::util::validate::RE_URL_SAFE))]
+	username: String,
+	#[validate(length(min = 8, max = 256))]
+	password: String,
+	#[validate(email)]
+	email: String,
+	sign_up_newsletter: bool,
 }
 
 #[derive(Debug)]
 struct ReadyAccountRegisterFlow {
-    inner: AccountRegisterFlow,
+	inner: AccountRegisterFlow,
 }
 
 impl From<NewAccount> for AccountRegisterFlow {
-    fn from(account: NewAccount) -> Self {
-        Self {
-            username: account.username,
-            password: account.password,
-            email: account.email,
-            sign_up_newsletter: account.sign_up_newsletter.unwrap_or(false),
-        }
-    }
+	fn from(account: NewAccount) -> Self {
+		Self {
+			username: account.username,
+			password: account.password,
+			email: account.email,
+			sign_up_newsletter: account.sign_up_newsletter.unwrap_or(false),
+		}
+	}
 }
 
 /// List entries are matched literally, unless they begin with `*.`, in which
 /// case they match any subdomain of the remaining suffix.
 fn matches_domain_entry(domain: &str, entry: &str) -> bool {
-    let entry = entry.trim().to_ascii_lowercase();
+	let entry = entry.trim().to_ascii_lowercase();
 
-    match entry.strip_prefix("*.") {
-        Some(suffix) => domain
-            .strip_suffix(suffix)
-            .is_some_and(|subdomain| subdomain.ends_with('.')),
-        None => entry == domain,
-    }
+	match entry.strip_prefix("*.") {
+		Some(suffix) => domain
+			.strip_suffix(suffix)
+			.is_some_and(|subdomain| subdomain.ends_with('.')),
+		None => entry == domain,
+	}
 }
 
 fn domain_of(email: &str) -> Option<String> {
-    email
-        .rsplit_once('@')
-        .map(|(_, domain)| domain.to_ascii_lowercase())
+	email
+		.rsplit_once('@')
+		.map(|(_, domain)| domain.to_ascii_lowercase())
 }
 
 fn domain_matches_list(domain: &str, list: &[String]) -> bool {
-    list.iter().any(|entry| matches_domain_entry(domain, entry))
+	list.iter().any(|entry| matches_domain_entry(domain, entry))
 }
 
 /// Domains listed in `SKIP_EMAIL_CHECK_DOMAINS` bypass every email check,
 /// including the blacklist.
 fn email_checks_skipped(email: &str) -> bool {
-    domain_of(email).is_some_and(|domain| {
-        domain_matches_list(&domain, &ENV.SKIP_EMAIL_CHECK_DOMAINS)
-    })
+	domain_of(email).is_some_and(|domain| {
+		domain_matches_list(&domain, &ENV.SKIP_EMAIL_CHECK_DOMAINS)
+	})
 }
 
 fn ensure_email_domain_is_not_blacklisted(email: &str) -> Result<(), ApiError> {
-    let Some(domain) = domain_of(email) else {
-        return Ok(());
-    };
+	let Some(domain) = domain_of(email) else {
+		return Ok(());
+	};
 
-    if !domain_matches_list(&domain, &ENV.EMAIL_DOMAIN_BLACKLIST) {
-        return Ok(());
-    }
+	if !domain_matches_list(&domain, &ENV.EMAIL_DOMAIN_BLACKLIST) {
+		return Ok(());
+	}
 
-    info!(
-        email.domain = domain.as_str(),
-        "blacklisted email domain, denying",
-    );
+	info!(
+		email.domain = domain.as_str(),
+		"blacklisted email domain, denying",
+	);
 
-    Err(ApiError::Request(eyre!(
-        "This domain name may not be used ({domain})!"
-    )))
+	Err(ApiError::Request(eyre!(
+		"This domain name may not be used ({domain})!"
+	)))
 }
 
 /// Runs the UserCheck gate, which covers both password and OAuth signups.
 async fn ensure_email_passes_gate(
-    redis: &RedisPool,
-    email: &str,
+	redis: &RedisPool,
+	email: &str,
 ) -> Result<(), ApiError> {
-    if email_checks_skipped(email) {
-        return Ok(());
-    }
+	if email_checks_skipped(email) {
+		return Ok(());
+	}
 
-    ensure_email_domain_is_not_blacklisted(email)?;
+	ensure_email_domain_is_not_blacklisted(email)?;
 
-    let action = check_email_gate(redis, email)
-        .await
-        .wrap_request_err("checking email address")?;
+	let action = check_email_gate(redis, email)
+		.await
+		.wrap_request_err("checking email address")?;
 
-    if action == DecisionAction::Block {
-        return Err(ApiError::Request(gate_block_error()));
-    }
+	if action == DecisionAction::Block {
+		return Err(ApiError::Request(gate_block_error()));
+	}
 
-    Ok(())
+	Ok(())
 }
 
 async fn ensure_email_is_usable(
-    redis: &RedisPool,
-    email: &str,
+	redis: &RedisPool,
+	email: &str,
 ) -> Result<(), ApiError> {
-    ensure_email_passes_gate(redis, email).await?;
+	ensure_email_passes_gate(redis, email).await?;
 
-    if email_checks_skipped(email) {
-        return Ok(());
-    }
+	if email_checks_skipped(email) {
+		return Ok(());
+	}
 
-    let result = check_email(redis, email)
-        .await
-        .wrap_request_err("checking email address")?;
+	let result = check_email(redis, email)
+		.await
+		.wrap_request_err("checking email address")?;
 
-    if matches!(
-        result,
-        neverbounce::VerificationResult::Invalid
-            | neverbounce::VerificationResult::Disposable
-    ) {
-        return Err(ApiError::Request(email_check_error_generic()));
-    }
+	if matches!(
+		result,
+		neverbounce::VerificationResult::Invalid
+			| neverbounce::VerificationResult::Disposable
+	) {
+		return Err(ApiError::Request(email_check_error_generic()));
+	}
 
-    Ok(())
+	Ok(())
 }
 
 impl AccountRegisterFlow {
-    async fn validate(
-        self,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<ReadyAccountRegisterFlow, CreateAccountError> {
-        if let Err(err) = validator::Validate::validate(&self) {
-            return Err(CreateAccountError::InvalidInput(
-                validation_errors_to_string(err, None),
-            ));
-        }
+	async fn validate(
+		self,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<ReadyAccountRegisterFlow, CreateAccountError> {
+		if let Err(err) = validator::Validate::validate(&self) {
+			return Err(CreateAccountError::InvalidInput(
+				validation_errors_to_string(err, None),
+			));
+		}
 
-        if crate::database::models::DBUser::get(
-            &self.username,
-            &mut *transaction,
-            redis,
-        )
-        .await
-        .wrap_internal_err("fetching existing user with username")?
-        .is_some()
-        {
-            return Err(CreateAccountError::UsernameTaken);
-        }
+		if crate::database::models::DBUser::get(
+			&self.username,
+			&mut *transaction,
+			redis,
+		)
+		.await
+		.wrap_internal_err("fetching existing user with username")?
+		.is_some()
+		{
+			return Err(CreateAccountError::UsernameTaken);
+		}
 
-        let score =
-            zxcvbn::zxcvbn(&self.password, &[&self.username, &self.email]);
+		let score =
+			zxcvbn::zxcvbn(&self.password, &[&self.username, &self.email]);
 
-        if score.score() < Score::Three {
-            let feedback = score
-                .feedback()
-                .and_then(|x| x.warning())
-                .map(|w| w.to_string());
-            return Err(CreateAccountError::WeakPassword(feedback));
-        }
+		if score.score() < Score::Three {
+			let feedback = score
+				.feedback()
+				.and_then(|x| x.warning())
+				.map(|w| w.to_string());
+			return Err(CreateAccountError::WeakPassword(feedback));
+		}
 
-        if !crate::database::models::DBUser::get_by_case_insensitive_email(
-            &self.email,
-            &mut *transaction,
-        )
-        .await
-        .wrap_internal_err("fetching existing user with email")?
-        .is_empty()
-        {
-            return Err(CreateAccountError::DuplicateEmail);
-        }
+		if !crate::database::models::DBUser::get_by_case_insensitive_email(
+			&self.email,
+			&mut *transaction,
+		)
+		.await
+		.wrap_internal_err("fetching existing user with email")?
+		.is_empty()
+		{
+			return Err(CreateAccountError::DuplicateEmail);
+		}
 
-        Ok(ReadyAccountRegisterFlow { inner: self })
-    }
+		Ok(ReadyAccountRegisterFlow { inner: self })
+	}
 }
 
 impl ReadyAccountRegisterFlow {
-    async fn execute(
-        self,
-        req: HttpRequest,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-        email_queue: &EmailQueue,
-    ) -> Result<crate::models::sessions::Session, CreateAccountError> {
-        let register_flow = self.inner;
+	async fn execute(
+		self,
+		req: HttpRequest,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+		email_queue: &EmailQueue,
+	) -> Result<crate::models::sessions::Session, CreateAccountError> {
+		let register_flow = self.inner;
 
-        let user_id = crate::database::models::generate_user_id(transaction)
-            .await
-            .wrap_internal_err("generating user ID")?;
+		let user_id = crate::database::models::generate_user_id(transaction)
+			.await
+			.wrap_internal_err("generating user ID")?;
 
-        let hasher = Argon2::default();
-        let salt = SaltString::generate(&mut ChaCha20Rng::from_entropy());
-        let password_hash = hasher
-            .hash_password(register_flow.password.as_bytes(), &salt)
-            .wrap_internal_err("hashing password")?
-            .to_string();
+		let hasher = Argon2::default();
+		let salt = SaltString::generate(&mut ChaCha20Rng::from_entropy());
+		let password_hash = hasher
+			.hash_password(register_flow.password.as_bytes(), &salt)
+			.wrap_internal_err("hashing password")?
+			.to_string();
 
-        let insert_result = crate::database::models::DBUser {
-            id: user_id,
-            github_id: None,
-            discord_id: None,
-            gitlab_id: None,
-            google_id: None,
-            steam_id: None,
-            microsoft_id: None,
-            password: Some(password_hash),
-            paypal_id: None,
-            paypal_country: None,
-            paypal_email: None,
-            venmo_handle: None,
-            stripe_customer_id: None,
-            totp_secret: None,
-            username: register_flow.username.clone(),
-            email: Some(register_flow.email.clone()),
-            email_verified: false,
-            avatar_url: None,
-            raw_avatar_url: None,
-            bio: None,
-            created: Utc::now(),
-            role: Role::Developer.to_string(),
-            badges: Badges::default(),
-            campaign_pride_26: None,
-            allow_friend_requests: true,
-            is_subscribed_to_newsletter: register_flow.sign_up_newsletter,
-            eligibility_verified_at: Some(Utc::now()),
-        }
-        .insert(transaction)
-        .await;
-        match insert_result {
-            Ok(()) => {}
-            Err(err) => {
-                if let sqlx::Error::Database(database_error) = &err {
-                    match database_error.constraint() {
-                        Some("username_unique" | "users_username_key") => {
-                            return Err(CreateAccountError::UsernameTaken);
-                        }
-                        Some("email_unique" | "users_email_key") => {
-                            return Err(CreateAccountError::DuplicateEmail);
-                        }
-                        _ => {}
-                    }
-                }
+		let insert_result = crate::database::models::DBUser {
+			id: user_id,
+			github_id: None,
+			discord_id: None,
+			gitlab_id: None,
+			google_id: None,
+			steam_id: None,
+			microsoft_id: None,
+			password: Some(password_hash),
+			paypal_id: None,
+			paypal_country: None,
+			paypal_email: None,
+			venmo_handle: None,
+			stripe_customer_id: None,
+			totp_secret: None,
+			username: register_flow.username.clone(),
+			email: Some(register_flow.email.clone()),
+			email_verified: false,
+			avatar_url: None,
+			raw_avatar_url: None,
+			bio: None,
+			created: Utc::now(),
+			role: Role::Developer.to_string(),
+			badges: Badges::default(),
+			campaign_pride_26: None,
+			allow_friend_requests: true,
+			is_subscribed_to_newsletter: register_flow.sign_up_newsletter,
+			eligibility_verified_at: Some(Utc::now()),
+		}
+		.insert(transaction)
+		.await;
+		match insert_result {
+			Ok(()) => {}
+			Err(err) => {
+				if let sqlx::Error::Database(database_error) = &err {
+					match database_error.constraint() {
+						Some("username_unique" | "users_username_key") => {
+							return Err(CreateAccountError::UsernameTaken);
+						}
+						Some("email_unique" | "users_email_key") => {
+							return Err(CreateAccountError::DuplicateEmail);
+						}
+						_ => {}
+					}
+				}
 
-                return Err(ApiError::Internal(eyre::eyre!(
-                    "inserting registered user: {err}"
-                ))
-                .into());
-            }
-        }
+				return Err(ApiError::Internal(eyre::eyre!(
+					"inserting registered user: {err}"
+				))
+				.into());
+			}
+		}
 
-        let session = issue_session(req, user_id, transaction, redis, None)
-            .await
-            .wrap_auth_err("authenticating API request")?;
-        let res = crate::models::sessions::Session::from(session, true, None);
+		let session = issue_session(req, user_id, transaction, redis, None)
+			.await
+			.wrap_auth_err("authenticating API request")?;
+		let res = crate::models::sessions::Session::from(session, true, None);
 
-        send_verify_email(
-            email_queue,
-            transaction,
-            redis,
-            user_id,
-            register_flow.email,
-        )
-        .await?;
+		send_verify_email(
+			email_queue,
+			transaction,
+			redis,
+			user_id,
+			register_flow.email,
+		)
+		.await?;
 
-        Ok(res)
-    }
+		Ok(res)
+	}
 }
 
 /// Validate password account creation.
@@ -2170,19 +2170,19 @@ impl ReadyAccountRegisterFlow {
 )]
 #[post("/create/validate")]
 pub async fn validate_create_account_with_password(
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    new_account: web::Json<NewAccount>,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	new_account: web::Json<NewAccount>,
 ) -> Result<(), CreateAccountError> {
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("beginning transaction")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("beginning transaction")?;
 
-    AccountRegisterFlow::from(new_account.into_inner())
-        .validate(&mut transaction, &redis)
-        .await
-        .map(drop)
+	AccountRegisterFlow::from(new_account.into_inner())
+		.validate(&mut transaction, &redis)
+		.await
+		.map(drop)
 }
 
 /// Create account with a password.
@@ -2198,57 +2198,57 @@ pub async fn validate_create_account_with_password(
 )]
 #[post("/create")]
 pub async fn create_account_with_password(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    new_account: web::Json<NewAccount>,
-    email: web::Data<EmailQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	new_account: web::Json<NewAccount>,
+	email: web::Data<EmailQueue>,
 ) -> Result<HttpResponse, CreateAccountError> {
-    let new_account = new_account.into_inner();
+	let new_account = new_account.into_inner();
 
-    validate_account_consent(new_account.account_consent)
-        .wrap_api_err("validating account consent")?;
+	validate_account_consent(new_account.account_consent)
+		.wrap_api_err("validating account consent")?;
 
-    if !check_hcaptcha(&req, new_account.challenge.as_deref().unwrap_or(""))
-        .await
-        .wrap_api_err("checking captcha response")?
-    {
-        return Err(ApiError::Request(eyre::eyre!(
-            "captcha validation failed"
-        ))
-        .into());
-    }
+	if !check_hcaptcha(&req, new_account.challenge.as_deref().unwrap_or(""))
+		.await
+		.wrap_api_err("checking captcha response")?
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"captcha validation failed"
+		))
+		.into());
+	}
 
-    ensure_email_is_usable(&redis, &new_account.email)
-        .await
-        .wrap_api_err("validating email is usable")?;
+	ensure_email_is_usable(&redis, &new_account.email)
+		.await
+		.wrap_api_err("validating email is usable")?;
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("starting database transaction")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
 
-    let ready_flow = AccountRegisterFlow::from(new_account)
-        .validate(&mut transaction, &redis)
-        .await?;
+	let ready_flow = AccountRegisterFlow::from(new_account)
+		.validate(&mut transaction, &redis)
+		.await?;
 
-    let res = ready_flow
-        .execute(req, &mut transaction, &redis, &email)
-        .await?;
-    transaction
-        .commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
+	let res = ready_flow
+		.execute(req, &mut transaction, &redis, &email)
+		.await?;
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
 
-    Ok(HttpResponse::Ok().json(res))
+	Ok(HttpResponse::Ok().json(res))
 }
 
 #[derive(Deserialize, Validate, utoipa::ToSchema)]
 pub struct Login {
-    #[serde(rename = "username")]
-    pub username_or_email: String,
-    pub password: String,
-    pub challenge: String,
+	#[serde(rename = "username")]
+	pub username_or_email: String,
+	pub password: String,
+	pub challenge: String,
 }
 
 /// Log in with a password.
@@ -2264,168 +2264,168 @@ pub struct Login {
 )]
 #[post("/login")]
 pub async fn login_password(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    login: web::Json<Login>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	login: web::Json<Login>,
 ) -> Result<HttpResponse, ApiError> {
-    if !check_hcaptcha(&req, &login.challenge)
-        .await
-        .wrap_api_err("checking captcha response")?
-    {
-        return Err(ApiError::Request(eyre::eyre!(
-            "captcha validation failed"
-        )));
-    }
+	if !check_hcaptcha(&req, &login.challenge)
+		.await
+		.wrap_api_err("checking captcha response")?
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"captcha validation failed"
+		)));
+	}
 
-    let user = if let Some(user) = crate::database::models::DBUser::get(
-        &login.username_or_email,
-        &**pool,
-        &redis,
-    )
-    .await
-    .wrap_internal_err("fetching user from database")?
-    {
-        user
-    } else {
-        let user = crate::database::models::DBUser::get_by_email(
-            &login.username_or_email,
-            &**pool,
-        )
-        .await
-        .wrap_internal_err("fetching user from database")?
-        .ok_or_else(|| AuthenticationError::InvalidCredentials)
-        .wrap_auth_err("fetching user from database")?;
+	let user = if let Some(user) = crate::database::models::DBUser::get(
+		&login.username_or_email,
+		&**pool,
+		&redis,
+	)
+	.await
+	.wrap_internal_err("fetching user from database")?
+	{
+		user
+	} else {
+		let user = crate::database::models::DBUser::get_by_email(
+			&login.username_or_email,
+			&**pool,
+		)
+		.await
+		.wrap_internal_err("fetching user from database")?
+		.ok_or_else(|| AuthenticationError::InvalidCredentials)
+		.wrap_auth_err("fetching user from database")?;
 
-        crate::database::models::DBUser::get_id(user, &**pool, &redis)
-            .await
-            .wrap_internal_err("fetching user from database")?
-            .ok_or_else(|| AuthenticationError::InvalidCredentials)
-            .wrap_auth_err("fetching user from database")?
-    };
+		crate::database::models::DBUser::get_id(user, &**pool, &redis)
+			.await
+			.wrap_internal_err("fetching user from database")?
+			.ok_or_else(|| AuthenticationError::InvalidCredentials)
+			.wrap_auth_err("fetching user from database")?
+	};
 
-    let hasher = Argon2::default();
-    hasher
-        .verify_password(
-            login.password.as_bytes(),
-            &PasswordHash::new(
-                &user
-                    .password
-                    .ok_or_else(|| AuthenticationError::InvalidCredentials)
-                    .wrap_auth_err("authenticating API request")?,
-            )
-            .wrap_internal_err("validating data")?,
-        )
-        .map_err(|_| AuthenticationError::InvalidCredentials)
-        .wrap_auth_err("authenticating API request")?;
+	let hasher = Argon2::default();
+	hasher
+		.verify_password(
+			login.password.as_bytes(),
+			&PasswordHash::new(
+				&user
+					.password
+					.ok_or_else(|| AuthenticationError::InvalidCredentials)
+					.wrap_auth_err("authenticating API request")?,
+			)
+			.wrap_internal_err("validating data")?,
+		)
+		.map_err(|_| AuthenticationError::InvalidCredentials)
+		.wrap_auth_err("authenticating API request")?;
 
-    if user.totp_secret.is_some() {
-        let flow = DBFlow::Login2FA { user_id: user.id }
-            .insert(Duration::minutes(30), &redis)
-            .await
-            .wrap_internal_err("inserting authentication flow into database")?;
+	if user.totp_secret.is_some() {
+		let flow = DBFlow::Login2FA { user_id: user.id }
+			.insert(Duration::minutes(30), &redis)
+			.await
+			.wrap_internal_err("inserting authentication flow into database")?;
 
-        Ok(HttpResponse::Ok().json(serde_json::json!({
-            "error": "2fa_required",
-            "description": "2FA is required to complete this operation.",
-            "flow": flow,
-        })))
-    } else {
-        let mut transaction = pool
-            .begin()
-            .await
-            .wrap_internal_err("starting database transaction")?;
-        let session =
-            issue_session(req, user.id, &mut transaction, &redis, None)
-                .await
-                .wrap_auth_err("authenticating API request")?;
-        let res = crate::models::sessions::Session::from(session, true, None);
-        transaction
-            .commit()
-            .await
-            .wrap_internal_err("committing database transaction")?;
+		Ok(HttpResponse::Ok().json(serde_json::json!({
+			"error": "2fa_required",
+			"description": "2FA is required to complete this operation.",
+			"flow": flow,
+		})))
+	} else {
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_internal_err("starting database transaction")?;
+		let session =
+			issue_session(req, user.id, &mut transaction, &redis, None)
+				.await
+				.wrap_auth_err("authenticating API request")?;
+		let res = crate::models::sessions::Session::from(session, true, None);
+		transaction
+			.commit()
+			.await
+			.wrap_internal_err("committing database transaction")?;
 
-        Ok(HttpResponse::Ok().json(res))
-    }
+		Ok(HttpResponse::Ok().json(res))
+	}
 }
 
 #[derive(Deserialize, Validate, utoipa::ToSchema)]
 pub struct Login2FA {
-    pub code: String,
-    pub flow: String,
+	pub code: String,
+	pub flow: String,
 }
 
 async fn validate_2fa_code(
-    input: String,
-    secret: String,
-    allow_backup: bool,
-    user_id: crate::database::models::DBUserId,
-    redis: &RedisPool,
-    pool: &PgPool,
-    transaction: &mut PgTransaction<'_>,
+	input: String,
+	secret: String,
+	allow_backup: bool,
+	user_id: crate::database::models::DBUserId,
+	redis: &RedisPool,
+	pool: &PgPool,
+	transaction: &mut PgTransaction<'_>,
 ) -> Result<bool, AuthenticationError> {
-    let totp = totp_rs::TOTP::new(
-        totp_rs::Algorithm::SHA1,
-        6,
-        1,
-        30,
-        totp_rs::Secret::Encoded(secret)
-            .to_bytes()
-            .map_err(|_| AuthenticationError::InvalidCredentials)?,
-    )
-    .map_err(|_| AuthenticationError::InvalidCredentials)?;
+	let totp = totp_rs::TOTP::new(
+		totp_rs::Algorithm::SHA1,
+		6,
+		1,
+		30,
+		totp_rs::Secret::Encoded(secret)
+			.to_bytes()
+			.map_err(|_| AuthenticationError::InvalidCredentials)?,
+	)
+	.map_err(|_| AuthenticationError::InvalidCredentials)?;
 
-    const TOTP_NAMESPACE: &str = "used_totp:v4";
-    let mut conn = redis.connect().await?;
-    let logical_key = format!("{}-{}", input, user_id.0);
-    let key = redis
-        .key()
-        .with_slot(TOTP_NAMESPACE, &logical_key, &logical_key);
+	const TOTP_NAMESPACE: &str = "used_totp:v4";
+	let mut conn = redis.connect().await?;
+	let logical_key = format!("{}-{}", input, user_id.0);
+	let key = redis
+		.key()
+		.with_slot(TOTP_NAMESPACE, &logical_key, &logical_key);
 
-    // Check if TOTP has already been used
-    if conn.get(&key).await?.is_some() {
-        return Err(AuthenticationError::InvalidCredentials);
-    }
+	// Check if TOTP has already been used
+	if conn.get(&key).await?.is_some() {
+		return Err(AuthenticationError::InvalidCredentials);
+	}
 
-    if totp
-        .check_current(input.as_str())
-        .map_err(|_| AuthenticationError::InvalidCredentials)?
-    {
-        conn.set(&key, "", Some(60)).await?;
+	if totp
+		.check_current(input.as_str())
+		.map_err(|_| AuthenticationError::InvalidCredentials)?
+	{
+		conn.set(&key, "", Some(60)).await?;
 
-        Ok(true)
-    } else if allow_backup {
-        let backup_codes =
-            crate::database::models::DBUser::get_backup_codes(user_id, pool)
-                .await?;
+		Ok(true)
+	} else if allow_backup {
+		let backup_codes =
+			crate::database::models::DBUser::get_backup_codes(user_id, pool)
+				.await?;
 
-        if !backup_codes.contains(&input) {
-            Ok(false)
-        } else {
-            let code = parse_base62(&input).unwrap_or_default();
+		if !backup_codes.contains(&input) {
+			Ok(false)
+		} else {
+			let code = parse_base62(&input).unwrap_or_default();
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                     DELETE FROM user_backup_codes
                     WHERE user_id = $1 AND code = $2
                     ",
-                user_id as crate::database::models::ids::DBUserId,
-                code as i64,
-            )
-            .execute(&mut *transaction)
-            .await?;
+				user_id as crate::database::models::ids::DBUserId,
+				code as i64,
+			)
+			.execute(&mut *transaction)
+			.await?;
 
-            crate::database::models::DBUser::clear_caches(
-                &[(user_id, None)],
-                redis,
-            )
-            .await?;
+			crate::database::models::DBUser::clear_caches(
+				&[(user_id, None)],
+				redis,
+			)
+			.await?;
 
-            Ok(true)
-        }
-    } else {
-        Err(AuthenticationError::InvalidCredentials)
-    }
+			Ok(true)
+		}
+	} else {
+		Err(AuthenticationError::InvalidCredentials)
+	}
 }
 
 /// Complete login with 2FA.
@@ -2441,67 +2441,67 @@ async fn validate_2fa_code(
 )]
 #[post("/login/2fa")]
 pub async fn login_2fa(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    login: web::Json<Login2FA>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	login: web::Json<Login2FA>,
 ) -> Result<HttpResponse, ApiError> {
-    let flow = DBFlow::get(&login.flow, &redis)
-        .await
-        .wrap_internal_err("fetching login flow from Redis")?
-        .ok_or_else(|| AuthenticationError::InvalidCredentials)
-        .wrap_auth_err("finding login flow")?;
+	let flow = DBFlow::get(&login.flow, &redis)
+		.await
+		.wrap_internal_err("fetching login flow from Redis")?
+		.ok_or_else(|| AuthenticationError::InvalidCredentials)
+		.wrap_auth_err("finding login flow")?;
 
-    if let DBFlow::Login2FA { user_id } = flow {
-        let user =
-            crate::database::models::DBUser::get_id(user_id, &**pool, &redis)
-                .await
-                .wrap_internal_err("fetching user from database")?
-                .ok_or_else(|| AuthenticationError::InvalidCredentials)
-                .wrap_auth_err("fetching user from database")?;
+	if let DBFlow::Login2FA { user_id } = flow {
+		let user =
+			crate::database::models::DBUser::get_id(user_id, &**pool, &redis)
+				.await
+				.wrap_internal_err("fetching user from database")?
+				.ok_or_else(|| AuthenticationError::InvalidCredentials)
+				.wrap_auth_err("fetching user from database")?;
 
-        let mut transaction = pool
-            .begin()
-            .await
-            .wrap_internal_err("starting database transaction")?;
-        if !validate_2fa_code(
-            login.code.clone(),
-            user.totp_secret
-                .ok_or_else(|| AuthenticationError::InvalidCredentials)
-                .wrap_auth_err("authenticating API request")?,
-            true,
-            user.id,
-            &redis,
-            &pool,
-            &mut transaction,
-        )
-        .await
-        .wrap_auth_err("authenticating API request")?
-        {
-            return Err(ApiError::Auth(eyre::eyre!(
-                AuthenticationError::InvalidCredentials,
-            )));
-        }
-        DBFlow::remove(&login.flow, &redis)
-            .await
-            .wrap_internal_err("removing authentication flow from Redis")?;
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_internal_err("starting database transaction")?;
+		if !validate_2fa_code(
+			login.code.clone(),
+			user.totp_secret
+				.ok_or_else(|| AuthenticationError::InvalidCredentials)
+				.wrap_auth_err("authenticating API request")?,
+			true,
+			user.id,
+			&redis,
+			&pool,
+			&mut transaction,
+		)
+		.await
+		.wrap_auth_err("authenticating API request")?
+		{
+			return Err(ApiError::Auth(eyre::eyre!(
+				AuthenticationError::InvalidCredentials,
+			)));
+		}
+		DBFlow::remove(&login.flow, &redis)
+			.await
+			.wrap_internal_err("removing authentication flow from Redis")?;
 
-        let session =
-            issue_session(req, user_id, &mut transaction, &redis, None)
-                .await
-                .wrap_auth_err("authenticating API request")?;
-        let res = crate::models::sessions::Session::from(session, true, None);
-        transaction
-            .commit()
-            .await
-            .wrap_internal_err("committing database transaction")?;
+		let session =
+			issue_session(req, user_id, &mut transaction, &redis, None)
+				.await
+				.wrap_auth_err("authenticating API request")?;
+		let res = crate::models::sessions::Session::from(session, true, None);
+		transaction
+			.commit()
+			.await
+			.wrap_internal_err("committing database transaction")?;
 
-        Ok(HttpResponse::Ok().json(res))
-    } else {
-        Err(ApiError::Auth(eyre::eyre!(
-            AuthenticationError::InvalidCredentials,
-        )))
-    }
+		Ok(HttpResponse::Ok().json(res))
+	} else {
+		Err(ApiError::Auth(eyre::eyre!(
+			AuthenticationError::InvalidCredentials,
+		)))
+	}
 }
 
 /// Start 2FA setup.
@@ -2518,43 +2518,43 @@ pub async fn login_2fa(
 )]
 #[post("/2fa/get_secret")]
 pub async fn begin_2fa_flow(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    if !user.has_totp.unwrap_or(false) {
-        let string = totp_rs::Secret::generate_secret();
-        let encoded = string.to_encoded();
+	if !user.has_totp.unwrap_or(false) {
+		let string = totp_rs::Secret::generate_secret();
+		let encoded = string.to_encoded();
 
-        let flow = DBFlow::Initialize2FA {
-            user_id: user.id.into(),
-            secret: encoded.to_string(),
-        }
-        .insert(Duration::minutes(30), &redis)
-        .await
-        .wrap_internal_err("inserting database records for `begin_2fa_flow`")?;
+		let flow = DBFlow::Initialize2FA {
+			user_id: user.id.into(),
+			secret: encoded.to_string(),
+		}
+		.insert(Duration::minutes(30), &redis)
+		.await
+		.wrap_internal_err("inserting database records for `begin_2fa_flow`")?;
 
-        Ok(HttpResponse::Ok().json(serde_json::json!({
-            "secret": encoded.to_string(),
-            "flow": flow,
-        })))
-    } else {
-        Err(ApiError::Request(eyre::eyre!(
-            "User already has 2FA enabled on their account!",
-        )))
-    }
+		Ok(HttpResponse::Ok().json(serde_json::json!({
+			"secret": encoded.to_string(),
+			"flow": flow,
+		})))
+	} else {
+		Err(ApiError::Request(eyre::eyre!(
+			"User already has 2FA enabled on their account!",
+		)))
+	}
 }
 
 /// Finish 2FA setup.
@@ -2571,94 +2571,94 @@ pub async fn begin_2fa_flow(
 )]
 #[post("/2fa")]
 pub async fn finish_2fa_flow(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    login: web::Json<Login2FA>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	login: web::Json<Login2FA>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let flow = DBFlow::get(&login.flow, &redis)
-        .await
-        .wrap_internal_err("fetching 2FA initialization flow from Redis")?
-        .ok_or_else(|| AuthenticationError::InvalidCredentials)
-        .wrap_auth_err("finding 2FA initialization flow")?;
+	let flow = DBFlow::get(&login.flow, &redis)
+		.await
+		.wrap_internal_err("fetching 2FA initialization flow from Redis")?
+		.ok_or_else(|| AuthenticationError::InvalidCredentials)
+		.wrap_auth_err("finding 2FA initialization flow")?;
 
-    if let DBFlow::Initialize2FA { user_id, secret } = flow {
-        let user = get_user_from_headers(
-            &req,
-            &**pool,
-            &redis,
-            &session_queue,
-            Scopes::USER_AUTH_WRITE,
-        )
-        .await
-        .wrap_auth_err("authenticating API request")?
-        .1;
+	if let DBFlow::Initialize2FA { user_id, secret } = flow {
+		let user = get_user_from_headers(
+			&req,
+			&**pool,
+			&redis,
+			&session_queue,
+			Scopes::USER_AUTH_WRITE,
+		)
+		.await
+		.wrap_auth_err("authenticating API request")?
+		.1;
 
-        if user.id != user_id.into() {
-            return Err(ApiError::Auth(eyre::eyre!(
-                AuthenticationError::InvalidCredentials,
-            )));
-        }
+		if user.id != user_id.into() {
+			return Err(ApiError::Auth(eyre::eyre!(
+				AuthenticationError::InvalidCredentials,
+			)));
+		}
 
-        let mut transaction = pool
-            .begin()
-            .await
-            .wrap_internal_err("starting database transaction")?;
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_internal_err("starting database transaction")?;
 
-        if !validate_2fa_code(
-            login.code.clone(),
-            secret.clone(),
-            false,
-            user.id.into(),
-            &redis,
-            &pool,
-            &mut transaction,
-        )
-        .await
-        .wrap_auth_err("authenticating API request")?
-        {
-            return Err(ApiError::Auth(eyre::eyre!(
-                AuthenticationError::InvalidCredentials,
-            )));
-        }
+		if !validate_2fa_code(
+			login.code.clone(),
+			secret.clone(),
+			false,
+			user.id.into(),
+			&redis,
+			&pool,
+			&mut transaction,
+		)
+		.await
+		.wrap_auth_err("authenticating API request")?
+		{
+			return Err(ApiError::Auth(eyre::eyre!(
+				AuthenticationError::InvalidCredentials,
+			)));
+		}
 
-        DBFlow::remove(&login.flow, &redis)
-            .await
-            .wrap_internal_err("removing authentication flow from Redis")?;
+		DBFlow::remove(&login.flow, &redis)
+			.await
+			.wrap_internal_err("removing authentication flow from Redis")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             UPDATE users
             SET totp_secret = $1
             WHERE (id = $2)
             ",
-            secret,
-            user_id as crate::database::models::ids::DBUserId,
-        )
-        .execute(&mut transaction)
-        .await
-        .wrap_internal_err("querying database for `finish_2fa_flow`")?;
+			secret,
+			user_id as crate::database::models::ids::DBUserId,
+		)
+		.execute(&mut transaction)
+		.await
+		.wrap_internal_err("querying database for `finish_2fa_flow`")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             DELETE FROM user_backup_codes
             WHERE user_id = $1
             ",
-            user_id as crate::database::models::ids::DBUserId,
-        )
-        .execute(&mut transaction)
-        .await
-        .wrap_internal_err("querying database for `finish_2fa_flow`")?;
+			user_id as crate::database::models::ids::DBUserId,
+		)
+		.execute(&mut transaction)
+		.await
+		.wrap_internal_err("querying database for `finish_2fa_flow`")?;
 
-        let mut codes = Vec::new();
+		let mut codes = Vec::new();
 
-        for _ in 0..6 {
-            let mut rng = ChaCha20Rng::from_entropy();
-            let val = random_base62_rng(&mut rng, 11);
+		for _ in 0..6 {
+			let mut rng = ChaCha20Rng::from_entropy();
+			let val = random_base62_rng(&mut rng, 11);
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 INSERT INTO user_backup_codes (
                     user_id, code
                 )
@@ -2666,49 +2666,49 @@ pub async fn finish_2fa_flow(
                     $1, $2
                 )
                 ",
-                user_id as crate::database::models::ids::DBUserId,
-                val as i64,
-            )
-            .execute(&mut transaction)
-            .await
-            .wrap_internal_err("querying database for `finish_2fa_flow`")?;
+				user_id as crate::database::models::ids::DBUserId,
+				val as i64,
+			)
+			.execute(&mut transaction)
+			.await
+			.wrap_internal_err("querying database for `finish_2fa_flow`")?;
 
-            codes.push(to_base62(val));
-        }
+			codes.push(to_base62(val));
+		}
 
-        NotificationBuilder {
-            body: NotificationBody::TwoFactorEnabled,
-        }
-        .insert(user.id.into(), &mut transaction, &redis)
-        .await
-        .wrap_internal_err(
-            "inserting database records for `finish_2fa_flow`",
-        )?;
+		NotificationBuilder {
+			body: NotificationBody::TwoFactorEnabled,
+		}
+		.insert(user.id.into(), &mut transaction, &redis)
+		.await
+		.wrap_internal_err(
+			"inserting database records for `finish_2fa_flow`",
+		)?;
 
-        transaction
-            .commit()
-            .await
-            .wrap_internal_err("committing database transaction")?;
-        crate::database::models::DBUser::clear_caches(
-            &[(user.id.into(), None)],
-            &redis,
-        )
-        .await
-        .wrap_internal_err("clearing cached data from Redis")?;
+		transaction
+			.commit()
+			.await
+			.wrap_internal_err("committing database transaction")?;
+		crate::database::models::DBUser::clear_caches(
+			&[(user.id.into(), None)],
+			&redis,
+		)
+		.await
+		.wrap_internal_err("clearing cached data from Redis")?;
 
-        Ok(HttpResponse::Ok().json(serde_json::json!({
-            "backup_codes": codes,
-        })))
-    } else {
-        Err(ApiError::Auth(eyre::eyre!(
-            AuthenticationError::InvalidCredentials,
-        )))
-    }
+		Ok(HttpResponse::Ok().json(serde_json::json!({
+			"backup_codes": codes,
+		})))
+	} else {
+		Err(ApiError::Auth(eyre::eyre!(
+			AuthenticationError::InvalidCredentials,
+		)))
+	}
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
 pub struct Remove2FA {
-    pub code: String,
+	pub code: String,
 }
 
 /// Remove 2FA.
@@ -2725,101 +2725,101 @@ pub struct Remove2FA {
 )]
 #[delete("/2fa")]
 pub async fn remove_2fa(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    login: web::Json<Remove2FA>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	login: web::Json<Remove2FA>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let (scopes, user) = get_user_record_from_bearer_token(
-        &req,
-        None,
-        &**pool,
-        &redis,
-        &session_queue,
-        false,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .ok_or_else(|| AuthenticationError::InvalidCredentials)
-    .wrap_auth_err("authenticating API request")?;
+	let (scopes, user) = get_user_record_from_bearer_token(
+		&req,
+		None,
+		&**pool,
+		&redis,
+		&session_queue,
+		false,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.ok_or_else(|| AuthenticationError::InvalidCredentials)
+	.wrap_auth_err("authenticating API request")?;
 
-    if !scopes.contains(Scopes::USER_AUTH_WRITE) {
-        return Err(ApiError::Auth(eyre::eyre!(
-            AuthenticationError::InvalidCredentials,
-        )));
-    }
+	if !scopes.contains(Scopes::USER_AUTH_WRITE) {
+		return Err(ApiError::Auth(eyre::eyre!(
+			AuthenticationError::InvalidCredentials,
+		)));
+	}
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("starting database transaction")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
 
-    if !validate_2fa_code(
-        login.code.clone(),
-        user.totp_secret.wrap_request_err_with(|| {
-            "user does not have 2FA enabled on the account!".to_string()
-        })?,
-        true,
-        user.id,
-        &redis,
-        &pool,
-        &mut transaction,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    {
-        return Err(ApiError::Auth(eyre::eyre!(
-            AuthenticationError::InvalidCredentials,
-        )));
-    }
+	if !validate_2fa_code(
+		login.code.clone(),
+		user.totp_secret.wrap_request_err_with(|| {
+			"user does not have 2FA enabled on the account!".to_string()
+		})?,
+		true,
+		user.id,
+		&redis,
+		&pool,
+		&mut transaction,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	{
+		return Err(ApiError::Auth(eyre::eyre!(
+			AuthenticationError::InvalidCredentials,
+		)));
+	}
 
-    sqlx::query!(
-        "
+	sqlx::query!(
+		"
         UPDATE users
         SET totp_secret = NULL
         WHERE (id = $1)
         ",
-        user.id as crate::database::models::ids::DBUserId,
-    )
-    .execute(&mut transaction)
-    .await
-    .wrap_internal_err("querying database for `remove_2fa`")?;
+		user.id as crate::database::models::ids::DBUserId,
+	)
+	.execute(&mut transaction)
+	.await
+	.wrap_internal_err("querying database for `remove_2fa`")?;
 
-    sqlx::query!(
-        "
+	sqlx::query!(
+		"
         DELETE FROM user_backup_codes
         WHERE user_id = $1
         ",
-        user.id as crate::database::models::ids::DBUserId,
-    )
-    .execute(&mut transaction)
-    .await
-    .wrap_internal_err("querying database for `remove_2fa`")?;
+		user.id as crate::database::models::ids::DBUserId,
+	)
+	.execute(&mut transaction)
+	.await
+	.wrap_internal_err("querying database for `remove_2fa`")?;
 
-    NotificationBuilder {
-        body: NotificationBody::TwoFactorRemoved,
-    }
-    .insert(user.id, &mut transaction, &redis)
-    .await
-    .wrap_internal_err("inserting database records for `remove_2fa`")?;
+	NotificationBuilder {
+		body: NotificationBody::TwoFactorRemoved,
+	}
+	.insert(user.id, &mut transaction, &redis)
+	.await
+	.wrap_internal_err("inserting database records for `remove_2fa`")?;
 
-    transaction
-        .commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
-    crate::database::models::DBUser::clear_caches(&[(user.id, None)], &redis)
-        .await
-        .wrap_internal_err("clearing cached data from Redis")?;
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
+	crate::database::models::DBUser::clear_caches(&[(user.id, None)], &redis)
+		.await
+		.wrap_internal_err("clearing cached data from Redis")?;
 
-    Ok(HttpResponse::NoContent().finish())
+	Ok(HttpResponse::NoContent().finish())
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
 pub struct ResetPassword {
-    #[serde(rename = "username")]
-    pub username_or_email: String,
-    pub challenge: String,
+	#[serde(rename = "username")]
+	pub username_or_email: String,
+	pub challenge: String,
 }
 
 /// Start password reset.
@@ -2835,117 +2835,116 @@ pub struct ResetPassword {
 )]
 #[post("/password/reset")]
 pub async fn reset_password_begin(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    reset_password: web::Json<ResetPassword>,
-    email: web::Data<EmailQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	reset_password: web::Json<ResetPassword>,
+	email: web::Data<EmailQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    if !check_hcaptcha(&req, &reset_password.challenge)
-        .await
-        .wrap_api_err("checking captcha response")?
-    {
-        return Err(ApiError::Request(eyre::eyre!(
-            "captcha validation failed"
-        )));
-    }
+	if !check_hcaptcha(&req, &reset_password.challenge)
+		.await
+		.wrap_api_err("checking captcha response")?
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"captcha validation failed"
+		)));
+	}
 
-    let mut txn = pool
-        .begin()
-        .await
-        .wrap_internal_err("starting database transaction")?;
+	let mut txn = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
 
-    let user =
-        match crate::database::models::DBUser::get_by_case_insensitive_email(
-            &reset_password.username_or_email,
-            &mut txn,
-        )
-        .await
-        .wrap_internal_err("fetching user from database")?[..]
-        {
-            [] => {
-                // Try finding by username or ID
-                crate::database::models::DBUser::get(
-                    &reset_password.username_or_email,
-                    &mut txn,
-                    &redis,
-                )
-                .await
-                .wrap_internal_err("fetching user from database")?
-            }
-            [user_id] => {
-                // If there is only one user with the given email, ignoring case,
-                // we can assume it's the user we want to reset the password for
-                crate::database::models::DBUser::get_id(
-                    user_id, &mut txn, &redis,
-                )
-                .await
-                .wrap_internal_err("fetching user from database")?
-            }
-            _ => {
-                // When several users use variations of the same email with
-                // different cases, we cannot reliably tell which user should
-                // receive the password reset email, so fall back to case sensitive
-                // search to avoid spamming multiple users
-                if let Some(user_id) =
-                    crate::database::models::DBUser::get_by_email(
-                        &reset_password.username_or_email,
-                        &mut txn,
-                    )
-                    .await
-                    .wrap_internal_err(
-                        "fetching password-reset user by email",
-                    )?
-                {
-                    crate::database::models::DBUser::get_id(
-                        user_id, &mut txn, &redis,
-                    )
-                    .await
-                    .wrap_internal_err("fetching password-reset user by ID")?
-                } else {
-                    None
-                }
-            }
-        };
+	let user =
+		match crate::database::models::DBUser::get_by_case_insensitive_email(
+			&reset_password.username_or_email,
+			&mut txn,
+		)
+		.await
+		.wrap_internal_err("fetching user from database")?[..]
+		{
+			[] => {
+				// Try finding by username or ID
+				crate::database::models::DBUser::get(
+					&reset_password.username_or_email,
+					&mut txn,
+					&redis,
+				)
+				.await
+				.wrap_internal_err("fetching user from database")?
+			}
+			[user_id] => {
+				// If there is only one user with the given email, ignoring case,
+				// we can assume it's the user we want to reset the password for
+				crate::database::models::DBUser::get_id(
+					user_id, &mut txn, &redis,
+				)
+				.await
+				.wrap_internal_err("fetching user from database")?
+			}
+			_ => {
+				// When several users use variations of the same email with
+				// different cases, we cannot reliably tell which user should
+				// receive the password reset email, so fall back to case sensitive
+				// search to avoid spamming multiple users
+				if let Some(user_id) =
+					crate::database::models::DBUser::get_by_email(
+						&reset_password.username_or_email,
+						&mut txn,
+					)
+					.await
+					.wrap_internal_err(
+						"fetching password-reset user by email",
+					)? {
+					crate::database::models::DBUser::get_id(
+						user_id, &mut txn, &redis,
+					)
+					.await
+					.wrap_internal_err("fetching password-reset user by ID")?
+				} else {
+					None
+				}
+			}
+		};
 
-    if let Some(DBUser {
-        id: user_id,
-        email: user_email,
-        ..
-    }) = user
-    {
-        let flow = DBFlow::ForgotPassword { user_id }
-            .insert(Duration::hours(24), &redis)
-            .await
-            .wrap_internal_err("inserting authentication flow into database")?;
+	if let Some(DBUser {
+		id: user_id,
+		email: user_email,
+		..
+	}) = user
+	{
+		let flow = DBFlow::ForgotPassword { user_id }
+			.insert(Duration::hours(24), &redis)
+			.await
+			.wrap_internal_err("inserting authentication flow into database")?;
 
-        if let Ok(mailbox) = user_email.unwrap_or_default().parse() {
-            email
-                .send_one(
-                    &mut txn,
-                    NotificationBody::ResetPassword { flow },
-                    user_id,
-                    mailbox,
-                )
-                .await
-                .wrap_api_err("sending account email")?
-                .as_user_error()
-                .wrap_api_err("validating email delivery status")?;
-        }
-    }
+		if let Ok(mailbox) = user_email.unwrap_or_default().parse() {
+			email
+				.send_one(
+					&mut txn,
+					NotificationBody::ResetPassword { flow },
+					user_id,
+					mailbox,
+				)
+				.await
+				.wrap_api_err("sending account email")?
+				.as_user_error()
+				.wrap_api_err("validating email delivery status")?;
+		}
+	}
 
-    txn.commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
+	txn.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
 
-    Ok(HttpResponse::Ok().finish())
+	Ok(HttpResponse::Ok().finish())
 }
 
 #[derive(Deserialize, Validate, utoipa::ToSchema)]
 pub struct ChangePassword {
-    pub flow: Option<String>,
-    pub old_password: Option<String>,
-    pub new_password: Option<String>,
+	pub flow: Option<String>,
+	pub old_password: Option<String>,
+	pub new_password: Option<String>,
 }
 
 /// Change password.
@@ -2963,186 +2962,186 @@ pub struct ChangePassword {
 )]
 #[patch("/password")]
 pub async fn change_password(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    change_password: web::Json<ChangePassword>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	change_password: web::Json<ChangePassword>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = if let Some(flow) = &change_password.flow {
-        let flow = DBFlow::get(flow, &redis)
-            .await
-            .wrap_internal_err("fetching password-reset flow from Redis")?;
+	let user = if let Some(flow) = &change_password.flow {
+		let flow = DBFlow::get(flow, &redis)
+			.await
+			.wrap_internal_err("fetching password-reset flow from Redis")?;
 
-        if let Some(DBFlow::ForgotPassword { user_id }) = flow {
-            let user = crate::database::models::DBUser::get_id(
-                user_id, &**pool, &redis,
-            )
-            .await
-            .wrap_internal_err("fetching user from database")?
-            .ok_or_else(|| AuthenticationError::InvalidCredentials)
-            .wrap_auth_err("fetching user from database")?;
+		if let Some(DBFlow::ForgotPassword { user_id }) = flow {
+			let user = crate::database::models::DBUser::get_id(
+				user_id, &**pool, &redis,
+			)
+			.await
+			.wrap_internal_err("fetching user from database")?
+			.ok_or_else(|| AuthenticationError::InvalidCredentials)
+			.wrap_auth_err("fetching user from database")?;
 
-            Some(user)
-        } else {
-            return Err(ApiError::Auth(eyre::eyre!(
-                "The password change flow code is invalid or has expired. Did you copy it promptly and correctly?",
-            )));
-        }
-    } else {
-        None
-    };
+			Some(user)
+		} else {
+			return Err(ApiError::Auth(eyre::eyre!(
+				"The password change flow code is invalid or has expired. Did you copy it promptly and correctly?",
+			)));
+		}
+	} else {
+		None
+	};
 
-    let user = if let Some(user) = user {
-        user
-    } else {
-        let (scopes, user) = get_user_record_from_bearer_token(
-            &req,
-            None,
-            &**pool,
-            &redis,
-            &session_queue,
-            false,
-        )
-        .await
-        .wrap_auth_err("authenticating API request")?
-        .ok_or_else(|| AuthenticationError::InvalidCredentials)
-        .wrap_auth_err("authenticating API request")?;
+	let user = if let Some(user) = user {
+		user
+	} else {
+		let (scopes, user) = get_user_record_from_bearer_token(
+			&req,
+			None,
+			&**pool,
+			&redis,
+			&session_queue,
+			false,
+		)
+		.await
+		.wrap_auth_err("authenticating API request")?
+		.ok_or_else(|| AuthenticationError::InvalidCredentials)
+		.wrap_auth_err("authenticating API request")?;
 
-        if !scopes.contains(Scopes::USER_AUTH_WRITE) {
-            return Err(ApiError::Auth(eyre::eyre!(
-                AuthenticationError::InvalidCredentials,
-            )));
-        }
+		if !scopes.contains(Scopes::USER_AUTH_WRITE) {
+			return Err(ApiError::Auth(eyre::eyre!(
+				AuthenticationError::InvalidCredentials,
+			)));
+		}
 
-        if let Some(pass) = user.password.as_ref() {
-            let old_password = change_password
-                .old_password
-                .as_ref()
-                .wrap_auth_err_with(|| {
-                    "you must specify the old password to change your password!"
-                        .to_string()
-                })?;
+		if let Some(pass) = user.password.as_ref() {
+			let old_password = change_password
+				.old_password
+				.as_ref()
+				.wrap_auth_err_with(|| {
+					"you must specify the old password to change your password!"
+						.to_string()
+				})?;
 
-            let hasher = Argon2::default();
-            hasher
-                .verify_password(
-                    old_password.as_bytes(),
-                    &PasswordHash::new(pass)
-                        .wrap_internal_err("validating data")?,
-                )
-                .wrap_internal_err("validating data")?;
-        }
+			let hasher = Argon2::default();
+			hasher
+				.verify_password(
+					old_password.as_bytes(),
+					&PasswordHash::new(pass)
+						.wrap_internal_err("validating data")?,
+				)
+				.wrap_internal_err("validating data")?;
+		}
 
-        user
-    };
+		user
+	};
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("starting database transaction")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
 
-    let update_password = if let Some(new_password) =
-        &change_password.new_password
-    {
-        let score = zxcvbn::zxcvbn(
-            new_password,
-            &[&user.username, &user.email.clone().unwrap_or_default()],
-        );
+	let update_password = if let Some(new_password) =
+		&change_password.new_password
+	{
+		let score = zxcvbn::zxcvbn(
+			new_password,
+			&[&user.username, &user.email.clone().unwrap_or_default()],
+		);
 
-        if score.score() < Score::Three {
-            let report = score
-                .feedback()
-                .and_then(|feedback| feedback.warning())
-                .map_or_else(
-                    || {
-                        eyre::eyre!(
-                            "Specified password is too weak! Please improve its strength."
-                        )
-                    },
-                    |feedback| eyre::eyre!("Password too weak: {feedback}"),
-                );
-            return Err(ApiError::Request(report));
-        }
+		if score.score() < Score::Three {
+			let report = score
+				.feedback()
+				.and_then(|feedback| feedback.warning())
+				.map_or_else(
+					|| {
+						eyre::eyre!(
+							"Specified password is too weak! Please improve its strength."
+						)
+					},
+					|feedback| eyre::eyre!("Password too weak: {feedback}"),
+				);
+			return Err(ApiError::Request(report));
+		}
 
-        let hasher = Argon2::default();
-        let salt = SaltString::generate(&mut ChaCha20Rng::from_entropy());
-        let password_hash = hasher
-            .hash_password(new_password.as_bytes(), &salt)
-            .wrap_internal_err("hashing password")?
-            .to_string();
+		let hasher = Argon2::default();
+		let salt = SaltString::generate(&mut ChaCha20Rng::from_entropy());
+		let password_hash = hasher
+			.hash_password(new_password.as_bytes(), &salt)
+			.wrap_internal_err("hashing password")?
+			.to_string();
 
-        Some(password_hash)
-    } else {
-        if !(user.github_id.is_some()
-            || user.gitlab_id.is_some()
-            || user.microsoft_id.is_some()
-            || user.google_id.is_some()
-            || user.steam_id.is_some()
-            || user.discord_id.is_some())
-        {
-            return Err(ApiError::Request(eyre::eyre!(
-                "You must have another authentication method added to remove password authentication!",
-            )));
-        }
+		Some(password_hash)
+	} else {
+		if !(user.github_id.is_some()
+			|| user.gitlab_id.is_some()
+			|| user.microsoft_id.is_some()
+			|| user.google_id.is_some()
+			|| user.steam_id.is_some()
+			|| user.discord_id.is_some())
+		{
+			return Err(ApiError::Request(eyre::eyre!(
+				"You must have another authentication method added to remove password authentication!",
+			)));
+		}
 
-        None
-    };
+		None
+	};
 
-    sqlx::query!(
-        "
+	sqlx::query!(
+		"
         UPDATE users
         SET password = $1
         WHERE (id = $2)
         ",
-        update_password,
-        user.id as crate::database::models::ids::DBUserId,
-    )
-    .execute(&mut transaction)
-    .await
-    .wrap_internal_err("updating database records for `change_password`")?;
+		update_password,
+		user.id as crate::database::models::ids::DBUserId,
+	)
+	.execute(&mut transaction)
+	.await
+	.wrap_internal_err("updating database records for `change_password`")?;
 
-    if let Some(flow) = &change_password.flow {
-        DBFlow::remove(flow, &redis)
-            .await
-            .wrap_internal_err("removing authentication flow from Redis")?;
-    }
+	if let Some(flow) = &change_password.flow {
+		DBFlow::remove(flow, &redis)
+			.await
+			.wrap_internal_err("removing authentication flow from Redis")?;
+	}
 
-    if update_password.is_some() {
-        NotificationBuilder {
-            body: NotificationBody::PasswordChanged,
-        }
-        .insert(user.id, &mut transaction, &redis)
-        .await
-        .wrap_internal_err(
-            "inserting database records for `change_password`",
-        )?;
-    } else {
-        NotificationBuilder {
-            body: NotificationBody::PasswordRemoved,
-        }
-        .insert(user.id, &mut transaction, &redis)
-        .await
-        .wrap_internal_err(
-            "inserting database records for `change_password`",
-        )?;
-    }
+	if update_password.is_some() {
+		NotificationBuilder {
+			body: NotificationBody::PasswordChanged,
+		}
+		.insert(user.id, &mut transaction, &redis)
+		.await
+		.wrap_internal_err(
+			"inserting database records for `change_password`",
+		)?;
+	} else {
+		NotificationBuilder {
+			body: NotificationBody::PasswordRemoved,
+		}
+		.insert(user.id, &mut transaction, &redis)
+		.await
+		.wrap_internal_err(
+			"inserting database records for `change_password`",
+		)?;
+	}
 
-    transaction
-        .commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
-    crate::database::models::DBUser::clear_caches(&[(user.id, None)], &redis)
-        .await
-        .wrap_internal_err("clearing cached data from Redis")?;
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
+	crate::database::models::DBUser::clear_caches(&[(user.id, None)], &redis)
+		.await
+		.wrap_internal_err("clearing cached data from Redis")?;
 
-    Ok(HttpResponse::Ok().finish())
+	Ok(HttpResponse::Ok().finish())
 }
 
 #[derive(Deserialize, Validate, utoipa::ToSchema)]
 pub struct SetEmail {
-    #[validate(email)]
-    pub email: String,
+	#[validate(email)]
+	pub email: String,
 }
 
 /// Set email address.
@@ -3160,132 +3159,132 @@ pub struct SetEmail {
 )]
 #[patch("/email")]
 pub async fn set_email(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    email_address: web::Json<SetEmail>,
-    email: web::Data<EmailQueue>,
-    session_queue: Data<AuthQueue>,
-    stripe_client: Data<stripe::Client>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	email_address: web::Json<SetEmail>,
+	email: web::Data<EmailQueue>,
+	session_queue: Data<AuthQueue>,
+	stripe_client: Data<stripe::Client>,
 ) -> Result<HttpResponse, ApiError> {
-    email_address
-        .0
-        .validate()
-        .wrap_request_err("validating request")?;
+	email_address
+		.0
+		.validate()
+		.wrap_request_err("validating request")?;
 
-    let mailbox: Mailbox = email_address
-        .email
-        .parse()
-        .wrap_request_err("invalid email address!".to_string())?;
+	let mailbox: Mailbox = email_address
+		.email
+		.parse()
+		.wrap_request_err("invalid email address!".to_string())?;
 
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    if !crate::database::models::DBUser::get_by_case_insensitive_email(
-        &email_address.email,
-        &**pool,
-    )
-    .await
-    .wrap_internal_err("fetching user from database")?
-    .is_empty()
-    {
-        return Err(ApiError::Request(eyre::eyre!(
-            "Email is already registered on ShroudEdit! Try 'Forgot password' in incognito to access and delete your other account.",
-        )));
-    }
+	if !crate::database::models::DBUser::get_by_case_insensitive_email(
+		&email_address.email,
+		&**pool,
+	)
+	.await
+	.wrap_internal_err("fetching user from database")?
+	.is_empty()
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"Email is already registered on ShroudEdit! Try 'Forgot password' in incognito to access and delete your other account.",
+		)));
+	}
 
-    ensure_email_is_usable(&redis, &email_address.email)
-        .await
-        .wrap_api_err("validating email is usable")?;
+	ensure_email_is_usable(&redis, &email_address.email)
+		.await
+		.wrap_api_err("validating email is usable")?;
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("starting database transaction")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
 
-    sqlx::query!(
-        "
+	sqlx::query!(
+		"
         UPDATE users
         SET email = $1, email_verified = FALSE
         WHERE (id = $2)
         ",
-        email_address.email,
-        user.id.0 as i64,
-    )
-    .execute(&mut transaction)
-    .await
-    .wrap_internal_err("querying database for `set_email`")?;
+		email_address.email,
+		user.id.0 as i64,
+	)
+	.execute(&mut transaction)
+	.await
+	.wrap_internal_err("querying database for `set_email`")?;
 
-    if let Some(user_email) = user.email.clone() {
-        NotificationBuilder {
-            body: NotificationBody::EmailChanged {
-                new_email: email_address.email.clone(),
-                to_email: user_email,
-            },
-        }
-        .insert(user.id.into(), &mut transaction, &redis)
-        .await
-        .wrap_internal_err("inserting database records for `set_email`")?;
-    }
+	if let Some(user_email) = user.email.clone() {
+		NotificationBuilder {
+			body: NotificationBody::EmailChanged {
+				new_email: email_address.email.clone(),
+				to_email: user_email,
+			},
+		}
+		.insert(user.id.into(), &mut transaction, &redis)
+		.await
+		.wrap_internal_err("inserting database records for `set_email`")?;
+	}
 
-    if let Some(customer_id) = user
-        .stripe_customer_id
-        .as_ref()
-        .and_then(|x| stripe::CustomerId::from_str(x).ok())
-    {
-        stripe::Customer::update(
-            &stripe_client,
-            &customer_id,
-            stripe::UpdateCustomer {
-                email: Some(&email_address.email),
-                ..Default::default()
-            },
-        )
-        .await
-        .wrap_failed_dependency_err("communicating with payment provider")?;
-    }
+	if let Some(customer_id) = user
+		.stripe_customer_id
+		.as_ref()
+		.and_then(|x| stripe::CustomerId::from_str(x).ok())
+	{
+		stripe::Customer::update(
+			&stripe_client,
+			&customer_id,
+			stripe::UpdateCustomer {
+				email: Some(&email_address.email),
+				..Default::default()
+			},
+		)
+		.await
+		.wrap_failed_dependency_err("communicating with payment provider")?;
+	}
 
-    let flow = DBFlow::ConfirmEmail {
-        user_id: user.id.into(),
-        confirm_email: email_address.email.clone(),
-    }
-    .insert(Duration::hours(24), &redis)
-    .await
-    .wrap_internal_err("inserting database records for `set_email`")?;
+	let flow = DBFlow::ConfirmEmail {
+		user_id: user.id.into(),
+		confirm_email: email_address.email.clone(),
+	}
+	.insert(Duration::hours(24), &redis)
+	.await
+	.wrap_internal_err("inserting database records for `set_email`")?;
 
-    email
-        .send_one(
-            &mut transaction,
-            NotificationBody::VerifyEmail { flow },
-            user.id.into(),
-            mailbox,
-        )
-        .await
-        .wrap_api_err("sending account email")?
-        .as_user_error()
-        .wrap_api_err("validating email delivery status")?;
+	email
+		.send_one(
+			&mut transaction,
+			NotificationBody::VerifyEmail { flow },
+			user.id.into(),
+			mailbox,
+		)
+		.await
+		.wrap_api_err("sending account email")?
+		.as_user_error()
+		.wrap_api_err("validating email delivery status")?;
 
-    transaction
-        .commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
 
-    crate::database::models::DBUser::clear_caches(
-        &[(user.id.into(), None)],
-        &redis,
-    )
-    .await
-    .wrap_internal_err("clearing cached data from Redis")?;
+	crate::database::models::DBUser::clear_caches(
+		&[(user.id.into(), None)],
+		&redis,
+	)
+	.await
+	.wrap_internal_err("clearing cached data from Redis")?;
 
-    Ok(HttpResponse::Ok().finish())
+	Ok(HttpResponse::Ok().finish())
 }
 
 /// Resend verification email.
@@ -3302,77 +3301,77 @@ pub async fn set_email(
 )]
 #[post("/email/resend_verify")]
 pub async fn resend_verify_email(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
-    email: web::Data<EmailQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
+	email: web::Data<EmailQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    if let Some(email_address) = user.email {
-        if user.email_verified.unwrap_or(false) {
-            return Err(ApiError::Request(eyre::eyre!(
-                "User email is already verified!",
-            )));
-        }
+	if let Some(email_address) = user.email {
+		if user.email_verified.unwrap_or(false) {
+			return Err(ApiError::Request(eyre::eyre!(
+				"User email is already verified!",
+			)));
+		}
 
-        let flow = DBFlow::ConfirmEmail {
-            user_id: user.id.into(),
-            confirm_email: email_address.clone(),
-        }
-        .insert(Duration::hours(24), &redis)
-        .await
-        .wrap_internal_err(
-            "inserting database records for `resend_verify_email`",
-        )?;
+		let flow = DBFlow::ConfirmEmail {
+			user_id: user.id.into(),
+			confirm_email: email_address.clone(),
+		}
+		.insert(Duration::hours(24), &redis)
+		.await
+		.wrap_internal_err(
+			"inserting database records for `resend_verify_email`",
+		)?;
 
-        let mailbox: Mailbox = email_address
-            .parse()
-            .wrap_request_err("invalid email address!".to_string())?;
+		let mailbox: Mailbox = email_address
+			.parse()
+			.wrap_request_err("invalid email address!".to_string())?;
 
-        let mut transaction = pool
-            .begin()
-            .await
-            .wrap_internal_err("starting database transaction")?;
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_internal_err("starting database transaction")?;
 
-        email
-            .send_one(
-                &mut transaction,
-                NotificationBody::VerifyEmail { flow },
-                user.id.into(),
-                mailbox,
-            )
-            .await
-            .wrap_api_err("sending account email")?
-            .as_user_error()
-            .wrap_api_err("validating email delivery status")?;
+		email
+			.send_one(
+				&mut transaction,
+				NotificationBody::VerifyEmail { flow },
+				user.id.into(),
+				mailbox,
+			)
+			.await
+			.wrap_api_err("sending account email")?
+			.as_user_error()
+			.wrap_api_err("validating email delivery status")?;
 
-        transaction
-            .commit()
-            .await
-            .wrap_internal_err("committing database transaction")?;
+		transaction
+			.commit()
+			.await
+			.wrap_internal_err("committing database transaction")?;
 
-        Ok(HttpResponse::NoContent().finish())
-    } else {
-        Err(ApiError::Request(eyre::eyre!(
-            "User does not have an email.",
-        )))
-    }
+		Ok(HttpResponse::NoContent().finish())
+	} else {
+		Err(ApiError::Request(eyre::eyre!(
+			"User does not have an email.",
+		)))
+	}
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
 pub struct VerifyEmail {
-    pub flow: String,
+	pub flow: String,
 }
 
 /// Verify email address.
@@ -3388,69 +3387,69 @@ pub struct VerifyEmail {
 )]
 #[post("/email/verify")]
 pub async fn verify_email(
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    email: web::Json<VerifyEmail>,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	email: web::Json<VerifyEmail>,
 ) -> Result<HttpResponse, ApiError> {
-    let flow = DBFlow::get(&email.flow, &redis)
-        .await
-        .wrap_internal_err("fetching email-verification flow from Redis")?;
+	let flow = DBFlow::get(&email.flow, &redis)
+		.await
+		.wrap_internal_err("fetching email-verification flow from Redis")?;
 
-    if let Some(DBFlow::ConfirmEmail {
-        user_id,
-        confirm_email,
-    }) = flow
-    {
-        let user =
-            crate::database::models::DBUser::get_id(user_id, &**pool, &redis)
-                .await
-                .wrap_internal_err("fetching user from database")?
-                .ok_or_else(|| AuthenticationError::InvalidCredentials)
-                .wrap_auth_err("fetching user from database")?;
+	if let Some(DBFlow::ConfirmEmail {
+		user_id,
+		confirm_email,
+	}) = flow
+	{
+		let user =
+			crate::database::models::DBUser::get_id(user_id, &**pool, &redis)
+				.await
+				.wrap_internal_err("fetching user from database")?
+				.ok_or_else(|| AuthenticationError::InvalidCredentials)
+				.wrap_auth_err("fetching user from database")?;
 
-        if user.email != Some(confirm_email) {
-            return Err(ApiError::Request(eyre::eyre!(
-                "E-mail does not match verify email. Try re-requesting the verification link.",
-            )));
-        }
+		if user.email != Some(confirm_email) {
+			return Err(ApiError::Request(eyre::eyre!(
+				"E-mail does not match verify email. Try re-requesting the verification link.",
+			)));
+		}
 
-        let mut transaction = pool
-            .begin()
-            .await
-            .wrap_internal_err("starting database transaction")?;
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_internal_err("starting database transaction")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             UPDATE users
             SET email_verified = TRUE
             WHERE (id = $1)
             ",
-            user.id as crate::database::models::ids::DBUserId,
-        )
-        .execute(&mut transaction)
-        .await
-        .wrap_internal_err("querying database for `verify_email`")?;
+			user.id as crate::database::models::ids::DBUserId,
+		)
+		.execute(&mut transaction)
+		.await
+		.wrap_internal_err("querying database for `verify_email`")?;
 
-        DBFlow::remove(&email.flow, &redis)
-            .await
-            .wrap_internal_err("removing authentication flow from Redis")?;
-        transaction
-            .commit()
-            .await
-            .wrap_internal_err("committing database transaction")?;
-        crate::database::models::DBUser::clear_caches(
-            &[(user.id, None)],
-            &redis,
-        )
-        .await
-        .wrap_internal_err("clearing cached data from Redis")?;
+		DBFlow::remove(&email.flow, &redis)
+			.await
+			.wrap_internal_err("removing authentication flow from Redis")?;
+		transaction
+			.commit()
+			.await
+			.wrap_internal_err("committing database transaction")?;
+		crate::database::models::DBUser::clear_caches(
+			&[(user.id, None)],
+			&redis,
+		)
+		.await
+		.wrap_internal_err("clearing cached data from Redis")?;
 
-        Ok(HttpResponse::NoContent().finish())
-    } else {
-        Err(ApiError::Request(eyre::eyre!(
-            "Flow does not exist. Try re-requesting the verification link.",
-        )))
-    }
+		Ok(HttpResponse::NoContent().finish())
+	} else {
+		Err(ApiError::Request(eyre::eyre!(
+			"Flow does not exist. Try re-requesting the verification link.",
+		)))
+	}
 }
 
 /// Subscribe to the newsletter.
@@ -3467,42 +3466,42 @@ pub async fn verify_email(
 )]
 #[post("/email/subscribe")]
 pub async fn subscribe_newsletter(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    sqlx::query!(
-        "
+	sqlx::query!(
+		"
         UPDATE users
         SET is_subscribed_to_newsletter = TRUE
         WHERE id = $1
         ",
-        user.id.0 as i64,
-    )
-    .execute(&**pool)
-    .await
-    .wrap_internal_err("querying database for `subscribe_newsletter`")?;
+		user.id.0 as i64,
+	)
+	.execute(&**pool)
+	.await
+	.wrap_internal_err("querying database for `subscribe_newsletter`")?;
 
-    crate::database::models::DBUser::clear_caches(
-        &[(user.id.into(), None)],
-        &redis,
-    )
-    .await
-    .wrap_internal_err("clearing cached data from Redis")?;
+	crate::database::models::DBUser::clear_caches(
+		&[(user.id.into(), None)],
+		&redis,
+	)
+	.await
+	.wrap_internal_err("clearing cached data from Redis")?;
 
-    Ok(HttpResponse::NoContent().finish())
+	Ok(HttpResponse::NoContent().finish())
 }
 
 /// Get newsletter subscription status.
@@ -3519,43 +3518,43 @@ pub async fn subscribe_newsletter(
 )]
 #[get("/email/subscribe")]
 pub async fn get_newsletter_subscription_status(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_full_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_READ,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_full_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_READ,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    let is_subscribed = user.is_subscribed_to_newsletter
-        || if let Some(email) = user.email {
-            check_sendy_subscription(&email)
-                .await
-                .wrap_auth_err("authenticating API request")?
-        } else {
-            false
-        };
+	let is_subscribed = user.is_subscribed_to_newsletter
+		|| if let Some(email) = user.email {
+			check_sendy_subscription(&email)
+				.await
+				.wrap_auth_err("authenticating API request")?
+		} else {
+			false
+		};
 
-    Ok(HttpResponse::Ok().json(serde_json::json!({
-        "subscribed": is_subscribed
-    })))
+	Ok(HttpResponse::Ok().json(serde_json::json!({
+		"subscribed": is_subscribed
+	})))
 }
 
 const MAX_PASSKEYS_PER_USER: usize = 20;
 
 #[derive(Serialize, utoipa::ToSchema)]
 pub struct RegisterPasskeyResponse {
-    #[schema(value_type = Object)]
-    pub options: CreationChallengeResponse,
-    pub flow: String,
+	#[schema(value_type = Object)]
+	pub options: CreationChallengeResponse,
+	pub flow: String,
 }
 
 /// Start passkey registration.
@@ -3572,91 +3571,91 @@ pub struct RegisterPasskeyResponse {
 )]
 #[post("/passkey/register/start")]
 pub async fn register_passkey_start(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
-    webauthn: Data<Webauthn>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
+	webauthn: Data<Webauthn>,
 ) -> Result<web::Json<RegisterPasskeyResponse>, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    // Get currently registered credentials, so an authenticator knows not to register
-    // duplicate credentials
-    let excluded_credentials = DBPasskey::get_for_user(user.id.into(), &**pool)
-        .await
-        .wrap_internal_err("failed to fetch passkeys for user")?
-        .into_iter()
-        .map(|cred| CredentialID::from(cred.credential_id))
-        .collect::<Vec<_>>();
+	// Get currently registered credentials, so an authenticator knows not to register
+	// duplicate credentials
+	let excluded_credentials = DBPasskey::get_for_user(user.id.into(), &**pool)
+		.await
+		.wrap_internal_err("failed to fetch passkeys for user")?
+		.into_iter()
+		.map(|cred| CredentialID::from(cred.credential_id))
+		.collect::<Vec<_>>();
 
-    if excluded_credentials.len() >= MAX_PASSKEYS_PER_USER {
-        return Err(ApiError::Request(eyre!(
-            "maximum of {MAX_PASSKEYS_PER_USER} passkeys per user reached"
-        )));
-    }
+	if excluded_credentials.len() >= MAX_PASSKEYS_PER_USER {
+		return Err(ApiError::Request(eyre!(
+			"maximum of {MAX_PASSKEYS_PER_USER} passkeys per user reached"
+		)));
+	}
 
-    // Doesn't have to be a real UUID as long as it's unique
-    let user_uuid = Uuid::from_u128(user.id.0 as u128);
-    // Confusingly named in library and specs, but since we already use the username as the display
-    // name, using the email as normal name is better, the Webauthn specs state:
-    // "It is intended only for display, i.e., aiding the user in determining the difference
-    // between user accounts with similar displayNames."
-    let name = user.email.as_deref().unwrap_or(&user.username);
-    let (mut ccr, reg_state) = webauthn
-        .start_passkey_registration(
-            user_uuid,
-            name,
-            &user.username,
-            Some(excluded_credentials),
-        )
-        .wrap_internal_err("failed to start passkey registration")?;
+	// Doesn't have to be a real UUID as long as it's unique
+	let user_uuid = Uuid::from_u128(user.id.0 as u128);
+	// Confusingly named in library and specs, but since we already use the username as the display
+	// name, using the email as normal name is better, the Webauthn specs state:
+	// "It is intended only for display, i.e., aiding the user in determining the difference
+	// between user accounts with similar displayNames."
+	let name = user.email.as_deref().unwrap_or(&user.username);
+	let (mut ccr, reg_state) = webauthn
+		.start_passkey_registration(
+			user_uuid,
+			name,
+			&user.username,
+			Some(excluded_credentials),
+		)
+		.wrap_internal_err("failed to start passkey registration")?;
 
-    // This is not ideal, but webauthn-rs doesn't expose anything that allows us to force a resident
-    // key. And since we are implementing a one-click login flow without input of a username,
-    // we have to require a resident key, since this is a prerequisite for a discoverable
-    // credential. The default of this library is "discouraged", which does not match our use case.
-    // In the future this can be set to "preferred" if 2FA using a security key is implemented.
-    if let Some(ref mut auth_sel) = ccr.public_key.authenticator_selection {
-        auth_sel.resident_key =
-            Some(webauthn_rs_proto::ResidentKeyRequirement::Required);
-        auth_sel.require_resident_key = true;
-    }
+	// This is not ideal, but webauthn-rs doesn't expose anything that allows us to force a resident
+	// key. And since we are implementing a one-click login flow without input of a username,
+	// we have to require a resident key, since this is a prerequisite for a discoverable
+	// credential. The default of this library is "discouraged", which does not match our use case.
+	// In the future this can be set to "preferred" if 2FA using a security key is implemented.
+	if let Some(ref mut auth_sel) = ccr.public_key.authenticator_selection {
+		auth_sel.resident_key =
+			Some(webauthn_rs_proto::ResidentKeyRequirement::Required);
+		auth_sel.require_resident_key = true;
+	}
 
-    let flow = DBFlow::RegisterPasskey {
-        user_id: user.id.into(),
-        state: reg_state,
-    }
-    .insert(Duration::minutes(30), &redis)
-    .await
-    .wrap_internal_err("failed to store passkey registration flow")?;
+	let flow = DBFlow::RegisterPasskey {
+		user_id: user.id.into(),
+		state: reg_state,
+	}
+	.insert(Duration::minutes(30), &redis)
+	.await
+	.wrap_internal_err("failed to store passkey registration flow")?;
 
-    Ok(web::Json(RegisterPasskeyResponse { options: ccr, flow }))
+	Ok(web::Json(RegisterPasskeyResponse { options: ccr, flow }))
 }
 
 #[derive(Deserialize, Validate, utoipa::ToSchema)]
 pub struct RegisterPasskeyFinish {
-    pub flow: String,
-    #[validate(length(min = 1, max = 255))]
-    pub name: String,
-    #[schema(value_type = Object)]
-    pub credential: RegisterPublicKeyCredential,
+	pub flow: String,
+	#[validate(length(min = 1, max = 255))]
+	pub name: String,
+	#[schema(value_type = Object)]
+	pub credential: RegisterPublicKeyCredential,
 }
 
 #[derive(Serialize, utoipa::ToSchema)]
 pub struct PasskeyResponse {
-    pub id: PasskeyId,
-    pub name: String,
-    pub created_at: chrono::DateTime<Utc>,
-    pub last_used: Option<chrono::DateTime<Utc>>,
+	pub id: PasskeyId,
+	pub name: String,
+	pub created_at: chrono::DateTime<Utc>,
+	pub last_used: Option<chrono::DateTime<Utc>>,
 }
 
 /// Finish passkey registration.
@@ -3674,106 +3673,106 @@ pub struct PasskeyResponse {
 )]
 #[post("/passkey/register/finish")]
 pub async fn register_passkey_finish(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
-    webauthn: Data<Webauthn>,
-    response: web::Json<RegisterPasskeyFinish>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
+	webauthn: Data<Webauthn>,
+	response: web::Json<RegisterPasskeyFinish>,
 ) -> Result<(web::Json<PasskeyResponse>, StatusCode), ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    response
-        .validate()
-        .map_err(|err| eyre::eyre!(err))
-        .wrap_request_err("validating request")?;
+	response
+		.validate()
+		.map_err(|err| eyre::eyre!(err))
+		.wrap_request_err("validating request")?;
 
-    let db_user_id: DBUserId = user.id.into();
-    let flow = DBFlow::take_if(
+	let db_user_id: DBUserId = user.id.into();
+	let flow = DBFlow::take_if(
         &response.flow,
         |f| matches!(f, DBFlow::RegisterPasskey { user_id, .. } if *user_id == db_user_id),
         &redis,
     )
     .await.wrap_internal_err("executing `DBFlow::take_if`")?;
-    if let Some(DBFlow::RegisterPasskey { user_id, state }) = flow {
-        if user_id != db_user_id {
-            return Err(ApiError::Auth(eyre::eyre!(
-                AuthenticationError::InvalidCredentials,
-            )));
-        }
+	if let Some(DBFlow::RegisterPasskey { user_id, state }) = flow {
+		if user_id != db_user_id {
+			return Err(ApiError::Auth(eyre::eyre!(
+				AuthenticationError::InvalidCredentials,
+			)));
+		}
 
-        let result = webauthn
-            .finish_passkey_registration(&response.credential, &state)
-            .wrap_request_err("failed to finish passkey registration")?;
+		let result = webauthn
+			.finish_passkey_registration(&response.credential, &state)
+			.wrap_request_err("failed to finish passkey registration")?;
 
-        let mut transaction = pool
-            .begin()
-            .await
-            .wrap_internal_err("starting database transaction")?;
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_internal_err("starting database transaction")?;
 
-        let existing_passkeys =
-            DBPasskey::get_for_user(db_user_id, &mut transaction)
-                .await
-                .wrap_internal_err("failed to fetch passkeys for user")?;
-        if existing_passkeys.len() >= MAX_PASSKEYS_PER_USER {
-            return Err(ApiError::Request(eyre!(
-                "maximum of {MAX_PASSKEYS_PER_USER} passkeys per user reached"
-            )));
-        }
+		let existing_passkeys =
+			DBPasskey::get_for_user(db_user_id, &mut transaction)
+				.await
+				.wrap_internal_err("failed to fetch passkeys for user")?;
+		if existing_passkeys.len() >= MAX_PASSKEYS_PER_USER {
+			return Err(ApiError::Request(eyre!(
+				"maximum of {MAX_PASSKEYS_PER_USER} passkeys per user reached"
+			)));
+		}
 
-        let passkey_id =
-            crate::database::models::generate_passkey_id(&mut transaction)
-                .await
-                .wrap_internal_err("failed to generate passkey id")?;
+		let passkey_id =
+			crate::database::models::generate_passkey_id(&mut transaction)
+				.await
+				.wrap_internal_err("failed to generate passkey id")?;
 
-        let passkey = DBPasskey {
-            id: passkey_id,
-            user_id: db_user_id,
-            name: response.name.clone(),
-            credential_id: result.cred_id().to_vec(),
-            passkey: result,
-            created_at: Utc::now(),
-            last_used: None,
-        };
-        passkey
-            .insert(&mut transaction)
-            .await
-            .wrap_internal_err("failed to create passkey object")?;
+		let passkey = DBPasskey {
+			id: passkey_id,
+			user_id: db_user_id,
+			name: response.name.clone(),
+			credential_id: result.cred_id().to_vec(),
+			passkey: result,
+			created_at: Utc::now(),
+			last_used: None,
+		};
+		passkey
+			.insert(&mut transaction)
+			.await
+			.wrap_internal_err("failed to create passkey object")?;
 
-        transaction
-            .commit()
-            .await
-            .wrap_internal_err("committing database transaction")?;
-        Ok((
-            web::Json(PasskeyResponse {
-                id: passkey.id.into(),
-                name: passkey.name,
-                created_at: passkey.created_at,
-                last_used: passkey.last_used,
-            }),
-            StatusCode::CREATED,
-        ))
-    } else {
-        Err(ApiError::Request(eyre!(
-            "flow does not exist. try restarting the passkey registration process"
-        )))
-    }
+		transaction
+			.commit()
+			.await
+			.wrap_internal_err("committing database transaction")?;
+		Ok((
+			web::Json(PasskeyResponse {
+				id: passkey.id.into(),
+				name: passkey.name,
+				created_at: passkey.created_at,
+				last_used: passkey.last_used,
+			}),
+			StatusCode::CREATED,
+		))
+	} else {
+		Err(ApiError::Request(eyre!(
+			"flow does not exist. try restarting the passkey registration process"
+		)))
+	}
 }
 
 #[derive(Serialize, utoipa::ToSchema)]
 pub struct AuthenticatePasskeyResponse {
-    #[schema(value_type = Object)]
-    pub options: RequestChallengeResponse,
-    pub flow: String,
+	#[schema(value_type = Object)]
+	pub options: RequestChallengeResponse,
+	pub flow: String,
 }
 
 /// Start passkey authentication.
@@ -3788,35 +3787,35 @@ pub struct AuthenticatePasskeyResponse {
 )]
 #[post("/passkey/start")]
 pub async fn authenticate_passkey_start(
-    redis: Data<RedisPool>,
-    webauthn: Data<Webauthn>,
+	redis: Data<RedisPool>,
+	webauthn: Data<Webauthn>,
 ) -> Result<web::Json<AuthenticatePasskeyResponse>, ApiError> {
-    let (mut ccr, auth_state) = webauthn
-        .start_discoverable_authentication()
-        .wrap_internal_err("failed to start passkey authentication")?;
+	let (mut ccr, auth_state) = webauthn
+		.start_discoverable_authentication()
+		.wrap_internal_err("failed to start passkey authentication")?;
 
-    // Webauthn-rs implements discoverable credentials as if they will only ever be used with
-    // conditional UI, but as their own documentation says this has poor UX due to browser and OS
-    // implementation. So we use a button, but that means mediation must be set to "required".
-    // We use none since the enum only supports conditional, and the default is required.
-    ccr.mediation = None;
+	// Webauthn-rs implements discoverable credentials as if they will only ever be used with
+	// conditional UI, but as their own documentation says this has poor UX due to browser and OS
+	// implementation. So we use a button, but that means mediation must be set to "required".
+	// We use none since the enum only supports conditional, and the default is required.
+	ccr.mediation = None;
 
-    let flow = DBFlow::AuthenticatePasskey { state: auth_state }
-        .insert(Duration::minutes(30), &redis)
-        .await
-        .wrap_internal_err("failed to store passkey authentication flow")?;
+	let flow = DBFlow::AuthenticatePasskey { state: auth_state }
+		.insert(Duration::minutes(30), &redis)
+		.await
+		.wrap_internal_err("failed to store passkey authentication flow")?;
 
-    Ok(web::Json(AuthenticatePasskeyResponse {
-        options: ccr,
-        flow,
-    }))
+	Ok(web::Json(AuthenticatePasskeyResponse {
+		options: ccr,
+		flow,
+	}))
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
 pub struct AuthenticatePasskeyFinish {
-    pub flow: String,
-    #[schema(value_type = Object)]
-    pub credential: PublicKeyCredential,
+	pub flow: String,
+	#[schema(value_type = Object)]
+	pub credential: PublicKeyCredential,
 }
 
 /// Finish passkey authentication.
@@ -3832,116 +3831,116 @@ pub struct AuthenticatePasskeyFinish {
 )]
 #[post("/passkey/finish")]
 pub async fn authenticate_passkey_finish(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    webauthn: Data<Webauthn>,
-    response: web::Json<AuthenticatePasskeyFinish>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	webauthn: Data<Webauthn>,
+	response: web::Json<AuthenticatePasskeyFinish>,
 ) -> Result<web::Json<crate::models::sessions::Session>, ApiError> {
-    let flow = DBFlow::take_if(
-        &response.flow,
-        |f| matches!(f, DBFlow::AuthenticatePasskey { .. }),
-        &redis,
-    )
-    .await
-    .wrap_internal_err("executing `DBFlow::take_if`")?;
+	let flow = DBFlow::take_if(
+		&response.flow,
+		|f| matches!(f, DBFlow::AuthenticatePasskey { .. }),
+		&redis,
+	)
+	.await
+	.wrap_internal_err("executing `DBFlow::take_if`")?;
 
-    if let Some(DBFlow::AuthenticatePasskey { state }) = flow {
-        let credential_id = response.credential.get_credential_id();
-        let db_passkey =
-            DBPasskey::get_by_credential_id(credential_id, &**pool)
-                .await
-                .wrap_internal_err("failed to fetch passkey")?
-                .wrap_request_err_with(|| "passkey not found")?;
+	if let Some(DBFlow::AuthenticatePasskey { state }) = flow {
+		let credential_id = response.credential.get_credential_id();
+		let db_passkey =
+			DBPasskey::get_by_credential_id(credential_id, &**pool)
+				.await
+				.wrap_internal_err("failed to fetch passkey")?
+				.wrap_request_err_with(|| "passkey not found")?;
 
-        let mut transaction = pool
-            .begin()
-            .await
-            .wrap_internal_err("failed to begin transaction")?;
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_internal_err("failed to begin transaction")?;
 
-        let auth_result = match webauthn.finish_discoverable_authentication(
-            &response.credential,
-            state,
-            &[DiscoverableKey::from(&db_passkey.passkey)],
-        ) {
-            Ok(r) => r,
-            Err(WebauthnError::CredentialPossibleCompromise) => {
-                DBPasskey::remove(db_passkey.id, &mut transaction)
-                    .await
-                    .wrap_internal_err(
-                        "failed to remove compromised passkey",
-                    )?;
+		let auth_result = match webauthn.finish_discoverable_authentication(
+			&response.credential,
+			state,
+			&[DiscoverableKey::from(&db_passkey.passkey)],
+		) {
+			Ok(r) => r,
+			Err(WebauthnError::CredentialPossibleCompromise) => {
+				DBPasskey::remove(db_passkey.id, &mut transaction)
+					.await
+					.wrap_internal_err(
+						"failed to remove compromised passkey",
+					)?;
 
-                // Log out all sessions
-                let sessions = DBSession::remove_all_for_user(
-                    db_passkey.user_id,
-                    &mut transaction,
-                )
-                .await
-                .wrap_internal_err("failed to invalidate user sessions")?;
-                transaction
-                    .commit()
-                    .await
-                    .wrap_internal_err("committing database transaction")?;
-                DBSession::clear_cache(
-                    sessions
-                        .into_iter()
-                        .map(|(id, session)| (Some(id), Some(session), None))
-                        .chain(std::iter::once((
-                            None,
-                            None,
-                            Some(db_passkey.user_id),
-                        )))
-                        .collect(),
-                    &redis,
-                )
-                .await
-                .wrap_internal_err("failed to clear user session cache")?;
+				// Log out all sessions
+				let sessions = DBSession::remove_all_for_user(
+					db_passkey.user_id,
+					&mut transaction,
+				)
+				.await
+				.wrap_internal_err("failed to invalidate user sessions")?;
+				transaction
+					.commit()
+					.await
+					.wrap_internal_err("committing database transaction")?;
+				DBSession::clear_cache(
+					sessions
+						.into_iter()
+						.map(|(id, session)| (Some(id), Some(session), None))
+						.chain(std::iter::once((
+							None,
+							None,
+							Some(db_passkey.user_id),
+						)))
+						.collect(),
+					&redis,
+				)
+				.await
+				.wrap_internal_err("failed to clear user session cache")?;
 
-                return Err(ApiError::Request(eyre!(
-                    "the credential may have been compromised and has been invalidated, please try another login method"
-                )));
-            }
-            Err(e) => return Err(ApiError::Request(eyre::Report::from(e))),
-        };
+				return Err(ApiError::Request(eyre!(
+					"the credential may have been compromised and has been invalidated, please try another login method"
+				)));
+			}
+			Err(e) => return Err(ApiError::Request(eyre::Report::from(e))),
+		};
 
-        let mut updated_passkey = db_passkey.passkey;
-        updated_passkey.update_credential(&auth_result);
+		let mut updated_passkey = db_passkey.passkey;
+		updated_passkey.update_credential(&auth_result);
 
-        let updated = DBPasskey::update_after_auth(
-            db_passkey.id,
-            updated_passkey,
-            &mut transaction,
-        )
-        .await
-        .wrap_internal_err("failed to update passkey")?;
-        if !updated {
-            return Err(ApiError::Internal(eyre!(
-                "failed to update passkey information"
-            )));
-        }
+		let updated = DBPasskey::update_after_auth(
+			db_passkey.id,
+			updated_passkey,
+			&mut transaction,
+		)
+		.await
+		.wrap_internal_err("failed to update passkey")?;
+		if !updated {
+			return Err(ApiError::Internal(eyre!(
+				"failed to update passkey information"
+			)));
+		}
 
-        let session = issue_session(
-            req,
-            db_passkey.user_id,
-            &mut transaction,
-            &redis,
-            None,
-        )
-        .await
-        .wrap_auth_err("authenticating API request")?;
-        let res = crate::models::sessions::Session::from(session, true, None);
+		let session = issue_session(
+			req,
+			db_passkey.user_id,
+			&mut transaction,
+			&redis,
+			None,
+		)
+		.await
+		.wrap_auth_err("authenticating API request")?;
+		let res = crate::models::sessions::Session::from(session, true, None);
 
-        transaction
-            .commit()
-            .await
-            .wrap_internal_err("committing database transaction")?;
-        Ok(web::Json(res))
-    } else {
-        Err(ApiError::Request(eyre!(
-            "flow does not exist. try restarting the passkey authentication process"
-        )))
-    }
+		transaction
+			.commit()
+			.await
+			.wrap_internal_err("committing database transaction")?;
+		Ok(web::Json(res))
+	} else {
+		Err(ApiError::Request(eyre!(
+			"flow does not exist. try restarting the passkey authentication process"
+		)))
+	}
 }
 
 /// List passkeys.
@@ -3958,41 +3957,41 @@ pub async fn authenticate_passkey_finish(
 )]
 #[get("/passkey")]
 pub async fn list_passkeys(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
 ) -> Result<web::Json<Vec<PasskeyResponse>>, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    let passkeys = DBPasskey::get_for_user(user.id.into(), &**pool)
-        .await
-        .wrap_internal_err("failed to fetch passkeys")?
-        .into_iter()
-        .map(|p| PasskeyResponse {
-            id: p.id.into(),
-            name: p.name,
-            created_at: p.created_at,
-            last_used: p.last_used,
-        })
-        .collect::<Vec<_>>();
+	let passkeys = DBPasskey::get_for_user(user.id.into(), &**pool)
+		.await
+		.wrap_internal_err("failed to fetch passkeys")?
+		.into_iter()
+		.map(|p| PasskeyResponse {
+			id: p.id.into(),
+			name: p.name,
+			created_at: p.created_at,
+			last_used: p.last_used,
+		})
+		.collect::<Vec<_>>();
 
-    Ok(web::Json(passkeys))
+	Ok(web::Json(passkeys))
 }
 
 #[derive(Deserialize, Validate, utoipa::ToSchema)]
 pub struct RenamePasskey {
-    #[validate(length(min = 1, max = 255))]
-    pub name: String,
+	#[validate(length(min = 1, max = 255))]
+	pub name: String,
 }
 
 /// Rename a passkey.
@@ -4010,51 +4009,51 @@ pub struct RenamePasskey {
 )]
 #[patch("/passkey/{id}")]
 pub async fn rename_passkey(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
-    info: web::Path<(String,)>,
-    body: web::Json<RenamePasskey>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
+	info: web::Path<(String,)>,
+	body: web::Json<RenamePasskey>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    body.validate()
-        .map_err(|err| eyre::eyre!(err))
-        .wrap_request_err("validating request")?;
+	body.validate()
+		.map_err(|err| eyre::eyre!(err))
+		.wrap_request_err("validating request")?;
 
-    let id = DBPasskeyId(
-        parse_base62(&info.into_inner().0)
-            .wrap_request_err("invalid passkey id")? as i64,
-    );
+	let id = DBPasskeyId(
+		parse_base62(&info.into_inner().0)
+			.wrap_request_err("invalid passkey id")? as i64,
+	);
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("starting database transaction")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
 
-    let found =
-        DBPasskey::rename(id, user.id.into(), &body.name, &mut transaction)
-            .await
-            .wrap_internal_err("failed to rename passkey")?;
-    if !found {
-        return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
-    }
+	let found =
+		DBPasskey::rename(id, user.id.into(), &body.name, &mut transaction)
+			.await
+			.wrap_internal_err("failed to rename passkey")?;
+	if !found {
+		return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
+	}
 
-    transaction
-        .commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
-    Ok(HttpResponse::NoContent().finish())
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
+	Ok(HttpResponse::NoContent().finish())
 }
 
 /// Delete a passkey.
@@ -4071,44 +4070,44 @@ pub async fn rename_passkey(
 )]
 #[delete("/passkey/{id}")]
 pub async fn delete_passkey(
-    req: HttpRequest,
-    pool: Data<PgPool>,
-    redis: Data<RedisPool>,
-    session_queue: Data<AuthQueue>,
-    info: web::Path<(String,)>,
+	req: HttpRequest,
+	pool: Data<PgPool>,
+	redis: Data<RedisPool>,
+	session_queue: Data<AuthQueue>,
+	info: web::Path<(String,)>,
 ) -> Result<HttpResponse, ApiError> {
-    let user = get_user_from_headers(
-        &req,
-        &**pool,
-        &redis,
-        &session_queue,
-        Scopes::USER_AUTH_WRITE,
-    )
-    .await
-    .wrap_auth_err("authenticating API request")?
-    .1;
+	let user = get_user_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::USER_AUTH_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?
+	.1;
 
-    let id = DBPasskeyId(
-        parse_base62(&info.into_inner().0)
-            .wrap_request_err("invalid passkey id")? as i64,
-    );
+	let id = DBPasskeyId(
+		parse_base62(&info.into_inner().0)
+			.wrap_request_err("invalid passkey id")? as i64,
+	);
 
-    let mut transaction = pool
-        .begin()
-        .await
-        .wrap_internal_err("starting database transaction")?;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
 
-    let found =
-        DBPasskey::remove_for_user(id, user.id.into(), &mut transaction)
-            .await
-            .wrap_internal_err("failed to delete passkey")?;
-    if !found {
-        return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
-    }
+	let found =
+		DBPasskey::remove_for_user(id, user.id.into(), &mut transaction)
+			.await
+			.wrap_internal_err("failed to delete passkey")?;
+	if !found {
+		return Err(ApiError::NotFound(eyre::eyre!("resource not found")));
+	}
 
-    transaction
-        .commit()
-        .await
-        .wrap_internal_err("committing database transaction")?;
-    Ok(HttpResponse::NoContent().finish())
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing database transaction")?;
+	Ok(HttpResponse::NoContent().finish())
 }

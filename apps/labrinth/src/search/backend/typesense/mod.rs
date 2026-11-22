@@ -152,17 +152,17 @@ use crate::database::PgPool;
 use crate::env::ENV;
 use crate::routes::ApiError;
 use crate::search::backend::{
-    SearchIndex, combined_search_filters, parse_search_index,
-    parse_search_request,
+	SearchIndex, combined_search_filters, parse_search_index,
+	parse_search_request,
 };
 use crate::search::filter::{
-    FilterExpr, from_legacy_v2_facets_json, normalize, parse_expression,
+	FilterExpr, from_legacy_v2_facets_json, normalize, parse_expression,
 };
 use crate::search::indexing::index_local;
 use crate::search::{
-    ResultSearchProject, SearchBackend, SearchField, SearchIndexUpdate,
-    SearchRequest, SearchResults, TasksCancelFilter, UploadSearchProject,
-    UploadSearchVersion,
+	ResultSearchProject, SearchBackend, SearchField, SearchIndexUpdate,
+	SearchRequest, SearchResults, TasksCancelFilter, UploadSearchProject,
+	UploadSearchVersion,
 };
 use crate::util::error::Context;
 use xredis::RedisPool;
@@ -175,1354 +175,1354 @@ const DELETE_FILTER_ID_BATCH_SIZE: usize = 256;
 
 #[derive(Debug, Clone)]
 pub struct TypesenseConfig {
-    pub url: String,
-    pub api_key: String,
-    pub index_prefix: String,
-    pub meta_namespace: String,
-    pub index_chunk_size: i64,
-    pub import_batch_size: usize,
-    pub delete_batch_size: usize,
-    pub use_cache: bool,
+	pub url: String,
+	pub api_key: String,
+	pub index_prefix: String,
+	pub meta_namespace: String,
+	pub index_chunk_size: i64,
+	pub import_batch_size: usize,
+	pub delete_batch_size: usize,
+	pub use_cache: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum Bucketing {
-    Buckets(u64),
-    BucketSize(u64),
+	Buckets(u64),
+	BucketSize(u64),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default, strum::EnumString)]
 #[serde(rename_all = "snake_case")]
 #[strum(serialize_all = "snake_case")]
 pub enum TextMatchType {
-    MaxScore,
-    #[default]
-    MaxWeight,
-    SumScore,
+	MaxScore,
+	#[default]
+	MaxWeight,
+	SumScore,
 }
 
 impl TextMatchType {
-    const fn as_str(&self) -> &'static str {
-        match self {
-            Self::MaxScore => "max_score",
-            Self::MaxWeight => "max_weight",
-            Self::SumScore => "sum_score",
-        }
-    }
+	const fn as_str(&self) -> &'static str {
+		match self {
+			Self::MaxScore => "max_score",
+			Self::MaxWeight => "max_weight",
+			Self::SumScore => "sum_score",
+		}
+	}
 }
 
 impl Default for Bucketing {
-    fn default() -> Self {
-        Self::Buckets(5)
-    }
+	fn default() -> Self {
+		Self::Buckets(5)
+	}
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RequestConfig {
-    #[serde(default = "default_query_by")]
-    pub query_by: Vec<String>,
-    #[serde(default = "default_query_by_weights")]
-    pub query_by_weights: Vec<u8>,
-    #[serde(default = "default_prefix")]
-    pub prefix: Vec<bool>,
-    #[serde(default = "default_prioritize_exact_match")]
-    pub prioritize_exact_match: bool,
-    #[serde(default = "default_prioritize_num_matching_fields")]
-    pub prioritize_num_matching_fields: bool,
-    #[serde(default = "default_prioritize_token_positions")]
-    pub prioritize_token_positions: bool,
-    #[serde(default = "default_drop_tokens_threshold")]
-    pub drop_tokens_threshold: usize,
-    #[serde(default = "default_text_match_type")]
-    pub text_match_type: TextMatchType,
-    #[serde(default = "default_bucketing")]
-    pub bucketing: Bucketing,
-    #[serde(default = "default_max_candidates")]
-    pub max_candidates: usize,
+	#[serde(default = "default_query_by")]
+	pub query_by: Vec<String>,
+	#[serde(default = "default_query_by_weights")]
+	pub query_by_weights: Vec<u8>,
+	#[serde(default = "default_prefix")]
+	pub prefix: Vec<bool>,
+	#[serde(default = "default_prioritize_exact_match")]
+	pub prioritize_exact_match: bool,
+	#[serde(default = "default_prioritize_num_matching_fields")]
+	pub prioritize_num_matching_fields: bool,
+	#[serde(default = "default_prioritize_token_positions")]
+	pub prioritize_token_positions: bool,
+	#[serde(default = "default_drop_tokens_threshold")]
+	pub drop_tokens_threshold: usize,
+	#[serde(default = "default_text_match_type")]
+	pub text_match_type: TextMatchType,
+	#[serde(default = "default_bucketing")]
+	pub bucketing: Bucketing,
+	#[serde(default = "default_max_candidates")]
+	pub max_candidates: usize,
 }
 
 impl Default for RequestConfig {
-    fn default() -> Self {
-        Self {
-            query_by: default_query_by(),
-            query_by_weights: default_query_by_weights(),
-            prefix: default_prefix(),
-            prioritize_exact_match: default_prioritize_exact_match(),
-            prioritize_num_matching_fields:
-                default_prioritize_num_matching_fields(),
-            prioritize_token_positions: default_prioritize_token_positions(),
-            drop_tokens_threshold: default_drop_tokens_threshold(),
-            text_match_type: default_text_match_type(),
-            bucketing: default_bucketing(),
-            max_candidates: default_max_candidates(),
-        }
-    }
+	fn default() -> Self {
+		Self {
+			query_by: default_query_by(),
+			query_by_weights: default_query_by_weights(),
+			prefix: default_prefix(),
+			prioritize_exact_match: default_prioritize_exact_match(),
+			prioritize_num_matching_fields:
+				default_prioritize_num_matching_fields(),
+			prioritize_token_positions: default_prioritize_token_positions(),
+			drop_tokens_threshold: default_drop_tokens_threshold(),
+			text_match_type: default_text_match_type(),
+			bucketing: default_bucketing(),
+			max_candidates: default_max_candidates(),
+		}
+	}
 }
 
 fn default_query_by() -> Vec<String> {
-    ENV.SEARCH_TYPESENSE_DEFAULT_QUERY_BY.0.clone()
+	ENV.SEARCH_TYPESENSE_DEFAULT_QUERY_BY.0.clone()
 }
 
 fn default_query_by_weights() -> Vec<u8> {
-    ENV.SEARCH_TYPESENSE_DEFAULT_QUERY_BY_WEIGHTS.0.clone()
+	ENV.SEARCH_TYPESENSE_DEFAULT_QUERY_BY_WEIGHTS.0.clone()
 }
 
 fn default_prefix() -> Vec<bool> {
-    ENV.SEARCH_TYPESENSE_DEFAULT_PREFIX.0.clone()
+	ENV.SEARCH_TYPESENSE_DEFAULT_PREFIX.0.clone()
 }
 
 fn default_prioritize_exact_match() -> bool {
-    ENV.SEARCH_TYPESENSE_DEFAULT_PRIORITIZE_EXACT_MATCH
+	ENV.SEARCH_TYPESENSE_DEFAULT_PRIORITIZE_EXACT_MATCH
 }
 
 fn default_prioritize_num_matching_fields() -> bool {
-    ENV.SEARCH_TYPESENSE_DEFAULT_PRIORITIZE_NUM_MATCHING_FIELDS
+	ENV.SEARCH_TYPESENSE_DEFAULT_PRIORITIZE_NUM_MATCHING_FIELDS
 }
 
 fn default_prioritize_token_positions() -> bool {
-    ENV.SEARCH_TYPESENSE_DEFAULT_PRIORITIZE_TOKEN_POSITIONS
+	ENV.SEARCH_TYPESENSE_DEFAULT_PRIORITIZE_TOKEN_POSITIONS
 }
 
 fn default_drop_tokens_threshold() -> usize {
-    ENV.SEARCH_TYPESENSE_DEFAULT_DROP_TOKENS_THRESHOLD
+	ENV.SEARCH_TYPESENSE_DEFAULT_DROP_TOKENS_THRESHOLD
 }
 
 fn default_text_match_type() -> TextMatchType {
-    ENV.SEARCH_TYPESENSE_DEFAULT_TEXT_MATCH_TYPE.clone()
+	ENV.SEARCH_TYPESENSE_DEFAULT_TEXT_MATCH_TYPE.clone()
 }
 
 fn default_bucketing() -> Bucketing {
-    ENV.SEARCH_TYPESENSE_DEFAULT_BUCKETING.0.clone()
+	ENV.SEARCH_TYPESENSE_DEFAULT_BUCKETING.0.clone()
 }
 
 fn default_max_candidates() -> usize {
-    ENV.SEARCH_TYPESENSE_DEFAULT_MAX_CANDIDATES
+	ENV.SEARCH_TYPESENSE_DEFAULT_MAX_CANDIDATES
 }
 
 impl TypesenseConfig {
-    pub fn new(meta_namespace: Option<String>) -> Self {
-        let use_cache = meta_namespace.is_none() && ENV.TYPESENSE_USE_CACHE;
+	pub fn new(meta_namespace: Option<String>) -> Self {
+		let use_cache = meta_namespace.is_none() && ENV.TYPESENSE_USE_CACHE;
 
-        Self {
-            url: ENV.TYPESENSE_URL.clone(),
-            api_key: ENV.TYPESENSE_API_KEY.clone(),
-            index_prefix: ENV.TYPESENSE_INDEX_PREFIX.clone(),
-            meta_namespace: meta_namespace.unwrap_or_default(),
-            index_chunk_size: ENV.SEARCH_INDEX_CHUNK_SIZE,
-            import_batch_size: ENV.TYPESENSE_IMPORT_BATCH_SIZE,
-            delete_batch_size: ENV.TYPESENSE_DELETE_BATCH_SIZE,
-            use_cache,
-        }
-    }
+		Self {
+			url: ENV.TYPESENSE_URL.clone(),
+			api_key: ENV.TYPESENSE_API_KEY.clone(),
+			index_prefix: ENV.TYPESENSE_INDEX_PREFIX.clone(),
+			meta_namespace: meta_namespace.unwrap_or_default(),
+			index_chunk_size: ENV.SEARCH_INDEX_CHUNK_SIZE,
+			import_batch_size: ENV.TYPESENSE_IMPORT_BATCH_SIZE,
+			delete_batch_size: ENV.TYPESENSE_DELETE_BATCH_SIZE,
+			use_cache,
+		}
+	}
 
-    pub fn get_alias_name(&self, index: &str) -> String {
-        if self.meta_namespace.is_empty() {
-            format!("{}_{}", self.index_prefix, index)
-        } else {
-            format!("{}_{}_{}", self.meta_namespace, self.index_prefix, index)
-        }
-    }
+	pub fn get_alias_name(&self, index: &str) -> String {
+		if self.meta_namespace.is_empty() {
+			format!("{}_{}", self.index_prefix, index)
+		} else {
+			format!("{}_{}_{}", self.meta_namespace, self.index_prefix, index)
+		}
+	}
 
-    fn get_next_collection_name(
-        &self,
-        alias_name: &str,
-        use_alt: bool,
-    ) -> String {
-        if use_alt {
-            format!("{alias_name}__alt")
-        } else {
-            format!("{alias_name}__current")
-        }
-    }
+	fn get_next_collection_name(
+		&self,
+		alias_name: &str,
+		use_alt: bool,
+	) -> String {
+		if use_alt {
+			format!("{alias_name}__alt")
+		} else {
+			format!("{alias_name}__current")
+		}
+	}
 }
 
 struct TypesenseClient {
-    client: reqwest::Client,
-    base_url: String,
-    api_key: String,
+	client: reqwest::Client,
+	base_url: String,
+	api_key: String,
 }
 
 impl TypesenseClient {
-    fn new(url: &str, api_key: &str) -> Self {
-        Self {
-            client: reqwest::Client::new(),
-            base_url: url.trim_end_matches('/').to_string(),
-            api_key: api_key.to_string(),
-        }
-    }
+	fn new(url: &str, api_key: &str) -> Self {
+		Self {
+			client: reqwest::Client::new(),
+			base_url: url.trim_end_matches('/').to_string(),
+			api_key: api_key.to_string(),
+		}
+	}
 
-    fn request(&self, method: Method, path: &str) -> reqwest::RequestBuilder {
-        self.client
-            .request(method, format!("{}{}", self.base_url, path))
-            .header("X-TYPESENSE-API-KEY", &self.api_key)
-    }
+	fn request(&self, method: Method, path: &str) -> reqwest::RequestBuilder {
+		self.client
+			.request(method, format!("{}{}", self.base_url, path))
+			.header("X-TYPESENSE-API-KEY", &self.api_key)
+	}
 
-    async fn get_alias(&self, name: &str) -> Result<Option<String>> {
-        let resp = self
-            .request(Method::GET, &format!("/aliases/{name}"))
-            .send()
-            .await
-            .wrap_err("failed to GET Typesense alias")?;
-        if resp.status() == reqwest::StatusCode::NOT_FOUND {
-            return Ok(None);
-        }
-        let body = resp
-            .json::<Value>()
-            .await
-            .wrap_err("failed to parse alias response")?;
-        Ok(body["collection_name"].as_str().map(ToString::to_string))
-    }
+	async fn get_alias(&self, name: &str) -> Result<Option<String>> {
+		let resp = self
+			.request(Method::GET, &format!("/aliases/{name}"))
+			.send()
+			.await
+			.wrap_err("failed to GET Typesense alias")?;
+		if resp.status() == reqwest::StatusCode::NOT_FOUND {
+			return Ok(None);
+		}
+		let body = resp
+			.json::<Value>()
+			.await
+			.wrap_err("failed to parse alias response")?;
+		Ok(body["collection_name"].as_str().map(ToString::to_string))
+	}
 
-    async fn upsert_alias(&self, alias: &str, collection: &str) -> Result<()> {
-        let resp = self
-            .request(Method::PUT, &format!("/aliases/{alias}"))
-            .json(&json!({"collection_name": collection}))
-            .send()
-            .await
-            .wrap_err("failed to PUT Typesense alias")?;
-        if !resp.status().is_success() {
-            let body = resp.json::<Value>().await.unwrap_or_default();
-            return Err(eyre!("failed to upsert alias `{alias}`: {body}"));
-        }
-        Ok(())
-    }
+	async fn upsert_alias(&self, alias: &str, collection: &str) -> Result<()> {
+		let resp = self
+			.request(Method::PUT, &format!("/aliases/{alias}"))
+			.json(&json!({"collection_name": collection}))
+			.send()
+			.await
+			.wrap_err("failed to PUT Typesense alias")?;
+		if !resp.status().is_success() {
+			let body = resp.json::<Value>().await.unwrap_or_default();
+			return Err(eyre!("failed to upsert alias `{alias}`: {body}"));
+		}
+		Ok(())
+	}
 
-    async fn delete_alias_if_exists(&self, alias: &str) -> Result<()> {
-        let resp = self
-            .request(Method::DELETE, &format!("/aliases/{alias}"))
-            .send()
-            .await
-            .wrap_err("failed to DELETE Typesense alias")?;
-        if resp.status() == reqwest::StatusCode::NOT_FOUND {
-            return Ok(());
-        }
-        if !resp.status().is_success() {
-            let body = resp.json::<Value>().await.unwrap_or_default();
-            return Err(eyre!("failed to delete alias `{alias}`: {body}"));
-        }
-        Ok(())
-    }
+	async fn delete_alias_if_exists(&self, alias: &str) -> Result<()> {
+		let resp = self
+			.request(Method::DELETE, &format!("/aliases/{alias}"))
+			.send()
+			.await
+			.wrap_err("failed to DELETE Typesense alias")?;
+		if resp.status() == reqwest::StatusCode::NOT_FOUND {
+			return Ok(());
+		}
+		if !resp.status().is_success() {
+			let body = resp.json::<Value>().await.unwrap_or_default();
+			return Err(eyre!("failed to delete alias `{alias}`: {body}"));
+		}
+		Ok(())
+	}
 
-    async fn collection_exists(&self, name: &str) -> Result<bool> {
-        let resp = self
-            .request(Method::GET, &format!("/collections/{name}"))
-            .send()
-            .await
-            .wrap_err("failed to check Typesense collection existence")?;
-        Ok(resp.status().is_success())
-    }
+	async fn collection_exists(&self, name: &str) -> Result<bool> {
+		let resp = self
+			.request(Method::GET, &format!("/collections/{name}"))
+			.send()
+			.await
+			.wrap_err("failed to check Typesense collection existence")?;
+		Ok(resp.status().is_success())
+	}
 
-    async fn create_collection(&self, schema: &Value) -> Result<()> {
-        let resp = self
-            .request(Method::POST, "/collections")
-            .json(schema)
-            .send()
-            .await
-            .wrap_err("failed to POST Typesense collection")?;
-        if !resp.status().is_success() {
-            let body = resp.json::<Value>().await.unwrap_or_default();
-            return Err(eyre!("failed to create collection: {body}"));
-        }
-        Ok(())
-    }
+	async fn create_collection(&self, schema: &Value) -> Result<()> {
+		let resp = self
+			.request(Method::POST, "/collections")
+			.json(schema)
+			.send()
+			.await
+			.wrap_err("failed to POST Typesense collection")?;
+		if !resp.status().is_success() {
+			let body = resp.json::<Value>().await.unwrap_or_default();
+			return Err(eyre!("failed to create collection: {body}"));
+		}
+		Ok(())
+	}
 
-    async fn delete_collection_if_exists(&self, name: &str) -> Result<()> {
-        let resp = self
-            .request(Method::DELETE, &format!("/collections/{name}"))
-            .send()
-            .await
-            .wrap_err("failed to DELETE Typesense collection")?;
-        if resp.status() == reqwest::StatusCode::NOT_FOUND {
-            return Ok(());
-        }
-        if !resp.status().is_success() {
-            let body = resp.json::<Value>().await.unwrap_or_default();
-            return Err(eyre!("failed to delete collection `{name}`: {body}"));
-        }
-        Ok(())
-    }
+	async fn delete_collection_if_exists(&self, name: &str) -> Result<()> {
+		let resp = self
+			.request(Method::DELETE, &format!("/collections/{name}"))
+			.send()
+			.await
+			.wrap_err("failed to DELETE Typesense collection")?;
+		if resp.status() == reqwest::StatusCode::NOT_FOUND {
+			return Ok(());
+		}
+		if !resp.status().is_success() {
+			let body = resp.json::<Value>().await.unwrap_or_default();
+			return Err(eyre!("failed to delete collection `{name}`: {body}"));
+		}
+		Ok(())
+	}
 
-    async fn import_documents(
-        &self,
-        collection: &str,
-        jsonl: String,
-    ) -> Result<()> {
-        let url = format!(
-            "/collections/{collection}/documents/import?action=upsert&dirty_values=coerce_or_drop"
-        );
-        let resp = self
-            .request(Method::POST, &url)
-            .header("Content-Type", "text/plain")
-            .body(jsonl)
-            .send()
-            .await
-            .wrap_err("failed to POST Typesense document import")?;
-        let status = resp.status();
-        let body = resp
-            .text()
-            .await
-            .wrap_err("failed to read import response body")?;
-        if !status.is_success() {
-            return Err(eyre!(
-                "document import into `{collection}` failed ({status}): {body}"
-            ));
-        }
-        // Typesense always returns HTTP 200; individual lines signal per-doc success.
-        let failures = body
-            .lines()
-            .filter(|line| !line.trim().is_empty())
-            .filter_map(|line| match serde_json::from_str::<Value>(line) {
-                Ok(result) if result["success"].as_bool() == Some(true) => None,
-                Ok(result) => Some(
-                    result["error"]
-                        .as_str()
-                        .unwrap_or(
-                            "Typesense returned an unsuccessful import result",
-                        )
-                        .to_string(),
-                ),
-                Err(err) => Some(format!(
-                    "failed to parse Typesense import result: {err}"
-                )),
-            })
-            .collect::<Vec<_>>();
-        if !failures.is_empty() {
-            let failure_count = failures.len();
-            let errors = failures
-                .into_iter()
-                .unique()
-                .take(10)
-                .collect::<Vec<_>>()
-                .join("; ");
-            return Err(eyre!(
-                "{failure_count} document(s) failed to import into `{collection}`: {errors}"
-            ));
-        }
-        Ok(())
-    }
+	async fn import_documents(
+		&self,
+		collection: &str,
+		jsonl: String,
+	) -> Result<()> {
+		let url = format!(
+			"/collections/{collection}/documents/import?action=upsert&dirty_values=coerce_or_drop"
+		);
+		let resp = self
+			.request(Method::POST, &url)
+			.header("Content-Type", "text/plain")
+			.body(jsonl)
+			.send()
+			.await
+			.wrap_err("failed to POST Typesense document import")?;
+		let status = resp.status();
+		let body = resp
+			.text()
+			.await
+			.wrap_err("failed to read import response body")?;
+		if !status.is_success() {
+			return Err(eyre!(
+				"document import into `{collection}` failed ({status}): {body}"
+			));
+		}
+		// Typesense always returns HTTP 200; individual lines signal per-doc success.
+		let failures = body
+			.lines()
+			.filter(|line| !line.trim().is_empty())
+			.filter_map(|line| match serde_json::from_str::<Value>(line) {
+				Ok(result) if result["success"].as_bool() == Some(true) => None,
+				Ok(result) => Some(
+					result["error"]
+						.as_str()
+						.unwrap_or(
+							"Typesense returned an unsuccessful import result",
+						)
+						.to_string(),
+				),
+				Err(err) => Some(format!(
+					"failed to parse Typesense import result: {err}"
+				)),
+			})
+			.collect::<Vec<_>>();
+		if !failures.is_empty() {
+			let failure_count = failures.len();
+			let errors = failures
+				.into_iter()
+				.unique()
+				.take(10)
+				.collect::<Vec<_>>()
+				.join("; ");
+			return Err(eyre!(
+				"{failure_count} document(s) failed to import into `{collection}`: {errors}"
+			));
+		}
+		Ok(())
+	}
 
-    async fn delete_documents_by_filter(
-        &self,
-        collection: &str,
-        filter_by: &str,
-        batch_size: usize,
-    ) -> Result<()> {
-        let resp = self
-            .request(
-                Method::DELETE,
-                &format!(
+	async fn delete_documents_by_filter(
+		&self,
+		collection: &str,
+		filter_by: &str,
+		batch_size: usize,
+	) -> Result<()> {
+		let resp = self
+			.request(
+				Method::DELETE,
+				&format!(
 					"/collections/{collection}/documents?filter_by={}&batch_size={batch_size}",
 					urlencoding::encode(filter_by)
 				),
-            )
-            .send()
-            .await
-            .wrap_err("failed to DELETE Typesense documents by filter")?;
-        if resp.status() == reqwest::StatusCode::NOT_FOUND {
-            return Ok(());
-        }
-        if !resp.status().is_success() {
-            let body = resp.json::<Value>().await.unwrap_or_default();
-            return Err(eyre!(
-                "failed to delete documents from `{collection}` (filter={filter_by}): {body}"
-            ));
-        }
-        Ok(())
-    }
+			)
+			.send()
+			.await
+			.wrap_err("failed to DELETE Typesense documents by filter")?;
+		if resp.status() == reqwest::StatusCode::NOT_FOUND {
+			return Ok(());
+		}
+		if !resp.status().is_success() {
+			let body = resp.json::<Value>().await.unwrap_or_default();
+			return Err(eyre!(
+				"failed to delete documents from `{collection}` (filter={filter_by}): {body}"
+			));
+		}
+		Ok(())
+	}
 }
 
 pub struct Typesense {
-    pub config: TypesenseConfig,
-    client: TypesenseClient,
+	pub config: TypesenseConfig,
+	client: TypesenseClient,
 }
 
 pub struct TypesenseFieldSpec {
-    pub path: &'static str,
-    pub ty: &'static str,
-    pub facet: bool,
-    pub sort: bool,
-    pub optional: bool,
-    pub token_separators: &'static [&'static str],
+	pub path: &'static str,
+	pub ty: &'static str,
+	pub facet: bool,
+	pub sort: bool,
+	pub optional: bool,
+	pub token_separators: &'static [&'static str],
 }
 
 impl SearchField {
-    const fn is_version_field(self) -> bool {
-        matches!(
-            self,
-            Self::Categories
-                | Self::ProjectTypes
-                | Self::Environment
-                | Self::GameVersions
-                | Self::ClientSide
-                | Self::ServerSide
-        )
-    }
+	const fn is_version_field(self) -> bool {
+		matches!(
+			self,
+			Self::Categories
+				| Self::ProjectTypes
+				| Self::Environment
+				| Self::GameVersions
+				| Self::ClientSide
+				| Self::ServerSide
+		)
+	}
 
-    pub const fn typesense_spec(self) -> TypesenseFieldSpec {
-        match self {
-            SearchField::Categories => TypesenseFieldSpec {
-                path: "categories",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::Name => TypesenseFieldSpec {
-                path: "name",
-                ty: "string",
-                facet: true,
-                sort: false,
-                optional: false,
-                token_separators: &["-"],
-            },
-            SearchField::Author => TypesenseFieldSpec {
-                path: "author",
-                ty: "string",
-                facet: true,
-                sort: false,
-                optional: false,
-                token_separators: &["-"],
-            },
-            SearchField::License => TypesenseFieldSpec {
-                path: "license",
-                ty: "string",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::ProjectTypes => TypesenseFieldSpec {
-                path: "project_types",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::AllProjectTypes => TypesenseFieldSpec {
-                path: "all_project_types",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::ProjectId => TypesenseFieldSpec {
-                path: "project_id",
-                ty: "string",
-                facet: true,
-                sort: false,
-                optional: false,
-                token_separators: &["-"],
-            },
-            SearchField::OpenSource => TypesenseFieldSpec {
-                path: "open_source",
-                ty: "bool",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::Environment => TypesenseFieldSpec {
-                path: "environment",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::GameVersions => TypesenseFieldSpec {
-                path: "game_versions",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-", "."],
-            },
-            SearchField::ClientSide => TypesenseFieldSpec {
-                path: "client_side",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::ServerSide => TypesenseFieldSpec {
-                path: "server_side",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::EnshroudedServerRegion => TypesenseFieldSpec {
-                path: "enshrouded_server.region",
-                ty: "string",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::EnshroudedServerLanguages => TypesenseFieldSpec {
-                path: "enshrouded_server.languages",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::EnshroudedServerGameVersion => TypesenseFieldSpec {
-                path: "enshrouded_server.ping.data.game_version",
-                ty: "string",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-", "."],
-            },
-            SearchField::EnshroudedServerPingData => TypesenseFieldSpec {
-                path: "enshrouded_server.ping.data",
-                ty: "object",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::DependencyProjectIds => TypesenseFieldSpec {
-                path: "dependency_project_ids",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::CompatibleDependencyProjectIds => TypesenseFieldSpec {
-                path: "compatible_dependency_project_ids",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::DisclosureTypes => TypesenseFieldSpec {
-                path: "disclosure_types",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["_"],
-            },
-            SearchField::RequiredDependencyProjectIds => TypesenseFieldSpec {
-                path: "required_dependency_project_ids",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::OptionalDependencyProjectIds => TypesenseFieldSpec {
-                path: "optional_dependency_project_ids",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::EmbeddedDependencyProjectIds => TypesenseFieldSpec {
-                path: "embedded_dependency_project_ids",
-                ty: "string[]",
-                facet: true,
-                sort: false,
-                optional: true,
-                token_separators: &["-"],
-            },
-            SearchField::IncompatibleDependencyProjectIds => {
-                TypesenseFieldSpec {
-                    path: "incompatible_dependency_project_ids",
-                    ty: "string[]",
-                    facet: true,
-                    sort: false,
-                    optional: true,
-                    token_separators: &["-"],
-                }
-            }
-        }
-    }
+	pub const fn typesense_spec(self) -> TypesenseFieldSpec {
+		match self {
+			SearchField::Categories => TypesenseFieldSpec {
+				path: "categories",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::Name => TypesenseFieldSpec {
+				path: "name",
+				ty: "string",
+				facet: true,
+				sort: false,
+				optional: false,
+				token_separators: &["-"],
+			},
+			SearchField::Author => TypesenseFieldSpec {
+				path: "author",
+				ty: "string",
+				facet: true,
+				sort: false,
+				optional: false,
+				token_separators: &["-"],
+			},
+			SearchField::License => TypesenseFieldSpec {
+				path: "license",
+				ty: "string",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::ProjectTypes => TypesenseFieldSpec {
+				path: "project_types",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::AllProjectTypes => TypesenseFieldSpec {
+				path: "all_project_types",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::ProjectId => TypesenseFieldSpec {
+				path: "project_id",
+				ty: "string",
+				facet: true,
+				sort: false,
+				optional: false,
+				token_separators: &["-"],
+			},
+			SearchField::OpenSource => TypesenseFieldSpec {
+				path: "open_source",
+				ty: "bool",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::Environment => TypesenseFieldSpec {
+				path: "environment",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::GameVersions => TypesenseFieldSpec {
+				path: "game_versions",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-", "."],
+			},
+			SearchField::ClientSide => TypesenseFieldSpec {
+				path: "client_side",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::ServerSide => TypesenseFieldSpec {
+				path: "server_side",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::EnshroudedServerRegion => TypesenseFieldSpec {
+				path: "enshrouded_server.region",
+				ty: "string",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::EnshroudedServerLanguages => TypesenseFieldSpec {
+				path: "enshrouded_server.languages",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::EnshroudedServerGameVersion => TypesenseFieldSpec {
+				path: "enshrouded_server.ping.data.game_version",
+				ty: "string",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-", "."],
+			},
+			SearchField::EnshroudedServerPingData => TypesenseFieldSpec {
+				path: "enshrouded_server.ping.data",
+				ty: "object",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::DependencyProjectIds => TypesenseFieldSpec {
+				path: "dependency_project_ids",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::CompatibleDependencyProjectIds => TypesenseFieldSpec {
+				path: "compatible_dependency_project_ids",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::DisclosureTypes => TypesenseFieldSpec {
+				path: "disclosure_types",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["_"],
+			},
+			SearchField::RequiredDependencyProjectIds => TypesenseFieldSpec {
+				path: "required_dependency_project_ids",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::OptionalDependencyProjectIds => TypesenseFieldSpec {
+				path: "optional_dependency_project_ids",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::EmbeddedDependencyProjectIds => TypesenseFieldSpec {
+				path: "embedded_dependency_project_ids",
+				ty: "string[]",
+				facet: true,
+				sort: false,
+				optional: true,
+				token_separators: &["-"],
+			},
+			SearchField::IncompatibleDependencyProjectIds => {
+				TypesenseFieldSpec {
+					path: "incompatible_dependency_project_ids",
+					ty: "string[]",
+					facet: true,
+					sort: false,
+					optional: true,
+					token_separators: &["-"],
+				}
+			}
+		}
+	}
 }
 
 const VERSION_FILTER_SYMBOLS: &[&str] = &["-", ".", "_"];
 
 static TYPESENSE_SEARCH_FIELDS: LazyLock<Vec<Value>> = LazyLock::new(|| {
-    use strum::IntoEnumIterator;
+	use strum::IntoEnumIterator;
 
-    SearchField::iter()
-        .map(|field| {
-            let spec = field.typesense_spec();
+	SearchField::iter()
+		.map(|field| {
+			let spec = field.typesense_spec();
 
-            let token_separators = spec
-                .token_separators
-                .iter()
-                .map(|sep| Value::String((*sep).to_string()))
-                .collect::<Vec<_>>();
+			let token_separators = spec
+				.token_separators
+				.iter()
+				.map(|sep| Value::String((*sep).to_string()))
+				.collect::<Vec<_>>();
 
-            let mut obj = serde_json::Map::from_iter([
-                ("name".to_string(), Value::String(spec.path.to_string())),
-                ("type".to_string(), Value::String(spec.ty.to_string())),
-                (
-                    "token_separators".to_string(),
-                    Value::Array(token_separators),
-                ),
-            ]);
-            if spec.facet {
-                obj.insert("facet".to_string(), Value::Bool(true));
-            }
-            if spec.sort {
-                obj.insert("sort".to_string(), Value::Bool(true));
-            }
-            if spec.optional {
-                obj.insert("optional".to_string(), Value::Bool(true));
-            }
-            Value::Object(obj)
-        })
-        .collect()
+			let mut obj = serde_json::Map::from_iter([
+				("name".to_string(), Value::String(spec.path.to_string())),
+				("type".to_string(), Value::String(spec.ty.to_string())),
+				(
+					"token_separators".to_string(),
+					Value::Array(token_separators),
+				),
+			]);
+			if spec.facet {
+				obj.insert("facet".to_string(), Value::Bool(true));
+			}
+			if spec.sort {
+				obj.insert("sort".to_string(), Value::Bool(true));
+			}
+			if spec.optional {
+				obj.insert("optional".to_string(), Value::Bool(true));
+			}
+			Value::Object(obj)
+		})
+		.collect()
 });
 
 impl Typesense {
-    pub fn new(config: TypesenseConfig) -> Self {
-        let client = TypesenseClient::new(&config.url, &config.api_key);
-        Self { config, client }
-    }
+	pub fn new(config: TypesenseConfig) -> Self {
+		let client = TypesenseClient::new(&config.url, &config.api_key);
+		Self { config, client }
+	}
 
-    fn project_collection_schema(name: &str) -> Value {
-        let mut fields = vec![
-            json!({"name": "summary", "type": "string", "facet": false}),
-            json!({"name": "slug", "type": "string", "facet": false}),
-            json!({"name": "indexed_name", "type": "string", "facet": false, "stem": true}),
-            json!({"name": "indexed_author", "type": "string", "facet": false}),
-            json!({"name": "log_downloads", "type": "float", "sort": true}),
-            json!({"name": "downloads", "type": "int32", "sort": true}),
-            json!({"name": "follows", "type": "int32", "facet": true, "sort": true}),
-            json!({"name": "created_timestamp", "type": "int64", "sort": true}),
-            json!({"name": "modified_timestamp", "type": "int64", "sort": true}),
-            json!({"name": "version_published_timestamp", "type": "int64", "sort": true, "optional": true}),
-            json!({"name": "enshrouded_server.is_online", "type": "bool", "sort": true, "optional": true}),
-            json!({"name": "enshrouded_server.ping.data.players_online", "type": "int32", "sort": true, "optional": true}),
-            json!({"name": "dependencies", "type": "object[]", "optional": true}),
-            json!({"name": "project_categories", "type": "string[]", "facet": true, "optional": true}),
-        ];
-        fields.extend(TYPESENSE_SEARCH_FIELDS.iter().cloned());
+	fn project_collection_schema(name: &str) -> Value {
+		let mut fields = vec![
+			json!({"name": "summary", "type": "string", "facet": false}),
+			json!({"name": "slug", "type": "string", "facet": false}),
+			json!({"name": "indexed_name", "type": "string", "facet": false, "stem": true}),
+			json!({"name": "indexed_author", "type": "string", "facet": false}),
+			json!({"name": "log_downloads", "type": "float", "sort": true}),
+			json!({"name": "downloads", "type": "int32", "sort": true}),
+			json!({"name": "follows", "type": "int32", "facet": true, "sort": true}),
+			json!({"name": "created_timestamp", "type": "int64", "sort": true}),
+			json!({"name": "modified_timestamp", "type": "int64", "sort": true}),
+			json!({"name": "version_published_timestamp", "type": "int64", "sort": true, "optional": true}),
+			json!({"name": "enshrouded_server.is_online", "type": "bool", "sort": true, "optional": true}),
+			json!({"name": "enshrouded_server.ping.data.players_online", "type": "int32", "sort": true, "optional": true}),
+			json!({"name": "dependencies", "type": "object[]", "optional": true}),
+			json!({"name": "project_categories", "type": "string[]", "facet": true, "optional": true}),
+		];
+		fields.extend(TYPESENSE_SEARCH_FIELDS.iter().cloned());
 
-        json!({
-            "name": name,
-            "enable_nested_fields": true,
-            "fields": fields,
-            "default_sorting_field": "log_downloads"
-        })
-    }
+		json!({
+			"name": name,
+			"enable_nested_fields": true,
+			"fields": fields,
+			"default_sorting_field": "log_downloads"
+		})
+	}
 
-    fn version_collection_schema(
-        name: &str,
-        projects_collection: &str,
-    ) -> Value {
-        use strum::IntoEnumIterator;
+	fn version_collection_schema(
+		name: &str,
+		projects_collection: &str,
+	) -> Value {
+		use strum::IntoEnumIterator;
 
-        let mut fields = SearchField::iter()
-            .filter(|field| field.is_version_field())
-            .map(|field| {
-                let spec = field.typesense_spec();
-                json!({
-                    "name": spec.path,
-                    "type": spec.ty,
-                    "facet": spec.facet,
-                    "optional": spec.optional,
-                    "symbols_to_index": VERSION_FILTER_SYMBOLS,
-                })
-            })
-            .collect::<Vec<_>>();
-        fields.extend([
-            json!({
-                "name": "version_id",
-                "type": "string",
-            }),
-            json!({
-                "name": "project_id",
-                "type": "string",
-                "reference": format!("{projects_collection}.id"),
-                "async_reference": true,
-                "cascade_delete": false,
-            }),
-            json!({
-                "name": "version_published_timestamp",
-                "type": "int64",
-                "sort": true,
-            }),
-        ]);
+		let mut fields = SearchField::iter()
+			.filter(|field| field.is_version_field())
+			.map(|field| {
+				let spec = field.typesense_spec();
+				json!({
+					"name": spec.path,
+					"type": spec.ty,
+					"facet": spec.facet,
+					"optional": spec.optional,
+					"symbols_to_index": VERSION_FILTER_SYMBOLS,
+				})
+			})
+			.collect::<Vec<_>>();
+		fields.extend([
+			json!({
+				"name": "version_id",
+				"type": "string",
+			}),
+			json!({
+				"name": "project_id",
+				"type": "string",
+				"reference": format!("{projects_collection}.id"),
+				"async_reference": true,
+				"cascade_delete": false,
+			}),
+			json!({
+				"name": "version_published_timestamp",
+				"type": "int64",
+				"sort": true,
+			}),
+		]);
 
-        json!({
-            "name": name,
-            "fields": fields,
-        })
-    }
+		json!({
+			"name": name,
+			"fields": fields,
+		})
+	}
 
-    fn text_match_sort_field(request_config: &RequestConfig) -> String {
-        match request_config.bucketing {
-            Bucketing::Buckets(count) => {
-                format!("_text_match(buckets:{count}):desc")
-            }
-            Bucketing::BucketSize(size) => {
-                format!("_text_match(bucket_size:{size}):desc")
-            }
-        }
-    }
+	fn text_match_sort_field(request_config: &RequestConfig) -> String {
+		match request_config.bucketing {
+			Bucketing::Buckets(count) => {
+				format!("_text_match(buckets:{count}):desc")
+			}
+			Bucketing::BucketSize(size) => {
+				format!("_text_match(bucket_size:{size}):desc")
+			}
+		}
+	}
 
-    fn get_sort_fields(
-        &self,
-        index: SearchIndex,
-        request_config: &RequestConfig,
-    ) -> String {
-        // NOTE: we can only sort by max 3 fields here - typesense will not let us sort by more
-        let text_match = Self::text_match_sort_field(request_config);
-        match index {
-            SearchIndex::Relevance => format!(
-                "{text_match},log_downloads:desc,version_published_timestamp:desc"
-            ),
-            SearchIndex::Downloads => {
-                "log_downloads:desc,version_published_timestamp:desc"
-                    .to_string()
-            }
-            SearchIndex::Follows => {
-                "follows:desc,version_published_timestamp:desc".to_string()
-            }
-            SearchIndex::Updated => {
-                "modified_timestamp:desc,version_published_timestamp:desc"
-                    .to_string()
-            }
-            SearchIndex::Newest => {
-                "created_timestamp:desc,version_published_timestamp:desc"
-                    .to_string()
-            }
-            SearchIndex::EnshroudedServerPlayersOnline => format!(
-                "{text_match},enshrouded_server.is_online:desc,enshrouded_server.ping.data.players_online:desc"
-            ),
-        }
-    }
+	fn get_sort_fields(
+		&self,
+		index: SearchIndex,
+		request_config: &RequestConfig,
+	) -> String {
+		// NOTE: we can only sort by max 3 fields here - typesense will not let us sort by more
+		let text_match = Self::text_match_sort_field(request_config);
+		match index {
+			SearchIndex::Relevance => format!(
+				"{text_match},log_downloads:desc,version_published_timestamp:desc"
+			),
+			SearchIndex::Downloads => {
+				"log_downloads:desc,version_published_timestamp:desc"
+					.to_string()
+			}
+			SearchIndex::Follows => {
+				"follows:desc,version_published_timestamp:desc".to_string()
+			}
+			SearchIndex::Updated => {
+				"modified_timestamp:desc,version_published_timestamp:desc"
+					.to_string()
+			}
+			SearchIndex::Newest => {
+				"created_timestamp:desc,version_published_timestamp:desc"
+					.to_string()
+			}
+			SearchIndex::EnshroudedServerPlayersOnline => format!(
+				"{text_match},enshrouded_server.is_online:desc,enshrouded_server.ping.data.players_online:desc"
+			),
+		}
+	}
 
-    fn query_by(request_config: &RequestConfig) -> String {
-        request_config.query_by.join(",")
-    }
+	fn query_by(request_config: &RequestConfig) -> String {
+		request_config.query_by.join(",")
+	}
 
-    fn query_by_weights(request_config: &RequestConfig) -> Option<String> {
-        (!request_config.query_by_weights.is_empty()).then(|| {
-            request_config
-                .query_by_weights
-                .iter()
-                .map(u8::to_string)
-                .collect::<Vec<_>>()
-                .join(",")
-        })
-    }
+	fn query_by_weights(request_config: &RequestConfig) -> Option<String> {
+		(!request_config.query_by_weights.is_empty()).then(|| {
+			request_config
+				.query_by_weights
+				.iter()
+				.map(u8::to_string)
+				.collect::<Vec<_>>()
+				.join(",")
+		})
+	}
 
-    fn prefix(request_config: &RequestConfig) -> Option<String> {
-        (!request_config.prefix.is_empty()).then(|| {
-            request_config
-                .prefix
-                .iter()
-                .map(bool::to_string)
-                .collect::<Vec<_>>()
-                .join(",")
-        })
-    }
+	fn prefix(request_config: &RequestConfig) -> Option<String> {
+		(!request_config.prefix.is_empty()).then(|| {
+			request_config
+				.prefix
+				.iter()
+				.map(bool::to_string)
+				.collect::<Vec<_>>()
+				.join(",")
+		})
+	}
 
-    fn get_sort_index(
-        &self,
-        index: &str,
-        new_filters: Option<&str>,
-        request_config: &RequestConfig,
-    ) -> Result<(String, String), ApiError> {
-        let sort = parse_search_index(index, new_filters)
-            .wrap_api_err("executing `parse_search_index`")?;
-        let alias = self.config.get_alias_name("projects");
-        Ok((alias, self.get_sort_fields(sort.index, request_config)))
-    }
+	fn get_sort_index(
+		&self,
+		index: &str,
+		new_filters: Option<&str>,
+		request_config: &RequestConfig,
+	) -> Result<(String, String), ApiError> {
+		let sort = parse_search_index(index, new_filters)
+			.wrap_api_err("executing `parse_search_index`")?;
+		let alias = self.config.get_alias_name("projects");
+		Ok((alias, self.get_sort_fields(sort.index, request_config)))
+	}
 
-    /// Builds a Typesense `filter_by` string from the [`SearchRequest`].
-    ///
-    /// Handles the new-style filter string, legacy facets JSON, and the legacy
-    /// `filters`/`version` fields, translating each from Meilisearch filter
-    /// syntax to Typesense filter syntax.
-    fn build_filter(
-        info: &SearchRequest,
-        versions_collection: &str,
-    ) -> Result<Option<String>, ApiError> {
-        let facet_part = if let Some(facets_json) = info.facets.as_deref() {
-            from_legacy_v2_facets_json(facets_json)
-                .wrap_request_err("failed to parse facets")?
-        } else {
-            None
-        };
+	/// Builds a Typesense `filter_by` string from the [`SearchRequest`].
+	///
+	/// Handles the new-style filter string, legacy facets JSON, and the legacy
+	/// `filters`/`version` fields, translating each from Meilisearch filter
+	/// syntax to Typesense filter syntax.
+	fn build_filter(
+		info: &SearchRequest,
+		versions_collection: &str,
+	) -> Result<Option<String>, ApiError> {
+		let facet_part = if let Some(facets_json) = info.facets.as_deref() {
+			from_legacy_v2_facets_json(facets_json)
+				.wrap_request_err("failed to parse facets")?
+		} else {
+			None
+		};
 
-        let filter_part = combined_search_filters(info)
-            .filter(|filter| !filter.trim().is_empty())
-            .map(|filter| parse_expression(&filter))
-            .transpose()
-            .wrap_request_err("failed to parse filters")?;
+		let filter_part = combined_search_filters(info)
+			.filter(|filter| !filter.trim().is_empty())
+			.map(|filter| parse_expression(&filter))
+			.transpose()
+			.wrap_request_err("failed to parse filters")?;
 
-        FilterExpr::and([facet_part, filter_part].into_iter().flatten())
-            .map(normalize)
-            .map(|filter| {
-                serialize_filter(&filter, versions_collection)
-                    .wrap_request_err("failed to build search filter")
-            })
-            .transpose()
-    }
+		FilterExpr::and([facet_part, filter_part].into_iter().flatten())
+			.map(normalize)
+			.map(|filter| {
+				serialize_filter(&filter, versions_collection)
+					.wrap_request_err("failed to build search filter")
+			})
+			.transpose()
+	}
 
-    async fn import_document_batches<T>(
-        &self,
-        collections: &[String],
-        documents: &[T],
-        serialize: fn(&[T]) -> Result<String>,
-    ) -> Result<()> {
-        let batch_size = self.config.import_batch_size.max(1);
+	async fn import_document_batches<T>(
+		&self,
+		collections: &[String],
+		documents: &[T],
+		serialize: fn(&[T]) -> Result<String>,
+	) -> Result<()> {
+		let batch_size = self.config.import_batch_size.max(1);
 
-        for batch in documents.chunks(batch_size) {
-            let jsonl = serialize(batch)?;
+		for batch in documents.chunks(batch_size) {
+			let jsonl = serialize(batch)?;
 
-            for collection in collections {
-                info!(
-                    collection,
-                    document_count = batch.len(),
-                    content_length_bytes = jsonl.len(),
-                    "sending Typesense document import"
-                );
-                self.client
-                    .import_documents(collection, jsonl.clone())
-                    .await?;
-            }
-        }
+			for collection in collections {
+				info!(
+					collection,
+					document_count = batch.len(),
+					content_length_bytes = jsonl.len(),
+					"sending Typesense document import"
+				);
+				self.client
+					.import_documents(collection, jsonl.clone())
+					.await?;
+			}
+		}
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    async fn existing_write_collections(
-        &self,
-        alias: &str,
-    ) -> Result<Vec<String>> {
-        let mut collections = self
-            .client
-            .get_alias(alias)
-            .await?
-            .into_iter()
-            .collect_vec();
+	async fn existing_write_collections(
+		&self,
+		alias: &str,
+	) -> Result<Vec<String>> {
+		let mut collections = self
+			.client
+			.get_alias(alias)
+			.await?
+			.into_iter()
+			.collect_vec();
 
-        for collection in [
-            self.config.get_next_collection_name(alias, true),
-            self.config.get_next_collection_name(alias, false),
-        ] {
-            if !collections.contains(&collection)
-                && self.client.collection_exists(&collection).await?
-            {
-                collections.push(collection);
-            }
-        }
+		for collection in [
+			self.config.get_next_collection_name(alias, true),
+			self.config.get_next_collection_name(alias, false),
+		] {
+			if !collections.contains(&collection)
+				&& self.client.collection_exists(&collection).await?
+			{
+				collections.push(collection);
+			}
+		}
 
-        Ok(collections)
-    }
+		Ok(collections)
+	}
 
-    async fn delete_ids_from_write_collections(
-        &self,
-        alias: &str,
-        field: &str,
-        ids: &[String],
-    ) -> Result<()> {
-        let collections = self.existing_write_collections(alias).await?;
-        for ids in ids.chunks(DELETE_FILTER_ID_BATCH_SIZE) {
-            let filter = format!("{field}:[{}]", ids.iter().join(", "));
-            for collection in &collections {
-                self.client
-                    .delete_documents_by_filter(
-                        collection,
-                        &filter,
-                        self.config.delete_batch_size,
-                    )
-                    .await?;
-            }
-        }
-        Ok(())
-    }
+	async fn delete_ids_from_write_collections(
+		&self,
+		alias: &str,
+		field: &str,
+		ids: &[String],
+	) -> Result<()> {
+		let collections = self.existing_write_collections(alias).await?;
+		for ids in ids.chunks(DELETE_FILTER_ID_BATCH_SIZE) {
+			let filter = format!("{field}:[{}]", ids.iter().join(", "));
+			for collection in &collections {
+				self.client
+					.delete_documents_by_filter(
+						collection,
+						&filter,
+						self.config.delete_batch_size,
+					)
+					.await?;
+			}
+		}
+		Ok(())
+	}
 
-    async fn delete_legacy_filtered_collections(&self) -> Result<()> {
-        let alias = self.config.get_alias_name("projects_filtered");
-        let live = self.client.get_alias(&alias).await?;
-        let shadow_alt = self.config.get_next_collection_name(&alias, true);
-        let shadow_current =
-            self.config.get_next_collection_name(&alias, false);
+	async fn delete_legacy_filtered_collections(&self) -> Result<()> {
+		let alias = self.config.get_alias_name("projects_filtered");
+		let live = self.client.get_alias(&alias).await?;
+		let shadow_alt = self.config.get_next_collection_name(&alias, true);
+		let shadow_current =
+			self.config.get_next_collection_name(&alias, false);
 
-        self.client.delete_alias_if_exists(&alias).await?;
-        for collection in live
-            .into_iter()
-            .chain([shadow_alt, shadow_current])
-            .unique()
-        {
-            self.client.delete_collection_if_exists(&collection).await?;
-        }
+		self.client.delete_alias_if_exists(&alias).await?;
+		for collection in live
+			.into_iter()
+			.chain([shadow_alt, shadow_current])
+			.unique()
+		{
+			self.client.delete_collection_if_exists(&collection).await?;
+		}
 
-        Ok(())
-    }
+		Ok(())
+	}
 }
 
 #[async_trait]
 impl SearchBackend for Typesense {
-    async fn search_for_project_raw(
-        &self,
-        info: &SearchRequest,
-    ) -> Result<SearchResults, ApiError> {
-        let parsed = parse_search_request(info)
-            .wrap_api_err("executing `parse_search_request`")?;
-        let (collection_alias, sort_by) = self
-            .get_sort_index(
-                parsed.index,
-                info.new_filters.as_deref(),
-                &info.typesense_config,
-            )
-            .wrap_api_err("fetching sort index")?;
-        let versions_alias = self.config.get_alias_name("versions");
-        let filter_by = Self::build_filter(info, &versions_alias)
-            .wrap_api_err("executing `Self::build_filter`")?;
+	async fn search_for_project_raw(
+		&self,
+		info: &SearchRequest,
+	) -> Result<SearchResults, ApiError> {
+		let parsed = parse_search_request(info)
+			.wrap_api_err("executing `parse_search_request`")?;
+		let (collection_alias, sort_by) = self
+			.get_sort_index(
+				parsed.index,
+				info.new_filters.as_deref(),
+				&info.typesense_config,
+			)
+			.wrap_api_err("fetching sort index")?;
+		let versions_alias = self.config.get_alias_name("versions");
+		let filter_by = Self::build_filter(info, &versions_alias)
+			.wrap_api_err("executing `Self::build_filter`")?;
 
-        let q = if parsed.query.is_empty() {
-            "*"
-        } else {
-            parsed.query
-        };
+		let q = if parsed.query.is_empty() {
+			"*"
+		} else {
+			parsed.query
+		};
 
-        let query_by = Self::query_by(&info.typesense_config);
+		let query_by = Self::query_by(&info.typesense_config);
 
-        let mut params: Vec<(&str, String)> = vec![
-            ("q", q.to_string()),
-            ("query_by", query_by),
-            (
-                "prioritize_exact_match",
-                info.typesense_config.prioritize_exact_match.to_string(),
-            ),
-            (
-                "prioritize_num_matching_fields",
-                info.typesense_config
-                    .prioritize_num_matching_fields
-                    .to_string(),
-            ),
-            (
-                "prioritize_token_positions",
-                info.typesense_config.prioritize_token_positions.to_string(),
-            ),
-            (
-                "drop_tokens_threshold",
-                info.typesense_config.drop_tokens_threshold.to_string(),
-            ),
-            (
-                "text_match_type",
-                info.typesense_config.text_match_type.as_str().to_string(),
-            ),
-            ("sort_by", sort_by.to_string()),
-            ("page", parsed.page.to_string()),
-            ("per_page", parsed.hits_per_page.to_string()),
-            (
-                "max_candidates",
-                info.typesense_config.max_candidates.to_string(),
-            ),
-        ];
-        if let Some(query_by_weights) =
-            Self::query_by_weights(&info.typesense_config)
-        {
-            params.push(("query_by_weights", query_by_weights));
-        }
-        if let Some(prefix) = Self::prefix(&info.typesense_config) {
-            params.push(("prefix", prefix));
-        }
-        if let Some(filter) = &filter_by {
-            params.push(("filter_by", filter.clone()));
-            if filter.contains(&format!("${versions_alias}(")) {
-                params.push((
+		let mut params: Vec<(&str, String)> = vec![
+			("q", q.to_string()),
+			("query_by", query_by),
+			(
+				"prioritize_exact_match",
+				info.typesense_config.prioritize_exact_match.to_string(),
+			),
+			(
+				"prioritize_num_matching_fields",
+				info.typesense_config
+					.prioritize_num_matching_fields
+					.to_string(),
+			),
+			(
+				"prioritize_token_positions",
+				info.typesense_config.prioritize_token_positions.to_string(),
+			),
+			(
+				"drop_tokens_threshold",
+				info.typesense_config.drop_tokens_threshold.to_string(),
+			),
+			(
+				"text_match_type",
+				info.typesense_config.text_match_type.as_str().to_string(),
+			),
+			("sort_by", sort_by.to_string()),
+			("page", parsed.page.to_string()),
+			("per_page", parsed.hits_per_page.to_string()),
+			(
+				"max_candidates",
+				info.typesense_config.max_candidates.to_string(),
+			),
+		];
+		if let Some(query_by_weights) =
+			Self::query_by_weights(&info.typesense_config)
+		{
+			params.push(("query_by_weights", query_by_weights));
+		}
+		if let Some(prefix) = Self::prefix(&info.typesense_config) {
+			params.push(("prefix", prefix));
+		}
+		if let Some(filter) = &filter_by {
+			params.push(("filter_by", filter.clone()));
+			if filter.contains(&format!("${versions_alias}(")) {
+				params.push((
                     "include_fields",
                     format!(
                         "${versions_alias}(version_id, sort_by: version_published_timestamp:desc, limit:1, strategy: nest_array) as matching_versions"
                     ),
                 ));
-            }
-        }
+			}
+		}
 
-        let resp = self
-            .client
-            .request(Method::POST, "/multi_search")
-            .query(&[("use_cache", self.config.use_cache)])
-            .json(&json!({
-                "searches": [
-                    serde_json::Map::from_iter(
-                        params.iter().map(|(k, v)| ((*k).to_string(), Value::String(v.clone())))
-                    )
-                    .into_iter()
-                    .chain([(
-                        "collection".to_string(),
-                        Value::String(collection_alias.clone())
-                    )])
-                    .collect::<serde_json::Map<String, Value>>()
-                ]
-            }))
-            .send()
-            .await
-            .wrap_internal_err("failed to execute Typesense search")?;
+		let resp = self
+			.client
+			.request(Method::POST, "/multi_search")
+			.query(&[("use_cache", self.config.use_cache)])
+			.json(&json!({
+				"searches": [
+					serde_json::Map::from_iter(
+						params.iter().map(|(k, v)| ((*k).to_string(), Value::String(v.clone())))
+					)
+					.into_iter()
+					.chain([(
+						"collection".to_string(),
+						Value::String(collection_alias.clone())
+					)])
+					.collect::<serde_json::Map<String, Value>>()
+				]
+			}))
+			.send()
+			.await
+			.wrap_internal_err("failed to execute Typesense search")?;
 
-        if !resp.status().is_success() {
-            let body = resp.json::<Value>().await.unwrap_or_default();
-            return Err(ApiError::Internal(eyre!(
-                "Typesense search failed: {body}"
-            )));
-        }
+		if !resp.status().is_success() {
+			let body = resp.json::<Value>().await.unwrap_or_default();
+			return Err(ApiError::Internal(eyre!(
+				"Typesense search failed: {body}"
+			)));
+		}
 
-        let body = resp
-            .json::<Value>()
-            .await
-            .wrap_internal_err("failed to parse Typesense search response")?;
+		let body = resp
+			.json::<Value>()
+			.await
+			.wrap_internal_err("failed to parse Typesense search response")?;
 
-        let body = body["results"]
-            .as_array()
-            .and_then(|results| results.first())
-            .cloned()
-            .unwrap_or(body);
+		let body = body["results"]
+			.as_array()
+			.and_then(|results| results.first())
+			.cloned()
+			.unwrap_or(body);
 
-        let total_hits = body["found"].as_u64().unwrap_or(0) as usize;
+		let total_hits = body["found"].as_u64().unwrap_or(0) as usize;
 
-        let hits = body["hits"]
-            .as_array()
-            .cloned()
-            .unwrap_or_default()
-            .into_iter()
-            .filter_map(|hit| {
-                let mut doc = hit.get("document")?.clone();
-                if let Some(obj) = doc.as_object_mut() {
-                    obj.remove("id");
-                    let matching_version_id =
-                        obj.remove("matching_versions").and_then(|versions| {
-                            versions
-                                .as_array()
-                                .and_then(|versions| versions.first())
-                                .or_else(|| {
-                                    versions.as_object().map(|_| &versions)
-                                })
-                                .and_then(|version| version.get("version_id"))
-                                .and_then(Value::as_str)
-                                .map(ToString::to_string)
-                        });
-                    if let Some(version_id) = matching_version_id {
-                        obj.insert(
-                            "version_id".to_string(),
-                            Value::String(version_id),
-                        );
-                    }
-                }
+		let hits = body["hits"]
+			.as_array()
+			.cloned()
+			.unwrap_or_default()
+			.into_iter()
+			.filter_map(|hit| {
+				let mut doc = hit.get("document")?.clone();
+				if let Some(obj) = doc.as_object_mut() {
+					obj.remove("id");
+					let matching_version_id =
+						obj.remove("matching_versions").and_then(|versions| {
+							versions
+								.as_array()
+								.and_then(|versions| versions.first())
+								.or_else(|| {
+									versions.as_object().map(|_| &versions)
+								})
+								.and_then(|version| version.get("version_id"))
+								.and_then(Value::as_str)
+								.map(ToString::to_string)
+						});
+					if let Some(version_id) = matching_version_id {
+						obj.insert(
+							"version_id".to_string(),
+							Value::String(version_id),
+						);
+					}
+				}
 
-                let metadata = info.show_metadata.then(|| {
-                    let mut m = serde_json::Map::new();
-                    if let Some(score) = hit.get("text_match") {
-                        m.insert("text_match".to_string(), score.clone());
-                    }
-                    if let Some(match_info) = hit.get("text_match_info") {
-                        m.insert(
-                            "text_match_info".to_string(),
-                            match_info.clone(),
-                        );
-                    }
-                    Value::Object(m)
-                });
+				let metadata = info.show_metadata.then(|| {
+					let mut m = serde_json::Map::new();
+					if let Some(score) = hit.get("text_match") {
+						m.insert("text_match".to_string(), score.clone());
+					}
+					if let Some(match_info) = hit.get("text_match_info") {
+						m.insert(
+							"text_match_info".to_string(),
+							match_info.clone(),
+						);
+					}
+					Value::Object(m)
+				});
 
-                let mut result: ResultSearchProject =
-                    serde_json::from_value::<UploadSearchProject>(doc)
-                        .ok()?
-                        .into();
-                result.search_metadata = metadata;
-                Some(result)
-            })
-            .collect();
+				let mut result: ResultSearchProject =
+					serde_json::from_value::<UploadSearchProject>(doc)
+						.ok()?
+						.into();
+				result.search_metadata = metadata;
+				Some(result)
+			})
+			.collect();
 
-        Ok(SearchResults {
-            hits,
-            page: parsed.page,
-            hits_per_page: parsed.hits_per_page,
-            total_hits,
-        })
-    }
+		Ok(SearchResults {
+			hits,
+			page: parsed.page,
+			hits_per_page: parsed.hits_per_page,
+			total_hits,
+		})
+	}
 
-    async fn rebuild_index(
-        &self,
-        ro_pool: PgPool,
-        redis: RedisPool,
-    ) -> eyre::Result<()> {
-        info!("starting project indexing");
+	async fn rebuild_index(
+		&self,
+		ro_pool: PgPool,
+		redis: RedisPool,
+	) -> eyre::Result<()> {
+		info!("starting project indexing");
 
-        let projects_alias = self.config.get_alias_name("projects");
-        let versions_alias = self.config.get_alias_name("versions");
+		let projects_alias = self.config.get_alias_name("projects");
+		let versions_alias = self.config.get_alias_name("versions");
 
-        let projects_current = self.client.get_alias(&projects_alias).await?;
-        let versions_current = self.client.get_alias(&versions_alias).await?;
+		let projects_current = self.client.get_alias(&projects_alias).await?;
+		let versions_current = self.client.get_alias(&versions_alias).await?;
 
-        let projects_use_alt = !projects_current
-            .as_deref()
-            .is_some_and(|n| n.ends_with("__alt"));
-        let versions_use_alt = !versions_current
-            .as_deref()
-            .is_some_and(|n| n.ends_with("__alt"));
+		let projects_use_alt = !projects_current
+			.as_deref()
+			.is_some_and(|n| n.ends_with("__alt"));
+		let versions_use_alt = !versions_current
+			.as_deref()
+			.is_some_and(|n| n.ends_with("__alt"));
 
-        let projects_next = self
-            .config
-            .get_next_collection_name(&projects_alias, projects_use_alt);
-        let versions_next = self
-            .config
-            .get_next_collection_name(&versions_alias, versions_use_alt);
+		let projects_next = self
+			.config
+			.get_next_collection_name(&projects_alias, projects_use_alt);
+		let versions_next = self
+			.config
+			.get_next_collection_name(&versions_alias, versions_use_alt);
 
-        info!("shadow collections `{projects_next}` and `{versions_next}`");
+		info!("shadow collections `{projects_next}` and `{versions_next}`");
 
-        self.client
-            .delete_collection_if_exists(&versions_next)
-            .await?;
-        self.client
-            .delete_collection_if_exists(&projects_next)
-            .await?;
-        self.client
-            .create_collection(&Self::project_collection_schema(&projects_next))
-            .await?;
-        self.client
-            .create_collection(&Self::version_collection_schema(
-                &versions_next,
-                &projects_next,
-            ))
-            .await?;
+		self.client
+			.delete_collection_if_exists(&versions_next)
+			.await?;
+		self.client
+			.delete_collection_if_exists(&projects_next)
+			.await?;
+		self.client
+			.create_collection(&Self::project_collection_schema(&projects_next))
+			.await?;
+		self.client
+			.create_collection(&Self::version_collection_schema(
+				&versions_next,
+				&projects_next,
+			))
+			.await?;
 
-        let mut cursor = 0_i64;
-        let mut chunk_idx = 0_usize;
-        let mut total_projects = 0_usize;
-        let mut total_versions = 0_usize;
+		let mut cursor = 0_i64;
+		let mut chunk_idx = 0_usize;
+		let mut total_projects = 0_usize;
+		let mut total_versions = 0_usize;
 
-        loop {
-            info!("fetching index chunk {chunk_idx}");
-            chunk_idx += 1;
+		loop {
+			info!("fetching index chunk {chunk_idx}");
+			chunk_idx += 1;
 
-            let (documents, next_cursor) = index_local(
-                &ro_pool,
-                &redis,
-                cursor,
-                self.config.index_chunk_size,
-            )
-            .await
-            .wrap_err("failed to fetch projects from local DB")?;
+			let (documents, next_cursor) = index_local(
+				&ro_pool,
+				&redis,
+				cursor,
+				self.config.index_chunk_size,
+			)
+			.await
+			.wrap_err("failed to fetch projects from local DB")?;
 
-            if documents.projects.is_empty() {
-                info!(
-                    "no more documents; indexed {total_projects} projects and {total_versions} versions in {chunk_idx} chunks"
-                );
-                break;
-            }
+			if documents.projects.is_empty() {
+				info!(
+					"no more documents; indexed {total_projects} projects and {total_versions} versions in {chunk_idx} chunks"
+				);
+				break;
+			}
 
-            total_projects += documents.projects.len();
-            total_versions += documents.versions.len();
-            cursor = next_cursor;
+			total_projects += documents.projects.len();
+			total_versions += documents.versions.len();
+			cursor = next_cursor;
 
-            self.import_document_batches(
-                std::slice::from_ref(&projects_next),
-                &documents.projects,
-                documents_to_jsonl,
-            )
-            .await?;
-            self.import_document_batches(
-                std::slice::from_ref(&versions_next),
-                &documents.versions,
-                version_documents_to_jsonl,
-            )
-            .await?;
-        }
+			self.import_document_batches(
+				std::slice::from_ref(&projects_next),
+				&documents.projects,
+				documents_to_jsonl,
+			)
+			.await?;
+			self.import_document_batches(
+				std::slice::from_ref(&versions_next),
+				&documents.versions,
+				version_documents_to_jsonl,
+			)
+			.await?;
+		}
 
-        info!("swapping aliases");
-        self.client
-            .upsert_alias(&projects_alias, &projects_next)
-            .await?;
-        self.client
-            .upsert_alias(&versions_alias, &versions_next)
-            .await?;
+		info!("swapping aliases");
+		self.client
+			.upsert_alias(&projects_alias, &projects_next)
+			.await?;
+		self.client
+			.upsert_alias(&versions_alias, &versions_next)
+			.await?;
 
-        info!("cleaning up old collections");
-        if let Some(old) = versions_current {
-            self.client.delete_collection_if_exists(&old).await?;
-        }
-        if let Some(old) = projects_current {
-            self.client.delete_collection_if_exists(&old).await?;
-        }
+		info!("cleaning up old collections");
+		if let Some(old) = versions_current {
+			self.client.delete_collection_if_exists(&old).await?;
+		}
+		if let Some(old) = projects_current {
+			self.client.delete_collection_if_exists(&old).await?;
+		}
 
-        self.delete_legacy_filtered_collections().await?;
+		self.delete_legacy_filtered_collections().await?;
 
-        info!("indexing complete");
-        Ok(())
-    }
+		info!("indexing complete");
+		Ok(())
+	}
 
-    async fn apply_update(
-        &self,
-        update: SearchIndexUpdate<'_>,
-    ) -> eyre::Result<()> {
-        let projects_alias = self.config.get_alias_name("projects");
-        let versions_alias = self.config.get_alias_name("versions");
+	async fn apply_update(
+		&self,
+		update: SearchIndexUpdate<'_>,
+	) -> eyre::Result<()> {
+		let projects_alias = self.config.get_alias_name("projects");
+		let versions_alias = self.config.get_alias_name("versions");
 
-        let removed_project_ids = update
-            .removed_projects
-            .iter()
-            .map(ToString::to_string)
-            .collect::<Vec<_>>();
-        if !removed_project_ids.is_empty() {
-            self.delete_ids_from_write_collections(
-                &versions_alias,
-                "project_id",
-                &removed_project_ids,
-            )
-            .await?;
-            self.delete_ids_from_write_collections(
-                &projects_alias,
-                "project_id",
-                &removed_project_ids,
-            )
-            .await?;
-        }
+		let removed_project_ids = update
+			.removed_projects
+			.iter()
+			.map(ToString::to_string)
+			.collect::<Vec<_>>();
+		if !removed_project_ids.is_empty() {
+			self.delete_ids_from_write_collections(
+				&versions_alias,
+				"project_id",
+				&removed_project_ids,
+			)
+			.await?;
+			self.delete_ids_from_write_collections(
+				&projects_alias,
+				"project_id",
+				&removed_project_ids,
+			)
+			.await?;
+		}
 
-        let version_ids = update
-            .removed_versions
-            .iter()
-            .map(ToString::to_string)
-            .chain(
-                update
-                    .versions
-                    .iter()
-                    .map(|document| document.version_id.clone()),
-            )
-            .unique()
-            .collect::<Vec<_>>();
-        if !version_ids.is_empty() {
-            self.delete_ids_from_write_collections(
-                &versions_alias,
-                "id",
-                &version_ids,
-            )
-            .await?;
-        }
+		let version_ids = update
+			.removed_versions
+			.iter()
+			.map(ToString::to_string)
+			.chain(
+				update
+					.versions
+					.iter()
+					.map(|document| document.version_id.clone()),
+			)
+			.unique()
+			.collect::<Vec<_>>();
+		if !version_ids.is_empty() {
+			self.delete_ids_from_write_collections(
+				&versions_alias,
+				"id",
+				&version_ids,
+			)
+			.await?;
+		}
 
-        let project_ids = update
-            .projects
-            .iter()
-            .map(|document| document.project_id.clone())
-            .unique()
-            .collect::<Vec<_>>();
-        if !project_ids.is_empty() {
-            self.delete_ids_from_write_collections(
-                &projects_alias,
-                "project_id",
-                &project_ids,
-            )
-            .await?;
-        }
+		let project_ids = update
+			.projects
+			.iter()
+			.map(|document| document.project_id.clone())
+			.unique()
+			.collect::<Vec<_>>();
+		if !project_ids.is_empty() {
+			self.delete_ids_from_write_collections(
+				&projects_alias,
+				"project_id",
+				&project_ids,
+			)
+			.await?;
+		}
 
-        if !update.projects.is_empty() {
-            let collections =
-                self.existing_write_collections(&projects_alias).await?;
-            debug!(
-                ?collections,
-                num_documents = update.projects.len(),
-                "Replacing project documents in collections",
-            );
-            self.import_document_batches(
-                &collections,
-                update.projects,
-                documents_to_jsonl,
-            )
-            .await?;
-        }
+		if !update.projects.is_empty() {
+			let collections =
+				self.existing_write_collections(&projects_alias).await?;
+			debug!(
+				?collections,
+				num_documents = update.projects.len(),
+				"Replacing project documents in collections",
+			);
+			self.import_document_batches(
+				&collections,
+				update.projects,
+				documents_to_jsonl,
+			)
+			.await?;
+		}
 
-        if !update.versions.is_empty() {
-            let collections =
-                self.existing_write_collections(&versions_alias).await?;
-            debug!(
-                ?collections,
-                num_documents = update.versions.len(),
-                "Replacing version documents in collections",
-            );
-            self.import_document_batches(
-                &collections,
-                update.versions,
-                version_documents_to_jsonl,
-            )
-            .await?;
-        }
+		if !update.versions.is_empty() {
+			let collections =
+				self.existing_write_collections(&versions_alias).await?;
+			debug!(
+				?collections,
+				num_documents = update.versions.len(),
+				"Replacing version documents in collections",
+			);
+			self.import_document_batches(
+				&collections,
+				update.versions,
+				version_documents_to_jsonl,
+			)
+			.await?;
+		}
 
-        debug!("Done applying search index update");
-        Ok(())
-    }
+		debug!("Done applying search index update");
+		Ok(())
+	}
 
-    async fn tasks(&self) -> eyre::Result<Value> {
-        // Typesense operations are synchronous; there is no async task queue.
-        Ok(json!({"typesense": "no async tasks"}))
-    }
+	async fn tasks(&self) -> eyre::Result<Value> {
+		// Typesense operations are synchronous; there is no async task queue.
+		Ok(json!({"typesense": "no async tasks"}))
+	}
 
-    async fn tasks_cancel(
-        &self,
-        _filter: &TasksCancelFilter,
-    ) -> eyre::Result<()> {
-        Ok(())
-    }
+	async fn tasks_cancel(
+		&self,
+		_filter: &TasksCancelFilter,
+	) -> eyre::Result<()> {
+		Ok(())
+	}
 }
 
 /// Serialises a batch of [`UploadSearchProject`]s to a JSONL string suitable
 /// for the Typesense bulk-import endpoint.  Each document gets an `id` field
 /// equal to `project_id` so Typesense can use it as the primary key.
 fn documents_to_jsonl(uploads: &[UploadSearchProject]) -> Result<String> {
-    let mut out = String::new();
-    for upload in uploads {
-        let mut doc = serde_json::to_value(upload)
-            .wrap_err("failed to serialise UploadSearchProject")?;
-        if let Some(obj) = doc.as_object_mut() {
-            let id = obj
-                .get("project_id")
-                .and_then(Value::as_str)
-                .unwrap_or_default()
-                .to_string();
-            obj.insert("id".to_string(), Value::String(id));
+	let mut out = String::new();
+	for upload in uploads {
+		let mut doc = serde_json::to_value(upload)
+			.wrap_err("failed to serialise UploadSearchProject")?;
+		if let Some(obj) = doc.as_object_mut() {
+			let id = obj
+				.get("project_id")
+				.and_then(Value::as_str)
+				.unwrap_or_default()
+				.to_string();
+			obj.insert("id".to_string(), Value::String(id));
 
-            if let Some(server) = obj
-                .get_mut("enshrouded_server")
-                .and_then(Value::as_object_mut)
-            {
-                let is_online = server
-                    .get("ping")
-                    .and_then(Value::as_object)
-                    .and_then(|ping| ping.get("data"))
-                    .is_some_and(|data| !data.is_null());
-                server.insert("is_online".to_string(), Value::Bool(is_online));
-            }
-        }
-        out.push_str(&serde_json::to_string(&doc)?);
-        out.push('\n');
-    }
-    Ok(out)
+			if let Some(server) = obj
+				.get_mut("enshrouded_server")
+				.and_then(Value::as_object_mut)
+			{
+				let is_online = server
+					.get("ping")
+					.and_then(Value::as_object)
+					.and_then(|ping| ping.get("data"))
+					.is_some_and(|data| !data.is_null());
+				server.insert("is_online".to_string(), Value::Bool(is_online));
+			}
+		}
+		out.push_str(&serde_json::to_string(&doc)?);
+		out.push('\n');
+	}
+	Ok(out)
 }
 
 fn version_documents_to_jsonl(
-    uploads: &[UploadSearchVersion],
+	uploads: &[UploadSearchVersion],
 ) -> Result<String> {
-    let mut out = String::new();
-    for upload in uploads {
-        let mut document = serde_json::to_value(upload)
-            .wrap_err("failed to serialise UploadSearchVersion")?;
-        if let Some(object) = document.as_object_mut() {
-            object.insert(
-                "id".to_string(),
-                Value::String(upload.version_id.clone()),
-            );
-        }
-        out.push_str(&serde_json::to_string(&document)?);
-        out.push('\n');
-    }
-    Ok(out)
+	let mut out = String::new();
+	for upload in uploads {
+		let mut document = serde_json::to_value(upload)
+			.wrap_err("failed to serialise UploadSearchVersion")?;
+		if let Some(object) = document.as_object_mut() {
+			object.insert(
+				"id".to_string(),
+				Value::String(upload.version_id.clone()),
+			);
+		}
+		out.push_str(&serde_json::to_string(&document)?);
+		out.push('\n');
+	}
+	Ok(out)
 }

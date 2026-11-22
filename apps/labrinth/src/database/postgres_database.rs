@@ -25,116 +25,116 @@ use crate::env::ENV;
 pub struct ReadOnlyPgPool(PgPool);
 
 impl From<PgPool> for ReadOnlyPgPool {
-    fn from(pool: PgPool) -> Self {
-        ReadOnlyPgPool(pool)
-    }
+	fn from(pool: PgPool) -> Self {
+		ReadOnlyPgPool(pool)
+	}
 }
 
 impl ReadOnlyPgPool {
-    pub fn into_inner(self) -> PgPool {
-        self.0
-    }
+	pub fn into_inner(self) -> PgPool {
+		self.0
+	}
 }
 
 impl Deref for ReadOnlyPgPool {
-    type Target = PgPool;
+	type Target = PgPool;
 
-    fn deref(&self) -> &Self::Target {
-        &self.0
-    }
+	fn deref(&self) -> &Self::Target {
+		&self.0
+	}
 }
 
 impl DerefMut for ReadOnlyPgPool {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
-    }
+	fn deref_mut(&mut self) -> &mut Self::Target {
+		&mut self.0
+	}
 }
 
 pub async fn connect_all() -> Result<(PgPool, ReadOnlyPgPool), sqlx::Error> {
-    info!("Initializing database connection");
-    let database_url = &ENV.DATABASE_URL;
+	info!("Initializing database connection");
+	let database_url = &ENV.DATABASE_URL;
 
-    let acquire_timeout =
-        Duration::from_millis(ENV.DATABASE_ACQUIRE_TIMEOUT_MS);
+	let acquire_timeout =
+		Duration::from_millis(ENV.DATABASE_ACQUIRE_TIMEOUT_MS);
 
-    let pool = PgPoolOptions::new()
-        .acquire_timeout(acquire_timeout)
-        .min_connections(ENV.DATABASE_MIN_CONNECTIONS)
-        .max_connections(ENV.DATABASE_MAX_CONNECTIONS)
-        .max_lifetime(Some(Duration::from_secs(60 * 60)))
-        .connect(database_url)
-        .await?;
-    let pool = PgPool::from(pool);
+	let pool = PgPoolOptions::new()
+		.acquire_timeout(acquire_timeout)
+		.min_connections(ENV.DATABASE_MIN_CONNECTIONS)
+		.max_connections(ENV.DATABASE_MAX_CONNECTIONS)
+		.max_lifetime(Some(Duration::from_secs(60 * 60)))
+		.connect(database_url)
+		.await?;
+	let pool = PgPool::from(pool);
 
-    if !ENV.READONLY_DATABASE_URL.is_empty() {
-        let ro_pool = PgPoolOptions::new()
-            .acquire_timeout(acquire_timeout)
-            .min_connections(ENV.READONLY_DATABASE_MIN_CONNECTIONS)
-            .max_connections(ENV.READONLY_DATABASE_MAX_CONNECTIONS)
-            .max_lifetime(Some(Duration::from_secs(60 * 60)))
-            .connect(&ENV.READONLY_DATABASE_URL)
-            .await?;
-        let ro_pool = PgPool::from(ro_pool);
+	if !ENV.READONLY_DATABASE_URL.is_empty() {
+		let ro_pool = PgPoolOptions::new()
+			.acquire_timeout(acquire_timeout)
+			.min_connections(ENV.READONLY_DATABASE_MIN_CONNECTIONS)
+			.max_connections(ENV.READONLY_DATABASE_MAX_CONNECTIONS)
+			.max_lifetime(Some(Duration::from_secs(60 * 60)))
+			.connect(&ENV.READONLY_DATABASE_URL)
+			.await?;
+		let ro_pool = PgPool::from(ro_pool);
 
-        Ok((pool, ReadOnlyPgPool(ro_pool)))
-    } else {
-        let ro = ReadOnlyPgPool(pool.clone());
-        Ok((pool, ro))
-    }
+		Ok((pool, ReadOnlyPgPool(ro_pool)))
+	} else {
+		let ro = ReadOnlyPgPool(pool.clone());
+		Ok((pool, ro))
+	}
 }
 
 pub async fn check_for_migrations() -> eyre::Result<()> {
-    let uri = &ENV.DATABASE_URL;
-    let uri = uri.as_str();
-    if !Postgres::database_exists(uri)
-        .await
-        .wrap_err("failed to check if database exists")?
-    {
-        info!("Creating database...");
-        Postgres::create_database(uri)
-            .await
-            .wrap_err("failed to create database")?;
-    }
+	let uri = &ENV.DATABASE_URL;
+	let uri = uri.as_str();
+	if !Postgres::database_exists(uri)
+		.await
+		.wrap_err("failed to check if database exists")?
+	{
+		info!("Creating database...");
+		Postgres::create_database(uri)
+			.await
+			.wrap_err("failed to create database")?;
+	}
 
-    info!("Applying migrations...");
+	info!("Applying migrations...");
 
-    let mut conn: sqlx::PgConnection =
-        sqlx::PgConnection::connect(uri)
-            .await
-            .wrap_err("failed to connect to database")?;
-    MIGRATOR
-        .run(&mut conn)
-        .await
-        .wrap_err("failed to run database migrations")?;
+	let mut conn: sqlx::PgConnection =
+		sqlx::PgConnection::connect(uri)
+			.await
+			.wrap_err("failed to connect to database")?;
+	MIGRATOR
+		.run(&mut conn)
+		.await
+		.wrap_err("failed to run database migrations")?;
 
-    Ok(())
+	Ok(())
 }
 
 pub static MIGRATOR: Migrator = sqlx::migrate!();
 
 pub async fn register_and_set_metrics(
-    pool: &PgPool,
-    registry: &Registry,
+	pool: &PgPool,
+	registry: &Registry,
 ) -> Result<(), prometheus::Error> {
-    let pg_pool_size =
-        IntGauge::new("labrinth_pg_pool_size", "Size of Postgres pool")?;
-    let pg_pool_idle = IntGauge::new(
-        "labrinth_pg_pool_idle",
-        "Number of idle Postgres connections",
-    )?;
+	let pg_pool_size =
+		IntGauge::new("labrinth_pg_pool_size", "Size of Postgres pool")?;
+	let pg_pool_idle = IntGauge::new(
+		"labrinth_pg_pool_idle",
+		"Number of idle Postgres connections",
+	)?;
 
-    registry.register(Box::new(pg_pool_size.clone()))?;
-    registry.register(Box::new(pg_pool_idle.clone()))?;
+	registry.register(Box::new(pg_pool_size.clone()))?;
+	registry.register(Box::new(pg_pool_idle.clone()))?;
 
-    let pool_ref = pool.clone();
-    tokio::spawn(async move {
-        loop {
-            pg_pool_size.set(pool_ref.size() as i64);
-            pg_pool_idle.set(pool_ref.num_idle() as i64);
+	let pool_ref = pool.clone();
+	tokio::spawn(async move {
+		loop {
+			pg_pool_size.set(pool_ref.size() as i64);
+			pg_pool_idle.set(pool_ref.num_idle() as i64);
 
-            tokio::time::sleep(Duration::from_secs(5)).await;
-        }
-    });
+			tokio::time::sleep(Duration::from_secs(5)).await;
+		}
+	});
 
-    Ok(())
+	Ok(())
 }

@@ -4,60 +4,60 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 use crate::{
-    database::{
-        PgPool,
-        models::{DBAffiliateCodeId, DBUserId},
-    },
-    models::ids::AffiliateCodeId,
-    routes::ApiError,
-    util::error::Context,
+	database::{
+		PgPool,
+		models::{DBAffiliateCodeId, DBUserId},
+	},
+	models::ids::AffiliateCodeId,
+	routes::ApiError,
+	util::error::Context,
 };
 
 use super::super::{TimeSlice, add_to_time_slice};
 use super::{
-    AffiliateCodeAnalytics, AffiliateCodeMetrics, AnalyticsData, Metrics,
+	AffiliateCodeAnalytics, AffiliateCodeMetrics, AnalyticsData, Metrics,
 };
 
 /// Fields for [`super::ReturnMetrics::affiliate_code_revenue`].
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema,
+	Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema,
 )]
 #[serde(rename_all = "snake_case")]
 pub enum AffiliateCodeRevenueField {
-    /// Affiliate code ID.
-    AffiliateCodeId,
+	/// Affiliate code ID.
+	AffiliateCodeId,
 }
 
 /// Filters for [`super::ReturnMetrics::affiliate_code_revenue`].
 #[derive(Debug, Clone, Default, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct AffiliateCodeRevenueFilters {
-    /// Affiliate code IDs to include.
-    #[serde(default)]
-    pub affiliate_code_id: Vec<AffiliateCodeId>,
+	/// Affiliate code IDs to include.
+	#[serde(default)]
+	pub affiliate_code_id: Vec<AffiliateCodeId>,
 }
 
 /// [`super::ReturnMetrics::affiliate_code_revenue`].
 #[derive(Debug, Clone, Default, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct AffiliateCodeRevenue {
-    /// Total revenue for this bucket.
-    pub revenue: Decimal,
+	/// Total revenue for this bucket.
+	pub revenue: Decimal,
 }
 
 pub(crate) async fn fetch(
-    pool: &PgPool,
-    time_slices: &mut [TimeSlice],
-    req: &super::super::GetRequest,
-    user_id: DBUserId,
-    num_time_slices: usize,
-    metrics: &Metrics<AffiliateCodeRevenueField, AffiliateCodeRevenueFilters>,
+	pool: &PgPool,
+	time_slices: &mut [TimeSlice],
+	req: &super::super::GetRequest,
+	user_id: DBUserId,
+	num_time_slices: usize,
+	metrics: &Metrics<AffiliateCodeRevenueField, AffiliateCodeRevenueFilters>,
 ) -> Result<(), ApiError> {
-    let filter_affiliate_code_ids = metrics
-        .filter_by
-        .affiliate_code_id
-        .iter()
-        .map(|id| DBAffiliateCodeId::from(*id).0)
-        .collect::<Vec<_>>();
-    let mut rows = sqlx::query!(
+	let filter_affiliate_code_ids = metrics
+		.filter_by
+		.affiliate_code_id
+		.iter()
+		.map(|id| DBAffiliateCodeId::from(*id).0)
+		.collect::<Vec<_>>();
+	let mut rows = sqlx::query!(
         r#"
         SELECT
             WIDTH_BUCKET(
@@ -87,38 +87,38 @@ pub(crate) async fn fetch(
         &filter_affiliate_code_ids,
     )
     .fetch(pool);
-    while let Some(row) = rows
-        .next()
-        .await
-        .transpose()
-        .wrap_internal_err("fetching affiliate code revenue")?
-    {
-        let bucket = row
-            .bucket
-            .wrap_internal_err("bucket should be non-null - query bug!")?;
-        let bucket = usize::try_from(bucket).wrap_internal_err_with(|| {
-            eyre::eyre!(
-                "bucket value {bucket} does not fit into `usize` - query bug!"
-            )
-        })?;
+	while let Some(row) = rows
+		.next()
+		.await
+		.transpose()
+		.wrap_internal_err("fetching affiliate code revenue")?
+	{
+		let bucket = row
+			.bucket
+			.wrap_internal_err("bucket should be non-null - query bug!")?;
+		let bucket = usize::try_from(bucket).wrap_internal_err_with(|| {
+			eyre::eyre!(
+				"bucket value {bucket} does not fit into `usize` - query bug!"
+			)
+		})?;
 
-        let source_affiliate_code = AffiliateCodeId::from(DBAffiliateCodeId(
-            row.affiliate_code_source.unwrap_or_default(),
-        ));
-        let revenue = row.amount_sum.unwrap_or_default();
+		let source_affiliate_code = AffiliateCodeId::from(DBAffiliateCodeId(
+			row.affiliate_code_source.unwrap_or_default(),
+		));
+		let revenue = row.amount_sum.unwrap_or_default();
 
-        add_to_time_slice(
-            time_slices,
-            bucket,
-            AnalyticsData::AffiliateCode(AffiliateCodeAnalytics {
-                source_affiliate_code,
-                metrics: AffiliateCodeMetrics::Revenue(AffiliateCodeRevenue {
-                    revenue,
-                }),
-            }),
-        )
-        .wrap_api_err("executing `AffiliateCodeMetrics::Revenue`")?;
-    }
+		add_to_time_slice(
+			time_slices,
+			bucket,
+			AnalyticsData::AffiliateCode(AffiliateCodeAnalytics {
+				source_affiliate_code,
+				metrics: AffiliateCodeMetrics::Revenue(AffiliateCodeRevenue {
+					revenue,
+				}),
+			}),
+		)
+		.wrap_api_err("executing `AffiliateCodeMetrics::Revenue`")?;
+	}
 
-    Ok(())
+	Ok(())
 }

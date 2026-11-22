@@ -1,9 +1,9 @@
 use crate::database::PgTransaction;
 use crate::database::models::{
-    DBChargeId, DBProductPriceId, DBUserId, DBUserSubscriptionId,
+	DBChargeId, DBProductPriceId, DBUserId, DBUserSubscriptionId,
 };
 use crate::models::billing::{
-    ChargeStatus, ChargeType, PaymentPlatform, PriceDuration,
+	ChargeStatus, ChargeType, PaymentPlatform, PriceDuration,
 };
 use chrono::{DateTime, Utc};
 use eyre::{Result, WrapErr};
@@ -11,89 +11,89 @@ use std::convert::{TryFrom, TryInto};
 
 #[derive(Clone)]
 pub struct DBCharge {
-    pub id: DBChargeId,
-    pub user_id: DBUserId,
-    pub price_id: DBProductPriceId,
-    pub amount: i64,
-    pub currency_code: String,
-    pub status: ChargeStatus,
-    pub due: DateTime<Utc>,
-    pub last_attempt: Option<DateTime<Utc>>,
+	pub id: DBChargeId,
+	pub user_id: DBUserId,
+	pub price_id: DBProductPriceId,
+	pub amount: i64,
+	pub currency_code: String,
+	pub status: ChargeStatus,
+	pub due: DateTime<Utc>,
+	pub last_attempt: Option<DateTime<Utc>>,
 
-    pub type_: ChargeType,
-    pub subscription_id: Option<DBUserSubscriptionId>,
-    pub subscription_interval: Option<PriceDuration>,
+	pub type_: ChargeType,
+	pub subscription_id: Option<DBUserSubscriptionId>,
+	pub subscription_interval: Option<PriceDuration>,
 
-    pub payment_platform: PaymentPlatform,
-    pub payment_platform_id: Option<String>,
+	pub payment_platform: PaymentPlatform,
+	pub payment_platform_id: Option<String>,
 
-    pub parent_charge_id: Option<DBChargeId>,
+	pub parent_charge_id: Option<DBChargeId>,
 
-    pub tax_amount: i64,
-    pub tax_platform_id: Option<String>,
-    pub tax_last_updated: Option<DateTime<Utc>>,
-    pub tax_transaction_version: Option<i32>,
-    pub tax_platform_accounting_time: Option<DateTime<Utc>>,
+	pub tax_amount: i64,
+	pub tax_platform_id: Option<String>,
+	pub tax_last_updated: Option<DateTime<Utc>>,
+	pub tax_transaction_version: Option<i32>,
+	pub tax_platform_accounting_time: Option<DateTime<Utc>>,
 
-    // Net is always in USD
-    pub net: Option<i64>,
-    pub tax_drift_loss: Option<i64>,
+	// Net is always in USD
+	pub net: Option<i64>,
+	pub tax_drift_loss: Option<i64>,
 }
 
 struct ChargeQueryResult {
-    id: i64,
-    user_id: i64,
-    price_id: i64,
-    amount: i64,
-    currency_code: String,
-    status: String,
-    due: DateTime<Utc>,
-    last_attempt: Option<DateTime<Utc>>,
-    charge_type: String,
-    subscription_id: Option<i64>,
-    subscription_interval: Option<String>,
-    payment_platform: String,
-    payment_platform_id: Option<String>,
-    parent_charge_id: Option<i64>,
-    tax_amount: i64,
-    tax_platform_id: Option<String>,
-    tax_last_updated: Option<DateTime<Utc>>,
-    net: Option<i64>,
-    tax_drift_loss: Option<i64>,
-    tax_transaction_version: Option<i32>,
-    tax_platform_accounting_time: Option<DateTime<Utc>>,
+	id: i64,
+	user_id: i64,
+	price_id: i64,
+	amount: i64,
+	currency_code: String,
+	status: String,
+	due: DateTime<Utc>,
+	last_attempt: Option<DateTime<Utc>>,
+	charge_type: String,
+	subscription_id: Option<i64>,
+	subscription_interval: Option<String>,
+	payment_platform: String,
+	payment_platform_id: Option<String>,
+	parent_charge_id: Option<i64>,
+	tax_amount: i64,
+	tax_platform_id: Option<String>,
+	tax_last_updated: Option<DateTime<Utc>>,
+	net: Option<i64>,
+	tax_drift_loss: Option<i64>,
+	tax_transaction_version: Option<i32>,
+	tax_platform_accounting_time: Option<DateTime<Utc>>,
 }
 
 impl TryFrom<ChargeQueryResult> for DBCharge {
-    type Error = serde_json::Error;
+	type Error = serde_json::Error;
 
-    fn try_from(r: ChargeQueryResult) -> Result<Self, Self::Error> {
-        Ok(DBCharge {
-            id: DBChargeId(r.id),
-            user_id: DBUserId(r.user_id),
-            price_id: DBProductPriceId(r.price_id),
-            amount: r.amount,
-            currency_code: r.currency_code,
-            status: ChargeStatus::from_string(&r.status),
-            due: r.due,
-            last_attempt: r.last_attempt,
-            type_: ChargeType::from_string(&r.charge_type),
-            subscription_id: r.subscription_id.map(DBUserSubscriptionId),
-            subscription_interval: r
-                .subscription_interval
-                .map(|x| PriceDuration::from_string(&x)),
-            payment_platform: PaymentPlatform::from_string(&r.payment_platform),
-            payment_platform_id: r.payment_platform_id,
-            parent_charge_id: r.parent_charge_id.map(DBChargeId),
-            tax_amount: r.tax_amount,
-            tax_platform_id: r.tax_platform_id,
-            net: r.net,
-            tax_last_updated: r.tax_last_updated,
-            tax_drift_loss: r.tax_drift_loss,
-            tax_transaction_version: r.tax_transaction_version,
-            tax_platform_accounting_time: r.tax_platform_accounting_time,
-        })
-    }
+	fn try_from(r: ChargeQueryResult) -> Result<Self, Self::Error> {
+		Ok(DBCharge {
+			id: DBChargeId(r.id),
+			user_id: DBUserId(r.user_id),
+			price_id: DBProductPriceId(r.price_id),
+			amount: r.amount,
+			currency_code: r.currency_code,
+			status: ChargeStatus::from_string(&r.status),
+			due: r.due,
+			last_attempt: r.last_attempt,
+			type_: ChargeType::from_string(&r.charge_type),
+			subscription_id: r.subscription_id.map(DBUserSubscriptionId),
+			subscription_interval: r
+				.subscription_interval
+				.map(|x| PriceDuration::from_string(&x)),
+			payment_platform: PaymentPlatform::from_string(&r.payment_platform),
+			payment_platform_id: r.payment_platform_id,
+			parent_charge_id: r.parent_charge_id.map(DBChargeId),
+			tax_amount: r.tax_amount,
+			tax_platform_id: r.tax_platform_id,
+			net: r.net,
+			tax_last_updated: r.tax_last_updated,
+			tax_drift_loss: r.tax_drift_loss,
+			tax_transaction_version: r.tax_transaction_version,
+			tax_platform_accounting_time: r.tax_platform_accounting_time,
+		})
+	}
 }
 
 macro_rules! select_charges_with_predicate {
@@ -123,11 +123,11 @@ macro_rules! select_charges_with_predicate {
 }
 
 impl DBCharge {
-    pub async fn upsert(
-        &self,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<DBChargeId> {
-        sqlx::query!(
+	pub async fn upsert(
+		&self,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<DBChargeId> {
+		sqlx::query!(
             r#"
             INSERT INTO charges (id, user_id, price_id, amount, currency_code, charge_type, status, due, last_attempt, subscription_id, subscription_interval, payment_platform, payment_platform_id, parent_charge_id, net, tax_amount, tax_platform_id, tax_last_updated, tax_drift_loss, tax_transaction_version, tax_platform_accounting_time)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
@@ -179,66 +179,66 @@ impl DBCharge {
         .await
         .wrap_err("upserting charge")?;
 
-        Ok(self.id)
-    }
+		Ok(self.id)
+	}
 
-    pub async fn get(
-        id: DBChargeId,
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Option<DBCharge>> {
-        let id = id.0;
-        let res = select_charges_with_predicate!("WHERE id = $1", id)
-            .fetch_optional(exec)
-            .await
-            .wrap_err("fetching charge")?;
+	pub async fn get(
+		id: DBChargeId,
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Option<DBCharge>> {
+		let id = id.0;
+		let res = select_charges_with_predicate!("WHERE id = $1", id)
+			.fetch_optional(exec)
+			.await
+			.wrap_err("fetching charge")?;
 
-        Ok(res.and_then(|r| r.try_into().ok()))
-    }
+		Ok(res.and_then(|r| r.try_into().ok()))
+	}
 
-    pub async fn get_from_user(
-        user_id: DBUserId,
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Vec<DBCharge>> {
-        let user_id = user_id.0;
-        let res = select_charges_with_predicate!(
-            "WHERE user_id = $1 ORDER BY due DESC",
-            user_id
-        )
-        .fetch_all(exec)
-        .await
-        .wrap_err("fetching charges for user")?;
+	pub async fn get_from_user(
+		user_id: DBUserId,
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Vec<DBCharge>> {
+		let user_id = user_id.0;
+		let res = select_charges_with_predicate!(
+			"WHERE user_id = $1 ORDER BY due DESC",
+			user_id
+		)
+		.fetch_all(exec)
+		.await
+		.wrap_err("fetching charges for user")?;
 
-        res.into_iter()
-            .map(|r| r.try_into())
-            .collect::<Result<Vec<_>, serde_json::Error>>()
-            .wrap_err("parsing charges for user")
-    }
+		res.into_iter()
+			.map(|r| r.try_into())
+			.collect::<Result<Vec<_>, serde_json::Error>>()
+			.wrap_err("parsing charges for user")
+	}
 
-    pub async fn get_children(
-        charge_id: DBChargeId,
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Vec<DBCharge>> {
-        let charge_id = charge_id.0;
-        let res = select_charges_with_predicate!(
-            "WHERE parent_charge_id = $1",
-            charge_id
-        )
-        .fetch_all(exec)
-        .await
-        .wrap_err("fetching child charges")?;
+	pub async fn get_children(
+		charge_id: DBChargeId,
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Vec<DBCharge>> {
+		let charge_id = charge_id.0;
+		let res = select_charges_with_predicate!(
+			"WHERE parent_charge_id = $1",
+			charge_id
+		)
+		.fetch_all(exec)
+		.await
+		.wrap_err("fetching child charges")?;
 
-        res.into_iter()
-            .map(|r| r.try_into())
-            .collect::<Result<Vec<_>, serde_json::Error>>()
-            .wrap_err("parsing child charges")
-    }
+		res.into_iter()
+			.map(|r| r.try_into())
+			.collect::<Result<Vec<_>, serde_json::Error>>()
+			.wrap_err("parsing child charges")
+	}
 
-    pub async fn get_open_subscription(
-        user_subscription_id: DBUserSubscriptionId,
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Option<DBCharge>> {
-        let user_subscription_id = user_subscription_id.0;
-        let res = select_charges_with_predicate!(
+	pub async fn get_open_subscription(
+		user_subscription_id: DBUserSubscriptionId,
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Option<DBCharge>> {
+		let user_subscription_id = user_subscription_id.0;
+		let res = select_charges_with_predicate!(
             "WHERE
 			  subscription_id = $1
 			  AND (status = 'open' OR status = 'expiring' OR status = 'cancelled' OR status = 'failed')
@@ -249,14 +249,14 @@ impl DBCharge {
         .await
         .wrap_err("fetching open subscription charge")?;
 
-        Ok(res.and_then(|r| r.try_into().ok()))
-    }
+		Ok(res.and_then(|r| r.try_into().ok()))
+	}
 
-    pub async fn get_chargeable(
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Vec<DBCharge>> {
-        let charge_type = ChargeType::Subscription.as_str();
-        let res = select_charges_with_predicate!(
+	pub async fn get_chargeable(
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Vec<DBCharge>> {
+		let charge_type = ChargeType::Subscription.as_str();
+		let res = select_charges_with_predicate!(
             r#"
             WHERE
                 charge_type = $1 AND
@@ -271,17 +271,17 @@ impl DBCharge {
             .await
             .wrap_err("fetching chargeable charges")?;
 
-        res.into_iter()
-            .map(|r| r.try_into())
-            .collect::<Result<Vec<_>, serde_json::Error>>()
-            .wrap_err("parsing chargeable charges")
-    }
+		res.into_iter()
+			.map(|r| r.try_into())
+			.collect::<Result<Vec<_>, serde_json::Error>>()
+			.wrap_err("parsing chargeable charges")
+	}
 
-    pub async fn get_unprovision(
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Vec<DBCharge>> {
-        let charge_type = ChargeType::Subscription.as_str();
-        let res = select_charges_with_predicate!(
+	pub async fn get_unprovision(
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Vec<DBCharge>> {
+		let charge_type = ChargeType::Subscription.as_str();
+		let res = select_charges_with_predicate!(
             r#"
             INNER JOIN users_subscriptions us ON us.id = charges.subscription_id
             WHERE
@@ -299,48 +299,48 @@ impl DBCharge {
             .await
             .wrap_err("fetching charges to unprovision")?;
 
-        res.into_iter()
-            .map(|r| r.try_into())
-            .collect::<Result<Vec<_>, serde_json::Error>>()
-            .wrap_err("parsing charges to unprovision")
-    }
+		res.into_iter()
+			.map(|r| r.try_into())
+			.collect::<Result<Vec<_>, serde_json::Error>>()
+			.wrap_err("parsing charges to unprovision")
+	}
 
-    pub async fn get_cancellable(
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    ) -> Result<Vec<DBCharge>> {
-        let charge_type = ChargeType::Subscription.as_str();
-        let res = select_charges_with_predicate!(
-            r#"
+	pub async fn get_cancellable(
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	) -> Result<Vec<DBCharge>> {
+		let charge_type = ChargeType::Subscription.as_str();
+		let res = select_charges_with_predicate!(
+			r#"
             WHERE
                 charge_type = $1 AND
                 status = 'failed' AND due < NOW() - INTERVAL '30 days'
             "#,
-            charge_type
-        )
-        .fetch_all(exec)
-        .await
-        .wrap_err("fetching cancellable charges")?;
+			charge_type
+		)
+		.fetch_all(exec)
+		.await
+		.wrap_err("fetching cancellable charges")?;
 
-        res.into_iter()
-            .map(|r| r.try_into())
-            .collect::<Result<Vec<_>, serde_json::Error>>()
-            .wrap_err("parsing cancellable charges")
-    }
+		res.into_iter()
+			.map(|r| r.try_into())
+			.collect::<Result<Vec<_>, serde_json::Error>>()
+			.wrap_err("parsing cancellable charges")
+	}
 
-    /// Returns all charges that need to have their tax amount updated.
-    ///
-    /// This only selects charges which are:
-    /// - Open;
-    /// - Haven't been updated in the last day;
-    /// - Are due in more than 7 days;
-    /// - Where the user has an email, because we can't notify users without an email about a price change.
-    ///
-    /// This also locks the charges.
-    pub async fn get_updateable_lock(
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-        limit: i64,
-    ) -> Result<Vec<DBCharge>> {
-        let res = select_charges_with_predicate!(
+	/// Returns all charges that need to have their tax amount updated.
+	///
+	/// This only selects charges which are:
+	/// - Open;
+	/// - Haven't been updated in the last day;
+	/// - Are due in more than 7 days;
+	/// - Where the user has an email, because we can't notify users without an email about a price change.
+	///
+	/// This also locks the charges.
+	pub async fn get_updateable_lock(
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+		limit: i64,
+	) -> Result<Vec<DBCharge>> {
+		let res = select_charges_with_predicate!(
 			"
 			INNER JOIN users u ON u.id = charges.user_id
 			WHERE
@@ -359,22 +359,22 @@ impl DBCharge {
 		.await
 		.wrap_err("fetching charges requiring tax updates")?;
 
-        res.into_iter()
-            .map(|r| r.try_into())
-            .collect::<Result<Vec<_>, serde_json::Error>>()
-            .wrap_err("parsing charges requiring tax updates")
-    }
+		res.into_iter()
+			.map(|r| r.try_into())
+			.collect::<Result<Vec<_>, serde_json::Error>>()
+			.wrap_err("parsing charges requiring tax updates")
+	}
 
-    /// Returns all charges which are missing a tax identifier, that is, are succeeded and haven't been assigned a tax identifier yet.
-    ///
-    /// Charges are locked.
-    pub async fn get_missing_tax_identifier_lock(
-        exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-        offset: i64,
-        limit: i64,
-    ) -> Result<Vec<DBCharge>> {
-        let res = select_charges_with_predicate!(
-            "
+	/// Returns all charges which are missing a tax identifier, that is, are succeeded and haven't been assigned a tax identifier yet.
+	///
+	/// Charges are locked.
+	pub async fn get_missing_tax_identifier_lock(
+		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+		offset: i64,
+		limit: i64,
+	) -> Result<Vec<DBCharge>> {
+		let res = select_charges_with_predicate!(
+			"
 			WHERE
 			  status = 'succeeded'
 			  AND tax_platform_id IS NULL
@@ -384,40 +384,40 @@ impl DBCharge {
             OFFSET $1
 			LIMIT $2
 			",
-            offset,
-            limit
-        )
-        .fetch_all(exec)
-        .await
-        .wrap_err("fetching charges missing tax identifiers")?;
+			offset,
+			limit
+		)
+		.fetch_all(exec)
+		.await
+		.wrap_err("fetching charges missing tax identifiers")?;
 
-        res.into_iter()
-            .map(|r| r.try_into())
-            .collect::<Result<Vec<_>, serde_json::Error>>()
-            .wrap_err("parsing charges missing tax identifiers")
-    }
+		res.into_iter()
+			.map(|r| r.try_into())
+			.collect::<Result<Vec<_>, serde_json::Error>>()
+			.wrap_err("parsing charges missing tax identifiers")
+	}
 
-    pub async fn remove(
-        id: DBChargeId,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        sqlx::query!(
-            "
+	pub async fn remove(
+		id: DBChargeId,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		sqlx::query!(
+			"
             DELETE FROM charges
             WHERE id = $1
             ",
-            id.0 as i64
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("removing charge")?;
+			id.0 as i64
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("removing charge")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 }
 
 pub struct CustomerCharge {
-    pub stripe_customer_id: String,
-    pub charge: DBCharge,
-    pub product_tax_id: String,
+	pub stripe_customer_id: String,
+	pub charge: DBCharge,
+	pub product_tax_id: String,
 }

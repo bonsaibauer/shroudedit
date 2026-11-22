@@ -20,14 +20,14 @@ mod transaction;
 mod util;
 
 pub use {
-    account::*, counterparty::*, organization::*, payout::*, payout_method::*,
-    transaction::*,
+	account::*, counterparty::*, organization::*, payout::*, payout_method::*,
+	transaction::*,
 };
 use {
-    rust_decimal::Decimal,
-    serde::{Deserialize, Serialize},
-    std::{ops::Deref, str::FromStr},
-    uuid::Uuid,
+	rust_decimal::Decimal,
+	serde::{Deserialize, Serialize},
+	std::{ops::Deref, str::FromStr},
+	uuid::Uuid,
 };
 
 #[cfg(feature = "client")]
@@ -45,10 +45,10 @@ pub const USDC: &str = "USDC";
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum Blockchain {
-    Ethereum,
-    Polygon,
-    Base,
-    Celo,
+	Ethereum,
+	Polygon,
+	Base,
+	Celo,
 }
 
 crate::util::display_as_serialize!(Blockchain);
@@ -57,17 +57,17 @@ crate::util::display_as_serialize!(Blockchain);
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "SCREAMING-KEBAB-CASE")]
 pub enum CurrencyCode {
-    Usd,
-    Cop,
-    Ars,
-    Eur,
-    Mxn,
-    Brl,
-    Clp,
-    Pen,
-    Bob,
-    Crc,
-    Zar,
+	Usd,
+	Cop,
+	Ars,
+	Eur,
+	Mxn,
+	Brl,
+	Clp,
+	Pen,
+	Bob,
+	Crc,
+	Zar,
 }
 
 crate::util::display_as_serialize!(CurrencyCode);
@@ -76,95 +76,95 @@ crate::util::display_as_serialize!(CurrencyCode);
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "SCREAMING-KEBAB-CASE")]
 pub enum FiatAccountType {
-    Checking,
-    Savings,
+	Checking,
+	Savings,
 }
 
 crate::util::display_as_serialize!(FiatAccountType);
 
 #[derive(
-    Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::EnumIter,
+	Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::EnumIter,
 )]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum FiatAndRailCode {
-    Usd,
-    Cop,
-    Ars,
-    Eur,
-    Mxn,
-    Brl,
-    Clp,
-    Pen,
-    Bob,
-    Crc,
-    Zar,
-    UsdPeru,
-    UsdChina,
-    UsdPanama,
+	Usd,
+	Cop,
+	Ars,
+	Eur,
+	Mxn,
+	Brl,
+	Clp,
+	Pen,
+	Bob,
+	Crc,
+	Zar,
+	UsdPeru,
+	UsdChina,
+	UsdPanama,
 }
 
 crate::util::display_as_serialize!(FiatAndRailCode);
 
 impl FromStr for FiatAndRailCode {
-    type Err = serde_json::Error;
+	type Err = serde_json::Error;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        serde_json::from_value(serde_json::Value::String(s.to_owned()))
-    }
+	fn from_str(s: &str) -> Result<Self, Self::Err> {
+		serde_json::from_value(serde_json::Value::String(s.to_owned()))
+	}
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct WalletDetails {
-    pub blockchain: Blockchain,
-    pub wallet_address: String,
+	pub blockchain: Blockchain,
+	pub wallet_address: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct TokenAmount {
-    #[serde(with = "rust_decimal::serde::float")]
-    pub token_amount: Decimal,
-    pub token_symbol: String,
+	#[serde(with = "rust_decimal::serde::float")]
+	pub token_amount: Decimal,
+	pub token_symbol: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct FiatAmount {
-    #[serde(with = "rust_decimal::serde::float")]
-    pub fiat_amount: Decimal,
-    pub fiat_currency_code: CurrencyCode,
+	#[serde(with = "rust_decimal::serde::float")]
+	pub fiat_amount: Decimal,
+	pub fiat_currency_code: CurrencyCode,
 }
 
 #[derive(Debug, Clone, Default)]
 pub struct SearchParams<Id> {
-    pub limit: Option<u64>,
-    pub next_id: Option<Id>,
+	pub limit: Option<u64>,
+	pub next_id: Option<Id>,
 }
 
 impl<Id: Deref<Target = Uuid> + Clone> SearchParams<Id> {
-    pub fn to_query(&self) -> Vec<(&'static str, String)> {
-        [
-            self.limit.map(|limit| ("limit", limit.to_string())),
-            self.next_id
-                .clone()
-                .map(|id| ("nextId", id.hyphenated().to_string())),
-        ]
-        .into_iter()
-        .flatten()
-        .collect()
-    }
+	pub fn to_query(&self) -> Vec<(&'static str, String)> {
+		[
+			self.limit.map(|limit| ("limit", limit.to_string())),
+			self.next_id
+				.clone()
+				.map(|id| ("nextId", id.hyphenated().to_string())),
+		]
+		.into_iter()
+		.flatten()
+		.collect()
+	}
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 #[serde(rename_all = "camelCase")]
 pub struct SearchResponse<Id, T> {
-    pub total: u64,
-    pub next_id: Option<Id>,
-    pub results: Vec<T>,
+	pub total: u64,
+	pub next_id: Option<Id>,
+	pub results: Vec<T>,
 }

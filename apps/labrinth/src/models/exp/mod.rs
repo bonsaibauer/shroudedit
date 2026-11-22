@@ -20,10 +20,10 @@ pub mod project;
 pub mod version;
 
 pub use project::{
-    PROJECT_COMPONENT_RELATIONS, ProjectComponentKind, ProjectEdit,
-    ProjectQuery, ProjectSerial,
+	PROJECT_COMPONENT_RELATIONS, ProjectComponentKind, ProjectEdit,
+	ProjectQuery, ProjectSerial,
 };
 pub use version::{
-    VersionComponentKind, VersionCreate, VersionEdit, VersionQuery,
-    VersionSerial,
+	VersionComponentKind, VersionCreate, VersionEdit, VersionQuery,
+	VersionSerial,
 };

@@ -16,33 +16,33 @@ const ORGANIZATIONS_TITLES_NAMESPACE: &str = "organizations_titles:v4";
 #[derive(Deserialize, Serialize, Clone, Debug)]
 /// An organization of users who together control one or more projects and organizations.
 pub struct DBOrganization {
-    /// The id of the organization
-    pub id: DBOrganizationId,
+	/// The id of the organization
+	pub id: DBOrganizationId,
 
-    /// The slug of the organization
-    pub slug: String,
+	/// The slug of the organization
+	pub slug: String,
 
-    /// The title of the organization
-    pub name: String,
+	/// The title of the organization
+	pub name: String,
 
-    /// The associated team of the organization
-    pub team_id: DBTeamId,
+	/// The associated team of the organization
+	pub team_id: DBTeamId,
 
-    /// The description of the organization
-    pub description: String,
+	/// The description of the organization
+	pub description: String,
 
-    /// The display icon for the organization
-    pub icon_url: Option<String>,
-    pub raw_icon_url: Option<String>,
-    pub color: Option<u32>,
+	/// The display icon for the organization
+	pub icon_url: Option<String>,
+	pub raw_icon_url: Option<String>,
+	pub color: Option<u32>,
 }
 
 impl DBOrganization {
-    pub async fn insert(
-        self,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        sqlx::query!(
+	pub async fn insert(
+		self,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		sqlx::query!(
             "
             INSERT INTO organizations (id, slug, name, team_id, description, icon_url, raw_icon_url, color)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -60,67 +60,67 @@ impl DBOrganization {
         .await
         .wrap_err("inserting organization")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    pub async fn get<'a, E>(
-        string: &str,
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Option<Self>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        Self::get_many(&[string], exec, redis)
-            .await
-            .wrap_err("fetching organization")
-            .map(|x| x.into_iter().next())
-    }
+	pub async fn get<'a, E>(
+		string: &str,
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Option<Self>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		Self::get_many(&[string], exec, redis)
+			.await
+			.wrap_err("fetching organization")
+			.map(|x| x.into_iter().next())
+	}
 
-    pub async fn get_id<'a, 'b, E>(
-        id: DBOrganizationId,
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Option<Self>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        Self::get_many_ids(&[id], exec, redis)
-            .await
-            .wrap_err("fetching organization by id")
-            .map(|x| x.into_iter().next())
-    }
+	pub async fn get_id<'a, 'b, E>(
+		id: DBOrganizationId,
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Option<Self>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		Self::get_many_ids(&[id], exec, redis)
+			.await
+			.wrap_err("fetching organization by id")
+			.map(|x| x.into_iter().next())
+	}
 
-    pub async fn get_many_ids<'a, 'b, E>(
-        organization_ids: &[DBOrganizationId],
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<Self>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let ids = organization_ids
-            .iter()
-            .map(|x| crate::models::ids::OrganizationId::from(*x))
-            .collect::<Vec<_>>();
-        Self::get_many(&ids, exec, redis)
-            .await
-            .wrap_err("fetching organizations by id")
-    }
+	pub async fn get_many_ids<'a, 'b, E>(
+		organization_ids: &[DBOrganizationId],
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<Self>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let ids = organization_ids
+			.iter()
+			.map(|x| crate::models::ids::OrganizationId::from(*x))
+			.collect::<Vec<_>>();
+		Self::get_many(&ids, exec, redis)
+			.await
+			.wrap_err("fetching organizations by id")
+	}
 
-    pub async fn get_many<
-        'a,
-        E,
-        T: Display + Hash + Eq + PartialEq + Clone + Debug,
-    >(
-        organization_strings: &[T],
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<Self>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let val = redis
+	pub async fn get_many<
+		'a,
+		E,
+		T: Display + Hash + Eq + PartialEq + Clone + Debug,
+	>(
+		organization_strings: &[T],
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<Self>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let val = redis
             .get_cached_keys_with_slug(
                 ORGANIZATIONS_NAMESPACE,
                 ORGANIZATIONS_TITLES_NAMESPACE,
@@ -169,18 +169,18 @@ impl DBOrganization {
             .await
             .wrap_err("fetching cached organizations")?;
 
-        Ok(val)
-    }
+		Ok(val)
+	}
 
-    // Gets organization associated with a project ID, if it exists and there is one
-    pub async fn get_associated_organization_project_id<'a, 'b, E>(
-        project_id: DBProjectId,
-        exec: E,
-    ) -> Result<Option<Self>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let result = sqlx::query!(
+	// Gets organization associated with a project ID, if it exists and there is one
+	pub async fn get_associated_organization_project_id<'a, 'b, E>(
+		project_id: DBProjectId,
+		exec: E,
+	) -> Result<Option<Self>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let result = sqlx::query!(
             "
             SELECT o.id, o.slug, o.name, o.team_id, o.description, o.icon_url, o.raw_icon_url, o.color
             FROM organizations o
@@ -194,124 +194,124 @@ impl DBOrganization {
         .await
         .wrap_err("fetching organization associated with project")?;
 
-        if let Some(result) = result {
-            Ok(Some(DBOrganization {
-                id: DBOrganizationId(result.id),
-                slug: result.slug,
-                name: result.name,
-                team_id: DBTeamId(result.team_id),
-                description: result.description,
-                icon_url: result.icon_url,
-                raw_icon_url: result.raw_icon_url,
-                color: result.color.map(|x| x as u32),
-            }))
-        } else {
-            Ok(None)
-        }
-    }
+		if let Some(result) = result {
+			Ok(Some(DBOrganization {
+				id: DBOrganizationId(result.id),
+				slug: result.slug,
+				name: result.name,
+				team_id: DBTeamId(result.team_id),
+				description: result.description,
+				icon_url: result.icon_url,
+				raw_icon_url: result.raw_icon_url,
+				color: result.color.map(|x| x as u32),
+			}))
+		} else {
+			Ok(None)
+		}
+	}
 
-    pub async fn get_projects<'a, E>(
-        organization_id: DBOrganizationId,
-        exec: E,
-    ) -> Result<Vec<DBProjectId>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        use futures::TryStreamExt;
+	pub async fn get_projects<'a, E>(
+		organization_id: DBOrganizationId,
+		exec: E,
+	) -> Result<Vec<DBProjectId>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		use futures::TryStreamExt;
 
-        let db_projects = sqlx::query!(
-            "
+		let db_projects = sqlx::query!(
+			"
             SELECT m.id FROM organizations o
             INNER JOIN mods m ON m.organization_id = o.id
             WHERE o.id = $1
             ",
-            organization_id as DBOrganizationId,
-        )
-        .fetch(exec)
-        .map_ok(|m| DBProjectId(m.id))
-        .try_collect::<Vec<_>>()
-        .await
-        .wrap_err("fetching organization projects")?;
+			organization_id as DBOrganizationId,
+		)
+		.fetch(exec)
+		.map_ok(|m| DBProjectId(m.id))
+		.try_collect::<Vec<_>>()
+		.await
+		.wrap_err("fetching organization projects")?;
 
-        Ok(db_projects)
-    }
+		Ok(db_projects)
+	}
 
-    pub async fn remove(
-        id: DBOrganizationId,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<Option<()>> {
-        let organization = Self::get_id(id, &mut *transaction, redis)
-            .await
-            .wrap_err("fetching organization to remove")?;
+	pub async fn remove(
+		id: DBOrganizationId,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<Option<()>> {
+		let organization = Self::get_id(id, &mut *transaction, redis)
+			.await
+			.wrap_err("fetching organization to remove")?;
 
-        if let Some(organization) = organization {
-            sqlx::query!(
-                "
+		if let Some(organization) = organization {
+			sqlx::query!(
+				"
                 DELETE FROM organizations
                 WHERE id = $1
                 ",
-                id as DBOrganizationId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting organization")?;
+				id as DBOrganizationId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting organization")?;
 
-            DBTeamMember::clear_cache(organization.team_id, redis)
-                .await
-                .wrap_err("clearing removed organization team cache")?;
+			DBTeamMember::clear_cache(organization.team_id, redis)
+				.await
+				.wrap_err("clearing removed organization team cache")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM team_members
                 WHERE team_id = $1
                 ",
-                organization.team_id as DBTeamId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting organization team members")?;
+				organization.team_id as DBTeamId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting organization team members")?;
 
-            sqlx::query!(
-                "
+			sqlx::query!(
+				"
                 DELETE FROM teams
                 WHERE id = $1
                 ",
-                organization.team_id as DBTeamId,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("deleting organization team")?;
+				organization.team_id as DBTeamId,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("deleting organization team")?;
 
-            Ok(Some(()))
-        } else {
-            Ok(None)
-        }
-    }
+			Ok(Some(()))
+		} else {
+			Ok(None)
+		}
+	}
 
-    pub async fn clear_cache(
-        id: DBOrganizationId,
-        slug: Option<String>,
-        redis: &RedisPool,
-    ) -> Result<()> {
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to clear organization cache")?;
-        let mut keys = vec![redis.key().entity(ORGANIZATIONS_NAMESPACE, id.0)];
-        if let Some(slug) = slug {
-            keys.push(
-                redis.key().entity(
-                    ORGANIZATIONS_TITLES_NAMESPACE,
-                    slug.to_lowercase(),
-                ),
-            );
-        }
+	pub async fn clear_cache(
+		id: DBOrganizationId,
+		slug: Option<String>,
+		redis: &RedisPool,
+	) -> Result<()> {
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to clear organization cache")?;
+		let mut keys = vec![redis.key().entity(ORGANIZATIONS_NAMESPACE, id.0)];
+		if let Some(slug) = slug {
+			keys.push(
+				redis.key().entity(
+					ORGANIZATIONS_TITLES_NAMESPACE,
+					slug.to_lowercase(),
+				),
+			);
+		}
 
-        redis
-            .delete_many(&keys)
-            .await
-            .wrap_err("clearing organization cache")?;
-        Ok(())
-    }
+		redis
+			.delete_many(&keys)
+			.await
+			.wrap_err("clearing organization cache")?;
+		Ok(())
+	}
 }

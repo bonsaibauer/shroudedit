@@ -5,27 +5,27 @@ use validator::Validate;
 use xredis::RedisPool;
 
 use crate::{
-    database::models::{DBProjectId, DBVersionId},
-    models::{
-        exp::{
-            component::{
-                self, Component, ComponentEdit, ComponentKind, ComponentQuery,
-            },
-            enshrouded,
-        },
-        ids::{ProjectId, VersionId},
-    },
-    queue::{
-        analytics::cache::{
-            ENSHROUDED_SERVER_ANALYTICS, EnshroudedServerAnalytics,
-        },
-        server_ping,
-    },
-    util::error::Context,
+	database::models::{DBProjectId, DBVersionId},
+	models::{
+		exp::{
+			component::{
+				self, Component, ComponentEdit, ComponentKind, ComponentQuery,
+			},
+			enshrouded,
+		},
+		ids::{ProjectId, VersionId},
+	},
+	queue::{
+		analytics::cache::{
+			ENSHROUDED_SERVER_ANALYTICS, EnshroudedServerAnalytics,
+		},
+		server_ping,
+	},
+	util::error::Context,
 };
 
 pub trait ProjectComponent: Component<EntityId = ProjectId> {
-    fn kind() -> ProjectComponentKind;
+	fn kind() -> ProjectComponentKind;
 }
 
 macro_rules! define_project_components {
@@ -159,65 +159,65 @@ type Edit<T> = <T as Component>::Edit;
 type Query<T> = <T as Component>::Query;
 
 define_project_components![
-    (enshrouded_mod, EnshroudedMod): enshrouded::ModProject,
-    (schematic, Schematic): enshrouded::SchematicProject,
-    (enshrouded_server, EnshroudedServer): enshrouded::EnshroudedServerProject,
+	(enshrouded_mod, EnshroudedMod): enshrouded::ModProject,
+	(schematic, Schematic): enshrouded::SchematicProject,
+	(enshrouded_server, EnshroudedServer): enshrouded::EnshroudedServerProject,
 ];
 
 component::relations! {
-    pub static PROJECT_COMPONENT_RELATIONS: ProjectComponentKind = {
-        [
-            [ProjectComponentKind::EnshroudedMod].only(),
-            [ProjectComponentKind::Schematic].only(),
-            [ProjectComponentKind::EnshroudedServer].only(),
-        ]
-    }
+	pub static PROJECT_COMPONENT_RELATIONS: ProjectComponentKind = {
+		[
+			[ProjectComponentKind::EnshroudedMod].only(),
+			[ProjectComponentKind::Schematic].only(),
+			[ProjectComponentKind::EnshroudedServer].only(),
+		]
+	}
 }
 
 // query logic
 
 #[derive(Default)]
 pub struct ProjectQueryRequirements {
-    pub partial_versions: HashSet<VersionId>,
-    pub enshrouded_server_analytics: HashSet<ProjectId>,
-    pub enshrouded_server_pings: HashSet<ProjectId>,
+	pub partial_versions: HashSet<VersionId>,
+	pub enshrouded_server_analytics: HashSet<ProjectId>,
+	pub enshrouded_server_pings: HashSet<ProjectId>,
 }
 
 pub struct ProjectQueryContext {
-    pub partial_versions: HashMap<VersionId, PartialVersion>,
-    pub enshrouded_server_analytics:
-        HashMap<ProjectId, EnshroudedServerAnalytics>,
-    pub enshrouded_server_pings:
-        HashMap<ProjectId, enshrouded::EnshroudedServerPing>,
+	pub partial_versions: HashMap<VersionId, PartialVersion>,
+	pub enshrouded_server_analytics:
+		HashMap<ProjectId, EnshroudedServerAnalytics>,
+	pub enshrouded_server_pings:
+		HashMap<ProjectId, enshrouded::EnshroudedServerPing>,
 }
 
 #[derive(Clone, Debug)]
 pub struct PartialVersion {
-    pub project_id: ProjectId,
-    pub project_name: String,
-    pub project_icon: String,
+	pub project_id: ProjectId,
+	pub project_name: String,
+	pub project_icon: String,
 }
 
 pub async fn fetch_query_context(
-    projects: &[(ProjectId, &ProjectSerial)],
-    db: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-    redis: &RedisPool,
+	projects: &[(ProjectId, &ProjectSerial)],
+	db: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
+	redis: &RedisPool,
 ) -> Result<ProjectQueryContext> {
-    let mut requirements = ProjectQueryRequirements::default();
-    for (project_id, project) in projects {
-        project.collect_query_requirements(*project_id, &mut requirements);
-    }
-    let ProjectQueryRequirements {
-        partial_versions,
-        enshrouded_server_analytics,
-        enshrouded_server_pings,
-    } = requirements;
+	let mut requirements = ProjectQueryRequirements::default();
+	for (project_id, project) in projects {
+		project.collect_query_requirements(*project_id, &mut requirements);
+	}
+	let ProjectQueryRequirements {
+		partial_versions,
+		enshrouded_server_analytics,
+		enshrouded_server_pings,
+	} = requirements;
 
-    let partial_versions = if partial_versions.is_empty() {
-        HashMap::new()
-    } else {
-        sqlx::query!(
-            r#"
+	let partial_versions = if partial_versions.is_empty() {
+		HashMap::new()
+	} else {
+		sqlx::query!(
+			r#"
             SELECT
                 v.id AS "version_id: DBVersionId",
                 m.id AS "project_id: DBProjectId",
@@ -227,83 +227,83 @@ pub async fn fetch_query_context(
             INNER JOIN mods m ON m.id = v.mod_id
             WHERE v.id = ANY($1)
             "#,
-            &partial_versions
-                .iter()
-                .map(|id| DBVersionId::from(*id).0)
-                .collect::<Vec<_>>(),
-        )
-        .fetch_all(db)
-        .await
-        .wrap_err("failed to fetch partial versions")?
-        .into_iter()
-        .map(|row| {
-            (
-                VersionId::from(row.version_id),
-                PartialVersion {
-                    project_id: ProjectId::from(row.project_id),
-                    project_name: row.project_name,
-                    project_icon: row.project_icon,
-                },
-            )
-        })
-        .collect::<HashMap<_, _>>()
-    };
+			&partial_versions
+				.iter()
+				.map(|id| DBVersionId::from(*id).0)
+				.collect::<Vec<_>>(),
+		)
+		.fetch_all(db)
+		.await
+		.wrap_err("failed to fetch partial versions")?
+		.into_iter()
+		.map(|row| {
+			(
+				VersionId::from(row.version_id),
+				PartialVersion {
+					project_id: ProjectId::from(row.project_id),
+					project_name: row.project_name,
+					project_icon: row.project_icon,
+				},
+			)
+		})
+		.collect::<HashMap<_, _>>()
+	};
 
-    let mut redis = redis.connect().await?;
+	let mut redis = redis.connect().await?;
 
-    let enshrouded_server_analytics =
-        enshrouded_server_analytics.into_iter().collect::<Vec<_>>();
+	let enshrouded_server_analytics =
+		enshrouded_server_analytics.into_iter().collect::<Vec<_>>();
 
-    let enshrouded_server_analytics = if enshrouded_server_analytics.is_empty()
-    {
-        HashMap::new()
-    } else {
-        let analytics_keys = enshrouded_server_analytics
-            .iter()
-            .map(|project_id| {
-                redis.key().entity(ENSHROUDED_SERVER_ANALYTICS, project_id)
-            })
-            .collect::<Vec<_>>();
-        redis
-            .get_many_deserialized::<EnshroudedServerAnalytics>(&analytics_keys)
-            .await?
-            .into_iter()
-            .enumerate()
-            .filter_map(|(idx, data)| {
-                data.map(|data| (enshrouded_server_analytics[idx], data))
-            })
-            .collect::<HashMap<_, _>>()
-    };
+	let enshrouded_server_analytics = if enshrouded_server_analytics.is_empty()
+	{
+		HashMap::new()
+	} else {
+		let analytics_keys = enshrouded_server_analytics
+			.iter()
+			.map(|project_id| {
+				redis.key().entity(ENSHROUDED_SERVER_ANALYTICS, project_id)
+			})
+			.collect::<Vec<_>>();
+		redis
+			.get_many_deserialized::<EnshroudedServerAnalytics>(&analytics_keys)
+			.await?
+			.into_iter()
+			.enumerate()
+			.filter_map(|(idx, data)| {
+				data.map(|data| (enshrouded_server_analytics[idx], data))
+			})
+			.collect::<HashMap<_, _>>()
+	};
 
-    let enshrouded_server_pings =
-        enshrouded_server_pings.into_iter().collect::<Vec<_>>();
-    let enshrouded_server_pings = if enshrouded_server_pings.is_empty() {
-        HashMap::new()
-    } else {
-        let ping_keys = enshrouded_server_pings
-            .iter()
-            .map(|project_id| {
-                redis
-                    .key()
-                    .entity(server_ping::ENSHROUDED_REDIS_NAMESPACE, project_id)
-            })
-            .collect::<Vec<_>>();
-        redis
-            .get_many_deserialized::<enshrouded::EnshroudedServerPing>(
-                &ping_keys,
-            )
-            .await?
-            .into_iter()
-            .enumerate()
-            .filter_map(|(idx, ping)| {
-                ping.map(|ping| (enshrouded_server_pings[idx], ping))
-            })
-            .collect::<HashMap<_, _>>()
-    };
+	let enshrouded_server_pings =
+		enshrouded_server_pings.into_iter().collect::<Vec<_>>();
+	let enshrouded_server_pings = if enshrouded_server_pings.is_empty() {
+		HashMap::new()
+	} else {
+		let ping_keys = enshrouded_server_pings
+			.iter()
+			.map(|project_id| {
+				redis
+					.key()
+					.entity(server_ping::ENSHROUDED_REDIS_NAMESPACE, project_id)
+			})
+			.collect::<Vec<_>>();
+		redis
+			.get_many_deserialized::<enshrouded::EnshroudedServerPing>(
+				&ping_keys,
+			)
+			.await?
+			.into_iter()
+			.enumerate()
+			.filter_map(|(idx, ping)| {
+				ping.map(|ping| (enshrouded_server_pings[idx], ping))
+			})
+			.collect::<HashMap<_, _>>()
+	};
 
-    Ok(ProjectQueryContext {
-        partial_versions,
-        enshrouded_server_analytics,
-        enshrouded_server_pings,
-    })
+	Ok(ProjectQueryContext {
+		partial_versions,
+		enshrouded_server_analytics,
+		enshrouded_server_pings,
+	})
 }

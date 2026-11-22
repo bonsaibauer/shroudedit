@@ -1,8 +1,8 @@
 use super::ids::*;
 use crate::database::PgTransaction;
 use crate::models::notifications::{
-    NotificationBody, NotificationChannel, NotificationDeliveryStatus,
-    NotificationType,
+	NotificationBody, NotificationChannel, NotificationDeliveryStatus,
+	NotificationType,
 };
 use chrono::{DateTime, Utc};
 use eyre::{Result, WrapErr};
@@ -13,64 +13,64 @@ use xredis::RedisPool;
 const USER_NOTIFICATIONS_NAMESPACE: &str = "user_notifications:v4";
 
 pub struct NotificationBuilder {
-    pub body: NotificationBody,
+	pub body: NotificationBody,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DBNotification {
-    pub id: DBNotificationId,
-    pub user_id: DBUserId,
-    pub body: NotificationBody,
-    pub read: bool,
-    pub created: DateTime<Utc>,
+	pub id: DBNotificationId,
+	pub user_id: DBUserId,
+	pub body: NotificationBody,
+	pub read: bool,
+	pub created: DateTime<Utc>,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DBNotificationAction {
-    pub id: NotificationActionId,
-    pub notification_id: DBNotificationId,
-    pub name: String,
-    pub action_route_method: String,
-    pub action_route: String,
+	pub id: NotificationActionId,
+	pub notification_id: DBNotificationId,
+	pub name: String,
+	pub action_route_method: String,
+	pub action_route: String,
 }
 
 impl NotificationBuilder {
-    pub async fn insert(
-        &self,
-        user: DBUserId,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<()> {
-        self.insert_many(vec![user], transaction, redis)
-            .await
-            .wrap_err("inserting notification")?;
-        Ok(())
-    }
+	pub async fn insert(
+		&self,
+		user: DBUserId,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<()> {
+		self.insert_many(vec![user], transaction, redis)
+			.await
+			.wrap_err("inserting notification")?;
+		Ok(())
+	}
 
-    pub async fn insert_many_payout_notifications(
-        users: Vec<DBUserId>,
-        dates_available: Vec<DateTime<Utc>>,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<()> {
-        let notification_ids =
-            generate_many_notification_ids(users.len(), &mut *transaction)
-                .await
-                .wrap_err(
-                    "generating notification ids for payout notifications",
-                )?;
+	pub async fn insert_many_payout_notifications(
+		users: Vec<DBUserId>,
+		dates_available: Vec<DateTime<Utc>>,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<()> {
+		let notification_ids =
+			generate_many_notification_ids(users.len(), &mut *transaction)
+				.await
+				.wrap_err(
+					"generating notification ids for payout notifications",
+				)?;
 
-        let users_raw_ids = users.iter().map(|x| x.0).collect::<Vec<_>>();
-        let notification_ids =
-            notification_ids.iter().map(|x| x.0).collect::<Vec<_>>();
+		let users_raw_ids = users.iter().map(|x| x.0).collect::<Vec<_>>();
+		let notification_ids =
+			notification_ids.iter().map(|x| x.0).collect::<Vec<_>>();
 
-        // Use RETURNING to get back only the notification_ids and user_ids
-        // that were actually inserted (i.e. those with sum >= 100).
-        // This is necessary because insert_many_deliveries references
-        // notifications(id) via a foreign key, passing notification_ids
-        // that were filtered out by the WHERE clause would cause a
-        // FK constraint violation and fail the entire transaction.
-        let inserted_rows = sqlx::query!(
+		// Use RETURNING to get back only the notification_ids and user_ids
+		// that were actually inserted (i.e. those with sum >= 100).
+		// This is necessary because insert_many_deliveries references
+		// notifications(id) via a foreign key, passing notification_ids
+		// that were filtered out by the WHERE clause would cause a
+		// FK constraint violation and fail the entire transaction.
+		let inserted_rows = sqlx::query!(
             "
             WITH
               period_payouts AS (
@@ -106,146 +106,146 @@ impl NotificationBuilder {
         .await
         .wrap_err("inserting payout notifications")?;
 
-        if inserted_rows.is_empty() {
-            return Ok(());
-        }
+		if inserted_rows.is_empty() {
+			return Ok(());
+		}
 
-        let inserted_notification_ids: Vec<i64> =
-            inserted_rows.iter().map(|r| r.id).collect();
-        let inserted_user_raw_ids: Vec<i64> =
-            inserted_rows.iter().map(|r| r.user_id).collect();
-        let inserted_users: Vec<DBUserId> = inserted_user_raw_ids
-            .iter()
-            .map(|&id| DBUserId(id))
-            .collect();
+		let inserted_notification_ids: Vec<i64> =
+			inserted_rows.iter().map(|r| r.id).collect();
+		let inserted_user_raw_ids: Vec<i64> =
+			inserted_rows.iter().map(|r| r.user_id).collect();
+		let inserted_users: Vec<DBUserId> = inserted_user_raw_ids
+			.iter()
+			.map(|&id| DBUserId(id))
+			.collect();
 
-        let notification_types = inserted_notification_ids
-            .iter()
-            .map(|_| NotificationType::PayoutAvailable.as_str())
-            .collect::<Vec<_>>();
+		let notification_types = inserted_notification_ids
+			.iter()
+			.map(|_| NotificationType::PayoutAvailable.as_str())
+			.collect::<Vec<_>>();
 
-        NotificationBuilder::insert_many_deliveries(
-            transaction,
-            redis,
-            &inserted_notification_ids,
-            &inserted_user_raw_ids,
-            &notification_types,
-            &inserted_users,
-        )
-        .await
-        .wrap_err("inserting payout notification deliveries")?;
+		NotificationBuilder::insert_many_deliveries(
+			transaction,
+			redis,
+			&inserted_notification_ids,
+			&inserted_user_raw_ids,
+			&notification_types,
+			&inserted_users,
+		)
+		.await
+		.wrap_err("inserting payout notification deliveries")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    async fn insert_many_records(
-        &self,
-        users: &[DBUserId],
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<Vec<DBNotificationId>> {
-        let notification_ids =
-            generate_many_notification_ids(users.len(), &mut *transaction)
-                .await
-                .wrap_err("generating notification ids")?;
+	async fn insert_many_records(
+		&self,
+		users: &[DBUserId],
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<Vec<DBNotificationId>> {
+		let notification_ids =
+			generate_many_notification_ids(users.len(), &mut *transaction)
+				.await
+				.wrap_err("generating notification ids")?;
 
-        let body = serde_json::value::to_value(&self.body)
-            .wrap_err("serializing notification body")?;
-        let bodies = notification_ids
-            .iter()
-            .map(|_| body.clone())
-            .collect::<Vec<_>>();
+		let body = serde_json::value::to_value(&self.body)
+			.wrap_err("serializing notification body")?;
+		let bodies = notification_ids
+			.iter()
+			.map(|_| body.clone())
+			.collect::<Vec<_>>();
 
-        let users_raw_ids = users.iter().map(|x| x.0).collect::<Vec<_>>();
-        let notification_ids_raw =
-            notification_ids.iter().map(|x| x.0).collect::<Vec<_>>();
+		let users_raw_ids = users.iter().map(|x| x.0).collect::<Vec<_>>();
+		let notification_ids_raw =
+			notification_ids.iter().map(|x| x.0).collect::<Vec<_>>();
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             INSERT INTO notifications (
                 id, user_id, body
             )
             SELECT * FROM UNNEST($1::bigint[], $2::bigint[], $3::jsonb[])
             ",
-            &notification_ids_raw[..],
-            &users_raw_ids[..],
-            &bodies[..],
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("inserting notification records")?;
+			&notification_ids_raw[..],
+			&users_raw_ids[..],
+			&bodies[..],
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("inserting notification records")?;
 
-        Ok(notification_ids)
-    }
+		Ok(notification_ids)
+	}
 
-    pub async fn insert_many(
-        &self,
-        users: Vec<DBUserId>,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<Vec<DBNotificationId>> {
-        let notification_ids = self
-            .insert_many_records(&users, transaction)
-            .await
-            .wrap_err("inserting notification records")?;
+	pub async fn insert_many(
+		&self,
+		users: Vec<DBUserId>,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<Vec<DBNotificationId>> {
+		let notification_ids = self
+			.insert_many_records(&users, transaction)
+			.await
+			.wrap_err("inserting notification records")?;
 
-        let users_raw_ids = users.iter().map(|x| x.0).collect::<Vec<_>>();
-        let notification_ids_raw =
-            notification_ids.iter().map(|x| x.0).collect::<Vec<_>>();
+		let users_raw_ids = users.iter().map(|x| x.0).collect::<Vec<_>>();
+		let notification_ids_raw =
+			notification_ids.iter().map(|x| x.0).collect::<Vec<_>>();
 
-        let notification_types = notification_ids
-            .iter()
-            .map(|_| self.body.notification_type().as_str())
-            .collect::<Vec<_>>();
+		let notification_types = notification_ids
+			.iter()
+			.map(|_| self.body.notification_type().as_str())
+			.collect::<Vec<_>>();
 
-        NotificationBuilder::insert_many_deliveries(
-            transaction,
-            redis,
-            &notification_ids_raw,
-            &users_raw_ids,
-            &notification_types,
-            &users,
-        )
-        .await
-        .wrap_err("inserting notification deliveries")?;
+		NotificationBuilder::insert_many_deliveries(
+			transaction,
+			redis,
+			&notification_ids_raw,
+			&users_raw_ids,
+			&notification_types,
+			&users,
+		)
+		.await
+		.wrap_err("inserting notification deliveries")?;
 
-        Ok(notification_ids)
-    }
+		Ok(notification_ids)
+	}
 
-    /// Like [`insert_many`], but skips queuing deliveries so the caller can
-    /// manually send the notifications.
-    pub async fn insert_many_without_delivery(
-        &self,
-        users: Vec<DBUserId>,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<Vec<DBNotificationId>> {
-        let notification_ids = self
-            .insert_many_records(&users, transaction)
-            .await
-            .wrap_err("inserting notification records without delivery")?;
-        DBNotification::clear_user_notifications_cache(&users, redis)
-            .await
-            .wrap_err("clearing notification caches")?;
-        Ok(notification_ids)
-    }
+	/// Like [`insert_many`], but skips queuing deliveries so the caller can
+	/// manually send the notifications.
+	pub async fn insert_many_without_delivery(
+		&self,
+		users: Vec<DBUserId>,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<Vec<DBNotificationId>> {
+		let notification_ids = self
+			.insert_many_records(&users, transaction)
+			.await
+			.wrap_err("inserting notification records without delivery")?;
+		DBNotification::clear_user_notifications_cache(&users, redis)
+			.await
+			.wrap_err("clearing notification caches")?;
+		Ok(notification_ids)
+	}
 
-    pub async fn insert_many_deliveries(
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-        notification_ids: &[i64],
-        users_raw_ids: &[i64],
-        notification_types: &[&str],
-        users: &[DBUserId],
-    ) -> Result<()> {
-        let notification_channels = NotificationChannel::list()
-            .iter()
-            .map(|x| x.as_str())
-            .collect::<Vec<&str>>();
+	pub async fn insert_many_deliveries(
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+		notification_ids: &[i64],
+		users_raw_ids: &[i64],
+		notification_types: &[&str],
+		users: &[DBUserId],
+	) -> Result<()> {
+		let notification_channels = NotificationChannel::list()
+			.iter()
+			.map(|x| x.as_str())
+			.collect::<Vec<&str>>();
 
-        // Insert required rows into `notifications_deliveries` by channel
-        // and notification type, based on the user's preferences.
-        let query = sqlx::query!(
-            r#"
+		// Insert required rows into `notifications_deliveries` by channel
+		// and notification type, based on the user's preferences.
+		let query = sqlx::query!(
+			r#"
             WITH
               channels AS (
                 SELECT channel FROM UNNEST($1::varchar[]) AS t(channel)
@@ -305,53 +305,53 @@ impl NotificationBuilder {
             FROM
               delivery_candidates dc
             "#,
-            &notification_channels[..] as &[&str],
-            &notification_ids[..],
-            &users_raw_ids[..],
-            &notification_types[..] as &[&str],
-            NotificationDeliveryStatus::Pending.as_str(),
-            NotificationDeliveryStatus::SkippedPreferences.as_str(),
-            NotificationDeliveryStatus::SkippedDefault.as_str(),
-        );
+			&notification_channels[..] as &[&str],
+			&notification_ids[..],
+			&users_raw_ids[..],
+			&notification_types[..] as &[&str],
+			NotificationDeliveryStatus::Pending.as_str(),
+			NotificationDeliveryStatus::SkippedPreferences.as_str(),
+			NotificationDeliveryStatus::SkippedDefault.as_str(),
+		);
 
-        query
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("inserting notification deliveries")?;
+		query
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("inserting notification deliveries")?;
 
-        DBNotification::clear_user_notifications_cache(users, redis)
-            .await
-            .wrap_err(
-                "clearing notification caches after inserting deliveries",
-            )?;
+		DBNotification::clear_user_notifications_cache(users, redis)
+			.await
+			.wrap_err(
+				"clearing notification caches after inserting deliveries",
+			)?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 }
 
 impl DBNotification {
-    pub async fn get<'a, 'b, E>(
-        id: DBNotificationId,
-        executor: E,
-    ) -> Result<Option<Self>, sqlx::error::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres> + Copy,
-    {
-        Self::get_many(&[id], executor)
-            .await
-            .map(|x| x.into_iter().next())
-    }
+	pub async fn get<'a, 'b, E>(
+		id: DBNotificationId,
+		executor: E,
+	) -> Result<Option<Self>, sqlx::error::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres> + Copy,
+	{
+		Self::get_many(&[id], executor)
+			.await
+			.map(|x| x.into_iter().next())
+	}
 
-    pub async fn get_many<'a, E>(
-        notification_ids: &[DBNotificationId],
-        exec: E,
-    ) -> Result<Vec<DBNotification>, sqlx::Error>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let notification_ids_parsed: Vec<i64> =
-            notification_ids.iter().map(|x| x.0).collect();
-        sqlx::query!(
+	pub async fn get_many<'a, E>(
+		notification_ids: &[DBNotificationId],
+		exec: E,
+	) -> Result<Vec<DBNotification>, sqlx::Error>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let notification_ids_parsed: Vec<i64> =
+			notification_ids.iter().map(|x| x.0).collect();
+		sqlx::query!(
             "
             SELECT n.id, n.user_id, n.name, n.text, n.link, n.created, n.read, n.type notification_type, n.body,
             JSONB_AGG(DISTINCT jsonb_build_object('id', na.id, 'notification_id', na.notification_id, 'name', na.name, 'action_route_method', na.action_route_method, 'action_route', na.action_route)) filter (where na.id is not null) actions
@@ -393,16 +393,16 @@ impl DBNotification {
             })
             .try_collect::<Vec<DBNotification>>()
             .await
-    }
+	}
 
-    pub async fn get_all_user<'a, E>(
-        user_id: DBUserId,
-        exec: E,
-    ) -> Result<Vec<DBNotification>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres> + Copy,
-    {
-        let db_notifications = sqlx::query!(
+	pub async fn get_all_user<'a, E>(
+		user_id: DBUserId,
+		exec: E,
+	) -> Result<Vec<DBNotification>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres> + Copy,
+	{
+		let db_notifications = sqlx::query!(
             "
             SELECT n.id, n.user_id, n.name, n.text, n.link, n.created, n.read, n.type notification_type, n.body,
             JSONB_AGG(DISTINCT jsonb_build_object('id', na.id, 'notification_id', na.notification_id, 'name', na.name, 'action_route_method', na.action_route_method, 'action_route', na.action_route)) filter (where na.id is not null) actions
@@ -445,37 +445,37 @@ impl DBNotification {
             .await
             .wrap_err("fetching all user notifications")?;
 
-        Ok(db_notifications)
-    }
+		Ok(db_notifications)
+	}
 
-    /// Returns user notifications that are configured to be exposed on the website.
-    pub async fn get_many_user_exposed_on_site<'a, E>(
-        user_id: DBUserId,
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<DBNotification>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres> + Copy,
-    {
-        {
-            let mut redis = redis
-                .connect()
-                .await
-                .wrap_err("connecting to redis for user notifications")?;
-            let key =
-                redis.key().entity(USER_NOTIFICATIONS_NAMESPACE, user_id.0);
+	/// Returns user notifications that are configured to be exposed on the website.
+	pub async fn get_many_user_exposed_on_site<'a, E>(
+		user_id: DBUserId,
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<DBNotification>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres> + Copy,
+	{
+		{
+			let mut redis = redis
+				.connect()
+				.await
+				.wrap_err("connecting to redis for user notifications")?;
+			let key =
+				redis.key().entity(USER_NOTIFICATIONS_NAMESPACE, user_id.0);
 
-            let cached_notifications: Option<Vec<DBNotification>> = redis
-                .get_deserialized(&key)
-                .await
-                .wrap_err("fetching cached user notifications")?;
+			let cached_notifications: Option<Vec<DBNotification>> = redis
+				.get_deserialized(&key)
+				.await
+				.wrap_err("fetching cached user notifications")?;
 
-            if let Some(notifications) = cached_notifications {
-                return Ok(notifications);
-            }
-        }
+			if let Some(notifications) = cached_notifications {
+				return Ok(notifications);
+			}
+		}
 
-        let db_notifications = sqlx::query!(
+		let db_notifications = sqlx::query!(
             "
             SELECT n.id, n.user_id, n.name, n.text, n.link, n.created, n.read, n.type notification_type, n.body,
             JSONB_AGG(DISTINCT jsonb_build_object('id', na.id, 'notification_id', na.notification_id, 'name', na.name, 'action_route_method', na.action_route_method, 'action_route', na.action_route)) filter (where na.id is not null) actions
@@ -520,184 +520,184 @@ impl DBNotification {
             .await
             .wrap_err("fetching site-exposed user notifications")?;
 
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to cache user notifications")?;
-        let key = redis.key().entity(USER_NOTIFICATIONS_NAMESPACE, user_id.0);
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to cache user notifications")?;
+		let key = redis.key().entity(USER_NOTIFICATIONS_NAMESPACE, user_id.0);
 
-        redis
-            .set_serialized(&key, &db_notifications, None)
-            .await
-            .wrap_err("caching site-exposed user notifications")?;
+		redis
+			.set_serialized(&key, &db_notifications, None)
+			.await
+			.wrap_err("caching site-exposed user notifications")?;
 
-        Ok(db_notifications)
-    }
+		Ok(db_notifications)
+	}
 
-    pub async fn read(
-        id: DBNotificationId,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<Option<()>> {
-        Self::read_many(&[id], transaction, redis)
-            .await
-            .wrap_err("marking notification as read")
-    }
+	pub async fn read(
+		id: DBNotificationId,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<Option<()>> {
+		Self::read_many(&[id], transaction, redis)
+			.await
+			.wrap_err("marking notification as read")
+	}
 
-    pub async fn read_many(
-        notification_ids: &[DBNotificationId],
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<Option<()>> {
-        let notification_ids_parsed: Vec<i64> =
-            notification_ids.iter().map(|x| x.0).collect();
+	pub async fn read_many(
+		notification_ids: &[DBNotificationId],
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<Option<()>> {
+		let notification_ids_parsed: Vec<i64> =
+			notification_ids.iter().map(|x| x.0).collect();
 
-        let affected_users = sqlx::query!(
-            "
+		let affected_users = sqlx::query!(
+			"
             UPDATE notifications
             SET read = TRUE
             WHERE id = ANY($1)
             RETURNING user_id
             ",
-            &notification_ids_parsed
-        )
-        .fetch(&mut *transaction)
-        .map_ok(|x| DBUserId(x.user_id))
-        .try_collect::<Vec<_>>()
-        .await
-        .wrap_err("marking notifications as read")?;
+			&notification_ids_parsed
+		)
+		.fetch(&mut *transaction)
+		.map_ok(|x| DBUserId(x.user_id))
+		.try_collect::<Vec<_>>()
+		.await
+		.wrap_err("marking notifications as read")?;
 
-        DBNotification::clear_user_notifications_cache(
-            affected_users.iter(),
-            redis,
-        )
-        .await
-        .wrap_err(
-            "clearing notification caches after marking notifications as read",
-        )?;
+		DBNotification::clear_user_notifications_cache(
+			affected_users.iter(),
+			redis,
+		)
+		.await
+		.wrap_err(
+			"clearing notification caches after marking notifications as read",
+		)?;
 
-        Ok(Some(()))
-    }
+		Ok(Some(()))
+	}
 
-    pub async fn remove(
-        id: DBNotificationId,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<Option<()>> {
-        Self::remove_many(&[id], transaction, redis)
-            .await
-            .wrap_err("removing notification")
-    }
+	pub async fn remove(
+		id: DBNotificationId,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<Option<()>> {
+		Self::remove_many(&[id], transaction, redis)
+			.await
+			.wrap_err("removing notification")
+	}
 
-    pub async fn remove_many(
-        notification_ids: &[DBNotificationId],
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<Option<()>> {
-        let notification_ids_parsed: Vec<i64> =
-            notification_ids.iter().map(|x| x.0).collect();
+	pub async fn remove_many(
+		notification_ids: &[DBNotificationId],
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<Option<()>> {
+		let notification_ids_parsed: Vec<i64> =
+			notification_ids.iter().map(|x| x.0).collect();
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             DELETE FROM notifications_deliveries
             WHERE notification_id = ANY($1)
             ",
-            &notification_ids_parsed
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("removing notification deliveries")?;
+			&notification_ids_parsed
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("removing notification deliveries")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             DELETE FROM notifications_actions
             WHERE notification_id = ANY($1)
             ",
-            &notification_ids_parsed
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("removing notification actions")?;
+			&notification_ids_parsed
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("removing notification actions")?;
 
-        let affected_users = sqlx::query!(
-            "
+		let affected_users = sqlx::query!(
+			"
             DELETE FROM notifications
             WHERE id = ANY($1)
             RETURNING user_id
             ",
-            &notification_ids_parsed
-        )
-        .fetch(&mut *transaction)
-        .map_ok(|x| DBUserId(x.user_id))
-        .try_collect::<Vec<_>>()
-        .await
-        .wrap_err("removing notifications")?;
+			&notification_ids_parsed
+		)
+		.fetch(&mut *transaction)
+		.map_ok(|x| DBUserId(x.user_id))
+		.try_collect::<Vec<_>>()
+		.await
+		.wrap_err("removing notifications")?;
 
-        DBNotification::clear_user_notifications_cache(
-            affected_users.iter(),
-            redis,
-        )
-        .await
-        .wrap_err(
-            "clearing notification caches after removing notifications",
-        )?;
+		DBNotification::clear_user_notifications_cache(
+			affected_users.iter(),
+			redis,
+		)
+		.await
+		.wrap_err(
+			"clearing notification caches after removing notifications",
+		)?;
 
-        Ok(Some(()))
-    }
+		Ok(Some(()))
+	}
 
-    pub async fn remove_many_matching_body(
-        body_filter: &serde_json::Value,
-        users: &[DBUserId],
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-    ) -> Result<usize> {
-        let user_ids = users.iter().map(|x| x.0).collect::<Vec<i64>>();
+	pub async fn remove_many_matching_body(
+		body_filter: &serde_json::Value,
+		users: &[DBUserId],
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+	) -> Result<usize> {
+		let user_ids = users.iter().map(|x| x.0).collect::<Vec<i64>>();
 
-        let ids = sqlx::query!(
-            "
+		let ids = sqlx::query!(
+			"
             SELECT id
             FROM notifications
             WHERE body @> $1::jsonb
               AND user_id = ANY($2::bigint[])
             ",
-            body_filter,
-            &user_ids
-        )
-        .fetch(&mut *transaction)
-        .map_ok(|x| DBNotificationId(x.id))
-        .try_collect::<Vec<_>>()
-        .await
-        .wrap_err("fetching notifications matching body")?;
+			body_filter,
+			&user_ids
+		)
+		.fetch(&mut *transaction)
+		.map_ok(|x| DBNotificationId(x.id))
+		.try_collect::<Vec<_>>()
+		.await
+		.wrap_err("fetching notifications matching body")?;
 
-        if ids.is_empty() {
-            return Ok(0);
-        }
+		if ids.is_empty() {
+			return Ok(0);
+		}
 
-        Self::remove_many(&ids, transaction, redis)
-            .await
-            .wrap_err("removing notifications matching body")?;
+		Self::remove_many(&ids, transaction, redis)
+			.await
+			.wrap_err("removing notifications matching body")?;
 
-        Ok(ids.len())
-    }
+		Ok(ids.len())
+	}
 
-    pub async fn clear_user_notifications_cache(
-        user_ids: impl IntoIterator<Item = &DBUserId>,
-        redis: &RedisPool,
-    ) -> Result<()> {
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to clear notification caches")?;
-        let keys = user_ids
-            .into_iter()
-            .map(|id| redis.key().entity(USER_NOTIFICATIONS_NAMESPACE, id.0))
-            .collect::<Vec<_>>();
+	pub async fn clear_user_notifications_cache(
+		user_ids: impl IntoIterator<Item = &DBUserId>,
+		redis: &RedisPool,
+	) -> Result<()> {
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to clear notification caches")?;
+		let keys = user_ids
+			.into_iter()
+			.map(|id| redis.key().entity(USER_NOTIFICATIONS_NAMESPACE, id.0))
+			.collect::<Vec<_>>();
 
-        redis
-            .delete_many(&keys)
-            .await
-            .wrap_err("clearing notification caches")?;
+		redis
+			.delete_many(&keys)
+			.await
+			.wrap_err("clearing notification caches")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 }

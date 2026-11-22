@@ -3,7 +3,7 @@ use super::loader_fields::VersionField;
 use crate::database::PgTransaction;
 
 use crate::database::models::loader_fields::{
-    QueryLoaderField, QueryLoaderFieldEnumValue, QueryVersionField,
+	QueryLoaderField, QueryLoaderFieldEnumValue, QueryVersionField,
 };
 use crate::file_hosting::FileHost;
 use crate::models::exp;
@@ -27,10 +27,10 @@ pub const VERSIONS_NAMESPACE: &str = "versions:v4";
 const VERSION_FILES_NAMESPACE: &str = "versions_files:v4";
 
 pub async fn cleanup_unused_attribution_files_and_groups(
-    transaction: &mut PgTransaction<'_>,
+	transaction: &mut PgTransaction<'_>,
 ) -> Result<()> {
-    sqlx::query!(
-        "
+	sqlx::query!(
+		"
         DELETE FROM project_attribution_files paf
         USING project_attribution_groups pag
         WHERE pag.id = paf.group_id
@@ -43,13 +43,13 @@ pub async fn cleanup_unused_attribution_files_and_groups(
                 AND v.mod_id = pag.project_id
         )
         ",
-    )
-    .execute(&mut *transaction)
-    .await
-    .wrap_err("deleting unused attribution files")?;
+	)
+	.execute(&mut *transaction)
+	.await
+	.wrap_err("deleting unused attribution files")?;
 
-    sqlx::query!(
-        "
+	sqlx::query!(
+		"
         DELETE FROM project_attribution_groups g
         WHERE NOT EXISTS (
             SELECT 1
@@ -57,76 +57,76 @@ pub async fn cleanup_unused_attribution_files_and_groups(
             WHERE paf.group_id = g.id
         )
         ",
-    )
-    .execute(&mut *transaction)
-    .await
-    .wrap_err("deleting unused attribution groups")?;
+	)
+	.execute(&mut *transaction)
+	.await
+	.wrap_err("deleting unused attribution groups")?;
 
-    Ok(())
+	Ok(())
 }
 
 #[derive(Clone)]
 pub struct VersionBuilder {
-    pub version_id: DBVersionId,
-    pub project_id: DBProjectId,
-    pub author_id: DBUserId,
-    pub name: String,
-    pub version_number: String,
-    pub changelog: String,
-    pub files: Vec<VersionFileBuilder>,
-    pub dependencies: Vec<DependencyBuilder>,
-    pub loaders: Vec<LoaderId>,
-    pub version_fields: Vec<VersionField>,
-    pub version_type: String,
-    pub featured: bool,
-    pub status: VersionStatus,
-    pub requested_status: Option<VersionStatus>,
-    pub ordering: Option<i32>,
-    pub components: exp::VersionSerial,
+	pub version_id: DBVersionId,
+	pub project_id: DBProjectId,
+	pub author_id: DBUserId,
+	pub name: String,
+	pub version_number: String,
+	pub changelog: String,
+	pub files: Vec<VersionFileBuilder>,
+	pub dependencies: Vec<DependencyBuilder>,
+	pub loaders: Vec<LoaderId>,
+	pub version_fields: Vec<VersionField>,
+	pub version_type: String,
+	pub featured: bool,
+	pub status: VersionStatus,
+	pub requested_status: Option<VersionStatus>,
+	pub ordering: Option<i32>,
+	pub components: exp::VersionSerial,
 }
 
 #[derive(Clone)]
 pub struct DependencyBuilder {
-    pub project_id: Option<DBProjectId>,
-    pub version_id: Option<DBVersionId>,
-    pub file_name: Option<String>,
-    pub dependency_type: String,
+	pub project_id: Option<DBProjectId>,
+	pub version_id: Option<DBVersionId>,
+	pub file_name: Option<String>,
+	pub dependency_type: String,
 }
 
 impl DependencyBuilder {
-    pub async fn insert_many(
-        builders: Vec<Self>,
-        version_id: DBVersionId,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        let mut project_ids = Vec::new();
-        for dependency in &builders {
-            project_ids.push(
-                dependency
-                    .try_get_project_id(transaction)
-                    .await
-                    .wrap_err("resolving dependency project")?
-                    .map(|id| id.0),
-            );
-        }
+	pub async fn insert_many(
+		builders: Vec<Self>,
+		version_id: DBVersionId,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		let mut project_ids = Vec::new();
+		for dependency in &builders {
+			project_ids.push(
+				dependency
+					.try_get_project_id(transaction)
+					.await
+					.wrap_err("resolving dependency project")?
+					.map(|id| id.0),
+			);
+		}
 
-        let (version_ids, dependency_types, dependency_ids, filenames): (
-            Vec<_>,
-            Vec<_>,
-            Vec<_>,
-            Vec<_>,
-        ) = builders
-            .into_iter()
-            .map(|d| {
-                (
-                    version_id.0,
-                    d.dependency_type,
-                    d.version_id.map(|v| v.0),
-                    d.file_name,
-                )
-            })
-            .multiunzip();
-        sqlx::query!(
+		let (version_ids, dependency_types, dependency_ids, filenames): (
+			Vec<_>,
+			Vec<_>,
+			Vec<_>,
+			Vec<_>,
+		) = builders
+			.into_iter()
+			.map(|d| {
+				(
+					version_id.0,
+					d.dependency_type,
+					d.version_id.map(|v| v.0),
+					d.file_name,
+				)
+			})
+			.multiunzip();
+		sqlx::query!(
             "
             INSERT INTO dependencies (dependent_id, dependency_type, dependency_id, mod_dependency_id, dependency_file_name)
             SELECT * FROM UNNEST ($1::bigint[], $2::varchar[], $3::bigint[], $4::bigint[], $5::varchar[])
@@ -141,57 +141,57 @@ impl DependencyBuilder {
         .await
         .wrap_err("inserting dependencies")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    async fn try_get_project_id(
-        &self,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<Option<DBProjectId>> {
-        Ok(if let Some(project_id) = self.project_id {
-            Some(project_id)
-        } else if let Some(version_id) = self.version_id {
-            sqlx::query!(
-                "
+	async fn try_get_project_id(
+		&self,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<Option<DBProjectId>> {
+		Ok(if let Some(project_id) = self.project_id {
+			Some(project_id)
+		} else if let Some(version_id) = self.version_id {
+			sqlx::query!(
+				"
                 SELECT mod_id FROM versions WHERE id = $1
                 ",
-                version_id as DBVersionId,
-            )
-            .fetch_optional(&mut *transaction)
-            .await
-            .wrap_err("fetching dependency project")?
-            .map(|x| DBProjectId(x.mod_id))
-        } else {
-            None
-        })
-    }
+				version_id as DBVersionId,
+			)
+			.fetch_optional(&mut *transaction)
+			.await
+			.wrap_err("fetching dependency project")?
+			.map(|x| DBProjectId(x.mod_id))
+		} else {
+			None
+		})
+	}
 }
 
 #[derive(Clone, Debug)]
 pub struct VersionFileBuilder {
-    pub url: String,
-    pub filename: String,
-    pub hashes: Vec<HashBuilder>,
-    pub primary: bool,
-    pub size: u32,
-    pub file_type: Option<FileType>,
+	pub url: String,
+	pub filename: String,
+	pub hashes: Vec<HashBuilder>,
+	pub primary: bool,
+	pub size: u32,
+	pub file_type: Option<FileType>,
 }
 
 impl VersionFileBuilder {
-    pub async fn insert(
-        self,
-        version_id: DBVersionId,
-        project_id: DBProjectId,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-        file_host: &dyn FileHost,
-        kafka_client: &KafkaClientState,
-    ) -> Result<DBFileId> {
-        let file_id = generate_file_id(&mut *transaction)
-            .await
-            .wrap_err("generating file id")?;
+	pub async fn insert(
+		self,
+		version_id: DBVersionId,
+		project_id: DBProjectId,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+		file_host: &dyn FileHost,
+		kafka_client: &KafkaClientState,
+	) -> Result<DBFileId> {
+		let file_id = generate_file_id(&mut *transaction)
+			.await
+			.wrap_err("generating file id")?;
 
-        sqlx::query!(
+		sqlx::query!(
             "
             INSERT INTO files (id, version_id, url, filename, is_primary, size, file_type)
             VALUES ($1, $2, $3, $4, $5, $6, $7)
@@ -208,23 +208,23 @@ impl VersionFileBuilder {
         .await
         .wrap_err("inserting version file")?;
 
-        for hash in self.hashes {
-            sqlx::query!(
-                "
+		for hash in self.hashes {
+			sqlx::query!(
+				"
                 INSERT INTO hashes (file_id, algorithm, hash)
                 VALUES ($1, $2, $3)
                 ",
-                file_id as DBFileId,
-                hash.algorithm,
-                hash.hash,
-            )
-            .execute(&mut *transaction)
-            .await
-            .wrap_err("inserting file hash")?;
-        }
+				file_id as DBFileId,
+				hash.algorithm,
+				hash.hash,
+			)
+			.execute(&mut *transaction)
+			.await
+			.wrap_err("inserting file hash")?;
+		}
 
-        let attribution_scan = sqlx::query!(
-            "
+		let attribution_scan = sqlx::query!(
+			"
             INSERT INTO file_scans (file_id)
             SELECT $1
             WHERE EXISTS (
@@ -233,195 +233,195 @@ impl VersionFileBuilder {
                 WHERE id = $2
             )
             ",
-            file_id as DBFileId,
-            version_id as DBVersionId,
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("creating attribution file scan")?;
+			file_id as DBFileId,
+			version_id as DBVersionId,
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("creating attribution file scan")?;
 
-        if attribution_scan.rows_affected() > 0
-            && let Err(err) = scan_file(
-                &mut *transaction,
-                redis,
-                file_host,
-                project_id,
-                file_id,
-                &self.url,
-            )
-            .await
-        {
-            error!("Error scanning new file {file_id:?}: {err:?}");
-        }
+		if attribution_scan.rows_affected() > 0
+			&& let Err(err) = scan_file(
+				&mut *transaction,
+				redis,
+				file_host,
+				project_id,
+				file_id,
+				&self.url,
+			)
+			.await
+		{
+			error!("Error scanning new file {file_id:?}: {err:?}");
+		}
 
-        delphi_scan::enqueue_file(transaction, kafka_client, file_id)
-            .await
-            .wrap_err("enqueueing file for delphi scan")?;
+		delphi_scan::enqueue_file(transaction, kafka_client, file_id)
+			.await
+			.wrap_err("enqueueing file for delphi scan")?;
 
-        Ok(file_id)
-    }
+		Ok(file_id)
+	}
 }
 
 #[derive(Clone, Debug)]
 pub struct HashBuilder {
-    pub algorithm: String,
-    pub hash: Vec<u8>,
+	pub algorithm: String,
+	pub hash: Vec<u8>,
 }
 
 impl VersionBuilder {
-    pub async fn insert(
-        self,
-        transaction: &mut PgTransaction<'_>,
-        redis: &RedisPool,
-        file_host: &dyn FileHost,
-        kafka_client: &KafkaClientState,
-    ) -> Result<DBVersionId> {
-        let version = DBVersion {
-            id: self.version_id,
-            project_id: self.project_id,
-            author_id: self.author_id,
-            name: self.name,
-            version_number: self.version_number,
-            changelog: self.changelog,
-            date_published: Utc::now(),
-            downloads: 0,
-            featured: self.featured,
-            version_type: self.version_type,
-            status: self.status,
-            requested_status: self.requested_status,
-            ordering: self.ordering,
-            components: self.components,
-        };
+	pub async fn insert(
+		self,
+		transaction: &mut PgTransaction<'_>,
+		redis: &RedisPool,
+		file_host: &dyn FileHost,
+		kafka_client: &KafkaClientState,
+	) -> Result<DBVersionId> {
+		let version = DBVersion {
+			id: self.version_id,
+			project_id: self.project_id,
+			author_id: self.author_id,
+			name: self.name,
+			version_number: self.version_number,
+			changelog: self.changelog,
+			date_published: Utc::now(),
+			downloads: 0,
+			featured: self.featured,
+			version_type: self.version_type,
+			status: self.status,
+			requested_status: self.requested_status,
+			ordering: self.ordering,
+			components: self.components,
+		};
 
-        version
-            .insert(transaction)
-            .await
-            .wrap_err("inserting version")?;
+		version
+			.insert(transaction)
+			.await
+			.wrap_err("inserting version")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             UPDATE mods
             SET updated = NOW()
             WHERE id = $1
             ",
-            self.project_id as DBProjectId,
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("updating project timestamp")?;
+			self.project_id as DBProjectId,
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("updating project timestamp")?;
 
-        let VersionBuilder {
-            dependencies,
-            loaders,
-            files,
-            version_id,
-            ..
-        } = self;
+		let VersionBuilder {
+			dependencies,
+			loaders,
+			files,
+			version_id,
+			..
+		} = self;
 
-        for file in files {
-            file.insert(
-                version_id,
-                self.project_id,
-                transaction,
-                redis,
-                file_host,
-                kafka_client,
-            )
-            .await
-            .wrap_err("inserting version file")?;
-        }
+		for file in files {
+			file.insert(
+				version_id,
+				self.project_id,
+				transaction,
+				redis,
+				file_host,
+				kafka_client,
+			)
+			.await
+			.wrap_err("inserting version file")?;
+		}
 
-        DependencyBuilder::insert_many(
-            dependencies,
-            self.version_id,
-            transaction,
-        )
-        .await
-        .wrap_err("inserting version dependencies")?;
+		DependencyBuilder::insert_many(
+			dependencies,
+			self.version_id,
+			transaction,
+		)
+		.await
+		.wrap_err("inserting version dependencies")?;
 
-        let loader_versions = loaders
-            .iter()
-            .map(|&loader_id| DBLoaderVersion {
-                loader_id,
-                version_id,
-            })
-            .collect_vec();
-        DBLoaderVersion::insert_many(loader_versions, transaction)
-            .await
-            .wrap_err("inserting version loaders")?;
+		let loader_versions = loaders
+			.iter()
+			.map(|&loader_id| DBLoaderVersion {
+				loader_id,
+				version_id,
+			})
+			.collect_vec();
+		DBLoaderVersion::insert_many(loader_versions, transaction)
+			.await
+			.wrap_err("inserting version loaders")?;
 
-        VersionField::insert_many(self.version_fields, transaction)
-            .await
-            .wrap_err("inserting version fields")?;
+		VersionField::insert_many(self.version_fields, transaction)
+			.await
+			.wrap_err("inserting version fields")?;
 
-        Ok(self.version_id)
-    }
+		Ok(self.version_id)
+	}
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DBLoaderVersion {
-    pub loader_id: LoaderId,
-    pub version_id: DBVersionId,
+	pub loader_id: LoaderId,
+	pub version_id: DBVersionId,
 }
 
 impl DBLoaderVersion {
-    pub async fn insert_many(
-        items: Vec<Self>,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        let (loader_ids, version_ids): (Vec<_>, Vec<_>) = items
-            .iter()
-            .map(|l| (l.loader_id.0, l.version_id.0))
-            .unzip();
-        sqlx::query!(
-            "
+	pub async fn insert_many(
+		items: Vec<Self>,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		let (loader_ids, version_ids): (Vec<_>, Vec<_>) = items
+			.iter()
+			.map(|l| (l.loader_id.0, l.version_id.0))
+			.unzip();
+		sqlx::query!(
+			"
             INSERT INTO loaders_versions (loader_id, version_id)
             SELECT * FROM UNNEST($1::integer[], $2::bigint[])
             ",
-            &loader_ids[..],
-            &version_ids[..],
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("inserting version loaders")?;
+			&loader_ids[..],
+			&version_ids[..],
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("inserting version loaders")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 }
 
 #[derive(Clone, Deserialize, Serialize)]
 pub struct DBVersion {
-    pub id: DBVersionId,
-    pub project_id: DBProjectId,
-    pub author_id: DBUserId,
-    pub name: String,
-    pub version_number: String,
-    pub changelog: String,
-    pub date_published: DateTime<Utc>,
-    pub downloads: i32,
-    pub version_type: String,
-    pub featured: bool,
-    pub status: VersionStatus,
-    pub requested_status: Option<VersionStatus>,
-    pub ordering: Option<i32>,
-    pub components: exp::VersionSerial,
+	pub id: DBVersionId,
+	pub project_id: DBProjectId,
+	pub author_id: DBUserId,
+	pub name: String,
+	pub version_number: String,
+	pub changelog: String,
+	pub date_published: DateTime<Utc>,
+	pub downloads: i32,
+	pub version_type: String,
+	pub featured: bool,
+	pub status: VersionStatus,
+	pub requested_status: Option<VersionStatus>,
+	pub ordering: Option<i32>,
+	pub components: exp::VersionSerial,
 }
 
 impl PartialEq for DBVersion {
-    fn eq(&self, other: &Self) -> bool {
-        self.id == other.id
-    }
+	fn eq(&self, other: &Self) -> bool {
+		self.id == other.id
+	}
 }
 
 impl Eq for DBVersion {}
 
 impl DBVersion {
-    pub async fn insert(
-        &self,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<()> {
-        sqlx::query!(
-            "
+	pub async fn insert(
+		&self,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<()> {
+		sqlx::query!(
+			"
             INSERT INTO versions (
                 id, mod_id, author_id, name, version_number,
                 changelog, date_published, downloads,
@@ -435,81 +435,81 @@ impl DBVersion {
                 $13
             )
             ",
-            self.id as DBVersionId,
-            self.project_id as DBProjectId,
-            self.author_id as DBUserId,
-            &self.name,
-            &self.version_number,
-            self.changelog,
-            self.date_published,
-            self.downloads,
-            &self.version_type,
-            self.featured,
-            self.status.as_str(),
-            self.ordering,
-            serde_json::to_value(&self.components)
-                .expect("serialization shouldn't fail"),
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("inserting version")?;
+			self.id as DBVersionId,
+			self.project_id as DBProjectId,
+			self.author_id as DBUserId,
+			&self.name,
+			&self.version_number,
+			self.changelog,
+			self.date_published,
+			self.downloads,
+			&self.version_type,
+			self.featured,
+			self.status.as_str(),
+			self.ordering,
+			serde_json::to_value(&self.components)
+				.expect("serialization shouldn't fail"),
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("inserting version")?;
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-    pub async fn remove_full(
-        id: DBVersionId,
-        redis: &RedisPool,
-        transaction: &mut PgTransaction<'_>,
-    ) -> Result<Option<()>> {
-        let result = Self::get(id, &mut *transaction, redis)
-            .await
-            .wrap_err("fetching version")?;
+	pub async fn remove_full(
+		id: DBVersionId,
+		redis: &RedisPool,
+		transaction: &mut PgTransaction<'_>,
+	) -> Result<Option<()>> {
+		let result = Self::get(id, &mut *transaction, redis)
+			.await
+			.wrap_err("fetching version")?;
 
-        let Some(result) = result else {
-            return Ok(None);
-        };
+		let Some(result) = result else {
+			return Ok(None);
+		};
 
-        DBVersion::clear_cache(&result, redis)
-            .await
-            .wrap_err("clearing version cache")?;
+		DBVersion::clear_cache(&result, redis)
+			.await
+			.wrap_err("clearing version cache")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             UPDATE reports
             SET version_id = NULL
             WHERE version_id = $1
             ",
-            id as DBVersionId,
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("unlinking version reports")?;
+			id as DBVersionId,
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("unlinking version reports")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             DELETE FROM version_fields vf
             WHERE vf.version_id = $1
             ",
-            id as DBVersionId,
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("deleting version fields")?;
+			id as DBVersionId,
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("deleting version fields")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             DELETE FROM loaders_versions
             WHERE loaders_versions.version_id = $1
             ",
-            id as DBVersionId,
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("deleting version loaders")?;
+			id as DBVersionId,
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("deleting version loaders")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             DELETE FROM hashes
             WHERE EXISTS(
                 SELECT 1 FROM files WHERE
@@ -517,53 +517,53 @@ impl DBVersion {
                     (hashes.file_id = files.id)
             )
             ",
-            id as DBVersionId
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("deleting version file hashes")?;
+			id as DBVersionId
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("deleting version file hashes")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             DELETE FROM files
             WHERE files.version_id = $1
             ",
-            id as DBVersionId,
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("deleting version files")?;
+			id as DBVersionId,
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("deleting version files")?;
 
-        cleanup_unused_attribution_files_and_groups(transaction)
-            .await
-            .wrap_err("cleaning up unused attribution files and groups")?;
+		cleanup_unused_attribution_files_and_groups(transaction)
+			.await
+			.wrap_err("cleaning up unused attribution files and groups")?;
 
-        // Sync dependencies
+		// Sync dependencies
 
-        let project_id = sqlx::query!(
-            "
+		let project_id = sqlx::query!(
+			"
             SELECT mod_id FROM versions WHERE id = $1
             ",
-            id as DBVersionId,
-        )
-        .fetch_one(&mut *transaction)
-        .await
-        .wrap_err("fetching version project")?;
+			id as DBVersionId,
+		)
+		.fetch_one(&mut *transaction)
+		.await
+		.wrap_err("fetching version project")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             UPDATE dependencies
             SET dependency_id = NULL, mod_dependency_id = $2
             WHERE dependency_id = $1
             ",
-            id as DBVersionId,
-            project_id.mod_id,
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("unlinking version dependencies")?;
+			id as DBVersionId,
+			project_id.mod_id,
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("unlinking version dependencies")?;
 
-        sqlx::query!(
+		sqlx::query!(
             "
             DELETE FROM dependencies WHERE mod_dependency_id = NULL AND dependency_id = NULL AND dependency_file_name = NULL
             ",
@@ -572,90 +572,90 @@ impl DBVersion {
         .await
         .wrap_err("deleting orphaned dependencies")?;
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             DELETE FROM dependencies WHERE dependent_id = $1
             ",
-            id as DBVersionId,
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("deleting version dependencies")?;
+			id as DBVersionId,
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("deleting version dependencies")?;
 
-        // delete version
+		// delete version
 
-        sqlx::query!(
-            "
+		sqlx::query!(
+			"
             DELETE FROM versions WHERE id = $1
             ",
-            id as DBVersionId,
-        )
-        .execute(&mut *transaction)
-        .await
-        .wrap_err("deleting version")?;
+			id as DBVersionId,
+		)
+		.execute(&mut *transaction)
+		.await
+		.wrap_err("deleting version")?;
 
-        crate::database::models::DBProject::clear_cache(
-            DBProjectId(project_id.mod_id),
-            None,
-            None,
-            redis,
-        )
-        .await
-        .wrap_err("clearing project cache")?;
+		crate::database::models::DBProject::clear_cache(
+			DBProjectId(project_id.mod_id),
+			None,
+			None,
+			redis,
+		)
+		.await
+		.wrap_err("clearing project cache")?;
 
-        Ok(Some(()))
-    }
+		Ok(Some(()))
+	}
 
-    pub async fn get<'a, 'b, E>(
-        id: DBVersionId,
-        executor: E,
-        redis: &RedisPool,
-    ) -> Result<Option<VersionQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        Self::get_many(&[id], executor, redis)
-            .await
-            .wrap_err("fetching version")
-            .map(|x| x.into_iter().next())
-    }
+	pub async fn get<'a, 'b, E>(
+		id: DBVersionId,
+		executor: E,
+		redis: &RedisPool,
+	) -> Result<Option<VersionQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		Self::get_many(&[id], executor, redis)
+			.await
+			.wrap_err("fetching version")
+			.map(|x| x.into_iter().next())
+	}
 
-    pub async fn get_many<'a, E>(
-        version_ids: &[DBVersionId],
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<VersionQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        Self::get_many_inner(version_ids, exec, redis, true)
-            .await
-            .wrap_err("fetching versions")
-    }
+	pub async fn get_many<'a, E>(
+		version_ids: &[DBVersionId],
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<VersionQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		Self::get_many_inner(version_ids, exec, redis, true)
+			.await
+			.wrap_err("fetching versions")
+	}
 
-    pub async fn get_many_uncached<'a, E>(
-        version_ids: &[DBVersionId],
-        exec: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<VersionQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        Self::get_many_inner(version_ids, exec, redis, false)
-            .await
-            .wrap_err("fetching uncached versions")
-    }
+	pub async fn get_many_uncached<'a, E>(
+		version_ids: &[DBVersionId],
+		exec: E,
+		redis: &RedisPool,
+	) -> Result<Vec<VersionQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		Self::get_many_inner(version_ids, exec, redis, false)
+			.await
+			.wrap_err("fetching uncached versions")
+	}
 
-    async fn get_many_inner<'a, E>(
-        version_ids: &[DBVersionId],
-        exec: E,
-        redis: &RedisPool,
-        use_cache: bool,
-    ) -> Result<Vec<VersionQueryResult>>
-    where
-        E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
-    {
-        let mut val = redis.get_keys_with_cache(
+	async fn get_many_inner<'a, E>(
+		version_ids: &[DBVersionId],
+		exec: E,
+		redis: &RedisPool,
+		use_cache: bool,
+	) -> Result<Vec<VersionQueryResult>>
+	where
+		E: crate::database::Acquire<'a, Database = sqlx::Postgres>,
+	{
+		let mut val = redis.get_keys_with_cache(
             VERSIONS_NAMESPACE,
             use_cache,
             &version_ids.iter().map(|x| x.0).collect::<Vec<_>>(),
@@ -1038,40 +1038,40 @@ impl DBVersion {
         .await
         .wrap_err("fetching cached versions")?;
 
-        val.sort();
+		val.sort();
 
-        Ok(val)
-    }
+		Ok(val)
+	}
 
-    pub async fn get_file_from_hash<'a, 'b, E>(
-        algo: String,
-        hash: String,
-        version_id: Option<DBVersionId>,
-        executor: E,
-        redis: &RedisPool,
-    ) -> Result<Option<DBFile>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres> + Copy,
-    {
-        Self::get_files_from_hash(algo, &[hash], executor, redis)
-            .await
-            .wrap_err("fetching version file from hash")
-            .map(|x| {
-                x.into_iter()
-                    .find_or_first(|x| Some(x.version_id) == version_id)
-            })
-    }
+	pub async fn get_file_from_hash<'a, 'b, E>(
+		algo: String,
+		hash: String,
+		version_id: Option<DBVersionId>,
+		executor: E,
+		redis: &RedisPool,
+	) -> Result<Option<DBFile>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres> + Copy,
+	{
+		Self::get_files_from_hash(algo, &[hash], executor, redis)
+			.await
+			.wrap_err("fetching version file from hash")
+			.map(|x| {
+				x.into_iter()
+					.find_or_first(|x| Some(x.version_id) == version_id)
+			})
+	}
 
-    pub async fn get_files_from_hash<'a, E>(
-        algorithm: String,
-        hashes: &[String],
-        executor: E,
-        redis: &RedisPool,
-    ) -> Result<Vec<DBFile>>
-    where
-        E: crate::database::Executor<'a, Database = sqlx::Postgres>,
-    {
-        let val = redis.get_cached_keys(
+	pub async fn get_files_from_hash<'a, E>(
+		algorithm: String,
+		hashes: &[String],
+		executor: E,
+		redis: &RedisPool,
+	) -> Result<Vec<DBFile>>
+	where
+		E: crate::database::Executor<'a, Database = sqlx::Postgres>,
+	{
+		let val = redis.get_cached_keys(
             VERSION_FILES_NAMESPACE,
             &hashes.iter().map(|x| format!("{algorithm}_{x}")).collect::<Vec<_>>(),
             |file_ids| async move {
@@ -1134,194 +1134,194 @@ impl DBVersion {
         .await
         .wrap_err("fetching cached version files")?;
 
-        Ok(val)
-    }
+		Ok(val)
+	}
 
-    pub async fn clear_cache(
-        version: &VersionQueryResult,
-        redis: &RedisPool,
-    ) -> Result<()> {
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to clear version cache")?;
-        let mut keys =
-            vec![redis.key().entity(VERSIONS_NAMESPACE, version.inner.id.0)];
-        keys.extend(version.files.iter().flat_map(|file| {
-            file.hashes.iter().map(|(algorithm, hash)| {
-                redis.key().entity(
-                    VERSION_FILES_NAMESPACE,
-                    format!("{algorithm}_{hash}"),
-                )
-            })
-        }));
+	pub async fn clear_cache(
+		version: &VersionQueryResult,
+		redis: &RedisPool,
+	) -> Result<()> {
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to clear version cache")?;
+		let mut keys =
+			vec![redis.key().entity(VERSIONS_NAMESPACE, version.inner.id.0)];
+		keys.extend(version.files.iter().flat_map(|file| {
+			file.hashes.iter().map(|(algorithm, hash)| {
+				redis.key().entity(
+					VERSION_FILES_NAMESPACE,
+					format!("{algorithm}_{hash}"),
+				)
+			})
+		}));
 
-        redis
-            .delete_many(&keys)
-            .await
-            .wrap_err("clearing version cache")?;
-        Ok(())
-    }
+		redis
+			.delete_many(&keys)
+			.await
+			.wrap_err("clearing version cache")?;
+		Ok(())
+	}
 
-    pub async fn clear_cache_ids(
-        version_ids: &[DBVersionId],
-        redis: &RedisPool,
-    ) -> Result<()> {
-        let mut redis = redis
-            .connect()
-            .await
-            .wrap_err("connecting to redis to clear version caches")?;
-        let keys = version_ids
-            .iter()
-            .map(|id| redis.key().entity(VERSIONS_NAMESPACE, id.0))
-            .collect::<Vec<_>>();
+	pub async fn clear_cache_ids(
+		version_ids: &[DBVersionId],
+		redis: &RedisPool,
+	) -> Result<()> {
+		let mut redis = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to clear version caches")?;
+		let keys = version_ids
+			.iter()
+			.map(|id| redis.key().entity(VERSIONS_NAMESPACE, id.0))
+			.collect::<Vec<_>>();
 
-        redis
-            .delete_many(&keys)
-            .await
-            .wrap_err("clearing version caches")?;
-        Ok(())
-    }
+		redis
+			.delete_many(&keys)
+			.await
+			.wrap_err("clearing version caches")?;
+		Ok(())
+	}
 }
 
 #[serde_binhum]
 #[derive(Clone)]
 pub struct VersionQueryResult {
-    #[serde(flatten)]
-    pub inner: DBVersion,
+	#[serde(flatten)]
+	pub inner: DBVersion,
 
-    pub files: Vec<FileQueryResult>,
-    pub version_fields: Vec<VersionField>,
-    pub loaders: Vec<String>,
-    pub project_types: Vec<String>,
-    pub games: Vec<String>,
-    pub dependencies: Vec<DependencyQueryResult>,
-    pub components: exp::VersionQuery,
+	pub files: Vec<FileQueryResult>,
+	pub version_fields: Vec<VersionField>,
+	pub loaders: Vec<String>,
+	pub project_types: Vec<String>,
+	pub games: Vec<String>,
+	pub dependencies: Vec<DependencyQueryResult>,
+	pub components: exp::VersionQuery,
 }
 
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct DependencyQueryResult {
-    pub id: i32,
-    pub project_id: Option<DBProjectId>,
-    pub version_id: Option<DBVersionId>,
-    pub file_name: Option<String>,
-    pub dependency_type: String,
-    pub attribution: Option<crate::models::projects::DependencyAttribution>,
+	pub id: i32,
+	pub project_id: Option<DBProjectId>,
+	pub version_id: Option<DBVersionId>,
+	pub file_name: Option<String>,
+	pub dependency_type: String,
+	pub attribution: Option<crate::models::projects::DependencyAttribution>,
 }
 
 #[derive(Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct FileQueryResult {
-    pub id: DBFileId,
-    pub url: String,
-    pub filename: String,
-    pub hashes: HashMap<String, String>,
-    pub primary: bool,
-    pub size: u32,
-    pub file_type: Option<FileType>,
+	pub id: DBFileId,
+	pub url: String,
+	pub filename: String,
+	pub hashes: HashMap<String, String>,
+	pub primary: bool,
+	pub size: u32,
+	pub file_type: Option<FileType>,
 }
 
 #[derive(Clone, Deserialize, Serialize)]
 pub struct DBFile {
-    pub id: DBFileId,
-    pub version_id: DBVersionId,
-    pub project_id: DBProjectId,
-    pub url: String,
-    pub filename: String,
-    pub hashes: HashMap<String, String>,
-    pub primary: bool,
-    pub size: u32,
-    pub file_type: Option<FileType>,
+	pub id: DBFileId,
+	pub version_id: DBVersionId,
+	pub project_id: DBProjectId,
+	pub url: String,
+	pub filename: String,
+	pub hashes: HashMap<String, String>,
+	pub primary: bool,
+	pub size: u32,
+	pub file_type: Option<FileType>,
 }
 
 impl std::cmp::Ord for VersionQueryResult {
-    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.inner.cmp(&other.inner)
-    }
+	fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+		self.inner.cmp(&other.inner)
+	}
 }
 
 impl std::cmp::PartialOrd for VersionQueryResult {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		Some(self.cmp(other))
+	}
 }
 
 impl std::cmp::PartialEq for VersionQueryResult {
-    fn eq(&self, other: &Self) -> bool {
-        self.inner == other.inner
-    }
+	fn eq(&self, other: &Self) -> bool {
+		self.inner == other.inner
+	}
 }
 
 impl std::cmp::Eq for VersionQueryResult {}
 
 impl std::cmp::Ord for DBVersion {
-    fn cmp(&self, other: &Self) -> Ordering {
-        let ordering_order = match (self.ordering, other.ordering) {
-            (None, None) => Ordering::Equal,
-            (None, Some(_)) => Ordering::Greater,
-            (Some(_), None) => Ordering::Less,
-            (Some(a), Some(b)) => a.cmp(&b),
-        };
+	fn cmp(&self, other: &Self) -> Ordering {
+		let ordering_order = match (self.ordering, other.ordering) {
+			(None, None) => Ordering::Equal,
+			(None, Some(_)) => Ordering::Greater,
+			(Some(_), None) => Ordering::Less,
+			(Some(a), Some(b)) => a.cmp(&b),
+		};
 
-        match ordering_order {
-            Ordering::Equal => self.date_published.cmp(&other.date_published),
-            ordering => ordering,
-        }
-    }
+		match ordering_order {
+			Ordering::Equal => self.date_published.cmp(&other.date_published),
+			ordering => ordering,
+		}
+	}
 }
 
 impl std::cmp::PartialOrd for DBVersion {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
+	fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+		Some(self.cmp(other))
+	}
 }
 
 #[cfg(test)]
 mod tests {
-    use chrono::Months;
+	use chrono::Months;
 
-    use super::*;
+	use super::*;
 
-    #[test]
-    fn test_version_sorting() {
-        let versions = [
-            get_version(4, None, months_ago(6)),
-            get_version(3, None, months_ago(7)),
-            get_version(2, Some(1), months_ago(6)),
-            get_version(1, Some(0), months_ago(4)),
-            get_version(0, Some(0), months_ago(5)),
-        ];
+	#[test]
+	fn test_version_sorting() {
+		let versions = [
+			get_version(4, None, months_ago(6)),
+			get_version(3, None, months_ago(7)),
+			get_version(2, Some(1), months_ago(6)),
+			get_version(1, Some(0), months_ago(4)),
+			get_version(0, Some(0), months_ago(5)),
+		];
 
-        let sorted = versions.iter().cloned().sorted().collect_vec();
+		let sorted = versions.iter().cloned().sorted().collect_vec();
 
-        let expected_sorted_ids = vec![0, 1, 2, 3, 4];
-        let actual_sorted_ids = sorted.iter().map(|v| v.id.0).collect_vec();
-        assert_eq!(expected_sorted_ids, actual_sorted_ids);
-    }
+		let expected_sorted_ids = vec![0, 1, 2, 3, 4];
+		let actual_sorted_ids = sorted.iter().map(|v| v.id.0).collect_vec();
+		assert_eq!(expected_sorted_ids, actual_sorted_ids);
+	}
 
-    fn months_ago(months: u32) -> DateTime<Utc> {
-        Utc::now().checked_sub_months(Months::new(months)).unwrap()
-    }
+	fn months_ago(months: u32) -> DateTime<Utc> {
+		Utc::now().checked_sub_months(Months::new(months)).unwrap()
+	}
 
-    fn get_version(
-        id: i64,
-        ordering: Option<i32>,
-        date_published: DateTime<Utc>,
-    ) -> DBVersion {
-        DBVersion {
-            id: DBVersionId(id),
-            ordering,
-            date_published,
-            project_id: DBProjectId(0),
-            author_id: DBUserId(0),
-            name: String::new(),
-            version_number: String::new(),
-            changelog: String::new(),
-            downloads: 0,
-            version_type: String::new(),
-            featured: false,
-            status: VersionStatus::Listed,
-            requested_status: None,
-            components: exp::VersionSerial::default(),
-        }
-    }
+	fn get_version(
+		id: i64,
+		ordering: Option<i32>,
+		date_published: DateTime<Utc>,
+	) -> DBVersion {
+		DBVersion {
+			id: DBVersionId(id),
+			ordering,
+			date_published,
+			project_id: DBProjectId(0),
+			author_id: DBUserId(0),
+			name: String::new(),
+			version_number: String::new(),
+			changelog: String::new(),
+			downloads: 0,
+			version_type: String::new(),
+			featured: false,
+			status: VersionStatus::Listed,
+			requested_status: None,
+			components: exp::VersionSerial::default(),
+		}
+	}
 }
