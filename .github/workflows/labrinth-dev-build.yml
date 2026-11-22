@@ -1,0 +1,40 @@
+name: 'Publish: API Image Dev'
+run-name: ${{ github.event_name == 'push' && 'Publish API dev' || 'Build API' }} from ${{ github.ref_name }}
+
+on:
+  push:
+    branches:
+      - '*.*.*'
+    paths:
+      - .github/workflows/labrinth-build.yml
+      - .github/workflows/labrinth-dev-build.yml
+      - VERSION
+      - 'apps/labrinth/**'
+      - 'packages/**'
+      - '!packages/api-client/**'
+      - Cargo.toml
+      - Cargo.lock
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - .github/workflows/labrinth-build.yml
+      - .github/workflows/labrinth-dev-build.yml
+      - VERSION
+      - 'apps/labrinth/**'
+      - 'packages/**'
+      - '!packages/api-client/**'
+      - Cargo.toml
+      - Cargo.lock
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    uses: ./.github/workflows/labrinth-build.yml
+    with:
+      channel: ${{ github.event_name == 'push' && 'dev' || 'check' }}
+    secrets: inherit
