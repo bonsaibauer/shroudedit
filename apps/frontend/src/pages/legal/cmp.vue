@@ -22,15 +22,15 @@
 		<h2>Eligibility and participation</h2>
 		<p>
 			Participants must be legally capable of entering the agreement and must provide accurate
-			identity, payment and tax information where required. Participation does not create employment,
-			agency, partnership or exclusivity. Creators remain responsible for their projects and for
-			their own tax and reporting obligations.
+			identity, payment and tax information where required. Participation does not create
+			employment, agency, partnership or exclusivity. Creators remain responsible for their projects
+			and for their own tax and reporting obligations.
 		</p>
 
 		<h2>Calculation of rewards</h2>
 		<p>
-			Where rewards are offered, the applicable calculation method, eligibility rules, minimum payout
-			thresholds and available payout methods are shown in the
+			Where rewards are offered, the applicable calculation method, eligibility rules, minimum
+			payout thresholds and available payout methods are shown in the
 			<nuxt-link to="/legal/cmp-info">Rewards Program information</nuxt-link> and dashboard. Amounts
 			may reflect valid project usage or attributable net revenue after refunds, payment-provider
 			fees, taxes, invalid traffic and fraud adjustments. Displayed estimates are not guaranteed
@@ -47,10 +47,10 @@
 
 		<h2>Manipulation and ineligible activity</h2>
 		<p>
-			Automated or incentivised false traffic, self-generated artificial activity, coordinated metric
-			manipulation, deceptive redirects and rewards generated from unlawful or infringing content are
-			not eligible. We may correct statistics and reclaim amounts paid as a result of demonstrable
-			fraud or material error, subject to applicable law.
+			Automated or incentivised false traffic, self-generated artificial activity, coordinated
+			metric manipulation, deceptive redirects and rewards generated from unlawful or infringing
+			content are not eligible. We may correct statistics and reclaim amounts paid as a result of
+			demonstrable fraud or material error, subject to applicable law.
 		</p>
 
 		<h2>Changes and termination</h2>
@@ -58,8 +58,8 @@
 			We may change or discontinue the programme for valid economic, technical, security or legal
 			reasons. Material changes will be announced with reasonable notice and do not reduce rewards
 			already finally earned, except where an adjustment is required by law or results from fraud or
-			error. A participant may leave the programme at any time and request payout of eligible amounts
-			subject to the applicable threshold and verification requirements.
+			error. A participant may leave the programme at any time and request payout of eligible
+			amounts subject to the applicable threshold and verification requirements.
 		</p>
 
 		<h2>Liability and law</h2>

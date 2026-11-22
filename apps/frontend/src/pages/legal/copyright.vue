@@ -6,8 +6,8 @@
 		<h2>Respect for intellectual property</h2>
 		<p>
 			ShroudEdit respects copyright, open-source licences and other intellectual property rights.
-			Users may upload or distribute content only if they own the necessary rights or have permission
-			under an applicable licence or other legal basis.
+			Users may upload or distribute content only if they own the necessary rights or have
+			permission under an applicable licence or other legal basis.
 		</p>
 
 		<h2>Reporting copyright infringement</h2>
@@ -42,7 +42,8 @@
 			<a href="mailto:copyright@shroudedit.com">copyright@shroudedit.com</a>. Your response should
 			identify the affected content, explain the basis for your right to publish it and include
 			supporting evidence such as authorship, permission, licence terms or an applicable statutory
-			exception. We may forward the response to the complainant where necessary to resolve the claim.
+			exception. We may forward the response to the complainant where necessary to resolve the
+			claim.
 		</p>
 
 		<h2>Repeated or serious infringement</h2>

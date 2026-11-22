@@ -88,7 +88,7 @@
 				:placeholder="formatMessage(commonMessages.passwordLabel)"
 				wrapper-class="w-full"
 			/>
-			<span class="text-secondary text-sm">
+			<span class="text-sm text-secondary">
 				{{ formatMessage(messages.passwordRequirements) }}
 			</span>
 

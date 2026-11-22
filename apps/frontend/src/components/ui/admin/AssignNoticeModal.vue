@@ -4,8 +4,8 @@ import { PlusIcon, XIcon } from '@shroudedit/assets'
 import {
 	Accordion,
 	Button,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	Input,
 	NewModal,
 	ServerNotice,

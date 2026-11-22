@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { BrainCogIcon } from '@shroudedit/assets'
-import { commonMessages, defineMessages, SettingsFormGroup, Textarea, useVIntl } from '@shroudedit/ui'
+import {
+	commonMessages,
+	defineMessages,
+	SettingsFormGroup,
+	Textarea,
+	useVIntl,
+} from '@shroudedit/ui'
 
 import DisclosureToggleCard from './DisclosureToggleCard.vue'
 import type { DisclosureCardMetaProps, DisclosureLockStatus, NoteDisclosure } from './types'

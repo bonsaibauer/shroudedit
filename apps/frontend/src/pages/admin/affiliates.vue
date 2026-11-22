@@ -88,8 +88,8 @@ import {
 	Avatar,
 	Button,
 	ConfirmModal,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	Input,
 } from '@shroudedit/ui'
 import type { User } from '@shroudedit/utils'

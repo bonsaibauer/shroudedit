@@ -1826,7 +1826,8 @@ defineExpose({
 
 .shroudedit-date-picker
 	:deep(.flatpickr-calendar.is-missing-range-end .flatpickr-day.startRange:not(.endRange)::before),
-.shroudedit-date-picker :deep(.flatpickr-calendar.is-missing-range-end .flatpickr-day:hover::before) {
+.shroudedit-date-picker
+	:deep(.flatpickr-calendar.is-missing-range-end .flatpickr-day:hover::before) {
 	background: transparent;
 }
 
@@ -1876,7 +1877,8 @@ defineExpose({
 	right: 0;
 }
 
-.shroudedit-date-picker.can-select-range :deep(.flatpickr-day:not(.flatpickr-disabled):not(.hidden)) {
+.shroudedit-date-picker.can-select-range
+	:deep(.flatpickr-day:not(.flatpickr-disabled):not(.hidden)) {
 	cursor: pointer;
 }
 

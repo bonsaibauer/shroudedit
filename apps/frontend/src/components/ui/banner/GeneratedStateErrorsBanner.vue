@@ -15,7 +15,7 @@ const messages = defineMessages({
 	description: {
 		id: 'layout.banner.build-fail.description',
 		defaultMessage:
-			"This ShroudEdit frontend deploy failed to generate state from the API. This may be due to an outage or a configuration error. Rebuild when the API is available. Error codes: {errors}; Current API URL is: {url}",
+			'This ShroudEdit frontend deploy failed to generate state from the API. This may be due to an outage or a configuration error. Rebuild when the API is available. Error codes: {errors}; Current API URL is: {url}',
 	},
 	ignoreErrors: {
 		id: 'layout.banner.build-fail.ignore',

@@ -15,8 +15,8 @@
 import {
 	commonMessages,
 	defineMessages,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	useVIntl,
 } from '@shroudedit/ui'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'

@@ -47,7 +47,9 @@
 		</div>
 		<div v-if="projectType === 'schematic'" class="flex flex-col gap-5">
 			<div class="rounded-xl border border-solid border-surface-5 bg-surface-2 p-4">
-				<div class="font-semibold text-contrast">{{ formatMessage(messages.schematicMetadata) }}</div>
+				<div class="font-semibold text-contrast">
+					{{ formatMessage(messages.schematicMetadata) }}
+				</div>
 				<div class="mt-1 text-sm text-secondary">
 					{{ formatMessage(messages.schematicMetadataDescription) }}
 				</div>
@@ -130,8 +132,8 @@ import {
 	Input,
 	MarkdownEditor,
 	Tabs,
-	Textarea,
 	type TabsTab,
+	Textarea,
 	useVIntl,
 } from '@shroudedit/ui'
 

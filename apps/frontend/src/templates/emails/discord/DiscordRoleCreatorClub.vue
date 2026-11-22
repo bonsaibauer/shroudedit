@@ -21,7 +21,8 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		</Text>
 
 		<Text class="text-base">
-			To join just link your Discord account through ShroudEdit and we'll grant access automatically!
+			To join just link your Discord account through ShroudEdit and we'll grant access
+			automatically!
 		</Text>
 
 		<Section class="mb-4 mt-4">

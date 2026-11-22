@@ -18,9 +18,9 @@
 import type { Labrinth } from '@shroudedit/api-client'
 import {
 	DropArea,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectProjectPageContext,
+	injectShroudEditClient,
 	MultiStageModal,
 } from '@shroudedit/ui'
 import { acceptFileFromProjectType } from '@shroudedit/utils'

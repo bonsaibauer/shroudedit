@@ -3,7 +3,6 @@ export const getProjectTypeForUrl = (type, categories) => {
 }
 
 export const getProjectTypeForUrlShorthand = (type, categories, overrideTags) => {
-
 	const tags = overrideTags ?? useGeneratedState().value
 
 	if (type === 'mod') {

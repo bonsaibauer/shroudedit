@@ -29,7 +29,6 @@ import { analyticsStatCardMessages, formatAnalyticsStatLabel } from '../analytic
 import { formatAnalyticsTableFullPlaytime } from '../analytics-table/analytics-table-formatting.ts'
 import StatCard from './StatCard.vue'
 
-
 const {
 	activeStat,
 	setActiveStat,
@@ -174,7 +173,6 @@ function formatPreviousPeriodComparison(
 			return formatSignedStatNumber(delta)
 	}
 }
-
 
 const statCards = computed<
 	{

@@ -242,8 +242,8 @@ import {
 	DashboardIcon,
 	LogInIcon,
 	QuestionMarkIcon,
-	ShroudEditIcon,
 	SearchIcon,
+	ShroudEditIcon,
 } from '@shroudedit/assets'
 import {
 	Avatar,
@@ -267,7 +267,6 @@ const formatRelativeTime = useRelativeTime()
 
 const { formatMessage } = useVIntl()
 const { labrinth } = injectShroudEditClient()
-const config = useRuntimeConfig()
 
 const searchQuery = ref('leave')
 const sortType = ref('relevance')
@@ -411,7 +410,6 @@ const contentTypeMessages = defineMessages({
 		defaultMessage: 'servers',
 	},
 })
-
 </script>
 
 <style lang="scss" scoped>

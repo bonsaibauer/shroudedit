@@ -137,7 +137,7 @@
 								label: 'Copy link',
 								action: () =>
 									copyToClipboard(
-									`${config.public.siteUrl}/${project.project_type}/${
+										`${config.public.siteUrl}/${project.project_type}/${
 											project.slug ? project.slug : project.id
 										}/version/${encodeURI(version.displayUrlEnding ? version.displayUrlEnding : version.id)}`,
 									),
@@ -289,9 +289,9 @@ import { moderationSettings } from '@shroudedit/moderation'
 import {
 	ButtonLink,
 	ConfirmModal,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectProjectPageContext,
+	injectShroudEditClient,
 	ProjectPageVersions,
 	TeleportOverflowMenu,
 } from '@shroudedit/ui'

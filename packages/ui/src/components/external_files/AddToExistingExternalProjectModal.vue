@@ -7,7 +7,7 @@ import { computed, ref, useTemplateRef } from 'vue'
 import { Accordion, Input, NewModal } from '#ui/components'
 import { Button } from '#ui/components/base/buttons'
 
-import { injectShroudEditClient, injectNotificationManager } from '../../providers'
+import { injectNotificationManager, injectShroudEditClient } from '../../providers'
 import AttributionGroupFilePicker from './AttributionGroupFilePicker.vue'
 import {
 	MODERATOR_ATTRIBUTION_KIND_LABELS,

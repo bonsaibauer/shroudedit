@@ -573,9 +573,9 @@ import {
 	commonProjectSettingsMessages,
 	ConfirmModal,
 	IconButton,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectProjectPageContext,
+	injectShroudEditClient,
 	Input,
 	Toggle,
 } from '@shroudedit/ui'

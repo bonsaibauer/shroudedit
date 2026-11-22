@@ -85,10 +85,7 @@ type HeaderProject = Pick<
 	icon_url?: string | null
 }
 
-type HeaderProjectV3 = Pick<
-	Labrinth.Projects.v3.Project,
-	'status' | 'enshrouded_server'
->
+type HeaderProjectV3 = Pick<Labrinth.Projects.v3.Project, 'status' | 'enshrouded_server'>
 
 withDefaults(
 	defineProps<{

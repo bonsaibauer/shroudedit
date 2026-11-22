@@ -102,7 +102,8 @@ const modMenuItem: ContentItem = {
 		id: 'mOgUt4GM',
 		slug: 'modmenu',
 		title: 'Mod Menu',
-		icon_url: 'https://cdn.shroudedit.com/data/mOgUt4GM/5a20ed1450a0e1e79a1fe04e61bb4e5878bf1d20.png',
+		icon_url:
+			'https://cdn.shroudedit.com/data/mOgUt4GM/5a20ed1450a0e1e79a1fe04e61bb4e5878bf1d20.png',
 	},
 	version: {
 		id: 'QuU0ciaR',
@@ -184,7 +185,8 @@ const entityTextureFeaturesItem: ContentItem = {
 		id: 'etf456',
 		slug: 'entity-texture-features',
 		title: '[ETF] Entity Texture Features',
-		icon_url: 'https://cdn.shroudedit.com/data/mOgUt4GM/5a20ed1450a0e1e79a1fe04e61bb4e5878bf1d20.png',
+		icon_url:
+			'https://cdn.shroudedit.com/data/mOgUt4GM/5a20ed1450a0e1e79a1fe04e61bb4e5878bf1d20.png',
 	},
 	version: {
 		id: 'etfv1',

@@ -8,7 +8,12 @@ import {
 	VenmoColorIcon,
 } from '@shroudedit/assets'
 import type { MessageDescriptor } from '@shroudedit/ui'
-import { createContext, getCurrencyIcon, paymentMethodMessages, useDebugLogger } from '@shroudedit/ui'
+import {
+	createContext,
+	getCurrencyIcon,
+	paymentMethodMessages,
+	useDebugLogger,
+} from '@shroudedit/ui'
 import { type Component, computed, type ComputedRef, type Ref, ref } from 'vue'
 
 import { type FieldConfig, getRailConfig } from '@/utils/muralpay-rails'

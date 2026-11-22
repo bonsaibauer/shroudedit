@@ -13,12 +13,12 @@ function hasValidSchematicMetadata(ctx: ManageVersionContextValue) {
 	const formatVersion = Number(version.schematic_format_version)
 	return Boolean(
 		Number.isInteger(formatVersion) &&
-			formatVersion >= 1 &&
-			formatVersion <= 2147483647 &&
-			version.world_editor_version?.trim() &&
-			version.schematic_width &&
-			version.schematic_height &&
-			version.schematic_depth,
+		formatVersion >= 1 &&
+		formatVersion <= 2147483647 &&
+		version.world_editor_version?.trim() &&
+		version.schematic_width &&
+		version.schematic_height &&
+		version.schematic_depth,
 	)
 }
 

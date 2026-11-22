@@ -23,7 +23,7 @@ import { useDebounceFn } from '@vueuse/core'
 import Fuse from 'fuse.js'
 import { defineAsyncComponent, h, markRaw, ref, watch } from 'vue'
 
-import { injectShroudEditClient, injectNotificationManager } from '../../providers'
+import { injectNotificationManager, injectShroudEditClient } from '../../providers'
 import type { ComboboxOption, ComboboxSearchInputVariant } from '../base/Combobox.vue'
 import Combobox from '../base/Combobox.vue'
 

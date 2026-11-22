@@ -127,7 +127,9 @@ export function getVersionGroupsForDisplay(
 
 	const releaseVersionsAsRanges: VersionDisplayGroup[] = projectVersionsGrouped.map(
 		({ major, minor }) => {
-			const versions = minor.map((minorVersion) => formatEnshroudedMinorVersion(major, minorVersion))
+			const versions = minor.map((minorVersion) =>
+				formatEnshroudedMinorVersion(major, minorVersion),
+			)
 
 			if (minor.length === 1) {
 				return { label: versions[0], versions }

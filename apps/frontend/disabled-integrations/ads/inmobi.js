@@ -85,7 +85,9 @@
 				} else {
 					json = event.data
 				}
-			} catch (ignore) {}
+			} catch {
+				return
+			}
 
 			var payload = json.__tcfapiCall
 
@@ -119,7 +121,9 @@
 					cmpFrame = win
 					break
 				}
-			} catch (ignore) {}
+			} catch {
+				// Access to frames from another origin can be denied.
+			}
 
 			if (win === window.top) {
 				break
@@ -264,10 +268,11 @@
 		}
 		window.__gpp_msghandler = function (event) {
 			var msgIsString = typeof event.data === 'string'
+			var json
 			try {
-				var json = msgIsString ? JSON.parse(event.data) : event.data
-			} catch (e) {
-				var json = null
+				json = msgIsString ? JSON.parse(event.data) : event.data
+			} catch {
+				json = null
 			}
 			if (typeof json === 'object' && json !== null && '__gppCall' in json) {
 				var i = json.__gppCall

@@ -71,7 +71,8 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		<Text class="text-muted text-base">
 			If this wasn't you, please update your password and review your account security settings. If
 			you cannot do this, contact us immediately through our
-			<VLink href="https://support.shroudedit.com" class="text-green underline">Support Portal</VLink
+			<VLink href="https://support.shroudedit.com" class="text-green underline"
+				>Support Portal</VLink
 			>.
 		</Text>
 	</StyledEmail>

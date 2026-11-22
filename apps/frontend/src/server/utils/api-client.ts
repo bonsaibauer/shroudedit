@@ -15,7 +15,9 @@ export interface ServerShroudEditClientOptions {
 	authToken?: string
 }
 
-export function useServerShroudEditClient(options?: ServerShroudEditClientOptions): NuxtShroudEditClient {
+export function useServerShroudEditClient(
+	options?: ServerShroudEditClientOptions,
+): NuxtShroudEditClient {
 	const config = useRuntimeConfig(options?.event)
 	const apiBaseUrl = (config.apiBaseUrl || config.public.apiBaseUrl).replace('/v2/', '/')
 	const sharedInstancesBaseUrl =

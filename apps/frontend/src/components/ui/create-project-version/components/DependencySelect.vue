@@ -18,7 +18,7 @@
 
 <script lang="ts" setup>
 import type { ComboboxOption } from '@shroudedit/ui'
-import { Combobox, injectShroudEditClient, injectNotificationManager } from '@shroudedit/ui'
+import { Combobox, injectNotificationManager, injectShroudEditClient } from '@shroudedit/ui'
 import { useDebounceFn } from '@vueuse/core'
 import { defineAsyncComponent, h, markRaw, ref, watch } from 'vue'
 

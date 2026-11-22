@@ -98,8 +98,8 @@ import {
 	Button,
 	commonMessages,
 	defineMessages,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	Input,
 	useVIntl,
 } from '@shroudedit/ui'

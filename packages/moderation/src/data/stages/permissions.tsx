@@ -1,6 +1,6 @@
 import type { Labrinth } from '@shroudedit/api-client'
 import { SignatureIcon } from '@shroudedit/assets'
-import { injectShroudEditClient, injectProjectPageContext } from '@shroudedit/ui'
+import { injectProjectPageContext, injectShroudEditClient } from '@shroudedit/ui'
 import { useQuery } from '@tanstack/vue-query'
 import { computed } from 'vue'
 

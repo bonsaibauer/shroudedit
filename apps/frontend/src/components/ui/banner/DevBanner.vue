@@ -19,7 +19,8 @@ const messages = defineMessages({
 	},
 	description: {
 		id: 'layout.banner.dev.description.developmentServices',
-		defaultMessage: 'This Dev frontend is configured to use the development API and service endpoints.',
+		defaultMessage:
+			'This Dev frontend is configured to use the development API and service endpoints.',
 	},
 })
 

@@ -1,5 +1,6 @@
 import { execSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
+
 import serverSidedVue from '@vitejs/plugin-vue'
 import fs from 'fs/promises'
 import { defineNuxtConfig } from 'nuxt/config'

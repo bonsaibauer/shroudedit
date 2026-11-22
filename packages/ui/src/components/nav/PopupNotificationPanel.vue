@@ -176,9 +176,9 @@
 import {
 	CheckCircleIcon,
 	DownloadIcon,
+	EnshroudedServerIcon,
 	InfoIcon,
 	IssuesIcon,
-	EnshroudedServerIcon,
 	XCircleIcon,
 	XIcon,
 } from '@shroudedit/assets'

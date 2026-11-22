@@ -34,8 +34,8 @@
 
 		<h2>Trademark notice</h2>
 		<p>
-			NOT AN OFFICIAL ENSHROUDED SERVICE. NOT APPROVED BY OR ASSOCIATED WITH KEEN GAMES.
-			Enshrouded and related names and marks belong to their respective owners.
+			NOT AN OFFICIAL ENSHROUDED SERVICE. NOT APPROVED BY OR ASSOCIATED WITH KEEN GAMES. Enshrouded
+			and related names and marks belong to their respective owners.
 		</p>
 	</div>
 </template>

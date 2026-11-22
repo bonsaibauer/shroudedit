@@ -1,5 +1,8 @@
 <template>
-	<div v-if="monetizationEnabled" class="wrapper relative mb-3 flex w-full justify-center rounded-2xl">
+	<div
+		v-if="monetizationEnabled"
+		class="wrapper relative mb-3 flex w-full justify-center rounded-2xl"
+	>
 		<AutoLink
 			:to="currentAd.link"
 			:aria-label="currentAd.description"

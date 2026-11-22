@@ -1,8 +1,8 @@
 import type { Labrinth } from '@shroudedit/api-client'
 import {
 	createContext,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	type ProjectPageContext,
 } from '@shroudedit/ui'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'

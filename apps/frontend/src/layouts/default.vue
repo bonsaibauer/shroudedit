@@ -54,9 +54,7 @@
 				flags.showAllBanners || (config.public.buildEnv === 'production' && config.public.preview)
 			"
 		/>
-		<DevBanner
-			v-if="flags.showAllBanners || config.public.buildEnv === 'dev'"
-		/>
+		<DevBanner v-if="flags.showAllBanners || config.public.buildEnv === 'dev'" />
 		<GeneratedStateErrorsBanner
 			:errors="generatedStateErrors"
 			:api-url="config.public.apiBaseUrl"
@@ -1238,9 +1236,7 @@ const randomProjects = ref([])
 const disableRandomProjects = ref(false)
 
 const disableRandomProjectsForRoute = computed(
-	() =>
-		route.name.includes('settings') ||
-		route.name.includes('admin'),
+	() => route.name.includes('settings') || route.name.includes('admin'),
 )
 
 async function onKeyDown(event) {

@@ -9,7 +9,11 @@ export const versionQueryOptions = {
 		staleTime: STALE_TIME,
 	}),
 
-	fromProject: (projectId: string, versionIdOrNumber: string, client: AbstractShroudEditClient) => ({
+	fromProject: (
+		projectId: string,
+		versionIdOrNumber: string,
+		client: AbstractShroudEditClient,
+	) => ({
 		queryKey: ['project', projectId, 'version', 'v3', versionIdOrNumber] as const,
 		queryFn: () =>
 			client.labrinth.versions_v3.getVersionFromIdOrNumber(projectId, versionIdOrNumber),

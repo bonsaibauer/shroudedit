@@ -4,9 +4,9 @@ import { onBeforeRouteLeave } from 'vue-router'
 import { useServerBackupsQueue } from '#ui/composables/server-backups-queue'
 import {
 	injectAppBackup,
+	injectNotificationManager,
 	injectShroudEditClient,
 	injectShroudEditServerContext,
-	injectNotificationManager,
 } from '#ui/providers'
 
 export function useInlineBackup(backupName: string | (() => string)) {

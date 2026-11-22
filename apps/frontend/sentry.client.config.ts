@@ -1,5 +1,6 @@
-import { useRuntimeConfig } from '#imports'
 import * as Sentry from '@sentry/nuxt'
+
+import { useRuntimeConfig } from '#imports'
 
 const runtimeConfig = useRuntimeConfig()
 

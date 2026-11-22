@@ -73,16 +73,16 @@
 		</p>
 		<h3>What methods can I use withdraw money from my account? Are there any fees?</h3>
 		<p>
-			Right now, you can use PayPal or Venmo to withdraw money from your ShroudEdit account. Gift card
-			withdrawal is also available. We are working on more methods to withdraw money from your
+			Right now, you can use PayPal or Venmo to withdraw money from your ShroudEdit account. Gift
+			card withdrawal is also available. We are working on more methods to withdraw money from your
 			account. There are fees to withdraw money from your ShroudEdit account—see the revenue page in
 			your dashboard for more information.
 		</p>
 		<h3 id="pending">What does "pending" revenue mean in my dashboard?</h3>
 		<p>
-			ShroudEdit receives ad revenue from our ad providers on a NET 60 day basis. Due to this, not all
-			revenue is immediately available to withdraw. We pay creators as soon as we receive the money
-			from our ad providers, which is 60 days after the last day of each month.
+			ShroudEdit receives ad revenue from our ad providers on a NET 60 day basis. Due to this, not
+			all revenue is immediately available to withdraw. We pay creators as soon as we receive the
+			money from our ad providers, which is 60 days after the last day of each month.
 		</p>
 
 		<p>
@@ -133,12 +133,12 @@
 		<p>
 			We aim to be as transparent as possible with creator revenue. All of our code is open source,
 			including our
-		<a href="https://github.com/bonsaibauer/shroudedit/tree/HEAD/apps/labrinth/src/queue/payouts">
+			<a href="https://github.com/bonsaibauer/shroudedit/tree/HEAD/apps/labrinth/src/queue/payouts">
 				revenue distribution system</a
 			>. We also have an
 			<a href="https://api.shroudedit.com/v3/payout/platform_revenue">API route</a>
-			to query the exact daily advertising revenue for the site - so far, creators on ShroudEdit have
-			earned a total of <strong>{{ formatMoney(platformRevenue) }}</strong> in ad revenue.
+			to query the exact daily advertising revenue for the site - so far, creators on ShroudEdit
+			have earned a total of <strong>{{ formatMoney(platformRevenue) }}</strong> in ad revenue.
 		</p>
 		<table>
 			<thead>
@@ -167,7 +167,12 @@
 </template>
 
 <script lang="ts" setup>
-import { DatePicker, injectShroudEditClient, useFormatDateTime, useFormatMoney } from '@shroudedit/ui'
+import {
+	DatePicker,
+	injectShroudEditClient,
+	useFormatDateTime,
+	useFormatMoney,
+} from '@shroudedit/ui'
 import { useQuery } from '@tanstack/vue-query'
 import dayjs from 'dayjs'
 import { computed, ref } from 'vue'

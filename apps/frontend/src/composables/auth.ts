@@ -1,6 +1,6 @@
 import type { Labrinth } from '@shroudedit/api-client'
 import { useStorage } from '@vueuse/core'
-import type { LocationQueryValue, RouteLocationNormalizedLoaded } from 'vue-router'
+import type { RouteLocationNormalizedLoaded } from 'vue-router'
 
 import { rememberStoredAccount } from '@/composables/accounts.ts'
 import { useAuthCookie } from '@/composables/auth-cookie.ts'
@@ -10,7 +10,6 @@ type AuthState = {
 	token: string
 }
 
-type QueryValue = LocationQueryValue | LocationQueryValue[] | undefined
 type FullPathRoute = Pick<RouteLocationNormalizedLoaded, 'fullPath'>
 type AuthInitRoute = Pick<RouteLocationNormalizedLoaded, 'fullPath' | 'path' | 'query'>
 
@@ -42,13 +41,6 @@ const clearAuthCookie = (auth: AuthState, authCookie: { value: string | null }) 
 	authCookie.value = null
 	auth.token = ''
 	auth.user = null
-}
-
-const getQueryString = (value: QueryValue) => {
-	if (Array.isArray(value)) {
-		return value[0] ?? null
-	}
-	return value ?? null
 }
 
 export const useAuthState = () =>

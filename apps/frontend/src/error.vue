@@ -247,7 +247,8 @@ const messages = {
 		list_items: [
 			defineMessage({
 				id: 'error.generic.default.list_item.1',
-				defaultMessage: 'Check if ShroudEdit is down on our <status-link>Status page</status-link>.',
+				defaultMessage:
+					'Check if ShroudEdit is down on our <status-link>Status page</status-link>.',
 			}),
 			defineMessage({
 				id: 'error.generic.default.list_item.2',

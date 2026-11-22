@@ -499,8 +499,8 @@ import {
 	formatProjectTypeSentence,
 	getActiveDisclosures,
 	IconButton,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	NavTabs,
 	PageHeader,
 	PageHeaderActions,
@@ -880,10 +880,6 @@ const project = computed(() => {
 		),
 	}
 })
-
-const routeProjectType = computed(() =>
-	Array.isArray(route.params.type) ? route.params.type[0] : route.params.type,
-)
 
 const sharedProjectId = injectCurrentProjectId(null)
 if (sharedProjectId) {
@@ -1807,10 +1803,7 @@ if (!route.name.startsWith('type-project-settings')) {
 		description: () => description.value,
 		ogTitle: () => title.value,
 		ogDescription: () => project.value?.description ?? PROJECT_NOT_FOUND_DESCRIPTION,
-		ogImage: () =>
-			project.value
-				? (project.value?.icon_url ?? QuestionMarkUrl)
-				: QuestionMarkUrl,
+		ogImage: () => (project.value ? (project.value?.icon_url ?? QuestionMarkUrl) : QuestionMarkUrl),
 		ogUrl: createCanonicalUrl,
 		robots: () => (project.value?.status === 'approved' ? 'all' : 'noindex'),
 	})

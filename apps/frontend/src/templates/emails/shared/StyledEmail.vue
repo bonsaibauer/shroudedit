@@ -8,7 +8,6 @@ defineProps<{
 	manualLinks?: { link: string; label?: string }[]
 	supportInfo?: string[]
 }>()
-
 </script>
 
 <template>
@@ -35,7 +34,11 @@ defineProps<{
 			<Container class="max-w-[600px]">
 				<Row>
 					<Column class="align-middle">
-						<VLink href="https://shroudedit.com" aria-label="ShroudEdit" class="font-bold text-green">
+						<VLink
+							href="https://shroudedit.com"
+							aria-label="ShroudEdit"
+							class="font-bold text-green"
+						>
 							ShroudEdit
 						</VLink>
 						<Text class="mb-0 mt-2 text-xs" :style="{ color: '#4d4d4d' }">

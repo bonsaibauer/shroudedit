@@ -50,7 +50,14 @@ async function readMrpackManifest(rawFile: RawFile): Promise<string> {
 	}
 }
 
-async function inferSfbpMetadata(rawFile: RawFile): Promise<Pick<InferredVersionInfo, 'schematic_format_version' | 'schematic_width' | 'schematic_height' | 'schematic_depth'>> {
+async function inferSfbpMetadata(
+	rawFile: RawFile,
+): Promise<
+	Pick<
+		InferredVersionInfo,
+		'schematic_format_version' | 'schematic_width' | 'schematic_height' | 'schematic_depth'
+	>
+> {
 	const content = await rawFile.slice(0, 1_048_576).text()
 	const lines = content.split(/\r?\n/)
 	if (lines[0] !== 'SHROUDFORGE_WORLD_BLUEPRINT_V7') {

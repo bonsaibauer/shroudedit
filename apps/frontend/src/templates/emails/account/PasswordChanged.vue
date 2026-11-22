@@ -15,7 +15,8 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		<Text class="text-muted text-base"> Your password has been changed on your account. </Text>
 		<Text class="text-muted text-base">
 			If you did not make this change, please contact us immediately through our
-			<VLink href="https://support.shroudedit.com" class="text-green underline">Support Portal</VLink
+			<VLink href="https://support.shroudedit.com" class="text-green underline"
+				>Support Portal</VLink
 			>.
 		</Text>
 	</StyledEmail>

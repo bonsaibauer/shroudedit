@@ -35,9 +35,9 @@
 
 		<h2>Our response</h2>
 		<p>
-			We will aim to acknowledge useful reports, assess their severity and coordinate remediation and
-			disclosure where appropriate. Response and remediation times depend on severity, complexity and
-			available resources. We do not currently operate a paid bug-bounty programme.
+			We will aim to acknowledge useful reports, assess their severity and coordinate remediation
+			and disclosure where appropriate. Response and remediation times depend on severity,
+			complexity and available resources. We do not currently operate a paid bug-bounty programme.
 		</p>
 
 		<h2>Usually out of scope</h2>

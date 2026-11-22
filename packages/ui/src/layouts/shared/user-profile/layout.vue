@@ -405,8 +405,8 @@ import {
 } from '@shroudedit/assets'
 import {
 	getPrimaryProjectType,
-	isShroudEditUser as checkIsShroudEditUser,
 	isOfficialAccount as checkIsOfficialAccount,
+	isShroudEditUser as checkIsShroudEditUser,
 	UserBadge,
 } from '@shroudedit/utils'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
@@ -430,9 +430,9 @@ import UserPageHeader from '#ui/components/user/UserPageHeader.vue'
 import { defineMessages, useVIntl } from '#ui/composables'
 import {
 	injectAuth,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectPageContext,
+	injectShroudEditClient,
 } from '#ui/providers'
 import {
 	catalogProjectTypes,

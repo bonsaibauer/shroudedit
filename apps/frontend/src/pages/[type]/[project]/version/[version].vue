@@ -182,8 +182,8 @@
 									id: 'copy-permalink',
 									label: formatMessage(commonMessages.copyPermalinkButton),
 									action: () =>
-									copyToClipboard(
-										`${config.public.siteUrl}/project/${project.id}/version/${version!.id}`,
+										copyToClipboard(
+											`${config.public.siteUrl}/project/${project.id}/version/${version!.id}`,
 										),
 									shown: flags.developerMode,
 								},
@@ -320,7 +320,9 @@
 						{{ formatMessage(messages.schematicDetails) }}
 					</h2>
 					<div class="grid gap-4 lg:grid-cols-[minmax(0,1.4fr)_minmax(18rem,1fr)]">
-						<div class="overflow-hidden rounded-xl border border-solid border-surface-4 bg-surface-3">
+						<div
+							class="overflow-hidden rounded-xl border border-solid border-surface-4 bg-surface-3"
+						>
 							<img
 								v-if="schematicPreview"
 								:src="schematicPreview"
@@ -337,17 +339,23 @@
 						</div>
 						<dl class="m-0 grid content-start gap-3 rounded-xl bg-surface-3 p-4">
 							<div>
-								<dt class="text-sm text-secondary">{{ formatMessage(messages.worldEditorVersion) }}</dt>
+								<dt class="text-sm text-secondary">
+									{{ formatMessage(messages.worldEditorVersion) }}
+								</dt>
 								<dd class="m-0 font-semibold text-contrast">
 									{{ version.world_editor_version }}
 								</dd>
 							</div>
 							<div>
-								<dt class="text-sm text-secondary">{{ formatMessage(messages.schematicDimensions) }}</dt>
+								<dt class="text-sm text-secondary">
+									{{ formatMessage(messages.schematicDimensions) }}
+								</dt>
 								<dd class="m-0 font-semibold text-contrast">{{ schematicDimensions }}</dd>
 							</div>
 							<div>
-								<dt class="text-sm text-secondary">{{ formatMessage(messages.schematicFormatVersion) }}</dt>
+								<dt class="text-sm text-secondary">
+									{{ formatMessage(messages.schematicFormatVersion) }}
+								</dt>
 								<dd class="m-0 font-semibold text-contrast">
 									{{ version.schematic_format_version }}
 								</dd>
@@ -361,7 +369,9 @@
 						</dl>
 					</div>
 					<div v-if="primaryFile" class="rounded-xl bg-surface-3 p-4">
-						<div class="mb-2 font-semibold text-contrast">{{ formatMessage(messages.checksum) }}</div>
+						<div class="mb-2 font-semibold text-contrast">
+							{{ formatMessage(messages.checksum) }}
+						</div>
 						<code class="block break-all text-xs">SHA-512: {{ primaryFile.hashes.sha512 }}</code>
 					</div>
 					<div class="rounded-xl bg-surface-3 p-4">
@@ -426,16 +436,15 @@ import { moderationSettings } from '@shroudedit/moderation'
 import {
 	Admonition,
 	BackToParentLink,
-	Button,
 	ButtonLink,
 	commonMessages,
 	commonProjectSettingsMessages,
 	ConfirmModal,
 	defineMessages,
 	IconButton,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectProjectPageContext,
+	injectShroudEditClient,
 	TeleportOverflowMenu,
 	useFormatBytes,
 	useFormatDateTime,
@@ -463,7 +472,6 @@ const route = useNativeRoute()
 const router = useRouter()
 const modSettings = useModerationSettings()
 const auth = await useAuth()
-const tags = useGeneratedState()
 const client = injectShroudEditClient()
 const queryClient = useQueryClient()
 const { addNotification } = injectNotificationManager()
@@ -474,7 +482,6 @@ const { formatMessage } = useVIntl()
 
 const {
 	projectV2: project,
-	projectV3,
 	currentMember,
 	allMembers: members,
 	versions,
@@ -675,17 +682,16 @@ const primaryFile = computed(
 	() => version.value?.files?.find((file) => file.primary) ?? version.value?.files?.[0],
 )
 const isSchematic = computed(
-	() => project.value.project_type === 'schematic' || project.value.actualProjectType === 'schematic',
+	() =>
+		project.value.project_type === 'schematic' || project.value.actualProjectType === 'schematic',
 )
 const schematicPreview = computed(
 	() =>
-		project.value.gallery?.find((image) => image.featured)?.url ??
-		project.value.gallery?.[0]?.url,
+		project.value.gallery?.find((image) => image.featured)?.url ?? project.value.gallery?.[0]?.url,
 )
 const schematicDimensions = computed(() => {
 	if (!version.value) return '—'
-	const { schematic_width: width, schematic_height: height, schematic_depth: depth } =
-		version.value
+	const { schematic_width: width, schematic_height: height, schematic_depth: depth } = version.value
 	return width && height && depth ? `${width} × ${height} × ${depth}` : '—'
 })
 

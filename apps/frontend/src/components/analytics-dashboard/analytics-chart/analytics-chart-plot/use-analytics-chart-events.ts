@@ -88,7 +88,8 @@ export function useAnalyticsChartEvents(
 		...visibleProjectChartEvents.value,
 	])
 	const hasVisibleTimelineEvents = computed(
-		() => visibleShroudEditChartEvents.value.length > 0 || visibleProjectChartEvents.value.length > 0,
+		() =>
+			visibleShroudEditChartEvents.value.length > 0 || visibleProjectChartEvents.value.length > 0,
 	)
 
 	function isTimelineEventVisibleInCurrentGraph(event: AnalyticsChartEvent) {

@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import type { Labrinth } from '@shroudedit/api-client'
-import { ShroudEditIcon, ScaleIcon } from '@shroudedit/assets'
+import { ScaleIcon, ShroudEditIcon } from '@shroudedit/assets'
 
 import { defineMessages, useVIntl } from '#ui/composables/i18n'
 

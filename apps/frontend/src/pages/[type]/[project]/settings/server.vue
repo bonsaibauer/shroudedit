@@ -190,15 +190,15 @@
 <script setup>
 import { RefreshCwIcon, SpinnerIcon } from '@shroudedit/assets'
 import {
-	Combobox,
 	Checkbox,
+	Combobox,
 	commonProjectSettingsMessages,
 	ConfirmLeaveModal,
 	defineMessages,
 	IconButton,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectProjectPageContext,
+	injectShroudEditClient,
 	Input,
 	MultiSelect,
 	SERVER_LANGUAGES,

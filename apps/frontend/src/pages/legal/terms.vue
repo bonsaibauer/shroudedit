@@ -20,8 +20,8 @@
 			By creating an account or using account-based functions, you agree to these Terms. Our
 			<nuxt-link to="/legal/rules">Content Rules</nuxt-link>,
 			<nuxt-link to="/legal/copyright">Copyright Policy</nuxt-link> and
-			<nuxt-link to="/legal/privacy">Privacy Policy</nuxt-link> form part of the rules governing
-			the Service.
+			<nuxt-link to="/legal/privacy">Privacy Policy</nuxt-link> form part of the rules governing the
+			Service.
 		</p>
 
 		<h2>2. Eligibility</h2>
@@ -116,8 +116,8 @@
 		<p>
 			Users and third parties can report content through the reporting tools or by emailing
 			<a href="mailto:support@shroudedit.com">support@shroudedit.com</a>. Reports of illegal content
-			should identify the exact content or URL, explain the alleged illegality and include sufficient
-			contact information and supporting facts for an informed assessment.
+			should identify the exact content or URL, explain the alleged illegality and include
+			sufficient contact information and supporting facts for an informed assessment.
 		</p>
 		<p>
 			We may reject, restrict, demonetise, hide or remove content and may warn, suspend or terminate
@@ -131,9 +131,9 @@
 		<h2>10. Intellectual property and branding</h2>
 		<p>
 			The Service software, design and ShroudEdit branding are protected by applicable copyright and
-			trademark law, subject to the licences published with our open-source repositories. Open-source
-			components remain governed by their respective licences. Enshrouded and related marks belong
-			to their respective owners. No affiliation or endorsement is implied.
+			trademark law, subject to the licences published with our open-source repositories.
+			Open-source components remain governed by their respective licences. Enshrouded and related
+			marks belong to their respective owners. No affiliation or endorsement is implied.
 		</p>
 
 		<h2>11. Liability</h2>
@@ -144,10 +144,10 @@
 		</p>
 		<p>
 			For ordinary negligence, we are liable only for breach of an essential contractual obligation,
-			meaning an obligation whose fulfilment makes proper performance possible and on which users may
-			regularly rely. In that case, liability is limited to the foreseeable damage typical for the
-			contract. These limitations also apply to our agents and representatives. Mandatory consumer
-			rights remain unaffected.
+			meaning an obligation whose fulfilment makes proper performance possible and on which users
+			may regularly rely. In that case, liability is limited to the foreseeable damage typical for
+			the contract. These limitations also apply to our agents and representatives. Mandatory
+			consumer rights remain unaffected.
 		</p>
 
 		<h2>12. Indemnification by commercial users</h2>
@@ -159,8 +159,8 @@
 
 		<h2>13. Changes to these Terms</h2>
 		<p>
-			We may update these Terms for valid reasons, including changes to law, security requirements or
-			the Service. We will provide reasonable notice of material changes. Changes do not apply
+			We may update these Terms for valid reasons, including changes to law, security requirements
+			or the Service. We will provide reasonable notice of material changes. Changes do not apply
 			retroactively. If a change materially disadvantages registered users, they may stop using the
 			Service and delete their account before the change takes effect.
 		</p>
@@ -169,8 +169,8 @@
 		<p>
 			German law applies, excluding the UN Convention on Contracts for the International Sale of
 			Goods. For consumers, this choice does not remove mandatory protections provided by the law of
-			their country of habitual residence. Statutory rules on jurisdiction apply. Jurisdiction clauses
-			for merchants and legal entities under public law apply only where legally permitted.
+			their country of habitual residence. Statutory rules on jurisdiction apply. Jurisdiction
+			clauses for merchants and legal entities under public law apply only where legally permitted.
 		</p>
 
 		<h2>15. Contact</h2>

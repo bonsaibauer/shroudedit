@@ -593,10 +593,7 @@ function getLinkInputPlaceholder(clearLink, isDiscord = false) {
 }
 
 function isProjectBulkEditDisabled(project) {
-	return (
-		(project.permissions & EDIT_DETAILS) === EDIT_DETAILS ||
-		project.project_type === 'server'
-	)
+	return (project.permissions & EDIT_DETAILS) === EDIT_DETAILS || project.project_type === 'server'
 }
 
 const bulkEditableProjects = computed(() =>

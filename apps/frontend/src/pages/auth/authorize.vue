@@ -97,8 +97,8 @@ import {
 	Button,
 	commonMessages,
 	defineMessages,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	IntlFormatted,
 	normalizeChildren,
 	useVIntl,
@@ -183,9 +183,7 @@ const redirectUri = computed(() => getQueryString(router.query.redirect_uri))
 const scope = computed(() => getQueryString(router.query.scope))
 const state = computed(() => getQueryString(router.query.state))
 const codeChallenge = computed(() => getQueryString(router.query.code_challenge))
-const codeChallengeMethod = computed(() =>
-	getQueryString(router.query.code_challenge_method),
-)
+const codeChallengeMethod = computed(() => getQueryString(router.query.code_challenge_method))
 const hasRequiredParams = computed(() => !!clientId.value && !!redirectUri.value)
 
 const getFlowIdAuthorization = async () => {

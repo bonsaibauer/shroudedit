@@ -94,8 +94,8 @@ import {
 	Button,
 	ButtonLink,
 	EmptyState,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	Pagination,
 } from '@shroudedit/ui'
 

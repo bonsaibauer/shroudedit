@@ -121,8 +121,8 @@ import { CheckIcon, PlusIcon, XIcon } from '@shroudedit/assets'
 import {
 	Button,
 	Combobox,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	Input,
 	NewModal,
 	TagItem,

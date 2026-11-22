@@ -92,10 +92,10 @@ import {
 	GlobeIcon,
 	LinkIcon,
 	LockIcon,
-	ShroudEditIcon,
 	ScaleIcon,
 	ShieldAlertIcon,
 	ShieldCheckIcon,
+	ShroudEditIcon,
 	UpdatedIcon,
 	XIcon,
 } from '@shroudedit/assets'

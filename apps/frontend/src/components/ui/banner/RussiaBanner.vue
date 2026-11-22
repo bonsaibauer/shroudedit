@@ -23,12 +23,12 @@ function hideRussiaCensorshipBanner() {
 		</template>
 		<template #description>
 			<p class="m-0" lang="ru">
-				Российское правительство потребовало от нас заблокировать некоторые проекты на ShroudEdit, но
-				мы решили отказать им в цензуре.
+				Российское правительство потребовало от нас заблокировать некоторые проекты на ShroudEdit,
+				но мы решили отказать им в цензуре.
 			</p>
 			<p class="-mt-2 mb-0 text-sm opacity-50" lang="en">
-				The Russian government has asked us to censor certain topics on ShroudEdit and we have decided
-				to refuse to comply with their requests.
+				The Russian government has asked us to censor certain topics on ShroudEdit and we have
+				decided to refuse to comply with their requests.
 			</p>
 
 			<p class="m-0 font-semibold" lang="ru">
@@ -36,7 +36,8 @@ function hideRussiaCensorshipBanner() {
 				ShroudEdit.
 			</p>
 			<p class="-mt-2 mb-0 text-sm opacity-50" lang="en">
-				Please seek a reputable VPN or proxy of some kind to continue to access ShroudEdit in Russia.
+				Please seek a reputable VPN or proxy of some kind to continue to access ShroudEdit in
+				Russia.
 			</p>
 		</template>
 		<template #actions>

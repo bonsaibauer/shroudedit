@@ -9,8 +9,8 @@ import {
 } from '@shroudedit/assets'
 import {
 	Alert,
-	injectShroudEditClient,
 	injectProjectPageContext,
+	injectShroudEditClient,
 	ProjectStatusLink,
 } from '@shroudedit/ui'
 import { useQueryClient } from '@tanstack/vue-query'

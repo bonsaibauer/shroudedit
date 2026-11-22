@@ -26,9 +26,9 @@ import { commonMessages } from '#ui/utils'
 import { defineMessage, defineMessages, useVIntl } from '../../composables/i18n'
 import {
 	injectAttributionModeration,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectProjectPageContext,
+	injectShroudEditClient,
 } from '../../providers'
 import type { QuickReply } from '../../providers/attribution-moderation'
 import Textarea from '../base/inputs/Textarea.vue'

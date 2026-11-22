@@ -10,8 +10,8 @@ import {
 import {
 	ButtonLink,
 	IconButton,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 } from '@shroudedit/ui'
 import { capitalizeString, highlightCodeLines } from '@shroudedit/utils'
 import { computed, reactive, ref } from 'vue'

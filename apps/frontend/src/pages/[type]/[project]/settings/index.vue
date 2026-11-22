@@ -51,7 +51,8 @@
 					>
 						<template #prefix>
 							<span class="whitespace-nowrap">
-								<span class="hidden sm:inline">{{ config.public.siteUrl }}</span>/{{ projectTypeForUrl }}/
+								<span class="hidden sm:inline">{{ config.public.siteUrl }}</span
+								>/{{ projectTypeForUrl }}/
 							</span>
 						</template>
 					</Input>
@@ -273,9 +274,9 @@ import {
 	ConfirmModal,
 	defineMessages,
 	FileButton,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectProjectPageContext,
+	injectShroudEditClient,
 	Input,
 	IntlFormatted,
 	normalizeChildren,

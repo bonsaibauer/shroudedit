@@ -4,9 +4,9 @@ import {
 	type ComboboxOption,
 	createContext,
 	defineMessage,
-	injectShroudEditClient,
 	injectNotificationManager,
 	injectProjectPageContext,
+	injectShroudEditClient,
 	type MessageDescriptor,
 	type MultiStageModal,
 	resolveCtxFn,
@@ -550,8 +550,7 @@ export function createManageVersionContext(
 		} catch (err) {
 			console.error('Error parsing version file data', err)
 			if (projectType.value === 'schematic') {
-				const message =
-					err instanceof Error ? err.message : formatMessage(sfbpMessages.readFailure)
+				const message = err instanceof Error ? err.message : formatMessage(sfbpMessages.readFailure)
 				addNotification({
 					title: formatMessage(sfbpMessages.invalidTitle),
 					text: message,

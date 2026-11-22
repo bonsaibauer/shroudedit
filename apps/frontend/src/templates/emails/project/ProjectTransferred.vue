@@ -53,7 +53,8 @@ import StyledEmail from '../shared/StyledEmail.vue'
 
 		<Text class="text-base">
 			If you did not initiate this transfer, please contact support immediately through the
-			<VLink href="https://support.shroudedit.com" class="text-green underline">Support Portal</VLink
+			<VLink href="https://support.shroudedit.com" class="text-green underline"
+				>Support Portal</VLink
 			>.
 		</Text>
 	</StyledEmail>

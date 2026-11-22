@@ -401,7 +401,6 @@ provideBrowseManager({
 	},
 	loadingComponent: LogoAnimated,
 })
-
 </script>
 <template>
 	<Teleport v-if="flags.searchBackground" to="#absolute-background-teleport">
@@ -443,7 +442,6 @@ provideBrowseManager({
 			</BrowseSidebar>
 		</aside>
 	</div>
-
 </template>
 <style lang="scss" scoped>
 .search-background {

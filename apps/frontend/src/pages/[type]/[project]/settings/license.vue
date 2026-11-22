@@ -176,7 +176,12 @@ import {
 	usePageLeaveSafety,
 	useSavable,
 } from '@shroudedit/ui'
-import { builtinLicenses, formatProjectType, isAdmin, TeamMemberPermission } from '@shroudedit/utils'
+import {
+	builtinLicenses,
+	formatProjectType,
+	isAdmin,
+	TeamMemberPermission,
+} from '@shroudedit/utils'
 import { computed } from 'vue'
 
 import ValidationMessage from '@/components/ValidationMessage.vue'

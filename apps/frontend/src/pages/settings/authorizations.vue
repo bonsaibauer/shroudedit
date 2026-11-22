@@ -64,8 +64,8 @@ import {
 	ConfirmModal,
 	defineMessages,
 	EmptyState,
-	injectShroudEditClient,
 	injectNotificationManager,
+	injectShroudEditClient,
 	useVIntl,
 } from '@shroudedit/ui'
 import { useQuery } from '@tanstack/vue-query'

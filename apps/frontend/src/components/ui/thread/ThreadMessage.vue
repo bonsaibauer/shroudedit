@@ -88,8 +88,8 @@
 		/>
 		<div v-else class="message__body status-message">
 			<span v-if="message.body.type === 'legacy_project_message'">
-				This project was published on ShroudEdit before moderation threads existed and may be missing
-				moderation history.
+				This project was published on ShroudEdit before moderation threads existed and may be
+				missing moderation history.
 			</span>
 			<span v-if="message.body.type === 'deleted'"> posted a message that has been deleted. </span>
 			<template v-else-if="message.body.type === 'status_change'">
@@ -156,9 +156,9 @@ import {
 	EyeOffIcon,
 	InfoIcon,
 	MicrophoneIcon,
-	ShroudEditIcon,
 	MoreHorizontalIcon,
 	ScaleIcon,
+	ShroudEditIcon,
 	TrashIcon,
 } from '@shroudedit/assets'
 import { moderationSettings } from '@shroudedit/moderation'

@@ -1,8 +1,8 @@
 import { moderationLocaleModules } from '@shroudedit/moderation'
 import {
-	type LocaleMessages,
 	I18N_INJECTION_KEY,
 	type I18nContext,
+	type LocaleMessages,
 	LOCALES,
 	uiLocaleModules,
 	useDebugLogger,
@@ -106,8 +106,7 @@ async function loadLocale(code: string): Promise<void> {
 		// Merge: UI (base) → moderation → frontend (highest priority)
 		const mergedMessages: Record<string, string> = {}
 		if (uiData) Object.assign(mergedMessages, uiData.default)
-		if (moderationData)
-			Object.assign(mergedMessages, moderationData.default)
+		if (moderationData) Object.assign(mergedMessages, moderationData.default)
 		if (frontendData) Object.assign(mergedMessages, frontendData.default)
 
 		debug('loadLocale: merged', code, 'total keys:', Object.keys(mergedMessages).length)
