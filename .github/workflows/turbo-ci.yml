@@ -129,8 +129,16 @@ jobs:
           fi
 
       - name: Start services
+        id: start-services
         if: steps.check-labrinth.outputs.needs_services == 'true'
         run: docker compose --profile clustered-redis up --wait
+
+      - name: Report service startup failure
+        if: ${{ failure() && steps.start-services.outcome == 'failure' }}
+        run: |
+          docker compose --profile clustered-redis ps -a
+          docker inspect labrinth-clickhouse --format '{{json .State.Health}}' || true
+          docker compose --profile clustered-redis logs --no-color clickhouse
 
       - name: Setup labrinth environment and database
         if: steps.check-labrinth.outputs.needs_services == 'true'
