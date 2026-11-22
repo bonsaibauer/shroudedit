@@ -177,7 +177,7 @@ jobs:
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
             --data '{"hosts": ["dev.shroudedit.com"]}' \
-            https://api.cloudflare.com/client/v4/zones/e39df17b9c4ef44cbce2646346ee6d33/purge_cache)"
+            https://api.cloudflare.com/client/v4/zones/b9410e2dfd320e35223fe41861129f9e/purge_cache)"
           if ! jq -e '.success == true' <<< "$response" >/dev/null; then
             printf '%s\n' "$response" >&2
             exit 1
@@ -192,7 +192,7 @@ jobs:
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
             --data '{"hosts": ["shroudedit.com", "www.shroudedit.com"]}' \
-            https://api.cloudflare.com/client/v4/zones/e39df17b9c4ef44cbce2646346ee6d33/purge_cache)"
+            https://api.cloudflare.com/client/v4/zones/b9410e2dfd320e35223fe41861129f9e/purge_cache)"
           if ! jq -e '.success == true' <<< "$response" >/dev/null; then
             printf '%s\n' "$response" >&2
             exit 1
