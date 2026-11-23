@@ -174,11 +174,11 @@
 			<li>lodge a complaint with a competent data-protection supervisory authority.</li>
 		</ul>
 		<p>
-			Requests may be sent to <a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a>. We may
-			request information necessary to verify your identity. The supervisory authority responsible
-			for our establishment in Lower Saxony is the State Commissioner for Data Protection of Lower
-			Saxony (Der Landesbeauftragte für den Datenschutz Niedersachsen). Information and complaint
-			options are available at
+			Requests may be sent to <a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a>. We
+			may request information necessary to verify your identity. The supervisory authority
+			responsible for our establishment in Lower Saxony is the State Commissioner for Data
+			Protection of Lower Saxony (Der Landesbeauftragte für den Datenschutz Niedersachsen).
+			Information and complaint options are available at
 			<a href="https://www.lfd.niedersachsen.de/">lfd.niedersachsen.de</a>.
 		</p>
 
@@ -207,8 +207,8 @@
 		<h2>12. Contact</h2>
 		<p>
 			Privacy questions and requests should be sent to
-			<a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a> or mailed to the controller at
-			the address stated above.
+			<a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a> or mailed to the controller
+			at the address stated above.
 		</p>
 	</div>
 </template>

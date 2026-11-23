@@ -18,7 +18,7 @@ async fn get_tags() {
 			let loaders = api.get_loaders_deserialized().await;
 			let side_types = api.get_side_types_deserialized().await;
 
-			// These tests match dummy data and will need to be updated if the dummy data changes
+			// Filter out migration-seeded versions because this assertion targets dummy data.
 			// Versions should be ordered by:
 			// - ordering
 			// - ordering ties settled by date added to database
@@ -28,6 +28,10 @@ async fn get_tags() {
 			let game_version_versions = game_versions
 				.into_iter()
 				.map(|x| x.version)
+				.filter(|version| {
+					version.starts_with("Ordering_")
+						|| version.starts_with("1.20.")
+				})
 				.collect::<Vec<_>>();
 			assert_eq!(
 				game_version_versions,

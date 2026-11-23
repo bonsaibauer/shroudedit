@@ -70,7 +70,11 @@ async fn user_scopes() {
 			.test(req_gen, read_payout)
 			.await
 			.unwrap();
-		assert!(success["payout_data"].as_object().is_some()); // payout should be present
+		if labrinth::env::ENV.MONETIZATION_ENABLED {
+			assert!(success["payout_data"].as_object().is_some()); // payout should be present
+		} else {
+			assert!(success["payout_data"].as_object().is_none()); // payout should be disabled
+		}
 
 		// User writing
 		// We use the Admin PAT for this test, on the 'user' user

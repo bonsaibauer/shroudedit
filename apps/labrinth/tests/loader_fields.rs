@@ -523,7 +523,7 @@ async fn get_loader_fields_variants() {
 			.get_loader_field_variants_deserialized("game_versions")
 			.await;
 
-		// These tests match dummy data and will need to be updated if the dummy data changes
+		// Keep this fixture assertion separate from versions seeded by migrations.
 		// Versions should be ordered by:
 		// - ordering
 		// - ordering ties settled by date added to database
@@ -533,6 +533,9 @@ async fn get_loader_fields_variants() {
 		let game_version_versions = game_versions
 			.into_iter()
 			.map(|x| x.value)
+			.filter(|version| {
+				version.starts_with("Ordering_") || version.starts_with("1.20.")
+			})
 			.collect::<Vec<_>>();
 		assert_eq!(
 			game_version_versions,
@@ -730,9 +733,12 @@ async fn enshrouded_game_version_update() {
 			.get_loader_field_variants_deserialized("game_versions")
 			.await;
 
-		// A couple specific checks- in the dummy data, all game versions are marked as major=false except 1.20.5
+		// The fixture versions are all major=false except 1.20.5.
 		let name_to_major = game_versions
 			.iter()
+			.filter(|x| {
+				x.value.starts_with("Ordering_") || x.value.starts_with("1.20.")
+			})
 			.map(|x| (x.value.clone(), x.major.unwrap()))
 			.collect::<std::collections::HashMap<_, _>>();
 		for (name, major) in name_to_major {
@@ -766,6 +772,9 @@ async fn enshrouded_game_version_update() {
 
 		let name_to_major = game_versions
 			.iter()
+			.filter(|x| {
+				x.value.starts_with("Ordering_") || x.value.starts_with("1.20.")
+			})
 			.map(|x| (x.value.clone(), x.major.unwrap()))
 			.collect::<std::collections::HashMap<_, _>>();
 		// Confirm that the new version is there
