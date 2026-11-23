@@ -1,13 +1,15 @@
 <template>
 	<div class="markdown-body">
 		<h1>Privacy Policy</h1>
-		<p><em>Last updated: November 23, 2026</em></p>
+		<p><em>Last updated: November 24, 2026</em></p>
 
 		<p>
 			This Privacy Policy explains how personal data is processed when you use ShroudEdit. It
-			applies to shroudedit.com, the ShroudEdit API and related community services. The terms used
-			in this policy have the meanings given to them by Regulation (EU) 2016/679, the General Data
-			Protection Regulation (<strong>GDPR</strong>).
+			applies to shroudedit.com, the ShroudEdit API, the ShroudForge download website at
+			shroudforge.net, the ShroudForge Wiki at wiki.shroudforge.net, the related status page at
+			status.shroudforge.net and connected community services operated as part of the ShroudEdit and
+			ShroudForge network. The terms used in this policy have the meanings given to them by Regulation
+			(EU) 2016/679, the General Data Protection Regulation (<strong>GDPR</strong>).
 		</p>
 
 		<h2>1. Controller</h2>
@@ -41,6 +43,35 @@
 			with your browser, device or authenticator. If you enable two-factor authentication, we also
 			process the information needed to verify the second factor. Account processing is based on Article
 			6(1)(b) GDPR. Security and abuse-prevention processing is based on Article 6(1)(f) GDPR.
+		</p>
+
+		<h3>ShroudForge website and Wiki</h3>
+		<p>
+			When you visit the ShroudForge download website, we process the technical connection data
+			described above. The website does not require an account. Its browser-based appearance setting may
+			be saved in your browser. The Mod Settings preview runs in your browser, and its page states that
+			preview inputs are not sent to a server. If you follow a release download link, your browser
+			connects directly to GitHub, which hosts the release files and processes the resulting request
+			under its own privacy policy.
+		</p>
+		<p>
+			The ShroudForge Wiki uses a separate MediaWiki account system. It is not the ShroudEdit account
+			system. To create a Wiki account, you must provide a username, email address and password. A real
+			name is optional. We also process account and session data and the pages, edits and other
+			contributions you make. Wiki contributions and their revision history are publicly accessible and
+			are attributed to your Wiki username. If you edit while logged out, your IP address may be shown
+			publicly with the edit. We use these data to provide and secure the Wiki and to maintain its
+			public page history. Processing is based on Article 6(1)(b) GDPR for account and Wiki functions and
+			Article 6(1)(f) GDPR for security and reliable operation.
+		</p>
+		<h3>Connected ShroudForge editor</h3>
+		<p>
+			If you authorize a compatible ShroudForge editor to use the ShroudEdit API, we process the
+			account and authorization information, access scopes, API requests, project and version
+			identifiers, and blueprint files needed to carry out your request. The editor receives an access
+			token limited to the authorization you grant and can use it to create or update ShroudEdit
+			blueprint versions. The legal basis is Article 6(1)(b) GDPR for the functions you request and
+			Article 6(1)(f) GDPR for API security and abuse prevention.
 		</p>
 
 		<h3>Projects, uploads and community functions</h3>
@@ -123,7 +154,13 @@
 			profile images, appearance settings and session tokens. The related
 			<code>auth-stored-accounts</code> cookie contains account preview information but not those
 			session tokens. Local account data remains until you remove the saved account or clear browser
-			storage. Browser storage used for language, theme and display preferences may also be used.
+			storage. Browser storage used for language, theme and display preferences may also be used. The
+			ShroudForge download website saves your selected light or dark appearance in browser storage. The
+			ShroudForge Wiki uses a separate MediaWiki session cookie named
+			<code>mediawiki_mediawiki_session</code> and may use additional cookies for sign-in and Wiki
+			preferences. These Wiki cookies are separate from ShroudEdit account cookies. The ShroudForge
+			status page is hosted by Better Stack and may use its own cookies or similar browser storage,
+			including storage associated with the Google tag loaded on that page.
 		</p>
 		<p>
 			The legal bases for processing personal data through strictly necessary storage are Article
@@ -149,11 +186,13 @@
 		<h3>Cloudflare and Hetzner hosting</h3>
 		<p>
 			We use Cloudflare for DNS for our domains, delivery of static assets through the CDN, and
-			website delivery through Cloudflare Workers. When a request passes through Cloudflare, it may
-			process IP addresses, DNS and request metadata, URLs, timestamps, referrers, browser data and
-			security signals. This processing supports domain resolution, content delivery, caching and
-			protection against attacks. Our API and backend services are hosted on Hetzner infrastructure
-			provided by Hetzner Online GmbH.
+			website delivery through Cloudflare Workers. This includes the ShroudForge download website at
+			shroudforge.net, which is delivered as static assets through Cloudflare Workers. Requests to the
+			ShroudForge Wiki at wiki.shroudforge.net also pass through Cloudflare. When a request passes
+			through Cloudflare, it may process IP addresses, DNS and request metadata, URLs, timestamps,
+			referrers, browser data and security signals. This processing supports domain resolution, content
+			delivery, caching and protection against attacks. Our API and backend services are hosted on
+			Hetzner infrastructure provided by Hetzner Online GmbH.
 			The backend processes account, project, upload, download and technical request data there to
 			provide and secure the Service. The legal basis is Article 6(1)(b) GDPR for requested account
 			and platform functions and Article 6(1)(f) GDPR for security and reliable operation. Further
@@ -169,6 +208,31 @@
 			We process file contents and related metadata to store, retrieve and distribute the files you
 			choose to upload. The legal basis is Article 6(1)(b) GDPR and, for security and abuse
 			prevention, Article 6(1)(f) GDPR.
+		</p>
+		<h3>ShroudForge downloads and external links</h3>
+		<p>
+			The ShroudForge download website is a static site. Its public release information is prepared
+			from GitHub release data during the site build. A normal page visit does not make a GitHub API
+			request from your browser. Release downloads are hosted by GitHub. When you follow a release or
+			download link, your browser connects directly to GitHub, which receives technical connection and
+			download data as an independent provider. The website also links to VirusTotal reports, Discord,
+			YouTube and other third-party pages. Those providers receive data when you follow their links and
+			then process it under their own privacy policies. Further information is available in the
+			<a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">
+				GitHub Privacy Statement
+			</a>.
+		</p>
+		<h3>ShroudForge status page</h3>
+		<p>
+			The status page at status.shroudforge.net is provided through Better Stack’s hosted status-page
+			service. When you visit it, your browser loads resources from Better Stack and a Google tag
+			configured for advertising and measurement. Better Stack and Google may process your IP address,
+			browser and device information, request data and interactions with the status page. Processing
+			needed to provide and secure the status page is based on Article 6(1)(f) GDPR. Any non-essential
+			storage or access to your device, and any processing that requires consent, is based on consent
+			where required by law. Further information is available in the
+			<a href="https://betterstack.com/privacy">Better Stack Privacy Policy</a> and
+			<a href="https://policies.google.com/privacy">Google Privacy Policy</a>.
 		</p>
 
 		<h3>Error and performance monitoring</h3>
@@ -287,10 +351,12 @@
 			for the duration of an account or contract where applicable, and for any longer period required
 			by law or necessary to establish, exercise or defend legal claims. Account data is generally
 			retained until the account is deleted, subject to legal obligations and unresolved claims. Public
-			content remains available until you delete it or it is removed under our policies. Download and
-			view records are retained for platform security, abuse prevention and project statistics, then
-			deleted or anonymised under the retention controls applicable to the production analytics
-			database. Technical request-header snapshots in that database have a configured 60-day expiry.
+			content remains available until you delete it or it is removed under our policies. ShroudForge
+			Wiki page revisions may remain in its public history while the Wiki content is maintained.
+			Download and view records are retained for platform security, abuse prevention and project
+			statistics, then deleted or anonymised under the retention controls applicable to the production
+			analytics database. Technical request-header snapshots in that database have a configured 60-day
+			expiry.
 			The retention period for other analytics events depends on the applicable production storage
 			settings. Reports, legal correspondence and payment or tax records may be retained for applicable
 			statutory periods. Service providers apply their own retention periods under their privacy
