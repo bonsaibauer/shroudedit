@@ -1016,7 +1016,7 @@ useSeoMeta({
 			defaultMessage: 'Discover and publish Enshrouded content!',
 		}),
 	ogType: 'website',
-	ogImage: `${config.public.siteUrl}/shroudedit-logo.png`,
+	ogImage: `${config.public.siteUrl}/shroudedit-hammer.png`,
 	ogUrl: link,
 
 	// Twitter

@@ -1,34 +1,6 @@
 export type FaviconVariant = 'default' | 'settings'
 export type FaviconEnvironment = 'local' | 'preview' | 'dev'
 
-const PRODUCTION_FAVICON_HREFS = {
-	default: {
-		light: '/favicon-light-32x32.png',
-		dark: '/favicon-32x32.png',
-	},
-	settings: {
-		light: '/favicon-light-settings-32x32.png',
-		dark: '/favicon-settings-32x32.png',
-	},
-} as const
-
-const DEV_FAVICON_HREFS = {
-	default: {
-		light: '/dev-favicons/favicon-dev.svg',
-		dark: '/dev-favicons/favicon-dev.svg',
-	},
-	settings: {
-		light: '/dev-favicons/favicon-dev-light-settings.svg',
-		dark: '/dev-favicons/favicon-dev-settings.svg',
-	},
-} as const
-
-const FAVICON_MEDIA = [
-	'(prefers-color-scheme:no-preference)',
-	'(prefers-color-scheme:light)',
-	'(prefers-color-scheme:dark)',
-] as const
-
 export function resolveFaviconEnvironment(
 	config: {
 		public: {
@@ -53,55 +25,23 @@ export function resolveFaviconEnvironment(
 	return null
 }
 
-function getFaviconHrefs(variant: FaviconVariant, environment: FaviconEnvironment | null) {
-	if (environment === 'dev') {
-		return {
-			...DEV_FAVICON_HREFS[variant],
-			type: 'image/svg+xml',
-			sizes: 'any',
-		}
-	}
-
-	return {
-		...PRODUCTION_FAVICON_HREFS[variant],
-		type: 'image/png',
-		sizes: '32x32',
-	}
-}
-
 export function getFaviconHeadLinks(
-	variant: FaviconVariant = 'default',
-	environment: FaviconEnvironment | null = null,
+	_variant: FaviconVariant = 'default',
+	_environment: FaviconEnvironment | null = null,
 ) {
-	const icons = getFaviconHrefs(variant, environment)
-	const appleTouchIcons = getFaviconHrefs(variant, null)
-	const hrefByMedia = {
-		'(prefers-color-scheme:no-preference)': icons.light,
-		'(prefers-color-scheme:light)': icons.light,
-		'(prefers-color-scheme:dark)': icons.dark,
-	}
-	const appleHrefByMedia = {
-		'(prefers-color-scheme:no-preference)': appleTouchIcons.light,
-		'(prefers-color-scheme:light)': appleTouchIcons.light,
-		'(prefers-color-scheme:dark)': appleTouchIcons.dark,
-	}
-
-	return FAVICON_MEDIA.flatMap((media) => [
+	return [
 		{
 			rel: 'icon',
-			type: icons.type,
-			sizes: icons.sizes,
-			href: hrefByMedia[media],
-			media,
-			key: `favicon-${media}`,
+			type: 'image/x-icon',
+			href: '/favicon.ico',
+			key: 'favicon',
 		},
 		{
 			rel: 'apple-touch-icon',
-			type: appleTouchIcons.type,
-			href: appleHrefByMedia[media],
-			media,
-			sizes: appleTouchIcons.sizes,
-			key: `apple-touch-icon-${media}`,
+			type: 'image/png',
+			href: '/apple-touch-icon.png',
+			sizes: '180x180',
+			key: 'apple-touch-icon',
 		},
-	])
+	]
 }
