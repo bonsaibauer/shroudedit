@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\t\t\t\t\tINSERT INTO virustotal_finding_verdicts (\n\t\t\t\t\t\t\tscope, file_id, sha256, engine_name, category, result, verdict, moderator_id\n\t\t\t\t\t\t)\n\t\t\t\t\t\tVALUES ('local', $1, $2, $3, $4, $5, $6::text::virustotal_finding_verdict, $7)\n\t\t\t\t\t\tON CONFLICT (file_id, engine_name, category, result) WHERE scope = 'local'\n\t\t\t\t\t\tDO UPDATE SET verdict = EXCLUDED.verdict, moderator_id = EXCLUDED.moderator_id, updated_at = NOW()\n\t\t\t\t\t\t",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Text",
+        "Int8"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "fd1a05f5aadc3b9aec784bc5ef5628b78ce63f1511341214873a9102f609ded6"
+}

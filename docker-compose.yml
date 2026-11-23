@@ -469,6 +469,17 @@ services:
       interval: 10s
       timeout: 15s
       retries: 10
+  redpanda-init:
+    image: redpandadata/redpanda:v26.1.10
+    container_name: labrinth-redpanda-init
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - >-
+        rpk topic delete private.labrinth.delphi-file-scan.v1 private.labrinth.delphi-file-scan.failed.v1 --brokers redpanda:9092 || true;
+        rpk topic create private.labrinth.virustotal-file-scan.v1 --brokers redpanda:9092 --if-not-exists
+    depends_on:
+      redpanda:
+        condition: service_healthy
   labrinth:
     profiles:
       - with-labrinth
@@ -476,6 +487,7 @@ services:
       context: .
       dockerfile: ./apps/labrinth/Dockerfile
     container_name: labrinth
+    image: shroudedit-labrinth:dev
     ports:
       - '127.0.0.1:8000:8000'
     env_file: ./apps/labrinth/.env.docker-compose
@@ -496,6 +508,8 @@ services:
         condition: service_healthy
       redpanda:
         condition: service_healthy
+      redpanda-init:
+        condition: service_completed_successfully
       clickhouse:
         condition: service_healthy
       mail:
@@ -504,29 +518,20 @@ services:
       watch:
         - path: ./apps/labrinth
           action: rebuild
-  delphi:
+  virustotal-worker:
     profiles:
-      - with-delphi
-    image: ghcr.io/shroudedit/delphi:main
-    container_name: labrinth-delphi
-    ports:
-      - '127.0.0.1:59999:59999'
-    environment:
-      LABRINTH_ENDPOINT: http://host.docker.internal:8000/_internal/delphi/ingest
-      LABRINTH_ADMIN_KEY: feedbeef
-    healthcheck:
-      test: ['CMD', 'wget', '-q', '-O/dev/null', 'http://localhost:59999/health']
-      interval: 3s
-      timeout: 5s
-      retries: 3
+      - with-virustotal
+    image: shroudedit-labrinth:dev
+    container_name: labrinth-virustotal-worker
+    command: ['/labrinth/labrinth', '--run-background-task', 'virustotal-file-scan']
+    env_file: ./apps/labrinth/.env.docker-compose
     volumes:
-      # Labrinth deposits version files here;
-      # Delphi reads them from here
-      - /tmp/shroudedit:/tmp/shroudedit:ro,z
-    extra_hosts:
-      # Delphi must send a message on a webhook to our backend,
-      # so it must have access to our local network
-      - 'host.docker.internal:host-gateway'
+      - labrinth-cdn-data:/tmp/shroudedit
+    depends_on:
+      labrinth:
+        condition: service_started
+      redpanda-init:
+        condition: service_completed_successfully
   # Sharded Meilisearch
   meilisearch1:
     profiles:

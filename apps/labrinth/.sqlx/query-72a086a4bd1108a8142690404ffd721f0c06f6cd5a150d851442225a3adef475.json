@@ -1,0 +1,82 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tSELECT\n\t\t\tfiles.id AS \"file_id!: DBFileId\",\n\t\t\tfiles.version_id AS \"version_id!: crate::database::models::DBVersionId\",\n\t\t\tfiles.filename,\n\t\t\tfiles.size,\n\t\t\tfiles.url,\n\t\t\tscan.sha256,\n\t\t\tscan.analysis_id,\n\t\t\tscan.status::text AS \"scan_status?\",\n\t\t\tscan.analysis AS \"analysis: sqlx::types::Json<Value>\",\n\t\t\tscan.checked_at,\n\t\t\tscan.error\n\t\tFROM files\n\t\tLEFT JOIN virustotal_file_scans scan ON scan.file_id = files.id\n\t\tWHERE files.version_id = ANY($1::bigint[])\n\t\tORDER BY files.version_id, files.id\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "file_id!: DBFileId",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "version_id!: crate::database::models::DBVersionId",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "filename",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "size",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 4,
+        "name": "url",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 5,
+        "name": "sha256",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "analysis_id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "scan_status?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "analysis: sqlx::types::Json<Value>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 9,
+        "name": "checked_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "error",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8Array"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      null,
+      true,
+      true,
+      true
+    ]
+  },
+  "hash": "72a086a4bd1108a8142690404ffd721f0c06f6cd5a150d851442225a3adef475"
+}

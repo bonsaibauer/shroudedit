@@ -20,15 +20,23 @@ VALUES (50, {{user_id::ADMIN}},     'admin-pat',     '{{pat::ADMIN}}',     {{all
        (53, {{user_id::FRIEND}},    'friend-pat',    '{{pat::FRIEND}}',    {{all_scopes}}, '2030-08-18 15:48:58.435729+00'),
        (54, {{user_id::ENEMY}},     'enemy-pat',     '{{pat::ENEMY}}',     {{all_scopes}}, '2030-08-18 15:48:58.435729+00');
 
-INSERT INTO loaders (id, loader) VALUES (5, 'fabric');
-INSERT INTO loaders_project_types (joining_loader_id, joining_project_type_id) VALUES (5, 1);
+INSERT INTO loaders (loader) VALUES ('fabric');
+INSERT INTO loaders_project_types (joining_loader_id, joining_project_type_id)
+SELECT loaders.id, project_types.id
+FROM loaders
+CROSS JOIN project_types
+WHERE loaders.loader = 'fabric' AND project_types.name = 'mod';
 
-INSERT INTO loaders (id, loader) VALUES (6, 'forge');
-INSERT INTO loaders_project_types (joining_loader_id, joining_project_type_id) VALUES (6, 1);
+INSERT INTO loaders (loader) VALUES ('forge');
+INSERT INTO loaders_project_types (joining_loader_id, joining_project_type_id)
+SELECT loaders.id, project_types.id
+FROM loaders
+CROSS JOIN project_types
+WHERE loaders.loader = 'forge' AND project_types.name = 'mod';
 
-INSERT INTO loaders (id, loader, metadata) VALUES (7, 'bukkit', '{"platform":false}'::JSONB);
-INSERT INTO loaders (id, loader, metadata) VALUES (8, 'waterfall', '{"platform":true}'::JSONB);
-INSERT INTO loaders (id, loader) VALUES (9, 'datapack');
+INSERT INTO loaders (loader, metadata) VALUES ('bukkit', '{"platform":false}'::JSONB);
+INSERT INTO loaders (loader, metadata) VALUES ('waterfall', '{"platform":true}'::JSONB);
+INSERT INTO loaders (loader) VALUES ('datapack');
 
 INSERT INTO loaders_project_types (joining_loader_id, joining_project_type_id)
 SELECT l.id, pt.id
@@ -39,9 +47,12 @@ WHERE
 	OR (l.loader = 'datapack' AND pt.name = 'datapack');
 
 INSERT INTO loaders_project_types_games (loader_id, project_type_id, game_id)
-SELECT lpt.joining_loader_id, lpt.joining_project_type_id, 1
+SELECT lpt.joining_loader_id, lpt.joining_project_type_id, games.id
 FROM loaders_project_types lpt
-WHERE lpt.joining_loader_id IN (7, 8, 9);
+JOIN loaders ON loaders.id = lpt.joining_loader_id
+CROSS JOIN games
+WHERE loaders.loader IN ('bukkit', 'waterfall', 'datapack')
+	AND games.name = 'enshrouded';
 
 -- Adds dummies to mrpack_loaders
 INSERT INTO loader_field_enum_values (enum_id, value)
@@ -50,13 +61,19 @@ INSERT INTO loader_field_enum_values (enum_id, value)
 SELECT id, 'forge' FROM loader_field_enums WHERE enum_name = 'mrpack_loaders';
 
 INSERT INTO loaders_project_types_games (loader_id, project_type_id, game_id)
-SELECT joining_loader_id, joining_project_type_id, 1
+SELECT loaders_project_types.joining_loader_id, loaders_project_types.joining_project_type_id, games.id
 FROM loaders_project_types
-WHERE joining_loader_id = 5;
+JOIN loaders ON loaders.id = loaders_project_types.joining_loader_id
+CROSS JOIN games
+WHERE loaders.loader = 'fabric'
+	AND games.name = 'enshrouded';
 INSERT INTO loaders_project_types_games (loader_id, project_type_id, game_id)
-SELECT joining_loader_id, joining_project_type_id, 1
+SELECT loaders_project_types.joining_loader_id, loaders_project_types.joining_project_type_id, games.id
 FROM loaders_project_types
-WHERE joining_loader_id = 6;
+JOIN loaders ON loaders.id = loaders_project_types.joining_loader_id
+CROSS JOIN games
+WHERE loaders.loader = 'forge'
+	AND games.name = 'enshrouded';
 
 -- Dummy-data only optional field, as we don't have any yet
 INSERT INTO loader_fields
@@ -98,25 +115,26 @@ FROM
 WHERE lf.field IN ('game_versions', 'environment')
 ON CONFLICT DO NOTHING;
 
-INSERT INTO categories (id, category, project_type)
-VALUES
-	(51, 'combat', 1),
-	(52, 'decoration', 1),
-	(53, 'economy', 1),
-	(54, 'food', 1),
-	(55, 'magic', 1),
-	(56, 'mobs', 1),
-	(57, 'optimization', 1);
-
-INSERT INTO categories (id, category, project_type)
-VALUES
-	(101, 'combat', 2),
-	(102, 'decoration', 2),
-	(103, 'economy', 2),
-	(104, 'food', 2),
-	(105, 'magic', 2),
-	(106, 'mobs', 2),
-	(107, 'optimization', 2);
+INSERT INTO categories (header, category, project_type)
+SELECT 'categories', dummy_categories.category, project_types.id
+FROM project_types
+CROSS JOIN (
+	VALUES
+		('combat'),
+		('decoration'),
+		('economy'),
+		('food'),
+		('magic'),
+		('mobs'),
+		('optimization')
+) AS dummy_categories(category)
+WHERE project_types.name IN ('mod', 'modpack')
+	AND NOT EXISTS (
+		SELECT 1
+		FROM categories
+		WHERE categories.project_type = project_types.id
+			AND categories.category = dummy_categories.category
+	);
 
 -- Create dummy oauth client, secret_hash is SHA512 hash of full lowercase alphabet
 INSERT INTO oauth_clients (

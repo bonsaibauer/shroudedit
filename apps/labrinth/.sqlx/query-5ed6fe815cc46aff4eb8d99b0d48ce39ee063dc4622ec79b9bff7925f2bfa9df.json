@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\t\tSELECT scan.sha256, scan.analysis AS \"analysis: sqlx::types::Json<Value>\", version.mod_id AS \"project_id!: DBProjectId\"\n\t\t\tFROM virustotal_file_scans scan\n\t\t\tINNER JOIN files ON files.id = scan.file_id\n\t\t\tINNER JOIN versions version ON version.id = files.version_id\n\t\t\tWHERE scan.file_id = $1\n\t\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "sha256",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "analysis: sqlx::types::Json<Value>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 2,
+        "name": "project_id!: DBProjectId",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      true,
+      true,
+      false
+    ]
+  },
+  "hash": "5ed6fe815cc46aff4eb8d99b0d48ce39ee063dc4622ec79b9bff7925f2bfa9df"
+}

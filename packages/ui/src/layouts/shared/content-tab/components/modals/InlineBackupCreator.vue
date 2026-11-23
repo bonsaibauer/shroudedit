@@ -33,7 +33,6 @@
 			<div v-else-if="backup.backupFailed.value" class="text-sm text-red">
 				{{ formatMessage(messages.backupFailed) }}
 			</div>
-
 		</div>
 		<span v-if="!props.hideShiftClickHint" class="text-secondary">
 			{{ props.shiftClickHintOverride ?? formatMessage(messages.shiftClickHint) }}

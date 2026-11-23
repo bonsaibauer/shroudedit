@@ -26,7 +26,7 @@ use crate::models::projects::{Loader, skip_nulls};
 use crate::models::teams::ProjectPermissions;
 use crate::queue::file_scan::get_files_missing_attribution;
 use crate::queue::session::AuthQueue;
-use crate::routes::internal::delphi;
+use crate::routes::internal::moderation::tech_review_queue;
 use crate::search::SearchState;
 use crate::util::error::Context;
 use crate::util::img;
@@ -1377,9 +1377,9 @@ pub async fn version_delete(
 	.await
 	.wrap_internal_err("deleting version from database")?;
 
-	delphi::tech_review_queue::sync_projects(
+	tech_review_queue::sync_projects(
 		&[version.inner.project_id],
-		delphi::tech_review_queue::TechReviewRemovalReason::FileDeleted,
+		tech_review_queue::TechReviewRemovalReason::FileDeleted,
 		&mut transaction,
 	)
 	.await

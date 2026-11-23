@@ -17,9 +17,7 @@
 					<p class="m-0 min-w-0 flex-1 break-words text-lg font-normal leading-6 text-contrast/85">
 						<IntlFormatted
 							:message-id="
-								type === 'friend-request'
-									? messages.friendRequest
-									: messages.instanceInvite
+								type === 'friend-request' ? messages.friendRequest : messages.instanceInvite
 							"
 							:values="{ actor: actorLabel, entity: entityLabel }"
 						>
@@ -278,9 +276,7 @@ defineEmits<{
 }>()
 
 const isInviteNotification = computed(
-	() =>
-		props.type === 'friend-request' ||
-		props.type === 'instance-invite',
+	() => props.type === 'friend-request' || props.type === 'instance-invite',
 )
 
 function notificationButtonColor(

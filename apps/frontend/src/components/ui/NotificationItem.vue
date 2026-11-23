@@ -42,9 +42,7 @@
 		<div class="notification__title">
 			<template v-if="type === 'project_update' && project && version">
 				A project you follow,
-				<nuxt-link :to="getProjectLink(project)" class="title-link">{{
-					project.title
-				}}</nuxt-link>
+				<nuxt-link :to="getProjectLink(project)" class="title-link">{{ project.title }}</nuxt-link>
 				, has been updated:
 			</template>
 			<template v-else-if="type === 'team_invite' && project">
@@ -111,9 +109,7 @@
 			</template>
 			<template v-else-if="type === 'moderator_message' && thread && project && !report">
 				Your project,
-				<nuxt-link :to="getProjectLink(project)" class="title-link">{{
-					project.title
-				}}</nuxt-link>
+				<nuxt-link :to="getProjectLink(project)" class="title-link">{{ project.title }}</nuxt-link>
 				, has received
 				<template v-if="notification.grouped_notifs"> messages</template>
 				<template v-else>a message</template>
@@ -175,10 +171,7 @@
 							class="categories"
 						/>
 						{{ $formatVersion(notif.extra_data.version.game_versions) }}
-						<span
-							v-tooltip="formatDateTime(notif.extra_data.version.date_published)"
-							class="date"
-						>
+						<span v-tooltip="formatDateTime(notif.extra_data.version.date_published)" class="date">
 							{{ formatRelativeTime(notif.extra_data.version.date_published) }}
 						</span>
 					</span>

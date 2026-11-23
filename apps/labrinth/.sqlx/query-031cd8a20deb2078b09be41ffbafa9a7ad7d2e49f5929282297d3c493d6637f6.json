@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tINSERT INTO virustotal_file_scans (file_id, status, event_id)\n\t\tVALUES ($1, 'queued', $2)\n\t\tON CONFLICT (file_id) DO UPDATE SET\n\t\t\tsha256 = NULL,\n\t\t\tanalysis_id = NULL,\n\t\t\tstatus = 'queued',\n\t\t\tanalysis = NULL,\n\t\t\terror = NULL,\n\t\t\tsubmission_attempts = 0,\n\t\t\tpoll_attempts = 0,\n\t\t\tsubmitted_at = NULL,\n\t\t\tchecked_at = NULL,\n\t\t\tnext_poll_at = NULL,\n\t\t\tevent_id = EXCLUDED.event_id,\n\t\t\tupdated_at = NOW()\n\t\t",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "031cd8a20deb2078b09be41ffbafa9a7ad7d2e49f5929282297d3c493d6637f6"
+}

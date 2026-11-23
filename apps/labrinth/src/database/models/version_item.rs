@@ -10,7 +10,7 @@ use crate::models::exp;
 use xredis::RedisPool;
 
 use crate::models::projects::{FileType, VersionStatus};
-use crate::queue::{delphi_scan, file_scan::scan_file};
+use crate::queue::{file_scan::scan_file, virustotal_scan};
 use crate::util::kafka::KafkaClientState;
 use chrono::{DateTime, Utc};
 use dashmap::{DashMap, DashSet};
@@ -254,9 +254,9 @@ impl VersionFileBuilder {
 			error!("Error scanning new file {file_id:?}: {err:?}");
 		}
 
-		delphi_scan::enqueue_file(transaction, kafka_client, file_id)
+		virustotal_scan::enqueue_file(transaction, kafka_client, file_id)
 			.await
-			.wrap_err("enqueueing file for delphi scan")?;
+			.wrap_err("enqueueing file for VirusTotal scan")?;
 
 		Ok(file_id)
 	}

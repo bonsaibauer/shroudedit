@@ -600,7 +600,7 @@ pub async fn process_chargeable_charges(
 				payment_intent: None,
 				payment_session: PaymentSession::AutomatedRenewal,
 				attached_charge: AttachedCharge::UseExisting {
-					charge: charge.clone(),
+					charge: Box::new(charge.clone()),
 				},
 				currency: CurrencyMode::Set(currency),
 				attach_payment_metadata: None,

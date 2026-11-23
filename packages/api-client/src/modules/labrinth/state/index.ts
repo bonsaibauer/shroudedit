@@ -41,9 +41,9 @@ export class LabrinthStateModule extends AbstractModule {
 	 * console.log(state.products) // Available billing products
 	 * ```
 	 */
-	public async build(
-		{ monetizationEnabled = true }: { monetizationEnabled?: boolean } = {},
-	): Promise<Labrinth.State.GeneratedState> {
+	public async build({
+		monetizationEnabled = true,
+	}: { monetizationEnabled?: boolean } = {}): Promise<Labrinth.State.GeneratedState> {
 		const errors: unknown[] = []
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const handleError = (err: any, defaultValue: any, endpoint: string) => {

@@ -1,7 +1,5 @@
 use std::fmt::{self, Display, Formatter};
 
-use uuid::Uuid;
-
 use crate::database::{PgTransaction, models::DBFileId};
 
 /// A transaction-scoped PostgreSQL advisory lock used by Labrinth.
@@ -10,8 +8,8 @@ use crate::database::{PgTransaction, models::DBFileId};
 /// them here gives each resource a stable namespace and prevents unrelated
 /// numeric IDs from contending with each other.
 pub enum AdvisoryLock {
-	DelphiFile(DBFileId),
-	DelphiScan(Uuid),
+	VirusTotalFile(DBFileId),
+	VirusTotalApiQuota,
 	DiscordRoleEmailCampaign,
 }
 
@@ -48,11 +46,11 @@ impl AdvisoryLock {
 impl Display for AdvisoryLock {
 	fn fmt(&self, formatter: &mut Formatter<'_>) -> fmt::Result {
 		match self {
-			Self::DelphiFile(file_id) => {
-				write!(formatter, "labrinth:delphi-file:{}", file_id.0)
+			Self::VirusTotalFile(file_id) => {
+				write!(formatter, "labrinth:virustotal-file:{}", file_id.0)
 			}
-			Self::DelphiScan(scan_id) => {
-				write!(formatter, "labrinth:delphi-scan:{scan_id}")
+			Self::VirusTotalApiQuota => {
+				formatter.write_str("labrinth:virustotal-api-quota")
 			}
 			Self::DiscordRoleEmailCampaign => {
 				formatter.write_str("discord_role_email_campaign")

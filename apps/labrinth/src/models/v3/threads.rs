@@ -1,4 +1,3 @@
-use crate::database::models::delphi_report_item::DelphiVerdict;
 use crate::models::ids::{
 	ImageId, ProjectId, ReportId, ThreadId, ThreadMessageId,
 };
@@ -7,6 +6,15 @@ use crate::models::users::User;
 use ariadne::ids::UserId;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+#[derive(
+	Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum TechReviewVerdict {
+	Safe,
+	Unsafe,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct Thread {
@@ -47,7 +55,7 @@ pub enum MessageBody {
 		old_status: ProjectStatus,
 	},
 	TechReview {
-		verdict: DelphiVerdict,
+		verdict: TechReviewVerdict,
 	},
 	TechReviewEntered,
 	TechReviewExited,

@@ -30,6 +30,7 @@ use xredis::RedisPool;
 pub mod external_license;
 mod ownership;
 pub mod tech_review;
+pub mod tech_review_queue;
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
 	cfg.service(get_projects)
@@ -303,7 +304,7 @@ pub async fn get_projects_internal(
                         $9::boolean = false
                         OR NOT EXISTS (
                             SELECT 1
-                            FROM delphi_tech_review_queue trq
+                            FROM technical_review_queue trq
                             WHERE trq.project_id = m.id
                         )
                     )
@@ -551,7 +552,7 @@ pub async fn get_projects_internal(
                         $6::boolean = false
                         OR NOT EXISTS (
                             SELECT 1
-                            FROM delphi_tech_review_queue trq
+                            FROM technical_review_queue trq
                             WHERE trq.project_id = m.id
                         )
                     )
@@ -781,7 +782,7 @@ pub async fn get_project_ids(
                         $7::boolean = false
                         OR NOT EXISTS (
                             SELECT 1
-                            FROM delphi_tech_review_queue trq
+                            FROM technical_review_queue trq
                             WHERE trq.project_id = m.id
                         )
                     )
@@ -908,7 +909,7 @@ pub async fn get_project_ids(
                     $3::boolean = false
                     OR NOT EXISTS (
                         SELECT 1
-                        FROM delphi_tech_review_queue trq
+                        FROM technical_review_queue trq
                         WHERE trq.project_id = mods.id
                     )
                 )

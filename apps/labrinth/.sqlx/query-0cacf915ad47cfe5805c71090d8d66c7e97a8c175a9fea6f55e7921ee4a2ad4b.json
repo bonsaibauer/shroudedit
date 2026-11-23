@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE virustotal_api_usage SET minute_started_at = $1, minute_requests = $2, day_started_at = $3, day_requests = $4 WHERE id = TRUE",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Int4",
+        "Timestamptz",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "0cacf915ad47cfe5805c71090d8d66c7e97a8c175a9fea6f55e7921ee4a2ad4b"
+}

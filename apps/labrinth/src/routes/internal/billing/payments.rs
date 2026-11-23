@@ -78,13 +78,13 @@ pub enum AttachedCharge {
 	/// update the charge's status on failure or success.
 	///
 	/// This may be accompanied by an automated payment session.
-	UseExisting { charge: DBCharge },
+	UseExisting { charge: Box<DBCharge> },
 }
 
 impl AttachedCharge {
 	pub fn as_charge(&self) -> Option<&DBCharge> {
 		if let AttachedCharge::UseExisting { charge } = self {
-			Some(charge)
+			Some(charge.as_ref())
 		} else {
 			None
 		}
@@ -96,12 +96,14 @@ impl AttachedCharge {
 	) -> Result<Self, ApiError> {
 		Ok(match charge_request_type {
 			ChargeRequestType::Existing { id } => AttachedCharge::UseExisting {
-				charge: DBCharge::get(id.into(), exec)
-					.await
-					.wrap_internal_err("fetching charge from database")?
-					.wrap_request_err_with(|| {
-						"could not find charge".to_string()
-					})?,
+				charge: Box::new(
+					DBCharge::get(id.into(), exec)
+						.await
+						.wrap_internal_err("fetching charge from database")?
+						.wrap_request_err_with(|| {
+							"could not find charge".to_string()
+						})?,
+				),
 			},
 			ChargeRequestType::New {
 				product_id,

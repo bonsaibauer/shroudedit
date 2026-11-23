@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\t\t\t\tUPDATE virustotal_file_scans\n\t\t\t\t\tSET status = CASE WHEN $2 THEN 'failed'::virustotal_scan_status ELSE status END,\n\t\t\t\t\t\terror = $3,\n\t\t\t\t\t\tpoll_attempts = $4,\n\t\t\t\t\t\tchecked_at = NOW(),\n\t\t\t\t\t\tnext_poll_at = CASE WHEN $2 THEN NULL ELSE NOW() + make_interval(secs => $5) END,\n\t\t\t\t\t\tupdated_at = NOW()\n\t\t\t\t\tWHERE file_id = $1 AND analysis_id = $6 AND status = 'submitted'\n\t\t\t\t\t",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Bool",
+        "Text",
+        "Int2",
+        "Float8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "239ad0dc19b3055ebdbd16a46834c2ee2dce682d2dfb9ad1a560791b0378c3f8"
+}

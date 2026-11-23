@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tWITH removed AS (\n\t\t\tDELETE FROM technical_review_queue\n\t\t\tWHERE project_id = ANY($1::bigint[])\n\t\t\tRETURNING project_id\n\t\t)\n\t\tSELECT removed.project_id AS \"project_id!: DBProjectId\",\n\t\t\t(\n\t\t\t\tSELECT thread.id\n\t\t\t\tFROM threads thread\n\t\t\t\tWHERE thread.mod_id = removed.project_id\n\t\t\t\tORDER BY thread.id\n\t\t\t\tLIMIT 1\n\t\t\t) AS \"thread_id!: DBThreadId\"\n\t\tFROM removed\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "project_id!: DBProjectId",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "thread_id!: DBThreadId",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8Array"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "8aa606442a8d3e1d5b0c95fc096581cf48cff4cd7adeb23a20ed28f3dec6180a"
+}

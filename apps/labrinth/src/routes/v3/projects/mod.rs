@@ -33,7 +33,7 @@ use crate::models::users::{DELETED_USER, User};
 use crate::models::{self, exp};
 use crate::queue::session::AuthQueue;
 use crate::routes::ApiError;
-use crate::routes::internal::delphi;
+use crate::routes::internal::moderation::tech_review_queue;
 use crate::search::{
 	SearchBackend, SearchQuery, SearchRequest, SearchResults, SearchState,
 };
@@ -3241,9 +3241,9 @@ pub async fn project_delete_internal(
 		.begin()
 		.await
 		.wrap_internal_err("failed to start transaction")?;
-	delphi::tech_review_queue::remove_projects(
+	tech_review_queue::remove_projects(
 		&[project.inner.id],
-		delphi::tech_review_queue::TechReviewRemovalReason::FileDeleted,
+		tech_review_queue::TechReviewRemovalReason::FileDeleted,
 		&mut transaction,
 	)
 	.await

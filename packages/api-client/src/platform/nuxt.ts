@@ -88,11 +88,6 @@ export class NuxtShroudEditClient extends XHRUploadClient {
 	private rateLimitKeyResolved: string | undefined
 	private rateLimitKeyPromise: Promise<string | undefined> | undefined
 
-	constructor(config: NuxtClientConfig) {
-		super(config)
-	}
-
-
 	/**
 	 * Resolve the rate limit key, handling both string and async function values.
 	 * Results are cached for subsequent calls.

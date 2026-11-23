@@ -792,7 +792,6 @@
   "moderation.exclude-technical-review": "기술 검토 제외",
   "moderation.moderate": "관리",
   "moderation.page.external-projects": "외부 프로젝트",
-  "moderation.page.global-detail-traces": "전역 추적",
   "moderation.page.projects": "프로젝트",
   "moderation.page.reports": "신고",
   "moderation.page.technicalReview": "기술 리뷰",

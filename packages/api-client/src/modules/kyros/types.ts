@@ -33,7 +33,6 @@ export namespace Kyros {
 				known: KnownPropertiesFields
 				custom?: Record<string, string>
 			}
-
 		}
 	}
 

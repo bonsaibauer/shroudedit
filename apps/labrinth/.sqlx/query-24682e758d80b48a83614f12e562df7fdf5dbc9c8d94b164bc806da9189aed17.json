@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tINSERT INTO virustotal_file_scans (\n\t\t\tfile_id, sha256, status, event_id, submission_attempts,\n\t\t\tpoll_attempts, analysis, analysis_id, error, submitted_at,\n\t\t\tchecked_at, next_poll_at, updated_at\n\t\t)\n\t\tVALUES ($1, $2, 'queued', $3, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NOW())\n\t\tON CONFLICT (file_id) DO UPDATE SET\n\t\t\tsha256 = EXCLUDED.sha256,\n\t\t\tstatus = 'queued',\n\t\t\tanalysis_id = NULL,\n\t\t\tanalysis = NULL,\n\t\t\terror = NULL,\n\t\t\tsubmission_attempts = 0,\n\t\t\tpoll_attempts = 0,\n\t\t\tsubmitted_at = NULL,\n\t\t\tchecked_at = NULL,\n\t\t\tnext_poll_at = NULL,\n\t\t\tevent_id = EXCLUDED.event_id,\n\t\t\tupdated_at = NOW()\n\t\tWHERE virustotal_file_scans.event_id != EXCLUDED.event_id\n\t\t",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "24682e758d80b48a83614f12e562df7fdf5dbc9c8d94b164bc806da9189aed17"
+}

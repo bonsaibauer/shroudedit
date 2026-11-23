@@ -117,7 +117,7 @@
 				The project has entered the technical review queue.
 			</span>
 			<span v-else-if="message.body.type === 'tech_review_exited'">
-				The project has left the technical review queue as all pending traces have been resolved.
+				{{ formatMessage(messages.technicalReviewExited) }}
 			</span>
 			<span v-else-if="message.body.type === 'tech_review_exit_file_deleted'">
 				The project has left the technical review queue as all files pending review were deleted by
@@ -166,9 +166,11 @@ import {
 	AutoLink,
 	Avatar,
 	Badge,
+	defineMessages,
 	TeleportOverflowMenu,
 	useFormatDateTime,
 	useRelativeTime,
+	useVIntl,
 } from '@shroudedit/ui'
 import { renderString } from '@shroudedit/utils'
 
@@ -207,6 +209,15 @@ const props = defineProps({
 
 const emit = defineEmits(['update-thread'])
 const settings = useModerationSettings()
+const { formatMessage } = useVIntl()
+
+const messages = defineMessages({
+	technicalReviewExited: {
+		id: 'thread-message.technical-review.exited',
+		defaultMessage:
+			'The project has left the technical review queue as all pending findings have been resolved.',
+	},
+})
 
 const formattedMessage = computed(() => {
 	const body = renderString(props.message.body.body)

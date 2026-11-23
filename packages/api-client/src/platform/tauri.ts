@@ -40,7 +40,6 @@ interface HttpError extends Error {
 export class TauriShroudEditClient extends XHRUploadClient {
 	declare protected config: TauriClientConfig
 
-
 	protected async executeRequest<T>(url: string, options: RequestOptions): Promise<T> {
 		try {
 			// Dynamically import Tauri HTTP plugin

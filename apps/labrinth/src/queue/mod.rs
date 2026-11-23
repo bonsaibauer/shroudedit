@@ -1,6 +1,5 @@
 pub mod analytics;
 pub mod billing;
-pub mod delphi_scan;
 pub mod email;
 pub mod file_scan;
 pub mod moderation;
@@ -8,3 +7,4 @@ pub mod payouts;
 pub mod server_ping;
 pub mod session;
 pub mod socket;
+pub mod virustotal_scan;

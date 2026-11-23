@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\t\t\tINSERT INTO virustotal_file_scans (\n\t\t\t\t\tfile_id, sha256, analysis_id, status, analysis, checked_at,\n\t\t\t\t\tevent_id, updated_at\n\t\t\t\t)\n\t\t\t\tVALUES ($1, $2, $3, 'completed', $4, $5, $6, NOW())\n\t\t\t\tON CONFLICT (file_id) DO UPDATE SET\n\t\t\t\t\tsha256 = EXCLUDED.sha256,\n\t\t\t\t\tanalysis_id = EXCLUDED.analysis_id,\n\t\t\t\t\tstatus = EXCLUDED.status,\n\t\t\t\t\tanalysis = EXCLUDED.analysis,\n\t\t\t\t\tchecked_at = EXCLUDED.checked_at,\n\t\t\t\t\tnext_poll_at = NULL,\n\t\t\t\t\tevent_id = EXCLUDED.event_id,\n\t\t\t\t\terror = NULL,\n\t\t\t\t\tupdated_at = NOW()\n\t\t\t\t",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text",
+        "Text",
+        "Jsonb",
+        "Timestamptz",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "25f38d45941bd2e3220eb24867a70104601de64ff9c2a4383347a842537c399d"
+}

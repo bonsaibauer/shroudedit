@@ -31,7 +31,7 @@ pub enum BackgroundTask {
 	IndexBilling,
 	IndexSubscriptions,
 	IncrementalIndexSearch,
-	DelphiFileScan,
+	VirustotalFileScan,
 	Migrations,
 	Mail,
 	/// Queries server project analytics (e.g. number of verified plays in last
@@ -111,8 +111,13 @@ impl BackgroundTask {
 				)
 				.await
 			}
-			DelphiFileScan => {
-				crate::queue::delphi_scan::run(pool, kafka_client).await
+			VirustotalFileScan => {
+				crate::queue::virustotal_scan::run(
+					pool,
+					kafka_client,
+					file_host,
+				)
+				.await
 			}
 			Mail => run_email(email_queue).await,
 			CacheAnalytics => {

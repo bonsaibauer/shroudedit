@@ -24,7 +24,6 @@ import { XHRUploadClient } from './xhr-upload-client'
  * ```
  */
 export class GenericShroudEditClient extends XHRUploadClient {
-
 	protected async executeRequest<T>(url: string, options: RequestOptions): Promise<T> {
 		try {
 			const response = await $fetch<T>(url, {

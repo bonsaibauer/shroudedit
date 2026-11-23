@@ -1,0 +1,23 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tWITH findings AS (\n\t\t\tSELECT version.mod_id AS project_id, scan.file_id, scan.sha256,\n\t\t\t\tCOALESCE(result.value->>'engine_name', result.key) AS engine_name,\n\t\t\t\tCOALESCE(result.value->>'category', '') AS category,\n\t\t\t\tCOALESCE(result.value->>'result', '') AS result\n\t\t\tFROM virustotal_file_scans scan\n\t\t\tINNER JOIN files ON files.id = scan.file_id\n\t\t\tINNER JOIN versions version ON version.id = files.version_id\n\t\t\tCROSS JOIN LATERAL jsonb_each(COALESCE(scan.analysis->'results', '{}'::jsonb)) result\n\t\t\tWHERE scan.status = 'completed'\n\t\t\t\tAND version.mod_id = $1\n\t\t\t\tAND result.value->>'category' IN ('malicious', 'suspicious')\n\t\t\t\tAND (\n\t\t\t\t\tCOALESCE((scan.analysis->'stats'->>'malicious')::integer, 0) >= $2\n\t\t\t\t\tOR COALESCE((scan.analysis->'stats'->>'suspicious')::integer, 0) > 0\n\t\t\t\t)\n\t\t), decisions AS (\n\t\t\tSELECT findings.file_id\n\t\t\tFROM findings\n\t\t\tLEFT JOIN virustotal_finding_verdicts local_verdict\n\t\t\t\tON local_verdict.scope = 'local' AND local_verdict.file_id = findings.file_id\n\t\t\t\tAND local_verdict.engine_name = findings.engine_name AND local_verdict.category = findings.category AND local_verdict.result = findings.result\n\t\t\tLEFT JOIN virustotal_finding_verdicts global_verdict\n\t\t\t\tON global_verdict.scope = 'global' AND global_verdict.sha256 = findings.sha256\n\t\t\t\tAND global_verdict.engine_name = findings.engine_name AND global_verdict.category = findings.category AND global_verdict.result = findings.result\n\t\t\tWHERE local_verdict.verdict IS NULL AND global_verdict.verdict IS NULL\n\t\t)\n\t\tSELECT COUNT(*) FROM decisions\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "count",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Int4"
+      ]
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "7723589884ee62a27255b81d18f9bda3a2d8c17f10362c24c2c79211cfad2e97"
+}

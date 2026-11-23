@@ -19,7 +19,6 @@ use util::gotenberg::GotenbergClient;
 use crate::database::{PgPool, ReadOnlyPgPool};
 use crate::env::ENV;
 use crate::queue::billing::{index_billing, index_subscriptions};
-use crate::routes::internal::delphi::rescan::enqueue_tech_review_files_for_new_delphi_version;
 use crate::util::anrok;
 use crate::util::http::HttpClient;
 use crate::util::ratelimit::{AsyncRateLimiter, GCRAParameters};
@@ -110,21 +109,6 @@ pub fn app_setup(
 			incremental_search_queue.run().await;
 		});
 	}
-	{
-		let pool = pool.clone();
-		let kafka_client = kafka_client.clone();
-		actix_rt::spawn(async move {
-			if let Err(err) = enqueue_tech_review_files_for_new_delphi_version(
-				&pool,
-				&kafka_client,
-			)
-			.await
-			{
-				warn!("Delphi tech review rescan enqueue failed: {err:#}");
-			}
-		});
-	}
-
 	let limiter = web::Data::new(AsyncRateLimiter::new(
 		redis_pool.clone(),
 		GCRAParameters::new(300, 300),

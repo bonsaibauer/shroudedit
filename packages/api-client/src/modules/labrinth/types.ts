@@ -2476,126 +2476,6 @@ export namespace Labrinth {
 
 	export namespace TechReview {
 		export namespace Internal {
-			export type DelphiRule = {
-				id: number
-				name: string
-				rule: string
-				priority: number
-				on_issue_types: string[]
-				revision: number
-				current_revision?: number
-				created_at: string
-				updated_at: string
-				created_by: number | null
-				updated_by: number | null
-				affected_details_count: number
-				affected_details: DelphiRuleAffectedDetail[]
-			}
-
-			export type DelphiRuleAffectedDetail = {
-				detail_id: string
-				issue_id: string
-				project_id: string | null
-				project_name: string | null
-				project_icon_url: string | null
-				version_id: string | null
-				version_name: string | null
-				version_number: string | null
-				issue_type: string
-				key: string
-				jar: string | null
-				file_path: string
-				original_severity: DelphiSeverity
-				severity: DelphiSeverity
-			}
-
-			export type GetRuleAffectedDetailsRequest = {
-				limit?: number
-				page?: number
-			}
-
-			export type GetRuleAffectedDetailsResponse = {
-				total: number
-				details: DelphiRuleAffectedDetail[]
-			}
-
-			export type WriteDelphiRule = {
-				name: string
-				rule: string
-				priority: number
-				on_issue_types: string[]
-			}
-
-			export type DelphiIssueTypeSchemaResponse = Record<string, unknown>
-
-			export type TestDelphiRuleRequest = {
-				rule: string
-				inputs: RuleInput[]
-			}
-
-			export type DelphiRuleEffect = {
-				severity: DelphiSeverity
-			}
-
-			export type DelphiRuleSchema = Record<string, unknown>
-
-			export type DelphiRuleSchemaResponse = {
-				input: DelphiRuleSchema
-				output: DelphiRuleSchema
-				components: Record<string, DelphiRuleSchema>
-			}
-
-			export type RuleInput = {
-				schema_version: number
-				trace: RuleTrace
-				file_traces: RuleTrace[]
-				scan: {
-					delphi_version: number
-				}
-				artifact: {
-					size: number | null
-					hashes: Record<string, string>
-				}
-				project: {
-					id: string | null
-					types: string[]
-				}
-				version: {
-					id: string | null
-					loaders: string[]
-				}
-				file: {
-					id: string | null
-				}
-			}
-
-			export type RuleTrace = {
-				key: string
-				issue_type: string
-				severity: DelphiSeverity
-				jar: string | null
-				file_path: string
-				data: Record<string, unknown>
-			}
-
-			export type TestDelphiRuleResponse = {
-				effects: Array<DelphiRuleEffect | null>
-			}
-
-			export type DelphiRuleScanPhase = 'scanning' | 'publishing' | 'complete'
-
-			export type DelphiRuleScanEvent = {
-				phase: DelphiRuleScanPhase
-				revision: number
-				scanned: number
-				total: number
-				effects: number
-			}
-
-			export type DelphiRuleScanErrorEvent = {
-				message: string
-			}
-
 			export type SearchProjectsRequest = {
 				limit?: number
 				page?: number
@@ -2606,80 +2486,81 @@ export namespace Labrinth {
 			export type SearchProjectsFilter = {
 				project_type?: string[]
 				replied_to?: 'replied' | 'unreplied'
-				project_status?: string[]
-				issue_type?: string[]
+				project_status?: Projects.v2.ProjectStatus[]
 			}
 
 			export type SearchProjectsSort =
 				| 'created_asc'
 				| 'created_desc'
-				| 'severity_asc'
-				| 'severity_desc'
+				| 'detection_count_asc'
+				| 'detection_count_desc'
 
-			export type UpdateIssueRequest = {
-				detail_id: string
-				verdict: DelphiReportIssueStatus
+			export type VirusTotalScanStatus = 'queued' | 'submitted' | 'completed' | 'failed' | 'unknown'
+
+			export type VirusTotalVerdict = 'safe' | 'unsafe'
+			export type FindingVerdictScope = 'local' | 'global'
+
+			export type VirusTotalFinding = {
+				engine_name: string
+				category: string
+				result: string
+				local_verdict: VirusTotalVerdict | null
+				global_verdict: VirusTotalVerdict | null
 			}
 
-			export type UpdateIssueDetailRequest = {
-				verdict: DelphiReportIssueStatus
+			export type VirusTotalAnalysis = {
+				status?: string
+				stats?: Record<string, number>
+				results?: Record<string, VirusTotalFindingResult>
 			}
 
-			export type UpdateGlobalIssueRequest = {
-				detail_key: string
-				verdict: DelphiReportIssueStatus
+			export type VirusTotalFindingResult = {
+				engine_name?: string
+				category?: string
+				result?: string | null
+				method?: string
+				engine_update?: string
 			}
 
-			export type SearchGlobalIssueDetailsRequest = {
-				limit?: number
-				page?: number
-				query?: string | null
-			}
-
-			export type SearchGlobalIssueDetailsResponse = {
-				total: number
-				traces: GlobalIssueDetail[]
-			}
-
-			export type GetGlobalIssueDetailRequest = {
-				detail_key: string
-				limit?: number
-				after_detail_id?: string | null
-			}
-
-			export type GetGlobalIssueDetailResponse = {
-				trace: GlobalIssueDetail
-				next_after_detail_id: string | null
-			}
-
-			export type GlobalIssueDetail = {
-				detail_key: string
-				verdict: DelphiReportIssueStatus
-				local_trace_count: number
-				local_traces: GlobalIssueDetailTrace[]
-			}
-
-			export type GlobalIssueDetailTrace = {
-				detail_id: string
-				issue_id: string
-				issue_type: string
-				project_id: string
-				project_slug: string | null
-				project_name: string
-				version_id: string
-				version_number: string
+			export type FileReport = {
 				file_id: string
 				file_name: string
-				jar: string | null
-				file_path: string
-				severity: DelphiSeverity
-				local_status: DelphiReportIssueStatus
-				effective_status: DelphiReportIssueStatus
+				file_size: number
+				download_url: string
+				sha256: string | null
+				status: VirusTotalScanStatus
+				analysis_id: string | null
+				analysis_url: string | null
+				checked_at: string | null
+				error: string | null
+				analysis: VirusTotalAnalysis | null
+				findings: VirusTotalFinding[]
 			}
 
-			export type SubmitProjectRequest = {
-				verdict: 'safe' | 'unsafe'
-				message?: string
+			export type VersionReport = {
+				version_id: string
+				version_number: string
+				files: FileReport[]
+			}
+
+			export type ProjectReport = {
+				project_id: string
+				max_detection_count: number | null
+				versions: VersionReport[]
+			}
+
+			export type ProjectReportResponse = {
+				project_report: ProjectReport | null
+				thread: Thread
+			}
+
+			export type ProjectModerationInfo = {
+				id: string
+				thread_id: string
+				name: string
+				status: Projects.v2.ProjectStatus
+				project_types: string[]
+				icon_url: string | null
 			}
 
 			export type SearchResponse = {
@@ -2689,61 +2570,19 @@ export namespace Labrinth {
 				ownership: Record<string, Ownership>
 			}
 
-			export type ProjectModerationInfo = {
-				id: string
-				thread_id: string
-				name: string
-				project_types: string[]
-				icon_url: string | null
-			} & Projects.v3.Project
-
-			export type ProjectReport = {
-				project_id: string
-				max_severity: DelphiSeverity | null
-				versions: VersionReport[]
-			}
-
-			export type VersionReport = {
-				version_id: string
-				version_number?: string
-				files: FileReport[]
-			}
-
-			export type FileReport = {
-				report_id: string
+			export type UpdateFindingVerdictRequest = {
 				file_id: string
-				created: string
-				flag_reason: FlagReason
-				severity: DelphiSeverity
-				file_name: string
-				file_size: number
-				download_url: string
-				issues: FileIssue[]
+				sha256: string
+				engine_name: string
+				category: string
+				result: string
+				scope: FindingVerdictScope
+				verdict: VirusTotalVerdict | null
 			}
 
-			export type GetIssueRequest = {
-				include_hidden?: boolean
-			}
-
-			export type FileIssue = {
-				id: string
-				report_id: string
-				issue_type: string
-				details: ReportIssueDetail[]
-			}
-
-			export type ReportIssueDetail = {
-				id: string
-				issue_id: string
-				key: string
-				jar: string | null
-				file_path: string
-				decompiled_source: string | null
-				data: Record<string, unknown>
-				severity: DelphiSeverity
-				local_status: DelphiReportIssueStatus | null
-				global_status: DelphiReportIssueStatus | null
-				status: DelphiReportIssueStatus
+			export type SubmitProjectRequest = {
+				verdict: 'safe' | 'unsafe'
+				message?: string
 			}
 
 			export type Ownership =
@@ -2760,30 +2599,12 @@ export namespace Labrinth {
 						icon_url?: string
 				  }
 
-			export type DBThread = {
-				id: string
-				project_id?: string
-				report_id?: string
-				type_: ThreadType
-				messages: DBThreadMessage[]
-				members: string[]
-			}
-
-			export type DBThreadMessage = {
-				id: string
-				thread_id: string
-				author_id?: string
-				body: MessageBody
-				created: string
-				hide_identity: boolean
-			}
-
 			export type MessageBody =
 				| {
 						type: 'text'
 						body: string
 						private?: boolean
-						replying_to?: string
+						replying_to?: string | null
 						associated_images?: string[]
 				  }
 				| {
@@ -2791,29 +2612,22 @@ export namespace Labrinth {
 						new_status: Projects.v2.ProjectStatus
 						old_status: Projects.v2.ProjectStatus
 				  }
-				| {
-						type: 'tech_review'
-						verdict: 'safe' | 'unsafe'
-				  }
-				| {
-						type: 'tech_review_entered'
-				  }
-				| {
-						type: 'tech_review_exited'
-				  }
-				| {
-						type: 'tech_review_exit_file_deleted'
-				  }
-				| {
-						type: 'thread_closure'
-				  }
-				| {
-						type: 'thread_reopen'
-				  }
-				| {
-						type: 'deleted'
-						private?: boolean
-				  }
+				| { type: 'tech_review'; verdict: 'safe' | 'unsafe' }
+				| { type: 'tech_review_entered' }
+				| { type: 'tech_review_exited' }
+				| { type: 'tech_review_exit_file_deleted' }
+				| { type: 'thread_closure' }
+				| { type: 'thread_reopen' }
+				| { type: 'deleted'; private?: boolean }
+
+			export type Thread = {
+				id: string
+				type: ThreadType
+				project_id: string | null
+				report_id: string | null
+				messages: ThreadMessage[]
+				members: User[]
+			}
 
 			export type ThreadType = 'report' | 'project' | 'direct_message'
 
@@ -2834,29 +2648,8 @@ export namespace Labrinth {
 				created: string
 				hide_identity: boolean
 			}
-
-			export type Thread = {
-				id: string
-				type: ThreadType
-				project_id: string | null
-				report_id: string | null
-				messages: ThreadMessage[]
-				members: User[]
-			}
-
-			export type FlagReason = 'delphi'
-
-			export type DelphiSeverity = 'hidden' | 'low' | 'medium' | 'high' | 'severe' | 'malware'
-
-			export type DelphiReportIssueStatus = 'pending' | 'safe' | 'unsafe'
-
-			export type ProjectReportResponse = {
-				project_report: ProjectReport | null
-				thread: Thread
-			}
 		}
 	}
-
 	export namespace Pats {
 		export namespace v2 {
 			export type PersonalAccessToken = {

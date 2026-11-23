@@ -22,4 +22,5 @@ pub mod tags;
 pub mod tiltify;
 pub mod usercheck;
 pub mod validate;
+pub mod virustotal;
 pub mod webhook;

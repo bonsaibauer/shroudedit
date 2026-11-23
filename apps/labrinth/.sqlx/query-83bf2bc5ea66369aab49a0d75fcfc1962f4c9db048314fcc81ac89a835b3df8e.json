@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "DELETE FROM virustotal_finding_verdicts WHERE scope = 'global' AND sha256 = $1 AND engine_name = $2 AND category = $3 AND result = $4",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "83bf2bc5ea66369aab49a0d75fcfc1962f4c9db048314fcc81ac89a835b3df8e"
+}

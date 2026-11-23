@@ -5,7 +5,6 @@ pub mod attribution;
 pub mod billing;
 pub mod blocked_users;
 pub mod campaign;
-pub mod delphi;
 pub mod external_notifications;
 pub mod flows;
 pub mod gdpr;
@@ -19,6 +18,7 @@ pub mod search;
 pub mod server_ping;
 pub mod session;
 pub mod statuses;
+pub mod virustotal;
 
 pub use super::ApiError;
 use super::SecurityAddon;
@@ -45,7 +45,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 		.service(web::scope("/globals").configure(globals::config))
 		.service(web::scope("/server-ping").configure(server_ping::config))
 		.service(web::scope("/attribution").configure(attribution::config))
-		.configure(delphi::config)
+		.configure(virustotal::config)
 		.configure(external_notifications::config)
 		.configure(gdpr::config)
 		.configure(gotenberg::config)
@@ -118,24 +118,10 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 		moderation::release_lock,
 		moderation::release_lock_beacon,
 		moderation::delete_all_locks,
-		moderation::tech_review::get_issue,
-		moderation::tech_review::get_report,
 		moderation::tech_review::search_projects,
-		moderation::tech_review::global::search_global_issue_details,
-		moderation::tech_review::global::get_global_issue_detail,
-		moderation::tech_review::rules::get_rules,
-		moderation::tech_review::rules::test_rule,
-		moderation::tech_review::rules::get_rule_affected_details,
-		moderation::tech_review::rules::create_rule,
-		moderation::tech_review::rules::update_rule,
-		moderation::tech_review::rules::delete_rule,
-		moderation::tech_review::rules_scan::get_rule_schema,
-		moderation::tech_review::rules_scan::get_detail_rule_input,
-		moderation::tech_review::rules_scan::scan_rules,
 		moderation::tech_review::get_project_report,
 		moderation::tech_review::submit_report,
-		moderation::tech_review::update_issue_details,
-		moderation::tech_review::update_global_issue_details,
+		moderation::tech_review::update_finding_verdicts,
 		moderation::external_license::search,
 		moderation::external_license::lookup,
 		moderation::external_license::get_by_sha1,
@@ -176,10 +162,7 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 		billing::initiate_payment,
 		billing::stripe_webhook,
 		billing::credit,
-		delphi::ingest_report,
-		delphi::_run,
-		delphi::version,
-		delphi::issue_type_schema,
+		virustotal::run_file_scan,
 		external_notifications::create,
 		external_notifications::create_email_sync,
 		external_notifications::remove,

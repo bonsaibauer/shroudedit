@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tWITH inserted AS (\n\t\t\tINSERT INTO technical_review_queue (project_id)\n\t\t\tSELECT unnest($1::bigint[])\n\t\t\tON CONFLICT (project_id) DO NOTHING\n\t\t\tRETURNING project_id\n\t\t)\n\t\tSELECT inserted.project_id AS \"project_id!: DBProjectId\",\n\t\t\t(\n\t\t\t\tSELECT thread.id\n\t\t\t\tFROM threads thread\n\t\t\t\tWHERE thread.mod_id = inserted.project_id\n\t\t\t\tORDER BY thread.id\n\t\t\t\tLIMIT 1\n\t\t\t) AS \"thread_id!: DBThreadId\"\n\t\tFROM inserted\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "project_id!: DBProjectId",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "thread_id!: DBThreadId",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8Array"
+      ]
+    },
+    "nullable": [
+      false,
+      null
+    ]
+  },
+  "hash": "180f6ae9b5db27a9f45575e9318df9080f3b13e34b851cb553c9fca524b72608"
+}

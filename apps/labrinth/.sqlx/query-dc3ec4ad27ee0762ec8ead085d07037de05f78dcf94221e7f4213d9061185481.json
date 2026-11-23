@@ -1,0 +1,19 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\t\t\t\tUPDATE virustotal_file_scans\n\t\t\t\t\tSET status = CASE\n\t\t\t\t\t\t\tWHEN $2 THEN 'submitted'::virustotal_scan_status\n\t\t\t\t\t\t\tWHEN $3 THEN 'completed'::virustotal_scan_status\n\t\t\t\t\t\t\tELSE 'unknown'::virustotal_scan_status\n\t\t\t\t\t\tEND,\n\t\t\t\t\t\tanalysis = $4,\n\t\t\t\t\t\tchecked_at = NOW(),\n\t\t\t\t\t\tnext_poll_at = CASE WHEN $2 THEN NOW() + make_interval(secs => $5) ELSE NULL END,\n\t\t\t\t\t\terror = CASE WHEN NOT $2 AND NOT $3 THEN 'VirusTotal returned an unknown analysis status' ELSE NULL END,\n\t\t\t\t\t\tpoll_attempts = 0,\n\t\t\t\t\t\tupdated_at = NOW()\n\t\t\t\t\tWHERE file_id = $1 AND analysis_id = $6 AND status = 'submitted'\n\t\t\t\t\t",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Bool",
+        "Bool",
+        "Jsonb",
+        "Float8",
+        "Text"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "dc3ec4ad27ee0762ec8ead085d07037de05f78dcf94221e7f4213d9061185481"
+}

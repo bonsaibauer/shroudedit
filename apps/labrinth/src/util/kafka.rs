@@ -10,12 +10,12 @@ use serde::Serialize;
 use uuid::Uuid;
 
 pub const KAFKA_OPERATION_INTERVAL: Duration = Duration::from_secs(5);
-pub const DELPHI_FILE_SCAN_TASK: &str = "delphi-file-scan";
+pub const VIRUSTOTAL_FILE_SCAN_TASK: &str = "virustotal-file-scan";
 pub const INCREMENTAL_INDEX_SEARCH_TASK: &str = "incremental-index-search";
 
 pub struct KafkaClientState {
 	pub client: FutureProducer,
-	pub delphi_file_scan_consumer: StreamConsumer,
+	pub virustotal_file_scan_consumer: StreamConsumer,
 	pub incremental_index_search_consumer: StreamConsumer,
 }
 
@@ -32,8 +32,10 @@ impl KafkaClientState {
 			.set("broker.address.family", "v4")
 			.create()
 			.wrap_err("failed to create Kafka producer")?;
-		let delphi_file_scan_consumer = create_consumer(DELPHI_FILE_SCAN_TASK)
-			.wrap_err("failed to create Delphi file scan Kafka consumer")?;
+		let virustotal_file_scan_consumer = create_consumer(
+			VIRUSTOTAL_FILE_SCAN_TASK,
+		)
+		.wrap_err("failed to create VirusTotal file scan Kafka consumer")?;
 		let incremental_index_search_consumer = create_consumer(
 			INCREMENTAL_INDEX_SEARCH_TASK,
 		)
@@ -47,7 +49,7 @@ impl KafkaClientState {
 
 		Ok(Self {
 			client,
-			delphi_file_scan_consumer,
+			virustotal_file_scan_consumer,
 			incremental_index_search_consumer,
 		})
 	}
