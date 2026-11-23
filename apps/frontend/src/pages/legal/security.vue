@@ -6,7 +6,7 @@
 		<p>
 			This notice explains how to report suspected security vulnerabilities affecting ShroudEdit,
 			its API or the source code published at
-			<a href="https://github.com/bosnbauer/shroudedit">github.com/bosnbauer/shroudedit</a>.
+			<a href="https://github.com/bonsaibauer/shroudedit">github.com/bonsaibauer/shroudedit</a>.
 		</p>
 
 		<h2>Reporting a vulnerability</h2>

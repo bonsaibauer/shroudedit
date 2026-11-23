@@ -12,7 +12,10 @@
 		</p>
 
 		<h2>Contact</h2>
-		<p>Email: <a href="mailto:support@shroudedit.com">support@shroudedit.com</a></p>
+		<p>
+			Email: <a href="mailto:support@shroudedit.com">support@shroudedit.com</a><br />
+			Email: support [at] shroudedit [dot] com
+		</p>
 
 		<h2>Responsible for editorial content pursuant to Section 18(2) MStV</h2>
 		<p>
