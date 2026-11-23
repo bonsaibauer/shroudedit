@@ -131,7 +131,10 @@ jobs:
       - name: Start services
         id: start-services
         if: steps.check-labrinth.outputs.needs_services == 'true'
-        run: docker compose --profile clustered-redis up --wait
+        run: |
+          docker compose --profile clustered-redis up --detach --wait postgres_db typesense0 elasticsearch0 elasticsearch1 elasticsearch2 meilisearch0 redis redis-cluster-0 redis-cluster-1 redis-cluster-2 redis-cluster-3 redis-cluster-4 redis-cluster-5 clickhouse mail gotenberg redpanda
+          docker compose --profile clustered-redis run --rm redis-cluster-creator
+          docker compose run --rm redpanda-init
 
       - name: Report service startup failure
         if: ${{ failure() && steps.start-services.outcome == 'failure' }}
