@@ -129,8 +129,6 @@
   "content.inline-backup.backing-up": "Se creează o copie de rezervă...",
   "content.inline-backup.backup-complete": "Copie de rezervă creată cu succes",
   "content.inline-backup.backup-failed": "Crearea copiei de rezervă a eșuat. Poți sa continui.",
-  "content.inline-backup.backup-in-progress": "O copie de rezervă se creează, este recomandat să aștepți ca sa se termine înainte de perfomarea acestei acțiuni.",
-  "content.inline-backup.backup-takes-a-while": "Crearea copiei de rezervă poate dura câteva minute depinzând de dimensiunea serverului.",
   "content.inline-backup.create-backup": "Creează o copie de rezervă",
   "content.inline-backup.instance-label": "instanță",
   "content.page-layout.share.label": "Distribuie",
