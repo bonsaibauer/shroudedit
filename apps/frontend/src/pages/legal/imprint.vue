@@ -1,10 +1,14 @@
 <template>
 	<div class="markdown-body">
-		<h1>Impressum</h1>
+		<h1>Imprint</h1>
+		<p>
+			This legal notice applies to the Service as defined in the
+			<nuxt-link to="/legal/terms">Terms of Use</nuxt-link>.
+		</p>
 
 		<h2>Provider information</h2>
 		<p>
-			<strong>Betreiber:</strong> Philipp Feierabend<br />
+			<strong>Operator:</strong> Philipp Feierabend<br />
 			c/o IMPREGO<br />
 			Golzwarder Straße 28<br />
 			26919 Brake (Unterweser)<br />
@@ -48,12 +52,12 @@
 </template>
 
 <script setup>
-const description = 'Legal provider information and contact details for ShroudEdit.'
+const description = 'Legal provider information and contact details for the Service.'
 
 useSeoMeta({
-	title: 'Impressum - ShroudEdit',
+	title: 'Imprint - ShroudEdit',
 	description,
-	ogTitle: 'Impressum',
+	ogTitle: 'Imprint',
 	ogDescription: description,
 })
 </script>

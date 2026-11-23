@@ -1,11 +1,11 @@
 <template>
 	<div class="markdown-body">
 		<h1>Security Notice</h1>
-		<p><em>Last updated: November 23, 2026</em></p>
+		<p><em>Last updated: November 24, 2026</em></p>
 
 		<p>
-			This notice explains how to report suspected security vulnerabilities affecting ShroudEdit,
-			its API or the source code published at
+			This notice explains how to report suspected security vulnerabilities affecting the Service or
+			the source code published at
 			<a href="https://github.com/bonsaibauer/shroudedit">github.com/bonsaibauer/shroudedit</a>.
 		</p>
 
@@ -17,7 +17,7 @@
 		</p>
 		<p>Please include, where available:</p>
 		<ul>
-			<li>the affected website, API endpoint, repository or component;</li>
+			<li>the affected website, Wiki page, API endpoint, repository or component;</li>
 			<li>a clear description of the vulnerability and its potential impact;</li>
 			<li>minimal, non-destructive reproduction steps;</li>
 			<li>relevant logs, screenshots or proof-of-concept material with secrets removed;</li>
@@ -46,7 +46,7 @@
 			<li>missing best-practice headers without an exploitable consequence;</li>
 			<li>rate-limit or denial-of-service testing that risks service availability;</li>
 			<li>issues exclusively affecting unsupported browsers or modified clients;</li>
-			<li>vulnerabilities in third-party services that do not affect ShroudEdit.</li>
+			<li>vulnerabilities in third-party services that do not affect the Service.</li>
 		</ul>
 
 		<h2>Personal data incidents</h2>
@@ -59,7 +59,7 @@
 </template>
 
 <script setup>
-const description = 'How to report security vulnerabilities affecting ShroudEdit.'
+const description = 'How to report security vulnerabilities affecting the Service.'
 
 useSeoMeta({
 	title: 'Security Notice - ShroudEdit',

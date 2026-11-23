@@ -4,7 +4,7 @@
 			<NavStack
 				:items="[
 					{ type: 'heading', label: 'Legal' },
-					{ link: '/legal/imprint', label: 'Impressum', icon: InfoIcon },
+					{ link: '/legal/imprint', label: 'Imprint', icon: InfoIcon },
 					{ link: '/legal/rules', label: 'Content Rules', icon: ScaleIcon },
 					{ link: '/legal/terms', label: 'Terms of Use', icon: HeartHandshakeIcon },
 					{ link: '/legal/privacy', label: 'Privacy Policy', icon: LockIcon },

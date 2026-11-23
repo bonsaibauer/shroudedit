@@ -4,11 +4,9 @@
 		<p><em>Last updated: November 24, 2026</em></p>
 
 		<p>
-			This Privacy Policy explains how personal data is processed when you use ShroudEdit. It
-			applies to shroudedit.com, the ShroudEdit API, the ShroudForge download website at
-			shroudforge.net, the ShroudForge Wiki at wiki.shroudforge.net, the related status page at
-			status.shroudforge.net and connected community services operated as part of the ShroudEdit and
-			ShroudForge network. The terms used in this policy have the meanings given to them by Regulation
+			This Privacy Policy explains how personal data is processed when you use the Service as defined
+			in our <nuxt-link to="/legal/terms">Terms of Use</nuxt-link>, including its ShroudForge website,
+			Wiki and status page. The terms used in this policy have the meanings given to them by Regulation
 			(EU) 2016/679, the General Data Protection Regulation (<strong>GDPR</strong>).
 		</p>
 
@@ -426,7 +424,7 @@
 </template>
 
 <script setup>
-const description = 'Information about the processing of personal data by ShroudEdit.'
+const description = 'Information about personal data processing across the Service.'
 
 useSeoMeta({
 	title: 'Privacy Policy - ShroudEdit',

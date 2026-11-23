@@ -1,21 +1,21 @@
 <template>
 	<div class="markdown-body">
 		<h1>Copyright Policy</h1>
-		<p><em>Last updated: November 23, 2026</em></p>
+		<p><em>Last updated: November 24, 2026</em></p>
 
 		<h2>Respect for intellectual property</h2>
 		<p>
-			ShroudEdit respects copyright, open-source licences and other intellectual property rights.
-			Users may upload or distribute content only if they own the necessary rights or have
-			permission under an applicable licence or other legal basis.
+			We respect copyright, open-source licences and other intellectual property rights across the
+			Service. Users may upload, publish or distribute content only if they own the necessary rights
+			or have permission under an applicable licence or other legal basis.
 		</p>
 
 		<h2>Reporting copyright infringement</h2>
 		<p>
-			If you believe content available through ShroudEdit infringes your rights, send a sufficiently
+			If you believe content available through the Service infringes your rights, send a sufficiently
 			precise notice to
 			<a href="mailto:copyright@shroudedit.com">copyright@shroudedit.com</a>. You may also use the
-			reporting function available on the relevant project or file page.
+			reporting function where available. Include the exact URL, including the Wiki page or file URL.
 		</p>
 		<p>A notice should include:</p>
 		<ul>
@@ -30,9 +30,9 @@
 		<h2>Review and action</h2>
 		<p>
 			We assess notices promptly, carefully and impartially. We may request further information,
-			restrict access while a claim is reviewed, remove content or reject an unsupported notice. Our
-			action will be limited to what is reasonably necessary. Where legally required, we will notify
-			the uploader of the decision and its reasons.
+			restrict access while a claim is reviewed, remove content, including Wiki pages or edits, or reject
+			an unsupported notice. Our action will be limited to what is reasonably necessary. Where legally
+			required, we will notify the uploader of the decision and its reasons.
 		</p>
 
 		<h2>Response by the uploader</h2>
@@ -48,9 +48,9 @@
 
 		<h2>Repeated or serious infringement</h2>
 		<p>
-			We may suspend or terminate accounts that repeatedly or seriously infringe intellectual
-			property rights. Decisions take account of the nature, severity, frequency and reliability of
-			the reports as well as any successful objections.
+			We may suspend or terminate accounts or restrict Wiki editing for repeated or serious infringement
+			of intellectual property rights. Decisions take account of the nature, severity, frequency and
+			reliability of the reports as well as any successful objections.
 		</p>
 
 		<h2>Misuse of the reporting process</h2>
@@ -73,7 +73,7 @@
 </template>
 
 <script setup>
-const description = 'The Copyright Policy and rights-reporting process for ShroudEdit.'
+const description = 'The Copyright Policy and rights-reporting process for the Service.'
 
 useSeoMeta({
 	title: 'Copyright Policy - ShroudEdit',

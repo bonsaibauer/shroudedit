@@ -1,19 +1,25 @@
 <template>
 	<div class="markdown-body">
 		<h1>Content Rules</h1>
-		<p><em>Last updated: September 20, 2026</em></p>
+		<p><em>Last updated: November 24, 2026</em></p>
 
 		<p>
 			These Content Rules form part of the
 			<nuxt-link to="/legal/terms">Terms of Use</nuxt-link> and apply to all projects, files,
 			schematics, modpacks, server listings, images, descriptions, comments and other material
-			shared through ShroudEdit (<strong>“Content”</strong>).
+			shared through the Service, including contributions to the ShroudForge Wiki
+			(<strong>“Content”</strong>).
 		</p>
 		<p>
-			Use the report button on the relevant page to report a violation. Reports of illegal content
-			may also be sent to
-			<a href="mailto:support@shroudedit.com">support@shroudedit.com</a>. Copyright reports are
-			handled under our <nuxt-link to="/legal/copyright">Copyright Policy</nuxt-link>.
+			The project requirements in section 4 apply to ShroudEdit project listings. The other rules apply
+			to Content across the Service.
+		</p>
+		<p>
+			Use the report button where available, or email
+			<a href="mailto:support@shroudedit.com">support@shroudedit.com</a> if there is no report button.
+			Copyright reports are handled under our
+			<nuxt-link to="/legal/copyright">Copyright Policy</nuxt-link>. Include the content URL in your
+			report.
 		</p>
 
 		<h2 id="illegal-harmful-content">1. Illegal and harmful content</h2>
@@ -47,7 +53,10 @@
 				prior disclosure and a lawful basis;
 			</li>
 			<li>download or execute undisclosed remote code or dependencies;</li>
-			<li>circumvent ShroudEdit security controls, moderation or download accounting;</li>
+			<li>
+				circumvent Service security or moderation controls, or manipulate ShroudEdit download
+				accounting;
+			</li>
 			<li>interfere with Enshrouded servers or other users without their informed permission.</li>
 		</ol>
 		<p>
@@ -55,9 +64,9 @@
 			prominently on the project page. Disclosures must be accurate for every published version.
 		</p>
 
-		<h2 id="project-description">3. Clear and honest presentation</h2>
+		<h2 id="project-description">3. Clear and honest project listings</h2>
 		<p>
-			A project page must clearly explain what the project does, how it is installed or used, what
+			A project listing must clearly explain what the project does, how it is installed or used, what
 			game and loader versions it supports and any important limitations or risks. Titles,
 			summaries, categories, dependencies, licences and environment tags must be accurate and must
 			not be used to manipulate search or impersonate another project.
@@ -126,7 +135,8 @@
 		<h2 id="moderation">8. Enforcement</h2>
 		<p>
 			Depending on severity and context, we may request changes, reject a submission, reduce
-			visibility, remove files, suspend distribution or restrict an account. We consider intent,
+			visibility, remove files or Wiki edits, suspend distribution, restrict Wiki editing or restrict
+			an account. We consider intent,
 			harm, recurrence, cooperation and the reliability of available evidence. Where required by
 			law, we provide reasons and an opportunity to request review. Appeals may be sent to
 			<a href="mailto:support@shroudedit.com">support@shroudedit.com</a>.
@@ -135,7 +145,7 @@
 </template>
 
 <script setup>
-const description = 'The rules for content published and distributed through ShroudEdit.'
+const description = 'The rules for content shared through ShroudEdit and related services.'
 
 useSeoMeta({
 	title: 'Content Rules - ShroudEdit',
