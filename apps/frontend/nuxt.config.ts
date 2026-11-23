@@ -132,6 +132,7 @@ export default defineNuxtConfig({
 			}
 
 			const API_URL = getApiUrl()
+			const monetizationEnabled = process.env.MONETIZATION_ENABLED === 'true'
 
 			if (
 				// Skip regeneration if within TTL...
@@ -139,6 +140,7 @@ export default defineNuxtConfig({
 				new Date(state.lastGenerated).getTime() + TTL > new Date().getTime() &&
 				// ...but only if the API URL is the same
 				state.apiUrl === API_URL &&
+				state.monetizationEnabled === monetizationEnabled &&
 				// ...and if no errors were caught during the last generation
 				(state.errors ?? []).length === 0
 			) {
@@ -153,9 +155,10 @@ export default defineNuxtConfig({
 				userAgent: 'ShroudEdit generator (support@shroudedit.com)',
 			})
 
-			const generatedState = await client.labrinth.state.build()
+			const generatedState = await client.labrinth.state.build({ monetizationEnabled })
 			state.lastGenerated = new Date().toISOString()
 			state.apiUrl = API_URL
+			state.monetizationEnabled = monetizationEnabled
 			state = {
 				...state,
 				...generatedState,

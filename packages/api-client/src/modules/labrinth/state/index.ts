@@ -32,6 +32,7 @@ export class LabrinthStateModule extends AbstractModule {
 	/**
 	 * Build the complete generated state by fetching from multiple endpoints
 	 *
+	 * @param options.monetizationEnabled - Whether to fetch billing and payout data (defaults to true)
 	 * @returns Promise resolving to the generated state containing categories, loaders, products, etc.
 	 *
 	 * @example
@@ -40,7 +41,9 @@ export class LabrinthStateModule extends AbstractModule {
 	 * console.log(state.products) // Available billing products
 	 * ```
 	 */
-	public async build(): Promise<Labrinth.State.GeneratedState> {
+	public async build(
+		{ monetizationEnabled = true }: { monetizationEnabled?: boolean } = {},
+	): Promise<Labrinth.State.GeneratedState> {
 		const errors: unknown[] = []
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		const handleError = (err: any, defaultValue: any, endpoint: string) => {
@@ -119,9 +122,11 @@ export class LabrinthStateModule extends AbstractModule {
 				.catch((err) => handleError(err, {} as Labrinth.Search.v2.SearchResults, '/v2/search')),
 
 			// Internal billing/mural endpoints
-			this.client.labrinth.billing_internal
-				.getProducts()
-				.catch((err) => handleError(err, [], '/_internal/billing/products')),
+			monetizationEnabled
+				? this.client.labrinth.billing_internal
+						.getProducts()
+						.catch((err) => handleError(err, [], '/_internal/billing/products'))
+				: [],
 			this.client
 				.request<{ bankDetails: Record<string, { bankNames: string[] }> }>('/mural/bank-details', {
 					api: 'labrinth',
@@ -136,13 +141,15 @@ export class LabrinthStateModule extends AbstractModule {
 				.catch((err) => handleError(err, { countries: [], subdivisions: {} }, 'iso3166/data')),
 
 			// Payout methods for tremendous ID mapping
-			this.client
-				.request<Labrinth.State.PayoutMethodInfo[]>('/payout/methods', {
-					api: 'labrinth',
-					version: 3,
-					method: 'GET',
-				})
-				.catch((err) => handleError(err, [], '/v3/payout/methods')),
+			monetizationEnabled
+				? this.client
+						.request<Labrinth.State.PayoutMethodInfo[]>('/payout/methods', {
+							api: 'labrinth',
+							version: 3,
+							method: 'GET',
+						})
+						.catch((err) => handleError(err, [], '/v3/payout/methods'))
+				: [],
 
 			// Global configuration
 			this.client
