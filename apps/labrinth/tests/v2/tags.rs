@@ -53,10 +53,19 @@ async fn get_tags() {
 				loaders.into_iter().map(|x| x.name).collect::<HashSet<_>>();
 			assert_eq!(
 				loader_names,
-				["fabric", "forge", "bukkit", "waterfall", "datapack"]
-					.iter()
-					.map(|s| s.to_string())
-					.collect()
+				[
+					"fabric",
+					"forge",
+					"bukkit",
+					"waterfall",
+					"datapack",
+					"shroudforge",
+					"shroudtopia",
+					"eml",
+				]
+				.iter()
+				.map(|s| s.to_string())
+				.collect()
 			);
 
 			let side_type_names =
