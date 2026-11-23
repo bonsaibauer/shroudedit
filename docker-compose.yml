@@ -151,6 +151,7 @@ services:
       interval: 3s
       timeout: 5s
       retries: 3
+  # These test-only nodes share a dedicated bridge, and their cluster bus ports are not published.
   redis-cluster-0:
     profiles:
       - clustered-redis
@@ -168,6 +169,8 @@ services:
         '7000',
         '--cluster-enabled',
         'yes',
+        '--cluster-bus-port-protected-mode',
+        'no',
         '--cluster-config-file',
         'nodes.conf',
         '--cluster-node-timeout',
@@ -201,6 +204,8 @@ services:
         '7001',
         '--cluster-enabled',
         'yes',
+        '--cluster-bus-port-protected-mode',
+        'no',
         '--cluster-config-file',
         'nodes.conf',
         '--cluster-node-timeout',
@@ -234,6 +239,8 @@ services:
         '7002',
         '--cluster-enabled',
         'yes',
+        '--cluster-bus-port-protected-mode',
+        'no',
         '--cluster-config-file',
         'nodes.conf',
         '--cluster-node-timeout',
@@ -267,6 +274,8 @@ services:
         '7003',
         '--cluster-enabled',
         'yes',
+        '--cluster-bus-port-protected-mode',
+        'no',
         '--cluster-config-file',
         'nodes.conf',
         '--cluster-node-timeout',
@@ -300,6 +309,8 @@ services:
         '7004',
         '--cluster-enabled',
         'yes',
+        '--cluster-bus-port-protected-mode',
+        'no',
         '--cluster-config-file',
         'nodes.conf',
         '--cluster-node-timeout',
@@ -333,6 +344,8 @@ services:
         '7005',
         '--cluster-enabled',
         'yes',
+        '--cluster-bus-port-protected-mode',
+        'no',
         '--cluster-config-file',
         'nodes.conf',
         '--cluster-node-timeout',
