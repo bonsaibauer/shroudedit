@@ -1,7 +1,7 @@
 <template>
 	<div class="markdown-body">
 		<h1>Terms of Use</h1>
-		<p><em>Last updated: September 20, 2026</em></p>
+		<p><em>Last updated: November 23, 2026</em></p>
 
 		<h2>1. Provider and scope</h2>
 		<p>
@@ -11,8 +11,9 @@
 		</p>
 		<p>
 			<strong>Operator:</strong> Philipp Feierabend<br />
-			Straße, Hausnummer<br />
-			PLZ, Stadt<br />
+			c/o IMPREGO<br />
+			Golzwarder Straße 28<br />
+			26919 Brake (Unterweser)<br />
 			Germany<br />
 			Email: <a href="mailto:support@shroudedit.com">support@shroudedit.com</a>
 		</p>

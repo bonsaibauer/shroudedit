@@ -1,7 +1,7 @@
 <template>
 	<div class="markdown-body">
 		<h1>Copyright Policy</h1>
-		<p><em>Last updated: September 20, 2026</em></p>
+		<p><em>Last updated: November 23, 2026</em></p>
 
 		<h2>Respect for intellectual property</h2>
 		<p>
@@ -63,8 +63,9 @@
 		<h2>Contact</h2>
 		<p>
 			<strong>Operator:</strong> Philipp Feierabend<br />
-			Straße, Hausnummer<br />
-			PLZ, Stadt<br />
+			c/o IMPREGO<br />
+			Golzwarder Straße 28<br />
+			26919 Brake (Unterweser)<br />
 			Germany<br />
 			Email: <a href="mailto:copyright@shroudedit.com">copyright@shroudedit.com</a>
 		</p>

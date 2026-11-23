@@ -1,7 +1,7 @@
 <template>
 	<div class="markdown-body">
 		<h1>Rewards Program Terms</h1>
-		<p><em>Last updated: September 20, 2026</em></p>
+		<p><em>Last updated: November 23, 2026</em></p>
 		<p>
 			These Rewards Program Terms supplement the
 			<nuxt-link to="/legal/terms">Terms of Use</nuxt-link>,
@@ -13,8 +13,9 @@
 		<h2>Provider</h2>
 		<p>
 			<strong>Operator:</strong> Philipp Feierabend<br />
-			Straße, Hausnummer<br />
-			PLZ, Stadt<br />
+			c/o IMPREGO<br />
+			Golzwarder Straße 28<br />
+			26919 Brake (Unterweser)<br />
 			Germany (<strong>“ShroudEdit”</strong>). Questions may be sent to
 			<a href="mailto:support@shroudedit.com">support@shroudedit.com</a>.
 		</p>

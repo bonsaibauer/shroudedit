@@ -27,8 +27,9 @@ import StyledDoc from '../shared/StyledDoc.vue'
 						From
 					</Text>
 					<Text class="m-0 mb-1 text-base text-sm font-semibold">Philipp Feierabend</Text>
-					<Text class="m-0 text-sm leading-tight text-secondary">Straße, Hausnummer</Text>
-					<Text class="m-0 text-sm leading-tight text-secondary">PLZ, Stadt</Text>
+					<Text class="m-0 text-sm leading-tight text-secondary">c/o IMPREGO</Text>
+					<Text class="m-0 text-sm leading-tight text-secondary">Golzwarder Straße 28</Text>
+					<Text class="m-0 text-sm leading-tight text-secondary">26919 Brake (Unterweser)</Text>
 					<Text class="m-0 text-sm leading-tight text-secondary">Germany</Text>
 					<Text class="m-0 mt-2 text-sm text-secondary">
 						<VLink href="mailto:support@shroudedit.com" class="text-blue no-underline">

@@ -1,7 +1,7 @@
 <template>
 	<div class="markdown-body">
 		<h1>Security Notice</h1>
-		<p><em>Last updated: September 20, 2026</em></p>
+		<p><em>Last updated: November 23, 2026</em></p>
 
 		<p>
 			This notice explains how to report suspected security vulnerabilities affecting ShroudEdit,
@@ -52,7 +52,7 @@
 		<h2>Personal data incidents</h2>
 		<p>
 			If a report concerns personal data, also contact
-			<a href="mailto:gdpr@shroudedit.com">gdpr@shroudedit.com</a>. Do not include unnecessary
+			<a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a>. Do not include unnecessary
 			personal data in the report.
 		</p>
 	</div>

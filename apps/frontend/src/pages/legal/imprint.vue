@@ -2,21 +2,25 @@
 	<div class="markdown-body">
 		<h1>Impressum</h1>
 
-		<h2>Information pursuant to Section 5 DDG</h2>
+		<h2>Information pursuant to Section 5 DDG and Section 18(1) MStV</h2>
 		<p>
 			<strong>Betreiber:</strong> Philipp Feierabend<br />
-			Straße, Hausnummer<br />
-			PLZ, Stadt<br />
+			c/o IMPREGO<br />
+			Golzwarder Straße 28<br />
+			26919 Brake (Unterweser)<br />
 			Germany
 		</p>
 
 		<h2>Contact</h2>
 		<p>Email: <a href="mailto:support@shroudedit.com">support@shroudedit.com</a></p>
 
-		<h2>Responsible for editorial content</h2>
+		<h2>Responsible for editorial content pursuant to Section 18(2) MStV</h2>
 		<p>
 			Philipp Feierabend<br />
-			Address as stated above
+			c/o IMPREGO<br />
+			Golzwarder Straße 28<br />
+			26919 Brake (Unterweser)<br />
+			Germany
 		</p>
 
 		<h2>Platform contact points</h2>
@@ -26,7 +30,7 @@
 			Copyright notices:
 			<a href="mailto:copyright@shroudedit.com">copyright@shroudedit.com</a><br />
 			Data protection:
-			<a href="mailto:gdpr@shroudedit.com">gdpr@shroudedit.com</a><br />
+			<a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a><br />
 			Security reports:
 			<a href="mailto:security@shroudedit.com">security@shroudedit.com</a>
 		</p>

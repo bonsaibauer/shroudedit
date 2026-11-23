@@ -1,22 +1,23 @@
 <template>
 	<div class="markdown-body">
 		<h1>Privacy Policy</h1>
-		<p><em>Last updated: September 20, 2026</em></p>
+		<p><em>Last updated: November 23, 2026</em></p>
 
 		<p>
 			This Privacy Policy explains how personal data is processed when you use ShroudEdit. It
 			applies to shroudedit.com, the ShroudEdit API and related community services. The terms used
-			in this policy have the meanings given to them by the General Data Protection Regulation
-			(<strong>GDPR</strong>).
+			in this policy have the meanings given to them by Regulation (EU) 2016/679, the General Data
+			Protection Regulation (<strong>GDPR</strong>).
 		</p>
 
 		<h2>1. Controller</h2>
 		<p>
 			<strong>Controller:</strong> Philipp Feierabend<br />
-			Straße, Hausnummer<br />
-			PLZ, Stadt<br />
+			c/o IMPREGO<br />
+			Golzwarder Straße 28<br />
+			26919 Brake (Unterweser)<br />
 			Germany<br />
-			Email: <a href="mailto:gdpr@shroudedit.com">gdpr@shroudedit.com</a>
+			Email: <a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a>
 		</p>
 
 		<h2>2. Categories of data and purposes</h2>
@@ -136,7 +137,7 @@
 			Some providers may process data outside the European Economic Area. In those cases we use an
 			adequacy decision under Article 45 GDPR, approved standard contractual clauses under Article
 			46 GDPR or another lawful transfer mechanism. Information about applicable safeguards can be
-			requested from <a href="mailto:gdpr@shroudedit.com">gdpr@shroudedit.com</a>.
+			requested from <a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a>.
 		</p>
 
 		<h2>6. Retention</h2>
@@ -173,12 +174,12 @@
 			<li>lodge a complaint with a competent data-protection supervisory authority.</li>
 		</ul>
 		<p>
-			Requests may be sent to <a href="mailto:gdpr@shroudedit.com">gdpr@shroudedit.com</a>. We may
+			Requests may be sent to <a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a>. We may
 			request information necessary to verify your identity. The supervisory authority responsible
-			for our establishment is the State Commissioner for Data Protection and Freedom of Information
-			Baden-Württemberg. Information and complaint options are available at
-			<a href="https://www.baden-wuerttemberg.datenschutz.de/">baden-wuerttemberg.datenschutz.de</a
-			>.
+			for our establishment in Lower Saxony is the State Commissioner for Data Protection of Lower
+			Saxony (Der Landesbeauftragte für den Datenschutz Niedersachsen). Information and complaint
+			options are available at
+			<a href="https://www.lfd.niedersachsen.de/">lfd.niedersachsen.de</a>.
 		</p>
 
 		<h2>9. Children</h2>
@@ -206,7 +207,7 @@
 		<h2>12. Contact</h2>
 		<p>
 			Privacy questions and requests should be sent to
-			<a href="mailto:gdpr@shroudedit.com">gdpr@shroudedit.com</a> or mailed to the controller at
+			<a href="mailto:privacy@shroudedit.com">privacy@shroudedit.com</a> or mailed to the controller at
 			the address stated above.
 		</p>
 	</div>
