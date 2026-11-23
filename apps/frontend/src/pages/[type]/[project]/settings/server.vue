@@ -334,7 +334,7 @@ const voiceChatMode = ref('proximity')
 const textChatEnabled = ref(false)
 const userGroups = ref([])
 const publicPasswords = ref({})
-const originalState = ref(null)
+const originalState = shallowRef(null)
 const initializedProjectId = ref(null)
 const pingLoading = ref(false)
 const pingResult = ref(null)
@@ -430,12 +430,12 @@ function init(v3, entries = []) {
 	address.value = server?.address ?? ''
 	queryPort.value = server?.query_port ?? DEFAULT_QUERY_PORT
 	region.value = server?.region ?? ''
-	languages.value = server?.languages ?? []
+	languages.value = [...(server?.languages ?? [])]
 	voiceChatEnabled.value = server?.voice_chat_enabled ?? false
 	voiceChatMode.value = server?.voice_chat_mode ?? 'proximity'
 	textChatEnabled.value = server?.text_chat_enabled ?? false
-	userGroups.value = structuredClone(
-		server?.user_groups?.length ? server.user_groups : defaultUserGroups(),
+	userGroups.value = (server?.user_groups?.length ? server.user_groups : defaultUserGroups()).map(
+		(group) => ({ ...group }),
 	)
 	publicPasswords.value = Object.fromEntries(
 		entries.map((entry) => [entry.group_name, entry.password]),
@@ -454,7 +454,12 @@ const { data: serverAccessEntries, isFetched: serverAccessFetched } = useQuery({
 watch(
 	[projectV3, serverAccessEntries, serverAccessFetched],
 	([project, entries, accessFetched]) => {
-		if (!project || !accessFetched || initializedProjectId.value === project.id) return
+		if (
+			!project ||
+			(project.enshrouded_server && !accessFetched) ||
+			initializedProjectId.value === project.id
+		)
+			return
 		init(project, entries ?? [])
 	},
 	{ immediate: true },
@@ -509,7 +514,7 @@ function currentState() {
 		address: address.value.trim(),
 		queryPort: Number(queryPort.value),
 		region: region.value,
-		languages: languages.value,
+		languages: [...languages.value],
 		voiceChatEnabled: voiceChatEnabled.value,
 		voiceChatMode: voiceChatMode.value,
 		textChatEnabled: textChatEnabled.value,
@@ -517,7 +522,7 @@ function currentState() {
 			...group,
 			reserved_slots: Number(group.reserved_slots) || 0,
 		})),
-		publicPasswords: publicPasswords.value,
+		publicPasswords: { ...publicPasswords.value },
 	}
 }
 
