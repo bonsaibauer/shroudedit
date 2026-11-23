@@ -160,7 +160,7 @@ onMounted(() => {
 						to="/organization/shroudedit"
 						class="inline-flex items-center gap-1 font-semibold hover:underline hover:brightness-[--hover-brightness]"
 					>
-						<Avatar src="/organization/shroudedit/avatar" size="24px" />
+						<Avatar src="/shroudedit-hammer.png" size="24px" />
 						ShroudEdit Team
 					</nuxt-link>
 				</template>
