@@ -60,7 +60,7 @@ export class ShroudEditApiError extends Error {
 }
 
 /**
- * Error class for ShroudEdit server errors (kyros/archon)
+ * Error class for ShroudEdit server errors (kyros)
  * Extends ShroudEditApiError with V1 error response parsing
  */
 export class ShroudEditServerError extends ShroudEditApiError {

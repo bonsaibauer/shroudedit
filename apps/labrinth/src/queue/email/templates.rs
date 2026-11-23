@@ -63,10 +63,6 @@ const ORGINVITE_INVITER_NAME: &str = "organizationinvite.inviter.name";
 const ORGINVITE_ORG_NAME: &str = "organizationinvite.organization.name";
 const ORGINVITE_ROLE_NAME: &str = "organizationinvite.role.name";
 
-const SERVERINVITE_INVITER_NAME: &str = "inviter.name";
-const SERVERINVITE_SERVER_NAME: &str = "server.name";
-const SERVERINVITE_ROLE_NAME: &str = "server.role";
-
 const STATUSCHANGE_PROJECT_NAME: &str = "statuschange.project.name";
 const STATUSCHANGE_OLD_STATUS: &str = "statuschange.old.status";
 const STATUSCHANGE_NEW_STATUS: &str = "statuschange.new.status";
@@ -852,8 +848,6 @@ async fn collect_template_variables(
             .flatten()
                 && let Ok(Some(pinfo)) = crate::database::models::products_tax_identifier_item::product_info_by_product_price_id(info.price_id, &mut *exec).await {
                     let label = match pinfo.product_metadata {
-                        crate::models::billing::ProductMetadata::Pyro { .. } => "server".to_string(),
-                        crate::models::billing::ProductMetadata::Medal { .. } => "server".to_string(),
                         crate::models::billing::ProductMetadata::Midas => "ShroudEdit+".to_string(),
                     };
                     map.insert(CREDIT_SUBSCRIPTION_TYPE, label);
@@ -873,28 +867,6 @@ async fn collect_template_variables(
 				.wrap_api_err("executing `dynamic_email_body`")?,
 			title: title.to_string(),
 		}),
-
-		NotificationBody::ServerInvite {
-			server_name,
-			invited_by,
-			role,
-			..
-		} => {
-			let inviter = DBUser::get_id(
-				DBUserId(invited_by.0 as i64),
-				&mut *exec,
-				redis,
-			)
-			.await
-			.wrap_internal_err("fetching user from database")?
-			.wrap_internal_err("finding server invite sender in database")?;
-
-			map.insert(SERVERINVITE_INVITER_NAME, inviter.username);
-			map.insert(SERVERINVITE_SERVER_NAME, server_name.clone());
-			map.insert(SERVERINVITE_ROLE_NAME, role.clone());
-
-			Ok(EmailTemplate::Static(map))
-		}
 
 		NotificationBody::ProjectUpdate { .. }
 		| NotificationBody::SharedInstanceInvite { .. }

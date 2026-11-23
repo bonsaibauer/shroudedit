@@ -16,7 +16,6 @@ body:
       multiple: true
       options:
         - ShroudEdit.com website
-        - ShroudEdit Hosting
         - ShroudEdit API for developers
   - type: textarea
     attributes:

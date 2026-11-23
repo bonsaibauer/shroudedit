@@ -19,8 +19,6 @@ export abstract class XHRUploadClient extends AbstractShroudEditClient {
 		let baseUrl: string
 		if (options.api === 'labrinth') {
 			baseUrl = this.resolveBaseUrl(this.config.labrinthBaseUrl!)
-		} else if (options.api === 'archon') {
-			baseUrl = this.resolveBaseUrl(this.config.archonBaseUrl!)
 		} else if (options.api === 'sharedinstances') {
 			baseUrl = this.resolveBaseUrl(this.config.sharedInstancesBaseUrl!)
 		} else {
@@ -58,7 +56,6 @@ export abstract class XHRUploadClient extends AbstractShroudEditClient {
 						...options.headers,
 					},
 				}
-				this.attachArchonSentryCaptureHeader(mergedOptions)
 
 				const uploadContext = this.buildUploadContext(url, path, mergedOptions)
 				context = uploadContext

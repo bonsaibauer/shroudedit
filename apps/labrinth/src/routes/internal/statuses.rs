@@ -152,8 +152,7 @@ pub async fn ws_init(
 			!notification.read
 				&& matches!(
 					&notification.body,
-					NotificationBody::ServerInvite { .. }
-						| NotificationBody::SharedInstanceInvite { .. }
+					NotificationBody::SharedInstanceInvite { .. }
 				)
 		})
 		.map(Notification::from);

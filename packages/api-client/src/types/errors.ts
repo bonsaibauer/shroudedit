@@ -25,7 +25,7 @@ export type ApiErrorData = {
 
 /**
  * ShroudEdit V1 error response format
- * Used by kyros + archon APIs
+ * Used by kyros APIs
  */
 export type ShroudEditErrorResponse = {
 	/**

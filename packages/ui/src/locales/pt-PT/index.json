@@ -72,7 +72,6 @@
   "button.upload-image": "Carregar imagem",
   "changelog.justNow": "Agora mesmo",
   "changelog.product.app": "App",
-  "changelog.product.hosting": "Hospedagem",
   "changelog.product.web": "Plataforma",
   "collections.label.private": "Privada",
   "content.confirm-bulk-update.admonition-body": "Você tem certeza que deseja atualizar {count, plural, one {# projeto} other {# projetos}} para a última versão compatível? É recomendável atualizar o conteúdo um por um.",

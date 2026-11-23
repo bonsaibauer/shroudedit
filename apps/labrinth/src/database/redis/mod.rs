@@ -318,24 +318,7 @@ mod tests {
 
 	#[test]
 	fn internally_tagged_cache_values_round_trip_with_postcard() {
-		for metadata in [
-			ProductMetadata::Midas,
-			ProductMetadata::Pyro {
-				cpu: 1,
-				ram: 2,
-				swap: 3,
-				storage: 4,
-			},
-			ProductMetadata::Medal {
-				cpu: 1,
-				ram: 2,
-				swap: 3,
-				storage: 4,
-				region: "us-east".to_string(),
-			},
-		] {
-			postcard_round_trip(&metadata);
-		}
+		postcard_round_trip(&ProductMetadata::Midas);
 
 		for price in [
 			Price::OneTime { price: 500 },

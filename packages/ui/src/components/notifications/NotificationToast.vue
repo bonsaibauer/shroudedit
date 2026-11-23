@@ -19,9 +19,7 @@
 							:message-id="
 								type === 'friend-request'
 									? messages.friendRequest
-									: type === 'server-invite'
-										? messages.serverInvite
-										: messages.instanceInvite
+									: messages.instanceInvite
 							"
 							:values="{ actor: actorLabel, entity: entityLabel }"
 						>
@@ -210,11 +208,6 @@ const messages = defineMessages({
 		id: 'notifications.friend-request.body',
 		defaultMessage: '<actor>{actor}</actor> sent you a friend request.',
 	},
-	serverInvite: {
-		id: 'notifications.server-invite.body',
-		defaultMessage:
-			'<actor>{actor}</actor> invited you to manage the server <entity>{entity}</entity>.',
-	},
 	instanceInvite: {
 		id: 'notifications.instance-invite.body',
 		defaultMessage: '<actor>{actor}</actor> invited you to <entity>{entity}</entity> instance.',
@@ -236,7 +229,6 @@ const messages = defineMessages({
 
 type NotificationToastType =
 	| 'friend-request'
-	| 'server-invite'
 	| 'instance-invite'
 	| 'instance-download'
 	| 'instance-ready'
@@ -288,7 +280,6 @@ defineEmits<{
 const isInviteNotification = computed(
 	() =>
 		props.type === 'friend-request' ||
-		props.type === 'server-invite' ||
 		props.type === 'instance-invite',
 )
 

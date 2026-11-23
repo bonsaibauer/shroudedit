@@ -67,7 +67,6 @@ const colorVariables: Record<ButtonColor, string> = {
 	green: 'var(--color-green)',
 	blue: 'var(--color-blue)',
 	purple: 'var(--color-purple)',
-	medal_promotion: 'var(--medal-promotion-text-orange, var(--color-orange))',
 }
 
 const props = withDefaults(

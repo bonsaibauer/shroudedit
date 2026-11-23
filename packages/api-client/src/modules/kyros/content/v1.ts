@@ -1,6 +1,6 @@
 import { AbstractModule } from '../../../core/abstract-module'
 import type { UploadHandle, UploadProgress } from '../../../types/upload'
-import type { Archon } from '../../archon/types'
+import type { Kyros } from '../types'
 
 export class KyrosContentV1Module extends AbstractModule {
 	public getModuleID(): string {
@@ -41,7 +41,7 @@ export class KyrosContentV1Module extends AbstractModule {
 	public uploadModpackFile(
 		worldId: string,
 		file: File | Blob,
-		properties: Archon.Content.v1.PropertiesFields,
+		properties: Kyros.Content.v1.PropertiesFields,
 		options?: {
 			softOverride?: boolean
 			onProgress?: (progress: UploadProgress) => void

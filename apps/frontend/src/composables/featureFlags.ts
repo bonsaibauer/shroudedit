@@ -29,7 +29,6 @@ export const DEFAULT_FEATURE_FLAGS = validateValues({
 
 	// Feature toggles
 	projectTypesPrimaryNav: false,
-	enableMedalPromotion: true,
 	hidePlusPromoInUserMenu: false,
 	projectBackground: false,
 	searchBackground: false,
@@ -40,7 +39,6 @@ export const DEFAULT_FEATURE_FLAGS = validateValues({
 	showProjectPageQuickServerButton: false,
 	newProjectGeneralSettings: false,
 	serverRamAsBytesAlwaysOn: false,
-	archonSentryCapture: false,
 	hideRussiaCensorshipBanner: false,
 	disablePrettyProjectUrlRedirects: false,
 	hidePreviewBanner: false,
@@ -54,7 +52,6 @@ export const DEFAULT_FEATURE_FLAGS = validateValues({
 	showViewProdRouteBanner: false,
 	showModeratorProjectMemberUi: false,
 	alwaysShowPublishingChecklistForStaff: false,
-	showHostingAccessInstanceAuditLog: false,
 	versionDevInfoCollapsed: true,
 	alwaysShowVersionDevInfo: false,
 	advancedFiltersCollapsed: true,

@@ -4,17 +4,12 @@ use crate::database::models::notification_item::NotificationBuilder;
 use crate::database::models::product_item::DBProduct;
 use crate::database::models::products_tax_identifier_item::DBProductsTaxIdentifier;
 use crate::database::models::user_item::DBUser;
-use crate::database::models::user_subscription_item::DBUserSubscription;
-use crate::database::models::users_redeemals::UserRedeemal;
 use crate::database::models::users_subscriptions_affiliations::DBUsersSubscriptionsAffiliations;
-use crate::database::models::{
-	product_item, user_subscription_item, users_redeemals,
-};
+use crate::database::models::{product_item, user_subscription_item};
 use crate::database::{PgPool, PgTransaction};
-use crate::env::ENV;
 use crate::models::billing::{
-	ChargeStatus, ChargeType, PaymentPlatform, Price, PriceDuration,
-	ProductMetadata, SubscriptionMetadata, SubscriptionStatus,
+	ChargeStatus, ChargeType, PaymentPlatform, PriceDuration, ProductMetadata,
+	SubscriptionStatus,
 };
 use crate::models::notifications::NotificationBody;
 use crate::models::users::Badges;
@@ -22,8 +17,6 @@ use crate::models::users::User;
 use crate::routes::ApiError;
 use crate::routes::internal::billing::payments::*;
 use crate::util::anrok;
-use crate::util::archon::ArchonClient;
-use crate::util::archon::{CreateServerRequest, Specs};
 use crate::util::error::ApiContext as _;
 use crate::util::error::Context;
 use ariadne::ids::base62_impl::to_base62;
@@ -514,192 +507,6 @@ async fn update_anrok_transactions(
 	}
 }
 
-/// Attempts to process a user redeemal.
-///
-/// Returns `Ok` if the entry has been successfully processed, or will not be processed.
-pub async fn try_process_user_redeemal(
-	pool: &PgPool,
-	redis: &RedisPool,
-	mut user_redeemal: UserRedeemal,
-) -> Result<(), ApiError> {
-	// Immediately update redeemal row
-	user_redeemal.last_attempt = Some(Utc::now());
-	user_redeemal.n_attempts += 1;
-	user_redeemal.status = users_redeemals::Status::Processing;
-	let updated = user_redeemal
-		.update_status_if_pending(pool)
-		.await
-		.wrap_internal_err("updating updated in database")?;
-
-	if !updated {
-		return Ok(());
-	}
-
-	let user_id = user_redeemal.user_id;
-
-	// Find the Medal product's price & metadata
-
-	let mut medal_products =
-		product_item::QueryProductWithPrices::list_by_product_type(
-			pool, "medal",
-		)
-		.await
-		.wrap_internal_err("fetching query product with prices from Redis")?;
-
-	let Some(product_item::QueryProductWithPrices {
-		id: _product_id,
-		metadata,
-		mut prices,
-		unitary: _,
-		name: _,
-	}) = medal_products.pop()
-	else {
-		return Err(ApiError::Conflict(eyre::eyre!(
-			"Missing Medal subscription product".to_owned(),
-		)));
-	};
-
-	let ProductMetadata::Medal {
-		cpu,
-		ram,
-		swap,
-		storage,
-		region,
-	} = metadata
-	else {
-		return Err(ApiError::Conflict(eyre::eyre!(
-			"Missing or incorrect metadata for Medal subscription".to_owned(),
-		)));
-	};
-
-	let Some(medal_price) = prices.pop() else {
-		return Err(ApiError::Conflict(eyre::eyre!(
-			"Missing price for Medal subscription".to_owned(),
-		)));
-	};
-
-	let (price_duration, price_amount) = match medal_price.prices {
-		Price::OneTime { price: _ } => {
-			return Err(ApiError::Conflict(eyre::eyre!(
-				"Unexpected metadata for Medal subscription price".to_owned(),
-			)));
-		}
-
-		Price::Recurring { intervals } => {
-			let Some((price_duration, price_amount)) =
-				intervals.into_iter().next()
-			else {
-				return Err(ApiError::Conflict(eyre::eyre!(
-					"Missing price interval for Medal subscription".to_owned(),
-				)));
-			};
-
-			(price_duration, price_amount)
-		}
-	};
-
-	let price_id = medal_price.id;
-
-	// Get the user's username
-
-	let user = DBUser::get_id(user_id, pool, redis)
-		.await
-		.wrap_internal_err("fetching user from database")?
-		.wrap_not_found_err("resource not found")?;
-
-	// Send the provision request to Archon. On failure, the redeemal will be "stuck" processing,
-	// and moved back to pending by `index_subscriptions`.
-
-	let archon_client = ArchonClient::from_env()
-		.wrap_api_err("executing `ArchonClient::from_env`")?;
-	let server_id = archon_client
-		.create_server(&CreateServerRequest {
-			user_id: to_base62(user_id.0 as u64),
-			name: format!("{}'s Medal server", user.username),
-			specs: Specs {
-				memory_mb: ram,
-				cpu,
-				swap_mb: swap,
-				storage_mb: storage,
-			},
-			source: crate::util::archon::Empty::default(),
-			region,
-			tags: vec!["medal".to_owned()],
-		})
-		.await
-		.wrap_internal_err(
-			"inserting database records for `try_process_user_redeemal`",
-		)?;
-
-	let mut txn = pool
-		.begin()
-		.await
-		.wrap_internal_err("starting database transaction")?;
-
-	// Build a subscription using this price ID.
-	let subscription = DBUserSubscription {
-		id: generate_user_subscription_id(&mut txn)
-			.await
-			.wrap_internal_err("generating user subscription ID")?,
-		user_id,
-		price_id,
-		interval: PriceDuration::FiveDays,
-		created: Utc::now(),
-		status: SubscriptionStatus::Provisioned,
-		metadata: Some(SubscriptionMetadata::Medal {
-			id: server_id.to_string(),
-		}),
-	};
-
-	subscription
-		.upsert(&mut txn)
-		.await
-		.wrap_internal_err("generating user subscription ID")?;
-
-	// Insert an expiring charge, `index_subscriptions` will unprovision the
-	// subscription when expired.
-	DBCharge {
-		id: generate_charge_id(&mut txn)
-			.await
-			.wrap_internal_err("generating redeemal charge ID")?,
-		user_id,
-		price_id,
-		amount: price_amount.into(),
-		tax_amount: 0,
-		tax_platform_id: None,
-		currency_code: medal_price.currency_code,
-		status: ChargeStatus::Expiring,
-		due: Utc::now() + price_duration.duration(),
-		last_attempt: None,
-		type_: ChargeType::Subscription,
-		subscription_id: Some(subscription.id),
-		subscription_interval: Some(subscription.interval),
-		payment_platform: PaymentPlatform::None,
-		payment_platform_id: None,
-		parent_charge_id: None,
-		net: None,
-		tax_last_updated: Some(Utc::now()),
-		tax_drift_loss: Some(0),
-		tax_transaction_version: None,
-		tax_platform_accounting_time: None,
-	}
-	.upsert(&mut txn)
-	.await
-	.wrap_internal_err("upserting redeemal charge")?;
-
-	// Update `users_redeemal`, mark subscription as redeemed.
-	user_redeemal.status = users_redeemals::Status::Processed;
-	user_redeemal.update(&mut txn).await.wrap_internal_err(
-		"updating database records for `try_process_user_redeemal`",
-	)?;
-
-	txn.commit()
-		.await
-		.wrap_internal_err("committing database transaction")?;
-
-	Ok(())
-}
-
 pub async fn cancel_failing_charges(pool: &PgPool) -> Result<(), ApiError> {
 	let charges_to_cancel = DBCharge::get_cancellable(pool)
 		.await
@@ -976,39 +783,6 @@ async fn unprovision_subscriptions(
 
 				true
 			}
-
-			ProductMetadata::Pyro { .. }
-			| ProductMetadata::Medal { .. } => 'server: {
-				let server_id = match &subscription.metadata {
-					Some(SubscriptionMetadata::Pyro { id, region: _ }) => id,
-					Some(SubscriptionMetadata::Medal { id }) => id,
-					_ => break 'server true,
-				};
-
-				let res = reqwest::Client::new()
-                    .post(format!(
-                        "{}/shroudedit/v0/servers/{}/suspend",
-                        ENV.ARCHON_URL,
-                        server_id
-                    ))
-                    .header("X-Master-Key", &ENV.PYRO_API_KEY)
-                    .json(&serde_json::json!({
-                        "reason": if charge.status == ChargeStatus::Cancelled || charge.status == ChargeStatus::Expiring {
-                            "cancelled"
-                        } else {
-                            "paymentfailed"
-                        }
-                    }))
-                    .send()
-                    .await;
-
-				if let Err(e) = res {
-					warn!("Error suspending pyro server: {:?}", e);
-					false
-				} else {
-					true
-				}
-			}
 		};
 
 		if unprovisioned {
@@ -1044,33 +818,6 @@ async fn unprovision_subscriptions(
 		.commit()
 		.await
 		.wrap_internal_err("committing database transaction")?;
-
-	Ok(())
-}
-
-async fn process_redeemals(
-	pool: &PgPool,
-	redis: &RedisPool,
-) -> Result<(), ApiError> {
-	// If an offer redeemal has been processing for over 5 minutes, it should be set pending.
-	UserRedeemal::update_stuck_5_minutes(pool)
-		.await
-		.wrap_internal_err(
-			"updating database records for `process_redeemals`",
-		)?;
-
-	// If an offer redeemal is pending, try processing it.
-	// Try processing it.
-	let pending_redeemals = UserRedeemal::get_pending(pool, 100)
-		.await
-		.wrap_internal_err("fetching user redeemal from Redis")?;
-	for redeemal in pending_redeemals {
-		if let Err(error) =
-			try_process_user_redeemal(pool, redis, redeemal).await
-		{
-			warn!(%error, "Failed to process a redeemal.")
-		}
-	}
 
 	Ok(())
 }
@@ -1124,8 +871,6 @@ pub async fn index_subscriptions(
 		update_tax_amounts(&pool, &redis, &anrok_client, &stripe_client, 500),
 	)
 	.await;
-
-	run_and_time("process_redeemals", process_redeemals(&pool, &redis)).await;
 
 	run_and_time(
 		"unprovision_subscriptions",

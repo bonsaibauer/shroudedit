@@ -130,9 +130,7 @@ vars! {
 	SITE_URL: String = "http://localhost:3000";
 	CDN_URL: String = "file:///tmp/shroudedit";
 	LABRINTH_ADMIN_KEY: String = "";
-	LABRINTH_MEDAL_KEY: String = "";
 	LABRINTH_EXTERNAL_NOTIFICATION_KEY: String = "";
-	LABRINTH_SUBSCRIPTIONS_KEY: String = "";
 	RATE_LIMIT_IGNORE_KEY: String = "";
 	DATABASE_URL: String = "postgresql://labrinth:labrinth@localhost/labrinth";
 
@@ -343,7 +341,6 @@ vars! {
 
 	ADITUDE_API_KEY: String = "none";
 
-	PYRO_API_KEY: String = "none";
 
 	BREX_API_URL: String = "https://platform.brexapis.com/v2/";
 	BREX_API_KEY: String = "none";
@@ -365,7 +362,6 @@ vars! {
 	PAYOUT_ALERT_SLACK_WEBHOOK: String = "none";
 	CLOUDFLARE_INTEGRATION: bool = false;
 
-	ARCHON_URL: String = "";
 
 	MURALPAY_API_URL: String = "https://api-staging.muralpay.com";
 	MURALPAY_API_KEY: String = "none";

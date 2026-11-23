@@ -306,41 +306,6 @@
 							shown: isAdmin(auth.user),
 						},
 						{
-							id: 'servers-lookup',
-							label: 'Server lookup',
-							icon: ServerSearchIcon,
-							type: 'link',
-							to: '/admin/servers/lookup',
-							shown: isAdmin(auth.user),
-						},
-						{
-							id: 'servers-notices',
-							label: 'Server notices',
-							icon: IssuesIcon,
-							type: 'link',
-							to: '/admin/servers/notices',
-							shown: isAdmin(auth.user),
-						},
-						{
-							id: 'servers-transfers',
-							label: 'Server transfers',
-							icon: TransferIcon,
-							type: 'link',
-							to: '/admin/servers/transfers',
-							shown: isAdmin(auth.user),
-						},
-						{
-							id: 'servers-nodes',
-							label: 'Credit server nodes',
-							icon: ServerIcon,
-							action: (event) => $refs.modal_batch_credit.show(event),
-							shown: isAdmin(auth.user),
-						},
-						{
-							type: 'divider',
-							shown: isAdmin(auth.user),
-						},
-						{
 							id: 'affiliates',
 							label: 'Affiliate links',
 							icon: AffiliateIcon,
@@ -670,7 +635,6 @@
 			<ProjectCreateModal v-if="auth.user" ref="modal_creation" />
 			<CollectionCreateModal ref="modal_collection_creation" />
 			<OrganizationCreateModal ref="modal_organization_creation" />
-			<BatchCreditModal v-if="auth.user && isAdmin(auth.user)" ref="modal_batch_credit" />
 			<slot id="main" />
 		</main>
 		<ModrinthFooter />
@@ -694,7 +658,6 @@ import {
 	HamburgerIcon,
 	HashIcon,
 	HomeIcon,
-	IssuesIcon,
 	LibraryIcon,
 	LogInIcon,
 	LogOutIcon,
@@ -709,14 +672,12 @@ import {
 	SearchIcon,
 	ServerIcon,
 	ServerPlusIcon,
-	ServerSearchIcon,
 	SettingsIcon,
 	ShieldAlertIcon,
 	ShroudEditIcon,
 	SunIcon,
 	TagCategoryWorldgenIcon as WorldGenIcon,
 	ToggleRightIcon,
-	TransferIcon,
 	UserIcon,
 	UserSearchIcon,
 	XIcon,
@@ -744,7 +705,6 @@ import { useQuery } from '@tanstack/vue-query'
 
 import { getTaxThreshold } from '@/providers/creator-withdraw.ts'
 import TextLogo from '~/components/brand/TextLogo.vue'
-import BatchCreditModal from '~/components/ui/admin/BatchCreditModal.vue'
 import DevBanner from '~/components/ui/banner/DevBanner.vue'
 import GeneratedStateErrorsBanner from '~/components/ui/banner/GeneratedStateErrorsBanner.vue'
 import PreviewBanner from '~/components/ui/banner/PreviewBanner.vue'
@@ -906,10 +866,6 @@ const messages = defineMessages({
 	fileLookup: {
 		id: 'layout.action.file-lookup',
 		defaultMessage: 'File lookup',
-	},
-	manageServerNotices: {
-		id: 'layout.action.manage-server-notices',
-		defaultMessage: 'Manage server notices',
 	},
 	manageAffiliates: {
 		id: 'layout.action.manage-affiliates',

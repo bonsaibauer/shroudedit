@@ -88,7 +88,7 @@ export class LabrinthThingsV3Module extends AbstractModule {
 
 | Field         | Values                                            | Purpose                                |
 | ------------- | ------------------------------------------------- | -------------------------------------- |
-| `api`         | `'labrinth'`, `'archon'`, or a full URL           | Select the base URL.                   |
+| `api`         | `'labrinth'`, `'sharedinstances'`, or a full URL           | Select the base URL.                   |
 | `version`     | `2`, `3`, `'internal'`, `'shroudedit/v0'`, and more | Set the URL version segment.           |
 | `method`      | `'GET'`, `'POST'`, `'PUT'`, `'PATCH'`, `'DELETE'` | Set the HTTP method.                   |
 | `body`        | object                                            | Set the JSON request body.             |

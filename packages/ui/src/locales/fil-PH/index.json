@@ -62,7 +62,6 @@
   "button.upload-image": "I-upload ang imahe",
   "changelog.justNow": "Ngayon lang",
   "changelog.product.app": "App",
-  "changelog.product.hosting": "Hosting",
   "changelog.product.web": "Plataporma",
   "collections.label.private": "Pribado",
   "content.confirm-bulk-update.admonition-body": "Sigurado ka bang gusto mong i-update ang {count, plural, one {# proyekto} other {# proyekto}} sa pinakabago nilang bersiyon? Iminumungkahi namin na gawin ito nang paisa-isahan.",

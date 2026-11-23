@@ -28,17 +28,7 @@
 								? 'colored'
 								: 'base'
 						"
-						:color="
-							(modPackData[currentIndex].status === option.id ? 'brand' : 'standard') &&
-							(modPackData[currentIndex].status === option.id ? 'brand' : 'standard') !== 'standard'
-								? (modPackData[currentIndex].status === option.id ? 'brand' : 'standard') ===
-									'medal-promo'
-									? 'medal_promotion'
-									: modPackData[currentIndex].status === option.id
-										? 'brand'
-										: 'standard'
-								: undefined
-						"
+						:color="modPackData[currentIndex].status === option.id ? 'brand' : undefined"
 						@click="setStatus(currentIndex, option.id)"
 					>
 						{{ option.name }}
@@ -97,17 +87,7 @@
 								? 'colored'
 								: 'base'
 						"
-						:color="
-							(modPackData[currentIndex].status === option.id ? 'brand' : 'standard') &&
-							(modPackData[currentIndex].status === option.id ? 'brand' : 'standard') !== 'standard'
-								? (modPackData[currentIndex].status === option.id ? 'brand' : 'standard') ===
-									'medal-promo'
-									? 'medal_promotion'
-									: modPackData[currentIndex].status === option.id
-										? 'brand'
-										: 'standard'
-								: undefined
-						"
+						:color="modPackData[currentIndex].status === option.id ? 'brand' : undefined"
 						@click="setStatus(currentIndex, option.id)"
 					>
 						{{ option.name }}
@@ -148,18 +128,7 @@
 								? 'colored'
 								: 'base'
 						"
-						:color="
-							(modPackData[currentIndex].approved === option.id ? 'brand' : 'standard') &&
-							(modPackData[currentIndex].approved === option.id ? 'brand' : 'standard') !==
-								'standard'
-								? (modPackData[currentIndex].approved === option.id ? 'brand' : 'standard') ===
-									'medal-promo'
-									? 'medal_promotion'
-									: modPackData[currentIndex].approved === option.id
-										? 'brand'
-										: 'standard'
-								: undefined
-						"
+						:color="modPackData[currentIndex].approved === option.id ? 'brand' : undefined"
 						@click="setApproval(currentIndex, option.id)"
 					>
 						{{ option.name }}

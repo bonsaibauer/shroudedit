@@ -17,7 +17,7 @@ const meta = {
 		},
 		color: {
 			control: 'select',
-			options: ['brand', 'red', 'orange', 'green', 'blue', 'purple', 'medal_promotion'],
+			options: ['brand', 'red', 'orange', 'green', 'blue', 'purple'],
 		},
 	},
 	args: {

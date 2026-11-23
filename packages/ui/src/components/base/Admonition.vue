@@ -62,13 +62,7 @@
 			<IconButton
 				v-if="dismissible"
 				type="quiet"
-				:color="
-					buttonColors[type] && buttonColors[type] !== 'standard'
-						? buttonColors[type] === 'medal-promo'
-							? 'medal_promotion'
-							: buttonColors[type]
-						: undefined
-				"
+				:color="buttonColors[type] !== 'standard' ? buttonColors[type] : undefined"
 				label="Dismiss"
 				native-type="button"
 				@click="$emit('dismiss')"

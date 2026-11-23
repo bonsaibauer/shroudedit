@@ -47,7 +47,6 @@
 		"SENTRY_ENVIRONMENT": "production",
 		"BASE_URL": "https://api.shroudedit.com/v2/",
 		"BROWSER_BASE_URL": "https://api.shroudedit.com/v2/",
-		"PYRO_BASE_URL": "https://archon.shroudedit.com/",
 		"SHARED_INSTANCES_API_BASE_URL": "https://shared-instances.shroudedit.com",
 		"STRIPE_PUBLISHABLE_KEY": "pk_live_51JbFxJJygY5LJFfKLVVldb10HlLt24p421OWRsTOWc5sXYFOnFUXWieSc6HD3PHo25ktx8db1WcHr36XGFvZFVUz00V9ixrCs5"
 	},
@@ -71,7 +70,6 @@
 				"SENTRY_ENVIRONMENT": "dev",
 				"BASE_URL": "https://api.shroudedit.com/v2/",
 				"BROWSER_BASE_URL": "https://api.shroudedit.com/v2/",
-				"PYRO_BASE_URL": "https://archon.shroudedit.com/",
 				"SHARED_INSTANCES_API_BASE_URL": "https://shared-instances.shroudedit.com",
 				"STRIPE_PUBLISHABLE_KEY": "pk_test_51JbFxJJygY5LJFfKV50mnXzz3YLvBVe2Gd1jn7ljWAkaBlRz3VQdxN9mXcPSrFbSqxwAb0svte9yhnsmm7qHfcWn00R611Ce7b"
 			},

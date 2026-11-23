@@ -43,14 +43,6 @@ export interface ClientConfig {
 	labrinthBaseUrl?: BaseUrlConfig
 
 	/**
-	 * Base URL for Archon API (ShroudEdit Hosting API)
-	 * Can be a callback so apps can drive this from runtime feature flags.
-	 *
-	 * @default 'https://archon.shroudedit.com'
-	 */
-	archonBaseUrl?: BaseUrlConfig
-
-	/**
 	 * Base URL for the Shared Instances API
 	 * @default 'https://shared-instances.shroudedit.com'
 	 */
@@ -66,14 +58,6 @@ export interface ClientConfig {
 	 * Additional default headers to include in all requests
 	 */
 	headers?: Record<string, string>
-
-	/**
-	 * Whether to attach `shroudedit-sentry-capture: 1` to Archon requests.
-	 * Can be a callback so apps can drive this from runtime feature flags.
-	 *
-	 * @default false
-	 */
-	archonSentryCapture?: boolean | (() => boolean)
 
 	/**
 	 * Features to enable for this client

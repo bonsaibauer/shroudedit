@@ -13,7 +13,6 @@ use ariadne::ids::UserId;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_binhum::serde_binhum;
-use uuid::Uuid;
 
 #[derive(Serialize, Deserialize)]
 pub struct Notification {
@@ -36,7 +35,6 @@ pub enum NotificationType {
 	ProjectUpdate,
 	TeamInvite,
 	OrganizationInvite,
-	ServerInvite,
 	SharedInstanceInvite,
 	StatusChange,
 	ModeratorMessage,
@@ -72,7 +70,6 @@ impl NotificationType {
 			NotificationType::ProjectUpdate => "project_update",
 			NotificationType::TeamInvite => "team_invite",
 			NotificationType::OrganizationInvite => "organization_invite",
-			NotificationType::ServerInvite => "server_invite",
 			NotificationType::SharedInstanceInvite => "shared_instance_invite",
 			NotificationType::StatusChange => "status_change",
 			NotificationType::ModeratorMessage => "moderator_message",
@@ -114,7 +111,6 @@ impl NotificationType {
 			"project_update" => NotificationType::ProjectUpdate,
 			"team_invite" => NotificationType::TeamInvite,
 			"organization_invite" => NotificationType::OrganizationInvite,
-			"server_invite" => NotificationType::ServerInvite,
 			"shared_instance_invite" => NotificationType::SharedInstanceInvite,
 			"status_change" => NotificationType::StatusChange,
 			"moderator_message" => NotificationType::ModeratorMessage,
@@ -170,12 +166,6 @@ pub enum NotificationBody {
 		organization_id: OrganizationId,
 		invited_by: UserId,
 		team_id: TeamId,
-		role: String,
-	},
-	ServerInvite {
-		server_id: Uuid,
-		server_name: String,
-		invited_by: UserId,
 		role: String,
 	},
 	SharedInstanceInvite {
@@ -295,9 +285,6 @@ impl NotificationBody {
 			NotificationBody::TeamInvite { .. } => NotificationType::TeamInvite,
 			NotificationBody::OrganizationInvite { .. } => {
 				NotificationType::OrganizationInvite
-			}
-			NotificationBody::ServerInvite { .. } => {
-				NotificationType::ServerInvite
 			}
 			NotificationBody::SharedInstanceInvite { .. } => {
 				NotificationType::SharedInstanceInvite
@@ -452,34 +439,6 @@ impl From<DBNotification> for Notification {
                                     "organization/{organization_id}/members/{}",
                                     UserId::from(notif.user_id)
                                 ),
-                            ),
-                        },
-                    ],
-                ),
-                NotificationBody::ServerInvite {
-                    server_id: _,
-                    server_name,
-                    role,
-                    ..
-                } => (
-                    "You have been invited to join a server!".to_string(),
-                    format!(
-                        "An invite has been sent for you to be {role} of {server_name}"
-                    ),
-                    "#".to_string(),
-                    vec![
-                        NotificationAction {
-                            name: "Accept".to_string(),
-                            action_route: (
-                                "POST".to_string(),
-                                String::new(),
-                            ),
-                        },
-                        NotificationAction {
-                            name: "Deny".to_string(),
-                            action_route: (
-                                "POST".to_string(),
-                                String::new(),
                             ),
                         },
                     ],

@@ -1,23 +1,6 @@
 export { AbstractShroudEditClient } from './core/abstract-client'
 export { AbstractFeature, type FeatureConfig } from './core/abstract-feature'
-export {
-	AbstractSyncClient,
-	type SyncConnection,
-	type SyncConnectOptions,
-	type SyncEventHandler,
-	type SyncEventOfType,
-	type SyncEventType,
-	type SyncStatus,
-	type SyncStatusHandler,
-	type SyncStatusState,
-} from './core/abstract-sync'
 export { AbstractUploadClient } from './core/abstract-upload-client'
-export {
-	AbstractWebSocketClient,
-	type WebSocketConnection,
-	type WebSocketEventHandler,
-	type WebSocketStatus,
-} from './core/abstract-websocket'
 export { ShroudEditApiError, ShroudEditServerError } from './core/errors'
 export { type AuthConfig, AuthFeature } from './features/auth'
 export {
@@ -36,7 +19,6 @@ export * from './modules/types'
 export { GenericShroudEditClient } from './platform/generic'
 export type { NuxtClientConfig } from './platform/nuxt'
 export { NuxtCircuitBreakerStorage, NuxtShroudEditClient } from './platform/nuxt'
-export { GenericSyncClient } from './platform/sync-generic'
 export type { TauriClientConfig } from './platform/tauri'
 export { TauriShroudEditClient } from './platform/tauri'
 export { XHRUploadClient } from './platform/xhr-upload-client'
@@ -49,7 +31,6 @@ export {
 	type ParsedSseEvent,
 	type ParsedSseItem,
 	type ParsedSseRetry,
-	parseSyncEventData,
 	SseParser,
 } from './utils/sse'
 export type { Override, RawDecimal } from './utils/types'

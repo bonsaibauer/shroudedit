@@ -1,10 +1,12 @@
 import { AbstractModule } from '../../../core/abstract-module'
 import type { UploadHandle, UploadProgress } from '../../../types/upload'
 import { getNodeBaseUrl } from '../../../utils/node-url'
-import type { Archon } from '../../archon/types'
 import type { Kyros } from '../types'
 
-type NodeFsAuth = Pick<Archon.Servers.v0.JWTAuth, 'url' | 'token'>
+type NodeFsAuth = {
+	url: string
+	token: string
+}
 
 export class KyrosFilesV0Module extends AbstractModule {
 	public getModuleID(): string {
@@ -73,7 +75,7 @@ export class KyrosFilesV0Module extends AbstractModule {
 	/**
 	 * Download a file using explicit filesystem auth credentials.
 	 *
-	 * @param auth - Filesystem auth (url + token) from Archon
+	 * @param auth - Filesystem auth (url + token)
 	 * @param path - File path (e.g., "/server-icon.png")
 	 * @returns Promise resolving to file Blob
 	 */
@@ -119,7 +121,7 @@ export class KyrosFilesV0Module extends AbstractModule {
 	/**
 	 * Upload a file using explicit filesystem auth credentials.
 	 *
-	 * @param auth - Filesystem auth (url + token) from Archon
+	 * @param auth - Filesystem auth (url + token)
 	 * @param path - Destination path (e.g., "/server-icon.png")
 	 * @param file - File to upload
 	 * @param options - Optional progress callback and feature overrides
@@ -212,7 +214,7 @@ export class KyrosFilesV0Module extends AbstractModule {
 	/**
 	 * Delete a file or folder using explicit filesystem auth credentials.
 	 *
-	 * @param auth - Filesystem auth (url + token) from Archon
+	 * @param auth - Filesystem auth (url + token)
 	 * @param path - Path to delete
 	 * @param recursive - If true, delete directory contents recursively
 	 */

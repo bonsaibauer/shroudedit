@@ -77,13 +77,9 @@ export namespace Labrinth {
 				interval: PriceDuration
 				status: SubscriptionStatus
 				created: string
-				metadata?: SubscriptionMetadata
+				metadata: unknown
 				next_charge_tax_amount?: number | null
 			}
-
-			export type SubscriptionMetadata =
-				| { type: 'pyro'; id: string; region?: string }
-				| { type: 'medal'; id: string }
 
 			export type ChargeStatus =
 				| 'open'
@@ -114,23 +110,7 @@ export namespace Labrinth {
 				net: number | null
 			}
 
-			export type ProductMetadata =
-				| { type: 'midas' }
-				| {
-						type: 'pyro'
-						cpu: number
-						ram: number
-						swap: number
-						storage: number
-				  }
-				| {
-						type: 'medal'
-						cpu: number
-						ram: number
-						swap: number
-						storage: number
-						region: string
-				  }
+			export type ProductMetadata = { type: 'midas' }
 
 			export type Price =
 				| { type: 'one-time'; price: number }
@@ -154,7 +134,6 @@ export namespace Labrinth {
 				interval?: PriceDuration
 				payment_method?: string
 				cancelled?: boolean
-				region?: string
 				product?: string
 			}
 
@@ -181,12 +160,7 @@ export namespace Labrinth {
 					| { type: 'existing'; id: string }
 					| { type: 'new'; product_id: string; interval?: PriceDuration }
 				existing_payment_intent?: string
-				metadata?: {
-					type: 'pyro'
-					server_name?: string
-					server_region?: string
-					source: unknown
-				}
+				metadata?: { affiliate_code?: string }
 			}
 
 			export type InitiatePaymentResponse = {
@@ -204,10 +178,12 @@ export namespace Labrinth {
 				unprovision?: boolean
 			}
 
-			export type CreditRequest =
-				| { subscription_ids: string[]; days: number; send_email: boolean; message: string }
-				| { nodes: string[]; days: number; send_email: boolean; message: string }
-				| { region: string; days: number; send_email: boolean; message: string }
+			export type CreditRequest = {
+				subscription_ids: string[]
+				days: number
+				send_email: boolean
+				message: string
+			}
 		}
 	}
 
@@ -1847,7 +1823,6 @@ export namespace Labrinth {
 			export type SocialPreferences = {
 				friend_privacy: FriendPrivacy
 				shared_instances_privacy: InvitePrivacy
-				hosting_access_privacy: InvitePrivacy
 			}
 
 			export type UserPreferences = {

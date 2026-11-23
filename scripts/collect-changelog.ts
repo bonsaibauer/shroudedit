@@ -6,7 +6,7 @@ import { fileURLToPath } from 'url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-type Product = 'web' | 'app' | 'hosting'
+type Product = 'web' | 'app'
 
 const CHANGELOG_MARKER = '<!-- changelog -->'
 const SECTION_ORDER = ['added', 'changed', 'deprecated', 'removed', 'fixed', 'security'] as const
@@ -22,7 +22,6 @@ const SECTION_HEADERS: Record<string, string> = {
 const PRODUCT_SUMMARY_MAP: Record<string, Product> = {
 	App: 'app',
 	Website: 'web',
-	Hosting: 'hosting',
 }
 
 const GITHUB_API = 'https://api.github.com'

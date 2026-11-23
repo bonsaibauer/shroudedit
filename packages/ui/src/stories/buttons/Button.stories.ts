@@ -7,7 +7,7 @@ import IconButton from '../../components/base/buttons/IconButton.vue'
 
 const types = ['base', 'colored', 'outlined', 'quiet'] as const
 const sizes = ['sm', 'md', 'lg', 'xl'] as const
-const colors = ['brand', 'red', 'orange', 'green', 'blue', 'purple', 'medal_promotion'] as const
+const colors = ['brand', 'red', 'orange', 'green', 'blue', 'purple'] as const
 const sizeColumns = [
 	{ value: 'sm', label: 'Small' },
 	{ value: 'md', label: 'Medium' },

@@ -33,7 +33,6 @@ export type ContentSourceKind =
 	| 'local'
 	| 'shroudedit_modpack'
 	| 'server_project'
-	| 'shroudedit_hosting'
 	| 'imported_modpack'
 	| 'shared_instance'
 

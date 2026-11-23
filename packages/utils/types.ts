@@ -336,7 +336,7 @@ export interface PayoutData {
 	payout_address: string
 }
 
-export type UserRole = 'admin' | 'moderator' | 'pyro' | 'developer'
+export type UserRole = 'admin' | 'moderator' | 'developer'
 
 export enum UserBadge {
 	MIDAS = 1 << 0,
@@ -552,7 +552,7 @@ export interface UserSubscription {
 	interval: 'five-days' | 'monthly' | 'quarterly' | 'yearly'
 	status: 'provisioned' | 'unprovisioned'
 	created: string // ISO date string
-	metadata?: SubscriptionMetadata
+	metadata?: unknown
 }
 
 export interface Charge {
@@ -571,10 +571,6 @@ export interface Charge {
 	parent_charge_id?: string
 	net?: number
 }
-
-export type SubscriptionMetadata =
-	| { type: 'pyro'; id: string; region?: string }
-	| { type: 'medal'; id: string }
 
 // Delphi
 export interface DelphiReport {

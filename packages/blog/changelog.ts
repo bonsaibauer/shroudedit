@@ -1,6 +1,6 @@
 import dayjs from 'dayjs'
 
-export type Product = 'web' | 'hosting' | 'app'
+export type Product = 'web' | 'app'
 
 export type VersionEntry = {
 	date: dayjs.Dayjs

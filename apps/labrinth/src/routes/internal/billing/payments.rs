@@ -35,7 +35,6 @@ pub const SHROUDEDIT_PRICE_ID: &str = "shroudedit_price_id";
 pub const SHROUDEDIT_SUBSCRIPTION_INTERVAL: &str =
 	"shroudedit_subscription_interval";
 pub const SHROUDEDIT_CHARGE_TYPE: &str = "shroudedit_charge_type";
-pub const SHROUDEDIT_NEW_REGION: &str = "shroudedit_new_region";
 pub const SHROUDEDIT_USER_ID: &str = "shroudedit_user_id";
 pub const SHROUDEDIT_CHARGE_ID: &str = "shroudedit_charge_id";
 pub const SHROUDEDIT_TAX_AMOUNT: &str = "shroudedit_tax_amount";
@@ -58,7 +57,6 @@ pub enum AttachedCharge {
 		product_id: ProductId,
 		interval: PriceDuration,
 		current_subscription: UserSubscriptionId,
-		new_region: String,
 	},
 	/// Base the payment intent amount and tax on the product's price at this interval,
 	/// but don't actually create a charge item until the payment intent is confirmed.
@@ -351,7 +349,6 @@ pub async fn create_or_update_payment_intent(
 			product_id,
 			interval,
 			current_subscription: _,
-			new_region: _,
 		} => derive_charge_data_from_product_selector(
 			pg,
 			user.id,
@@ -491,7 +488,6 @@ pub async fn create_or_update_payment_intent(
 		product_id: _,
 		interval,
 		current_subscription,
-		new_region,
 	} = attached_charge
 	{
 		let mut transaction = pg
@@ -519,7 +515,6 @@ pub async fn create_or_update_payment_intent(
 			SHROUDEDIT_SUBSCRIPTION_ID.to_owned(),
 			current_subscription.to_string(),
 		);
-		metadata.insert(SHROUDEDIT_NEW_REGION.to_owned(), new_region);
 	} else {
 		let mut transaction = pg
 			.begin()

@@ -148,7 +148,6 @@ pub struct SidebarPreferences {
 pub struct SocialPreferences {
 	pub friend_privacy: FriendPrivacy,
 	pub shared_instances_privacy: InvitePrivacy,
-	pub hosting_access_privacy: InvitePrivacy,
 }
 
 #[derive(

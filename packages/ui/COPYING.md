@@ -12,9 +12,3 @@ This includes, but may not be limited to, the following files:
 
 - src/components/brand/\*
 - src/components/servers/ShroudEditServersIcon.vue
-
-## External logos
-
-The following files are owned by their respective copyright holders and must be used within each of their Brand Guidelines:
-
-- src/components/servers/MedalBackgroundImage.vue

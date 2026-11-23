@@ -10,14 +10,7 @@ export type ButtonSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 export type ButtonInteraction = 'surface' | 'filled' | 'none'
 
 // TODO: Standardized color string enum props across @shroudedit/ui
-export type ButtonColor =
-	| 'brand'
-	| 'red'
-	| 'orange'
-	| 'green'
-	| 'blue'
-	| 'purple'
-	| 'medal_promotion'
+export type ButtonColor = 'brand' | 'red' | 'orange' | 'green' | 'blue' | 'purple'
 
 export type ButtonVisualProps = {
 	size?: ButtonSize

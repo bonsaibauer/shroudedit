@@ -308,7 +308,6 @@ async function save(): Promise<void> {
 			social: {
 				friend_privacy: friendPrivacy.value,
 				shared_instances_privacy: sharedInstancesPrivacy.value,
-				hosting_access_privacy: preferences.value?.social.hosting_access_privacy ?? 'none',
 			},
 		})
 	} catch {

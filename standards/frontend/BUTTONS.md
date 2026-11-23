@@ -91,8 +91,8 @@ All button components use the same four visual types:
 `base` is the default. Use `colored` deliberately: a group should normally have only one
 highest-emphasis action.
 
-The available colors are `brand`, `red`, `orange`, `green`, `blue`, `purple`, and
-`medal_promotion`. Color is supported by `colored`, `outlined`, and `quiet`; `base` uses
+The available colors are `brand`, `red`, `orange`, `green`, `blue`, and `purple`.
+Color is supported by `colored`, `outlined`, and `quiet`; `base` uses
 its standard neutral treatment. An outlined button without a color uses the standard
 neutral treatment.
 
@@ -315,7 +315,7 @@ visible text or composite content, such as an avatar and chevron; it will use a 
   unavailable.
 - Use `remainOpen` only when selecting the option should not dismiss the menu.
 - Use `tone` for semantically colored options. The available tones are `brand`, `red`,
-  `orange`, `green`, `blue`, `purple`, and `medal_promotion`.
+  `orange`, `green`, `blue`, and `purple`.
 - Use `hoverFilled: true` when a toned option should fill with its tone on hover and
   focus. Use `hoverFilledOnly: true` to keep the default text color until that state.
 - Use `tone: 'red'` for destructive options.

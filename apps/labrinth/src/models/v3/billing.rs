@@ -19,33 +19,6 @@ pub struct Product {
 #[serde(tag = "type", rename_all = "kebab-case")]
 pub enum ProductMetadata {
 	Midas,
-	Pyro {
-		cpu: u32,
-		ram: u32,
-		swap: u32,
-		storage: u32,
-	},
-	Medal {
-		cpu: u32,
-		ram: u32,
-		swap: u32,
-		storage: u32,
-		region: String,
-	},
-}
-
-impl ProductMetadata {
-	pub fn is_pyro(&self) -> bool {
-		matches!(self, ProductMetadata::Pyro { .. })
-	}
-
-	pub fn is_medal(&self) -> bool {
-		matches!(self, ProductMetadata::Medal { .. })
-	}
-
-	pub fn is_midas(&self) -> bool {
-		matches!(self, ProductMetadata::Midas)
-	}
 }
 
 #[derive(Serialize, Deserialize)]
@@ -143,7 +116,7 @@ pub struct UserSubscription {
 	pub interval: PriceDuration,
 	pub status: SubscriptionStatus,
 	pub created: DateTime<Utc>,
-	pub metadata: Option<SubscriptionMetadata>,
+	pub metadata: Option<serde_json::Value>,
 }
 
 impl From<crate::database::models::user_subscription_item::DBUserSubscription>
@@ -185,23 +158,6 @@ impl SubscriptionStatus {
 			SubscriptionStatus::Provisioned => "provisioned",
 			SubscriptionStatus::Unprovisioned => "unprovisioned",
 		}
-	}
-}
-
-#[derive(Serialize, Deserialize)]
-#[serde(tag = "type", rename_all = "kebab-case")]
-pub enum SubscriptionMetadata {
-	Pyro { id: String, region: Option<String> },
-	Medal { id: String },
-}
-
-impl SubscriptionMetadata {
-	pub fn is_medal(&self) -> bool {
-		matches!(self, SubscriptionMetadata::Medal { .. })
-	}
-
-	pub fn is_pyro(&self) -> bool {
-		matches!(self, SubscriptionMetadata::Pyro { .. })
 	}
 }
 

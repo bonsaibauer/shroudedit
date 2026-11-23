@@ -6,7 +6,6 @@ export type {
 	CircuitBreakerStorage,
 } from '../features/circuit-breaker'
 export type { BackoffStrategy, RetryConfig } from '../features/retry'
-export type { Archon } from '../modules/archon/types'
 export type { BaseUrlConfig, ClientConfig, RequestHooks } from './client'
 export type { ApiErrorData, ShroudEditErrorResponse } from './errors'
 export { isShroudEditErrorResponse } from './errors'

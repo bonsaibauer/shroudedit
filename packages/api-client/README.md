@@ -5,7 +5,7 @@
 
 Platform-agnostic TypeScript client for ShroudEdit's API across Node.js, browsers, Nuxt, and Tauri.
 
-**⚠️ We use this internally to power shroudedit.com and ShroudEdit Hosting. It may break without any notice, but you are welcome to use it.**
+**⚠️ We use this internally to power shroudedit.com. It may break without any notice, but you are welcome to use it.**
 
 ## Installation
 
@@ -98,10 +98,6 @@ import type { Labrinth } from '@shroudedit/api-client'
 
 const project: Labrinth.Projects.v3.Project = await client.labrinth.projects_v3.get('sodium')
 ```
-
-## ShroudEdit Hosting API Modules
-
-- These modules are internal to ShroudEdit and are only supported inside the ShroudEdit Hosting panel and on shroudedit.com. They should not be expected to work in third-party clients today. We are discussing how to safely expose access to your own server through these APIs in the future.
 
 ## Base URLs
 

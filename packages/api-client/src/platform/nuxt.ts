@@ -6,8 +6,6 @@ import type { ClientConfig } from '../types/client'
 import type { RequestOptions } from '../types/request'
 import type { UploadHandle, UploadRequestOptions } from '../types/upload'
 import { appendRequestParams, parseResponseErrorData, toFetchBody } from '../utils/fetch'
-import { GenericSyncClient } from './sync-generic'
-import { GenericWebSocketClient } from './websocket-generic'
 import { XHRUploadClient } from './xhr-upload-client'
 
 /**
@@ -92,20 +90,8 @@ export class NuxtShroudEditClient extends XHRUploadClient {
 
 	constructor(config: NuxtClientConfig) {
 		super(config)
-
-		Object.defineProperty(this.archon, 'sockets', {
-			value: new GenericWebSocketClient(this),
-			writable: false,
-			enumerable: true,
-			configurable: false,
-		})
-		Object.defineProperty(this.archon, 'sync', {
-			value: new GenericSyncClient(this),
-			writable: false,
-			enumerable: true,
-			configurable: false,
-		})
 	}
+
 
 	/**
 	 * Resolve the rate limit key, handling both string and async function values.

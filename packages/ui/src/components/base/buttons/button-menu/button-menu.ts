@@ -35,7 +35,6 @@ export const buttonMenuTones: Record<ButtonColor, string> = {
 	green: 'var(--color-green)',
 	blue: 'var(--color-blue)',
 	purple: 'var(--color-purple)',
-	medal_promotion: 'var(--medal-promotion-text-orange, var(--color-orange))',
 }
 
 export function isDivider(option: ButtonMenuOption): option is ButtonMenuDivider {

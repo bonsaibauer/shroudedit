@@ -1151,19 +1151,6 @@ impl DBUser {
 
 			sqlx::query!(
 				"
-				UPDATE users_redeemals
-				SET user_id = $1
-				WHERE user_id = $2
-				",
-				deleted_user as DBUserId,
-				id as DBUserId,
-			)
-			.execute(&mut *transaction)
-			.await
-			.wrap_err("failed to delete users_redeemals")?;
-
-			sqlx::query!(
-				"
 				UPDATE users_compliance
 				SET user_id = $1
 				WHERE user_id = $2

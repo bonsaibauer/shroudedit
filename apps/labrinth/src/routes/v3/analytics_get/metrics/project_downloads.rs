@@ -137,7 +137,6 @@ pub struct ProjectDownloads {
 pub enum DownloadSource {
 	Website,
 	ShroudEditApp,
-	ShroudEditHosting,
 	ShroudEditMaven,
 	Other,
 	Named(String),
@@ -152,9 +151,6 @@ impl Serialize for DownloadSource {
 			Self::Named(name) => serializer.serialize_str(name),
 			Self::Website => serializer.serialize_str("website"),
 			Self::ShroudEditApp => serializer.serialize_str("shroudedit_app"),
-			Self::ShroudEditHosting => {
-				serializer.serialize_str("shroudedit_hosting")
-			}
 			Self::ShroudEditMaven => {
 				serializer.serialize_str("shroudedit_maven")
 			}
@@ -172,7 +168,6 @@ impl<'de> Deserialize<'de> for DownloadSource {
 		Ok(match source.as_str() {
 			"website" => Self::Website,
 			"shroudedit_app" => Self::ShroudEditApp,
-			"shroudedit_hosting" => Self::ShroudEditHosting,
 			"shroudedit_maven" => Self::ShroudEditMaven,
 			"other" => Self::Other,
 			_ if !source.is_empty() => Self::Named(source),
@@ -591,7 +586,6 @@ enum DownloadSourcePattern {
 	Named(&'static str),
 	Website,
 	ShroudEditApp,
-	ShroudEditHosting,
 	ShroudEditMaven,
 }
 
@@ -601,7 +595,6 @@ impl DownloadSourcePattern {
 			Self::Named(name) => DownloadSource::Named(name.into()),
 			Self::Website => DownloadSource::Website,
 			Self::ShroudEditApp => DownloadSource::ShroudEditApp,
-			Self::ShroudEditHosting => DownloadSource::ShroudEditHosting,
 			Self::ShroudEditMaven => DownloadSource::ShroudEditMaven,
 		}
 	}
@@ -625,7 +618,6 @@ fn download_source_sort_key(source: &DownloadSource) -> &str {
 		DownloadSource::Named(name) => name,
 		DownloadSource::Website => "website",
 		DownloadSource::ShroudEditApp => "shroudedit_app",
-		DownloadSource::ShroudEditHosting => "shroudedit_hosting",
 		DownloadSource::ShroudEditMaven => "shroudedit_maven",
 		DownloadSource::Other => "other",
 	}
@@ -636,7 +628,6 @@ static DOWNLOAD_SOURCE_PATTERNS: LazyLock<Vec<(Regex, DownloadSourcePattern)>> =
 		use DownloadSourcePattern as P;
 
 		[
-			(r"^shroudedit/kyros/", P::ShroudEditHosting),
 			(r"^shroudedit/theseus/", P::ShroudEditApp),
 			(r"^(Gradle/|Apache-Maven/)", P::ShroudEditMaven),
 			(r"^MultiMC/", P::Named("MultiMC")),

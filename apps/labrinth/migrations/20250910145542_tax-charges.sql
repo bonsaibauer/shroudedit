@@ -11,13 +11,6 @@ CREATE TABLE products_tax_identifiers (
 
 INSERT INTO products_tax_identifiers (tax_processor_id, product_id)
 SELECT
-	'modrinth-servers' AS tax_processor_id,
-	id AS product_id
-FROM products
-WHERE metadata ->> 'type' = 'pyro';
-
-INSERT INTO products_tax_identifiers (tax_processor_id, product_id)
-SELECT
 	'modrinth-plus' AS tax_processor_id,
 	id AS product_id
 FROM products

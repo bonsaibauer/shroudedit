@@ -1,5 +1,3 @@
-import type { Archon } from '../modules/archon/types'
-
 export type ParsedSseEvent = {
 	kind: 'event'
 	id?: string
@@ -120,20 +118,4 @@ export class SseParser {
 		this.data = ''
 		this.id = undefined
 	}
-}
-
-export function parseSyncEventData(data: string): Archon.Sync.v1.SyncEvent | null {
-	let parsed: unknown
-
-	try {
-		parsed = JSON.parse(data)
-	} catch {
-		return null
-	}
-
-	if (!parsed || typeof parsed !== 'object') return null
-	const event = parsed as { type?: unknown }
-	if (typeof event.type !== 'string') return null
-
-	return parsed as Archon.Sync.v1.SyncEvent
 }

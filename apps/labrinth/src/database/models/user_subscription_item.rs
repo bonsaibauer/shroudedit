@@ -2,7 +2,7 @@ use crate::database::models::{
 	DBProductPriceId, DBUserId, DBUserSubscriptionId,
 };
 use crate::models::billing::{
-	PriceDuration, ProductMetadata, SubscriptionMetadata, SubscriptionStatus,
+	PriceDuration, ProductMetadata, SubscriptionStatus,
 };
 use chrono::{DateTime, Utc};
 use eyre::{Result, WrapErr};
@@ -16,7 +16,7 @@ pub struct DBUserSubscription {
 	pub interval: PriceDuration,
 	pub created: DateTime<Utc>,
 	pub status: SubscriptionStatus,
-	pub metadata: Option<SubscriptionMetadata>,
+	pub metadata: Option<serde_json::Value>,
 }
 
 struct UserSubscriptionQueryResult {
@@ -115,32 +115,6 @@ impl DBUserSubscription {
 			.wrap_err("deserializing user subscription metadata")
 	}
 
-	pub async fn get_all_servers(
-		status: Option<SubscriptionStatus>,
-		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-	) -> Result<Vec<DBUserSubscription>> {
-		let status = status.map(|x| x.as_str());
-
-		let results = select_user_subscriptions_with_predicate!(
-			r#"
-            INNER JOIN products_prices pp ON us.price_id = pp.id
-            INNER JOIN products p ON p.metadata  @> '{"type": "pyro"}'
-            WHERE $1::text IS NULL OR us.status = $1::text
-            GROUP BY us.id
-            "#,
-			status
-		)
-		.fetch_all(exec)
-		.await
-		.wrap_err("fetching server subscriptions")?;
-
-		results
-			.into_iter()
-			.map(TryInto::try_into)
-			.collect::<std::result::Result<Vec<_>, _>>()
-			.wrap_err("deserializing user subscription metadata")
-	}
-
 	pub async fn upsert(
 		&self,
 		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
@@ -174,34 +148,6 @@ impl DBUserSubscription {
 		.wrap_err("upserting user subscription")?;
 
 		Ok(())
-	}
-
-	pub async fn get_many_by_server_ids(
-		server_ids: &[String],
-		exec: impl crate::database::Executor<'_, Database = sqlx::Postgres>,
-	) -> Result<Vec<DBUserSubscription>> {
-		if server_ids.is_empty() {
-			return Ok(vec![]);
-		}
-
-		let results = sqlx::query_as!(
-            UserSubscriptionQueryResult,
-            r#"
-            SELECT us.id, us.user_id, us.price_id, us.interval, us.created, us.status, us.metadata
-            FROM users_subscriptions us
-            WHERE us.metadata->>'type' = 'pyro' AND us.metadata->>'id' = ANY($1::text[])
-            "#,
-            server_ids
-        )
-        .fetch_all(exec)
-        .await
-        .wrap_err("fetching user subscriptions by server ID")?;
-
-		results
-			.into_iter()
-			.map(TryInto::try_into)
-			.collect::<std::result::Result<Vec<_>, _>>()
-			.wrap_err("deserializing user subscription metadata")
 	}
 }
 

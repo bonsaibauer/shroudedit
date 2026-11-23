@@ -89,10 +89,6 @@ const messages = defineMessages({
 		id: 'changelog.product.web',
 		defaultMessage: 'Platform',
 	},
-	hosting: {
-		id: 'changelog.product.hosting',
-		defaultMessage: 'Hosting',
-	},
 	app: {
 		id: 'changelog.product.app',
 		defaultMessage: 'App',

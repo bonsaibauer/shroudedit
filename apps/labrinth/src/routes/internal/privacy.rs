@@ -24,7 +24,6 @@ pub struct InvitePrivacyStatus {
 #[strum(serialize_all = "snake_case")]
 enum InviteType {
 	SharedInstances,
-	HostingAccess,
 }
 
 /// Check whether `user_id` may send `target_id` an invite of the given type.
@@ -67,9 +66,6 @@ pub async fn invite_privacy_status(
 		let privacy = match invite_type {
 			InviteType::SharedInstances => {
 				preferences.social.shared_instances_privacy
-			}
-			InviteType::HostingAccess => {
-				preferences.social.hosting_access_privacy
 			}
 		};
 

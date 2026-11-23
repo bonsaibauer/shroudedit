@@ -22,29 +22,6 @@
 						},
 						{
 							type: 'heading',
-							label: 'Hosting',
-							shown: admin,
-						},
-						{
-							link: '/admin/servers/lookup',
-							label: 'Server lookup',
-							icon: ServerSearchIcon,
-							shown: admin,
-						},
-						{
-							link: '/admin/servers/notices',
-							label: 'Server notices',
-							icon: IssuesIcon,
-							shown: admin,
-						},
-						{
-							link: '/admin/servers/transfers',
-							label: 'Server transfers',
-							icon: TransferIcon,
-							shown: admin,
-						},
-						{
-							type: 'heading',
 							label: 'Management',
 							shown: admin,
 						},
@@ -84,10 +61,7 @@ import {
 	BookOpenIcon,
 	ChartIcon,
 	FileSearchCornerIcon,
-	IssuesIcon,
 	MailIcon,
-	ServerSearchIcon,
-	TransferIcon,
 	UserSearchIcon,
 } from '@shroudedit/assets'
 import { NormalPage } from '@shroudedit/ui'

@@ -96,13 +96,13 @@ Use `useMutation` for create, update, and delete operations. Invalidate related 
 const queryClient = useQueryClient()
 const client = injectShroudEditClient()
 
-const createMutation = useMutation({
-	mutationFn: (name: string) => client.archon.backups_v0.create(serverId, { name }),
-	onSuccess: () => queryClient.invalidateQueries({ queryKey: ['backups', 'list', serverId] }),
+const updateMutation = useMutation({
+	mutationFn: (data) => client.labrinth.projects_v3.patch(projectId, data),
+	onSuccess: () => queryClient.invalidateQueries({ queryKey: ['project', 'v3', projectId] }),
 })
 ```
 
-Use `createMutation.isPending.value` to disable buttons during submission.
+Use `updateMutation.isPending.value` to disable buttons during submission.
 
 ### Optimistic Updates
 
@@ -152,7 +152,7 @@ Use hierarchical arrays for query keys:
 ['project', projectId, 'versions', 'v3']
 
 // Domain, action, and ID.
-['backups', 'list', serverId]
+['project', 'v3', projectId]
 ['tech-reviews']
 ```
 

@@ -61,13 +61,7 @@ if (monetizationEnabled) {
 }
 
 const AD_PRESETS = {
-	medal: {
-		light: '/news/article/welcome-to-shroudedit/thumbnail.webp',
-		dark: '/news/article/welcome-to-shroudedit/thumbnail.webp',
-		description: 'Discover Enshrouded community servers on ShroudEdit',
-		link: '/discover/servers',
-	},
-	'modrinth-hosting': {
+	schematics: {
 		light: '/news/article/welcome-to-shroudedit/thumbnail.webp',
 		dark: '/news/article/welcome-to-shroudedit/thumbnail.webp',
 		description: 'Share World Editor schematics with the Enshrouded community',
@@ -75,7 +69,7 @@ const AD_PRESETS = {
 	},
 }
 
-const currentAd = computed(() => AD_PRESETS['modrinth-hosting'])
+const currentAd = computed(() => AD_PRESETS.schematics)
 
 if (monetizationEnabled) {
 	onMounted(() => {

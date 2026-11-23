@@ -192,7 +192,6 @@ export default defineNuxtConfig({
 		apiBaseUrl: process.env.BASE_URL ?? globalThis.BASE_URL ?? getApiUrl(),
 		// @ts-ignore
 		rateLimitKey: process.env.RATE_LIMIT_IGNORE_KEY ?? globalThis.RATE_LIMIT_IGNORE_KEY,
-		pyroBaseUrl: process.env.PYRO_BASE_URL,
 		sharedInstancesBaseUrl: getSharedInstancesApiUrl(),
 		monetizationEnabled: process.env.MONETIZATION_ENABLED === 'true',
 		intercomIdentitySecret:
@@ -206,7 +205,6 @@ export default defineNuxtConfig({
 					'https://c6bbc8fff23b102ddc634d15a2b18f05@o4512409261965312.ingest.de.sentry.io/4512410112294992',
 			},
 			apiBaseUrl: getApiUrl(),
-			pyroBaseUrl: process.env.PYRO_BASE_URL,
 			sharedInstancesBaseUrl: getSharedInstancesApiUrl(),
 			siteUrl: getDomain(),
 			intercomAppId:
@@ -304,12 +302,6 @@ export default defineNuxtConfig({
 		'/app': {
 			redirect: {
 				to: '/',
-				statusCode: 301,
-			},
-		},
-		'/hosting/**': {
-			redirect: {
-				to: '/discover/servers',
 				statusCode: 301,
 			},
 		},

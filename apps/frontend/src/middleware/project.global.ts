@@ -97,7 +97,6 @@ export async function getProjectMiddlewareClient(route: RouteLocationNormalized)
 
 	return createShroudEditClient(auth, {
 		apiBaseUrl: config.public.apiBaseUrl.replace('/v2/', '/'),
-		archonBaseUrl: config.public.pyroBaseUrl.replace('/v2/', '/'),
 		sharedInstancesBaseUrl: config.public.sharedInstancesBaseUrl,
 		rateLimitKey: config.rateLimitKey,
 	})

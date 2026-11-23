@@ -10,11 +10,10 @@ export type RequestOptions = {
 	/**
 	 * API to use for this request
 	 * - 'labrinth': Main ShroudEdit API (resolves to labrinthBaseUrl)
-	 * - 'archon': ShroudEdit Hosting API (resolves to archonBaseUrl)
 	 * - 'sharedinstances': Shared Instances API (resolves to sharedInstancesBaseUrl)
 	 * - string: Custom base URL (e.g., 'https://custom-api.com')
 	 */
-	api: 'labrinth' | 'archon' | string
+	api: 'labrinth' | 'sharedinstances' | string
 
 	/**
 	 * API version to use

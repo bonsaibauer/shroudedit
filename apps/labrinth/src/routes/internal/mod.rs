@@ -11,7 +11,6 @@ pub mod flows;
 pub mod gdpr;
 pub mod globals;
 pub mod gotenberg;
-pub mod medal;
 pub mod moderation;
 pub mod mural;
 pub mod pats;
@@ -50,7 +49,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 		.configure(external_notifications::config)
 		.configure(gdpr::config)
 		.configure(gotenberg::config)
-		.configure(medal::config)
 		.configure(mural::config)
 		.configure(statuses::config);
 
@@ -175,8 +173,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 		billing::edit_payment_method,
 		billing::remove_payment_method,
 		billing::payment_methods,
-		billing::active_servers,
-		billing::update_subscriptions::update_many,
 		billing::initiate_payment,
 		billing::stripe_webhook,
 		billing::credit,
@@ -191,8 +187,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 		gdpr::export,
 		gotenberg::success_callback,
 		gotenberg::error_callback,
-		medal::verify,
-		medal::redeem,
 		mural::get_bank_details,
 		statuses::ws_init,
 		analytics_event::analytics_event_create,

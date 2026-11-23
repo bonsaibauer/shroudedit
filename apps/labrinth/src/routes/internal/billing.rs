@@ -1,5 +1,4 @@
 use self::payments::*;
-use self::update_subscriptions::*;
 use crate::auth::get_user_from_headers;
 use crate::database::models::charge_item::DBCharge;
 use crate::database::models::ids::DBUserSubscriptionId;
@@ -15,8 +14,8 @@ use crate::database::{PgPool, PgTransaction};
 use crate::env::ENV;
 use crate::models::billing::{
 	Charge, ChargeStatus, ChargeType, PaymentPlatform, Price, PriceDuration,
-	Product, ProductMetadata, ProductPrice, SubscriptionMetadata,
-	SubscriptionStatus, UserSubscription,
+	Product, ProductMetadata, ProductPrice, SubscriptionStatus,
+	UserSubscription,
 };
 use crate::models::ids::AffiliateCodeId;
 use crate::models::notifications::NotificationBody;
@@ -42,7 +41,6 @@ use stripe::{
 	EventType, PaymentIntentId, PaymentMethodId, SetupIntent, UpdateCustomer,
 	Webhook,
 };
-use tracing::warn;
 use xredis::RedisPool;
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
@@ -58,8 +56,6 @@ pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
 			.service(remove_payment_method)
 			.service(charges)
 			.service(credit)
-			.service(active_servers)
-			.service(update_many)
 			.service(initiate_payment)
 			.service(stripe_webhook)
 			.service(refund_charge)
@@ -672,7 +668,6 @@ pub struct SubscriptionEdit {
 	pub interval: Option<PriceDuration>,
 	pub payment_method: Option<String>,
 	pub cancelled: Option<bool>,
-	pub region: Option<String>,
 	pub product: Option<crate::models::ids::ProductId>,
 }
 
@@ -715,73 +710,13 @@ pub async fn edit_subscription(
 	.wrap_auth_err("authenticating API request")?
 	.1;
 
-	#[derive(Clone, Copy, PartialEq, Eq)]
-	enum PaymentRequirement {
-		ChargedPostPromotion,
-		RequiresPayment,
-	}
-
-	/// For the case of promoting an expiring charge to a full product, determine
-	/// if this operation will require immediate payment or if the user can be
-	/// charged only after the promotion interval ends.
-	async fn promotion_payment_requirement(
-		txn: &mut PgTransaction<'_>,
-		current_product_price: &product_item::DBProductPrice,
-		new_product_price: &product_item::DBProductPrice,
-	) -> Result<PaymentRequirement, ApiError> {
-		let new_product = product_item::DBProduct::get(
-			new_product_price.product_id,
-			&mut *txn,
-		)
-		.await
-		.wrap_internal_err("fetching product from database")?
-		.wrap_request_err_with(|| {
-			"could not link new product price to product.".to_owned()
-		})?;
-		let current_product = product_item::DBProduct::get(
-			current_product_price.product_id,
-			&mut *txn,
-		)
-		.await
-		.wrap_internal_err("fetching product from database")?
-		.wrap_request_err_with(|| {
-			"could not link current product price to product.".to_owned()
-		})?;
-
-		// Special case: for promoting a 'medal' subscription to 'pyro', compare the RAM. If pyro plan has:
-		// - Less RAM: Charge after the promotion duration ends.
-		// - More RAM: Require a payment.
-		//
-		// For other cases (at the time of writing, there are no other cases) require a payment.
-
-		Ok(
-			if let (
-				ProductMetadata::Pyro {
-					ram: ref pyro_ram, ..
-				},
-				ProductMetadata::Medal {
-					ram: ref medal_ram, ..
-				},
-			) = (new_product.metadata, current_product.metadata)
-			{
-				if pyro_ram <= medal_ram {
-					PaymentRequirement::ChargedPostPromotion
-				} else {
-					PaymentRequirement::RequiresPayment
-				}
-			} else {
-				PaymentRequirement::RequiresPayment
-			},
-		)
-	}
-
 	enum Proration {
 		Downgrade,
 		TooSmall,
 		Required(i32),
 	}
 
-	/// For the case of upgrading an existing 'pyro' subscription to another subscription product,
+	/// For the case of upgrading an existing subscription to another product,
 	/// calculates the proration amount that needs to be charged.
 	///
 	/// Returns the proration requirement (see [`Proration`]) and the new product price's amount.
@@ -927,7 +862,6 @@ pub async fn edit_subscription(
 		// Case of changing the underlying product
 		SubscriptionEdit {
 			product: Some(product_id),
-			region,
 			interval,
 			payment_method: Some(payment_method),
 			..
@@ -967,32 +901,14 @@ pub async fn edit_subscription(
 			.map_err(|err| eyre::eyre!(err))
 			.wrap_request_err("invalid currency code".to_string())?;
 
-			// The next charge is an expiring charge, so we are promoting the subscription to a paid product.
-			// Instead of doing a proration (since the product is likely free) we either:
-			//
-			// - Return a payment intent to start the subscription immediately.
-			// - Upgrade the subscription to the new product and modify the upcoming expiring charge to be the
-			//   first charge of the subscription.
-			//
-			// ..depending on the special cases defined in `promotion_payment_requirement`.
 			if open_charge.status == ChargeStatus::Expiring {
-				let new_region = region.wrap_request_err_with(|| "you need to specify a region when promoting an expiring charge.".to_owned())?;
 				let new_interval = interval.wrap_request_err_with(|| "you need to specify an interval when promoting an expiring charge.".to_owned())?;
-
-				let req = promotion_payment_requirement(
-					&mut transaction,
-					&current_price,
-					&new_product_price,
-				)
-				.await
-				.wrap_api_err("executing `promotion_payment_requirement`")?;
 
 				if dry {
 					// Note: we aren't committing the transaction here and it will be aborted.
 					// This is okay and expected, the dry flag is set and we don't want to modify anything.
 					return Ok(HttpResponse::Ok().json(&DryResponse {
-						requires_payment: req
-							== PaymentRequirement::RequiresPayment,
+						requires_payment: true,
 						required_payment_is_proration: false,
 					}));
 				}
@@ -1003,45 +919,30 @@ pub async fn edit_subscription(
 							"invalid payment method ID".to_owned()
 						})?;
 
-				if req == PaymentRequirement::RequiresPayment {
-					let results = create_or_update_payment_intent(
-						&pool,
-						&redis,
-						&stripe_client,
-						&anrok_client,
-						PaymentBootstrapOptions {
-							user: &user,
-							payment_intent: None,
-							payment_session: PaymentSession::Interactive {
-								payment_request_type,
-							},
-							attached_charge: AttachedCharge::Promotion {
-								product_id: new_product_price.product_id.into(),
-								interval: new_interval,
-								current_subscription: subscription.id.into(),
-								new_region,
-							},
-							currency: CurrencyMode::Set(currency),
-							attach_payment_metadata: None,
+				let results = create_or_update_payment_intent(
+					&pool,
+					&redis,
+					&stripe_client,
+					&anrok_client,
+					PaymentBootstrapOptions {
+						user: &user,
+						payment_intent: None,
+						payment_session: PaymentSession::Interactive {
+							payment_request_type,
 						},
-					)
-					.await
-					.wrap_api_err("creating subscription charge")?;
+						attached_charge: AttachedCharge::Promotion {
+							product_id: new_product_price.product_id.into(),
+							interval: new_interval,
+							current_subscription: subscription.id.into(),
+						},
+						currency: CurrencyMode::Set(currency),
+						attach_payment_metadata: None,
+					},
+				)
+				.await
+				.wrap_api_err("creating subscription charge")?;
 
-					Some(results)
-				} else {
-					/*
-					open_charge.status = ChargeStatus::Open;
-					open_charge.payment_platform = PaymentPlatform::Stripe;
-					open_charge.amount = new_product_price.prices.get_interval(new_interval).wrap_request_err_with(|| "could not find a valid price for the user's duration".to_owned())?;
-					open_charge.currency_code = new_product_price.currency_code;
-					open_charge.subscription_interval = Some(new_interval);
-					open_charge.price_id = new_product_price.id;
-					open_charge.type_ = ChargeType::Subscription;
-					*/
-
-					None
-				}
+				Some(results)
 			} else {
 				// The next charge is not an expiring charge: we are upgrading or downgrading the existing subscription
 				// to a new product, so prorate.
@@ -1067,13 +968,6 @@ pub async fn edit_subscription(
 				}
 
 				match proration {
-					// We should be handling the TooSmall branch differently: upgrade the subscription
-					// immediately, and still update the open charge to reflect the desired changes in
-					// product and interval.
-					//
-					// For now we however have no retry-enabled mechanism for immediately upgrade the subscription
-					// via Archon, so just don't upgrade now. This is technically a bug that was present ever
-					// since the `< 30`/`TooSmall` condition was introduced.
 					Proration::Downgrade | Proration::TooSmall => {
 						open_charge.price_id = new_product_price.id;
 						open_charge.subscription_interval =
@@ -1127,12 +1021,11 @@ pub async fn edit_subscription(
 
 		SubscriptionEdit {
 			product: None,
-			region,
 			interval,
 			..
-		} if region.is_some() || interval.is_some() => {
+		} if interval.is_some() => {
 			return Err(ApiError::Request(eyre::eyre!(
-                "It is not currently possible to only modify the region or interval of a subscription".to_owned(),
+                "It is not currently possible to only modify the interval of a subscription".to_owned(),
             )));
 		}
 
@@ -1148,7 +1041,7 @@ pub async fn edit_subscription(
 		_ => {
 			return Err(ApiError::Request(eyre::eyre!(
                 "Unexpected combination of fields in subscription PATCH request. Please either only specify `cancelled`, or specify `product` \
-                alongside optionally specifying a `region` and `interval`. In some cases, you may be required to provide `region` and `interval`.".to_owned(),
+                alongside optionally specifying an `interval`.".to_owned(),
             )));
 		}
 	};
@@ -1589,73 +1482,6 @@ pub async fn payment_methods(
 	}
 }
 
-#[derive(Deserialize)]
-pub struct ActiveServersQuery {
-	pub subscription_status: Option<SubscriptionStatus>,
-}
-
-#[derive(Serialize, utoipa::ToSchema)]
-struct ActiveServerResponse {
-	pub user_id: ariadne::ids::UserId,
-	pub server_id: String,
-	pub price_id: crate::models::ids::ProductPriceId,
-	#[schema(value_type = String)]
-	pub interval: PriceDuration,
-	pub region: Option<String>,
-}
-
-/// List active servers.
-#[utoipa::path(
-	context_path = "/billing",
-	tag = "billing",
-	params(("subscription_status" = Option<String>, Query)),
-	responses((status = OK, body = inline(Vec<ActiveServerResponse>)))
-)]
-#[get("/active_servers")]
-pub async fn active_servers(
-	req: HttpRequest,
-	pool: web::Data<PgPool>,
-	query: web::Query<ActiveServersQuery>,
-) -> Result<HttpResponse, ApiError> {
-	let master_key = &ENV.PYRO_API_KEY;
-
-	if req
-		.head()
-		.headers()
-		.get("X-Master-Key")
-		.is_none_or(|it| it.as_bytes() != master_key.as_bytes())
-	{
-		return Err(ApiError::Auth(eyre::eyre!("Invalid master key",)));
-	}
-
-	let servers = user_subscription_item::DBUserSubscription::get_all_servers(
-		query.subscription_status,
-		&**pool,
-	)
-	.await
-	.wrap_internal_err("fetching user subscriptions from database")?;
-
-	let server_ids = servers
-		.into_iter()
-		.filter_map(|x| {
-			x.metadata.as_ref().and_then(|metadata| match metadata {
-				SubscriptionMetadata::Pyro { id, region } => {
-					Some(ActiveServerResponse {
-						user_id: x.user_id.into(),
-						server_id: id.clone(),
-						price_id: x.price_id.into(),
-						interval: x.interval,
-						region: region.clone(),
-					})
-				}
-				SubscriptionMetadata::Medal { .. } => None,
-			})
-		})
-		.collect::<Vec<ActiveServerResponse>>();
-
-	Ok(HttpResponse::Ok().json(server_ids))
-}
-
 #[derive(Deserialize, utoipa::ToSchema)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum PaymentRequestType {
@@ -1692,19 +1518,7 @@ pub enum ChargeRequestType {
 #[derive(Deserialize, Serialize, utoipa::ToSchema)]
 #[serde(rename_all = "snake_case")]
 pub struct PaymentRequestMetadata {
-	#[serde(flatten)]
-	pub kind: PaymentRequestMetadataKind,
 	pub affiliate_code: Option<AffiliateCodeId>,
-}
-
-#[derive(Deserialize, Serialize, utoipa::ToSchema)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum PaymentRequestMetadataKind {
-	Pyro {
-		server_name: Option<String>,
-		server_region: Option<String>,
-		source: serde_json::Value,
-	},
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
@@ -1826,7 +1640,6 @@ pub async fn stripe_webhook(
 			pub user_subscription_item:
 				Option<user_subscription_item::DBUserSubscription>,
 			pub payment_metadata: Option<PaymentRequestMetadata>,
-			pub new_region: Option<String>,
 			pub next_tax_amount: i64,
 		}
 
@@ -1888,154 +1701,146 @@ pub async fn stripe_webhook(
 					break 'metadata;
 				};
 
-				let new_region =
-					metadata.get(SHROUDEDIT_NEW_REGION).map(String::to_owned);
+				let (charge, price, product, subscription) = if let Some(
+					mut charge,
+				) =
+					crate::database::models::charge_item::DBCharge::get(
+						charge_id, pool,
+					)
+					.await
+					.wrap_internal_err("fetching charge from database")?
+				{
+					let Some(price) = product_item::DBProductPrice::get(
+						charge.price_id,
+						pool,
+					)
+					.await
+					.wrap_internal_err(
+						"fetching product price from database",
+					)?
+					else {
+						break 'metadata;
+					};
 
-				let (charge, price, product, subscription, new_region) =
-					if let Some(mut charge) =
-						crate::database::models::charge_item::DBCharge::get(
-							charge_id, pool,
-						)
+					let Some(product) =
+						product_item::DBProduct::get(price.product_id, pool)
+							.await
+							.wrap_internal_err(
+								"fetching product from database",
+							)?
+					else {
+						break 'metadata;
+					};
+
+					charge.status = charge_status;
+					charge.last_attempt = Some(Utc::now());
+					charge.payment_platform_id =
+						Some(payment_intent_id.to_string());
+					charge.tax_amount = tax_amount;
+					charge.tax_platform_id = None;
+					charge
+						.upsert(transaction)
 						.await
-						.wrap_internal_err("fetching charge from database")?
-					{
-						let Some(price) = product_item::DBProductPrice::get(
-							charge.price_id,
-							pool,
-						)
-						.await
-						.wrap_internal_err(
-							"fetching product price from database",
-						)?
-						else {
+						.wrap_internal_err("updating payment intent charge")?;
+
+					if let Some(subscription_id) = charge.subscription_id {
+						let maybe_subscription =
+							user_subscription_item::DBUserSubscription::get(
+								subscription_id,
+								pool,
+							)
+							.await
+							.wrap_internal_err(
+								"fetching user subscription from database",
+							)?;
+
+						let Some(mut subscription) = maybe_subscription else {
 							break 'metadata;
 						};
 
-						let Some(product) = product_item::DBProduct::get(
-							price.product_id,
-							pool,
-						)
-						.await
-						.wrap_internal_err("fetching product from database")?
-						else {
-							break 'metadata;
-						};
+						match charge.type_ {
+							ChargeType::OneTime | ChargeType::Subscription => {
+								if let Some(interval) =
+									charge.subscription_interval
+								{
+									subscription.interval = interval;
+								}
+							}
+							ChargeType::Proration => {
+								subscription.price_id = charge.price_id;
+							}
+							ChargeType::Refund => {
+								return Err(ApiError::Request(eyre::eyre!(
+									"Invalid charge type: Refund",
+								)));
+							}
+						}
 
-						charge.status = charge_status;
-						charge.last_attempt = Some(Utc::now());
-						charge.payment_platform_id =
-							Some(payment_intent_id.to_string());
-						charge.tax_amount = tax_amount;
-						charge.tax_platform_id = None;
-						charge.upsert(transaction).await.wrap_internal_err(
-							"updating payment intent charge",
-						)?;
+						subscription
+							.upsert(transaction)
+							.await
+							.wrap_internal_err("upserting subscription")?;
 
-						if let Some(subscription_id) = charge.subscription_id {
-							let maybe_subscription =
-                            user_subscription_item::DBUserSubscription::get(
-                                subscription_id,
-                                pool,
-                            )
-                            .await.wrap_internal_err("fetching user subscription from database")?;
+						(charge, price, product, Some(subscription))
+					} else {
+						(charge, price, product, None)
+					}
+				} else {
+					let Some(price_id) = metadata
+						.get(SHROUDEDIT_PRICE_ID)
+						.and_then(|x| parse_base62(x).ok())
+						.map(|x| {
+							crate::database::models::ids::DBProductPriceId(
+								x as i64,
+							)
+						})
+					else {
+						break 'metadata;
+					};
 
-							let Some(mut subscription) = maybe_subscription
+					let Some(price) =
+						product_item::DBProductPrice::get(price_id, pool)
+							.await
+							.wrap_internal_err(
+								"fetching product price from database",
+							)?
+					else {
+						break 'metadata;
+					};
+
+					let maybe_product =
+						product_item::DBProduct::get(price.product_id, pool)
+							.await
+							.wrap_internal_err(
+								"fetching product from database",
+							)?;
+
+					let Some(product) = maybe_product else {
+						break 'metadata;
+					};
+
+					let subscription = match &price.prices {
+						Price::OneTime { .. } => None,
+						Price::Recurring { intervals } => {
+							let Some(interval) = metadata
+								.get(SHROUDEDIT_SUBSCRIPTION_INTERVAL)
+								.map(|x| PriceDuration::from_string(x))
 							else {
 								break 'metadata;
 							};
 
-							match charge.type_ {
-								ChargeType::OneTime
-								| ChargeType::Subscription => {
-									if let Some(interval) =
-										charge.subscription_interval
-									{
-										subscription.interval = interval;
-									}
-								}
-								ChargeType::Proration => {
-									subscription.price_id = charge.price_id;
-								}
-								ChargeType::Refund => {
-									return Err(ApiError::Request(
-										eyre::eyre!(
-											"Invalid charge type: Refund",
-										),
-									));
-								}
-							}
-
-							subscription
-								.upsert(transaction)
-								.await
-								.wrap_internal_err("upserting subscription")?;
-
-							(
-								charge,
-								price,
-								product,
-								Some(subscription),
-								new_region,
-							)
-						} else {
-							(charge, price, product, None, new_region)
-						}
-					} else {
-						let Some(price_id) = metadata
-							.get(SHROUDEDIT_PRICE_ID)
-							.and_then(|x| parse_base62(x).ok())
-							.map(|x| {
-								crate::database::models::ids::DBProductPriceId(
-									x as i64,
-								)
-							})
-						else {
-							break 'metadata;
-						};
-
-						let Some(price) =
-							product_item::DBProductPrice::get(price_id, pool)
-								.await
-								.wrap_internal_err(
-									"fetching product price from database",
-								)?
-						else {
-							break 'metadata;
-						};
-
-						let maybe_product = product_item::DBProduct::get(
-							price.product_id,
-							pool,
-						)
-						.await
-						.wrap_internal_err("fetching product from database")?;
-
-						let Some(product) = maybe_product else {
-							break 'metadata;
-						};
-
-						let subscription = match &price.prices {
-							Price::OneTime { .. } => None,
-							Price::Recurring { intervals } => {
-								let Some(interval) = metadata
-									.get(SHROUDEDIT_SUBSCRIPTION_INTERVAL)
-									.map(|x| PriceDuration::from_string(x))
+							if intervals.get(&interval).is_some() {
+								let Some(subscription_id) = metadata
+									.get(SHROUDEDIT_SUBSCRIPTION_ID)
+									.and_then(|x| parse_base62(x).ok())
+									.map(|x| {
+										crate::database::models::ids::DBUserSubscriptionId(x as i64)
+									})
 								else {
 									break 'metadata;
 								};
 
-								if intervals.get(&interval).is_some() {
-									let Some(subscription_id) = metadata
-										.get(SHROUDEDIT_SUBSCRIPTION_ID)
-										.and_then(|x| parse_base62(x).ok())
-										.map(|x| {
-											crate::database::models::ids::DBUserSubscriptionId(x as i64)
-										})
-									else {
-										break 'metadata;
-									};
-
-									let subscription = if let Some(mut subscription) = user_subscription_item::DBUserSubscription::get(subscription_id, pool).await.wrap_internal_err("fetching user subscription from database")? {
+								let subscription = if let Some(mut subscription) = user_subscription_item::DBUserSubscription::get(subscription_id, pool).await.wrap_internal_err("fetching user subscription from database")? {
                                     subscription.status = SubscriptionStatus::Unprovisioned;
                                     subscription.price_id = price_id;
                                     subscription.interval = interval;
@@ -2053,61 +1858,59 @@ pub async fn stripe_webhook(
                                     }
                                 };
 
-									if charge_status != ChargeStatus::Failed {
-										subscription
-											.upsert(&mut *transaction)
-											.await
-											.wrap_internal_err(
-												"upserting subscription",
-											)?;
-									}
-
-									Some(subscription)
-								} else {
-									break 'metadata;
+								if charge_status != ChargeStatus::Failed {
+									subscription
+										.upsert(&mut *transaction)
+										.await
+										.wrap_internal_err(
+											"upserting subscription",
+										)?;
 								}
+
+								Some(subscription)
+							} else {
+								break 'metadata;
 							}
-						};
-
-						let charge = DBCharge {
-							id: charge_id,
-							user_id,
-							price_id,
-							amount: subtotal_amount,
-							currency_code: currency,
-							status: charge_status,
-							due: Utc::now(),
-							last_attempt: Some(Utc::now()),
-							type_: charge_type,
-							subscription_id: subscription
-								.as_ref()
-								.map(|x| x.id),
-							subscription_interval: subscription
-								.as_ref()
-								.map(|x| x.interval),
-							payment_platform: PaymentPlatform::Stripe,
-							payment_platform_id: Some(
-								payment_intent_id.to_string(),
-							),
-							tax_amount,
-							tax_platform_id: None,
-							parent_charge_id: None,
-							net: None,
-							tax_last_updated: Some(Utc::now()),
-							tax_drift_loss: Some(0),
-							tax_transaction_version: None,
-							tax_platform_accounting_time: None,
-						};
-
-						if charge_status != ChargeStatus::Failed {
-							charge
-								.upsert(&mut *transaction)
-								.await
-								.wrap_internal_err("upserting charge")?;
 						}
-
-						(charge, price, product, subscription, new_region)
 					};
+
+					let charge = DBCharge {
+						id: charge_id,
+						user_id,
+						price_id,
+						amount: subtotal_amount,
+						currency_code: currency,
+						status: charge_status,
+						due: Utc::now(),
+						last_attempt: Some(Utc::now()),
+						type_: charge_type,
+						subscription_id: subscription.as_ref().map(|x| x.id),
+						subscription_interval: subscription
+							.as_ref()
+							.map(|x| x.interval),
+						payment_platform: PaymentPlatform::Stripe,
+						payment_platform_id: Some(
+							payment_intent_id.to_string(),
+						),
+						tax_amount,
+						tax_platform_id: None,
+						parent_charge_id: None,
+						net: None,
+						tax_last_updated: Some(Utc::now()),
+						tax_drift_loss: Some(0),
+						tax_transaction_version: None,
+						tax_platform_accounting_time: None,
+					};
+
+					if charge_status != ChargeStatus::Failed {
+						charge
+							.upsert(&mut *transaction)
+							.await
+							.wrap_internal_err("upserting charge")?;
+					}
+
+					(charge, price, product, subscription)
+				};
 
 				return Ok(PaymentIntentMetadata {
 					user_item: user,
@@ -2116,7 +1919,6 @@ pub async fn stripe_webhook(
 					charge_item: charge,
 					user_subscription_item: subscription,
 					payment_metadata,
-					new_region,
 					next_tax_amount: tax_amount,
 				});
 			}
@@ -2175,14 +1977,7 @@ pub async fn stripe_webhook(
 					}
 
 					// Provision subscription
-					match metadata.product_item.metadata {
-						// A payment shouldn't be processed for Medal subscriptions.
-						ProductMetadata::Medal { .. } => {
-							warn!(
-								"A payment processed for a free subscription"
-							);
-						}
-
+					match &metadata.product_item.metadata {
 						ProductMetadata::Midas => {
 							let badges =
 								metadata.user_item.badges | Badges::MIDAS;
@@ -2202,180 +1997,6 @@ pub async fn stripe_webhook(
 							.wrap_internal_err(
 								"querying database for `get_payment_intent_metadata`",
 							)?;
-						}
-						ProductMetadata::Pyro {
-							ram,
-							cpu,
-							swap,
-							storage,
-						} => {
-							if let Some(ref mut subscription) =
-								metadata.user_subscription_item
-							{
-								let client = reqwest::Client::new();
-
-								if let Some(
-                                    subscription_metadata @ (
-                                        SubscriptionMetadata::Pyro { id, region: _ }
-                                        | SubscriptionMetadata::Medal { id }
-                                    ),
-                                ) = &subscription.metadata
-                                {
-                                    let region = match subscription_metadata {
-                                        SubscriptionMetadata::Pyro { region, .. } => region.to_owned(),
-                                        SubscriptionMetadata::Medal { .. } => {
-                                            let region = metadata.new_region.clone();
-
-                                            if region.is_none() {
-                                                return Err(ApiError::Request(eyre::eyre!(
-                                                    "We attempted to promote a subscription with type=medal, which requires specifying \
-                                                    a new region to move the server to. However, no new region was present in the payment \
-                                                    intent metadata.".to_owned()
-                                                )));
-                                            }
-
-                                            region
-                                        }
-                                    };
-
-                                    #[derive(Serialize)]
-                                    struct ReallocateBody<'a> {
-                                        memory_mb: u32,
-                                        cpu: u32,
-                                        swap_mb: u32,
-                                        storage_mb: u32,
-                                        region: Option<&'a str>,
-                                        force_move: Option<bool>,
-                                    }
-
-                                    let body = ReallocateBody {
-                                        memory_mb: ram,
-                                        cpu,
-                                        swap_mb: swap,
-                                        storage_mb: storage,
-                                        force_move: (region.is_some() && subscription_metadata.is_medal()).then_some(true),
-                                        region: region.as_deref(),
-                                    };
-
-                                    client
-                                        .post(format!(
-                                            "{}/shroudedit/v0/servers/{}/unsuspend",
-                                            ENV.ARCHON_URL,
-                                            id
-                                        ))
-                                        .header("X-Master-Key", &ENV.PYRO_API_KEY)
-                                        .send()
-                                        .await.wrap_internal_err("sending HTTP request")?
-                                        .error_for_status().wrap_internal_err("sending HTTP request")?;
-
-                                    client
-                                        .post(format!(
-                                            "{}/shroudedit/v0/servers/{}/reallocate",
-                                            ENV.ARCHON_URL,
-                                            id
-                                        ))
-                                        .header(
-                                            "X-Master-Key",
-                                            &ENV.PYRO_API_KEY,
-                                        )
-                                        .json(&body)
-                                        .send()
-                                        .await.wrap_internal_err("deserializing HTTP response")?
-                                        .error_for_status().wrap_internal_err("deserializing HTTP response")?;
-
-                                    // As the subscription has been promoted, this is now a Pyro subscription.
-                                    // Ensure the metadata is properly updated.
-                                    subscription.metadata = Some(SubscriptionMetadata::Pyro { id: id.to_string(), region });
-
-                                } else {
-                                    let (server_name, server_region, source) =
-                                        if let Some(
-                                            PaymentRequestMetadataKind::Pyro {
-                                                server_name,
-                                                server_region,
-                                                source,
-                                            },
-                                        ) = metadata.payment_metadata.as_ref().map(|m| &m.kind)
-                                        {
-                                            (
-                                                server_name.clone(),
-                                                server_region.clone(),
-                                                source.clone(),
-                                            )
-                                        } else {
-                                            // Create a server with the latest version of Enshrouded
-                                            let enshrouded_versions = crate::database::models::legacy_loader_fields::EnshroudedGameVersion::list(
-                                                Some("release"),
-                                                None,
-                                                &**pool,
-                                                &redis,
-                                            ).await.wrap_internal_err("fetching enshrouded versions from database")?;
-
-                                            (
-                                                None,
-                                                None,
-                                                serde_json::json!({
-                                                    "loader": "Vanilla",
-                                                    "game_version": enshrouded_versions.first().map(|x| x.version.clone()),
-                                                    "loader_version": ""
-                                                }),
-                                            )
-                                        };
-
-                                    let server_name = server_name
-                                        .unwrap_or_else(|| {
-                                            format!(
-                                                "{}'s server",
-                                                metadata.user_item.username
-                                            )
-                                        });
-
-                                    #[derive(Deserialize)]
-                                    struct PyroServerResponse {
-                                        uuid: String,
-                                    }
-
-                                    let res = client
-                                        .post(format!(
-                                            "{}/shroudedit/v0/servers/create",
-                                            ENV.ARCHON_URL,
-                                        ))
-                                        .header("X-Master-Key", &ENV.PYRO_API_KEY)
-                                        .json(&serde_json::json!({
-                                            "user_id": to_base62(metadata.user_item.id.0 as u64),
-                                            "name": server_name,
-                                            "specs": {
-                                                "memory_mb": ram,
-                                                "cpu": cpu,
-                                                "swap_mb": swap,
-                                                "storage_mb": storage,
-                                            },
-                                            "region": server_region,
-                                            "source": source,
-                                            "payment_interval": metadata.charge_item.subscription_interval.map(|x| match x {
-                                                PriceDuration::FiveDays => 1,
-                                                PriceDuration::Monthly => 1,
-                                                PriceDuration::Quarterly => 3,
-                                                PriceDuration::Yearly => 12,
-                                            })
-                                        }))
-                                        .send()
-                                        .await.wrap_internal_err("sending HTTP request")?
-                                        .error_for_status().wrap_internal_err("sending HTTP request")?
-                                        .json::<PyroServerResponse>()
-                                        .await.wrap_internal_err("deserializing HTTP response")?;
-
-                                    if let Some(ref mut subscription) =
-                                        metadata.user_subscription_item
-                                    {
-                                        subscription.metadata =
-                                            Some(SubscriptionMetadata::Pyro {
-                                                id: res.uuid,
-                                                region: server_region,
-                                            });
-                                    }
-                                }
-							}
 						}
 					}
 
@@ -2591,22 +2212,7 @@ pub async fn stripe_webhook(
 						NotificationBuilder {
 							body: NotificationBody::PaymentFailed {
 								amount: money.to_string(),
-								service: if metadata
-									.product_item
-									.metadata
-									.is_midas()
-								{
-									"ShroudEdit+"
-								} else if metadata
-									.product_item
-									.metadata
-									.is_pyro()
-								{
-									"ShroudEdit Hosting"
-								} else {
-									"a ShroudEdit product"
-								}
-								.to_owned(),
+								service: "ShroudEdit+".to_owned(),
 							},
 						}
 						.insert(metadata.user_item.id, &mut transaction, &redis)
@@ -2795,12 +2401,6 @@ pub enum CreditTarget {
 	Subscriptions {
 		subscription_ids: Vec<crate::models::ids::UserSubscriptionId>,
 	},
-	Nodes {
-		nodes: Vec<String>,
-	},
-	Region {
-		region: String,
-	},
 }
 
 /// Credit subscriptions.
@@ -2815,7 +2415,6 @@ pub async fn credit(
 	pool: web::Data<PgPool>,
 	redis: web::Data<RedisPool>,
 	session_queue: web::Data<AuthQueue>,
-	archon_client: web::Data<crate::util::archon::ArchonClient>,
 	body: web::Json<CreditRequest>,
 ) -> Result<HttpResponse, ApiError> {
 	let user = get_user_from_headers(
@@ -2871,72 +2470,6 @@ pub async fn credit(
 			.await
 			.wrap_api_err("crediting user subscriptions")?;
 		}
-		CreditTarget::Nodes { nodes } => {
-			if nodes.is_empty() {
-				return Err(ApiError::Request(eyre::eyre!(
-					"You must specify at least one node hostname",
-				)));
-			}
-			let mut server_ids: Vec<String> = Vec::new();
-			for hostname in nodes {
-				let ids = archon_client
-					.get_servers_by_hostname(&hostname)
-					.await
-					.wrap_internal_err(
-						"fetching servers by hostname from Archon",
-					)?;
-				server_ids.extend(ids.into_iter().map(|id| id.to_string()));
-			}
-			server_ids.dedup();
-			let subs = user_subscription_item::DBUserSubscription::get_many_by_server_ids(
-                &server_ids,
-                &mut transaction,
-            )
-            .await.wrap_internal_err("fetching user subscriptions from database")?;
-			if subs.is_empty() {
-				return Err(ApiError::Request(eyre::eyre!(
-					"No subscriptions found for provided nodes",
-				)));
-			}
-			apply_credit_many(
-				&mut transaction,
-				&redis,
-				crate::database::models::ids::DBUserId(user.id.0 as i64),
-				subs.into_iter().map(|s| s.id.into()).collect(),
-				days,
-				send_email,
-				message,
-			)
-			.await
-			.wrap_api_err("crediting server subscriptions")?;
-		}
-		CreditTarget::Region { region } => {
-			let servers = archon_client
-				.get_active_servers_by_region(&region)
-				.await
-				.wrap_internal_err("fetching servers from database")?;
-			let subs = user_subscription_item::DBUserSubscription::get_many_by_server_ids(
-                &servers.into_iter().map(|id| id.to_string()).collect::<Vec<String>>(),
-                &mut transaction,
-            )
-            .await.wrap_internal_err("fetching user subscriptions from database")?;
-			if subs.is_empty() {
-				return Err(ApiError::Request(eyre::eyre!(
-					"No subscriptions found for provided region",
-				)));
-			}
-			apply_credit_many(
-				&mut transaction,
-				&redis,
-				crate::database::models::ids::DBUserId(user.id.0 as i64),
-				subs.into_iter().map(|s| s.id.into()).collect(),
-				days,
-				send_email,
-				message,
-			)
-			.await
-			.wrap_api_err("crediting region subscriptions")?;
-		}
 	}
 
 	transaction
@@ -2948,4 +2481,3 @@ pub async fn credit(
 }
 
 pub mod payments;
-pub mod update_subscriptions;

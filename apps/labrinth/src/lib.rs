@@ -21,7 +21,6 @@ use crate::env::ENV;
 use crate::queue::billing::{index_billing, index_subscriptions};
 use crate::routes::internal::delphi::rescan::enqueue_tech_review_files_for_new_delphi_version;
 use crate::util::anrok;
-use crate::util::archon::ArchonClient;
 use crate::util::http::HttpClient;
 use crate::util::ratelimit::{AsyncRateLimiter, GCRAParameters};
 use crate::util::tiltify::TiltifyClient;
@@ -70,7 +69,6 @@ pub struct LabrinthConfig {
 	pub stripe_client: stripe::Client,
 	pub anrok_client: anrok::Client,
 	pub email_queue: web::Data<EmailQueue>,
-	pub archon_client: web::Data<ArchonClient>,
 	pub gotenberg_client: GotenbergClient,
 	pub http_client: web::Data<HttpClient>,
 	pub tiltify_client: web::Data<TiltifyClient>,
@@ -294,10 +292,6 @@ pub fn app_setup(
 		http_client,
 		tiltify_client,
 		kafka_client,
-		archon_client: web::Data::new(
-			ArchonClient::from_env()
-				.expect("ARCHON_URL and PYRO_API_KEY must be set"),
-		),
 		email_queue: web::Data::new(email_queue),
 		webauthn,
 	}
@@ -344,7 +338,6 @@ pub fn app_data_config(
 	.app_data(web::Data::new(labrinth_config.analytics_queue.clone()))
 	.app_data(web::Data::new(labrinth_config.clickhouse.clone()))
 	.app_data(labrinth_config.active_sockets.clone())
-	.app_data(labrinth_config.archon_client.clone())
 	.app_data(web::Data::new(labrinth_config.stripe_client.clone()))
 	.app_data(web::Data::new(labrinth_config.anrok_client.clone()))
 	.app_data(labrinth_config.rate_limiter.clone())

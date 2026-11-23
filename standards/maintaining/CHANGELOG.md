@@ -30,8 +30,8 @@ Make the first verb agree with its section. Do not put a `Fixed` bullet in `## A
 
 You can omit `Added` in the `## Added` section because the heading supplies it:
 
-- `Server statistics in an information card inside the server settings modal.`
-- `Confirmation modal for server resubscription.`
+- `Server status in an information card on the project page.`
+- `Confirmation modal for project deletion.`
 
 Keep `Fixed` in most `## Fixed` bullets because it makes the text clear. Use one pattern in each entry.
 
@@ -39,8 +39,8 @@ Keep `Fixed` in most `## Fixed` bullets because it makes the text clear. Use one
 
 Describe the result that the user can see. Do not describe the implementation.
 
-- Correct: `Server CPU and memory graphs no longer freeze after a hard crash or out-of-memory termination.`
-- Incorrect: `Refactored the metrics polling hook to clear stale state after a socket disconnection.`
+- Correct: `Server status now updates after the server becomes reachable.`
+- Incorrect: `Refactored the server status polling hook.`
 
 - Correct: `Historical log files now load in the background, so selection between files is immediate.`
 - Incorrect: `Moved log file fetching into a background worker.`
@@ -59,7 +59,7 @@ Give sufficient detail for the user to identify the applicable item.
 - Vague: `Improved the UI.`
 - Specific: `Refreshed the server cards for visual consistency.`
 
-Name the applicable page, tab, modal, or feature. Examples include the Content tab, server panel header, Worlds tab, and project page.
+Name the applicable page, tab, modal, or feature. Examples include the Content tab, Files tab, server project page, and Discover page.
 
 ## Length
 
@@ -81,13 +81,12 @@ Historical entries do not always use periods. Use periods in all new entries.
 
 ## Product and UI Names
 
-- Use the public names `ShroudEdit Hosting` and `ShroudEdit`.
-- Do not use deprecated names, such as `ShroudEdit Servers`.
+- Use the public name `ShroudEdit`.
 - Use the labels that appear in the UI.
 - Capitalize a tab or page name when you refer to its label.
 - Use lowercase when you refer to a generic action, such as `browse content`.
 
-Examples of UI labels include Content tab, Worlds tab, Files tab, Logs page, server panel, project page, and Discover page.
+Examples of UI labels include Content tab, Files tab, server project page, and Discover page.
 
 ## Prohibited Content
 
@@ -110,9 +109,9 @@ Replace `Fixed an issue with misaligned buttons` with `Fixed misaligned buttons.
 | Weak                                                       | Better                                                                                |
 | ---------------------------------------------------------- | ------------------------------------------------------------------------------------- |
 | `Fixed a bug.`                                             | `Fixed excessive brightness on project icons during hover.`                           |
-| `Various improvements to the server panel.`                | Divide it into specific bullets, or remove it.                                        |
-| `Refactored the logs page to use a new component.`         | `Redesigned the Logs page to match the ShroudEdit Hosting server panel.`                |
-| `Fixed an issue where the server address was not copyable.` | `The server address in the panel header now copies to the clipboard when selected.`  |
+| `Various improvements to the project page.`                | Divide it into specific bullets, or remove it.                                        |
+| `Refactored the logs page to use a new component.`         | `Redesigned the project page to make server information easier to read.`                          |
+| `Fixed an issue where the server address could not be copied.` | `The server address on the project page now copies to the clipboard when selected.`  |
 | `Made some changes to the Content tab.`                    | List each user-visible change, or remove the bullet.                                  |
 | `Fixed UX issues.`                                         | Name the specific user-experience problem.                                            |
 

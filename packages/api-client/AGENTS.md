@@ -12,16 +12,16 @@ Request Flow:
 ### Key Directories
 
 - **`src/core/`** — base classes (`AbstractShroudEditClient`, `AbstractModule`, `AbstractFeature`, etc.)
-- **`src/platform/`** — platform implementations (generic, nuxt, tauri, xhr-upload, websocket)
+- **`src/platform/`** — platform implementations (generic, nuxt, tauri, xhr-upload)
 - **`src/features/`** — middleware plugins (auth, retry, circuit-breaker, etc.)
-- **`src/modules/`** — API endpoint modules organized by service (`labrinth/`, `archon/`, `kyros/`, `iso3166/`)
+- **`src/modules/`** — API endpoint modules organized by service (`labrinth/`, `kyros/`, `iso3166/`)
 - **`src/types/`** — core type definitions (client config, request options, upload types, errors)
 
 ### Client Hierarchy
 
 All platform clients extend `XHRUploadClient` → `AbstractShroudEditClient`:
 
-- **`GenericShroudEditClient`** — uses `ofetch`, attaches WebSocket client to `archon.sockets`
+- **`GenericShroudEditClient`** — uses `ofetch`
 - **`NuxtShroudEditClient`** — uses Nuxt's `$fetch`, SSR-aware, blocks `upload()` during SSR
 - **`TauriShroudEditClient`** — uses `@tauri-apps/plugin-http`
 
@@ -35,11 +35,6 @@ client.labrinth.projects_v3
 client.labrinth.versions_v3
 client.labrinth.collections
 client.labrinth.billing_internal
-client.archon.servers_v0
-client.archon.servers_v1
-client.archon.backups_queue_v1
-client.archon.backups_v1
-client.archon.content_v0
 client.kyros.files_v0
 client.iso3166.data
 ... etc.
@@ -76,7 +71,7 @@ provideShroudEditClient(client)
 Components anywhere in the tree then inject it:
 
 ```ts
-const { labrinth, archon, kyros } = injectShroudEditClient()
+const { labrinth, kyros } = injectShroudEditClient()
 
 // Fetch data
 const project = await labrinth.projects_v3.get(projectId)
@@ -97,14 +92,12 @@ Types must match 1:1 with how they are returned from the backend API they are fe
 Types are organized in namespaces that mirror the backend services:
 
 ```ts
-import type { Labrinth, Archon, Kyros, ISO3166 } from '@shroudedit/api-client'
+import type { Labrinth, Kyros, ISO3166 } from '@shroudedit/api-client'
 
 const project: Labrinth.Projects.v3.Project = ...
-const server: Archon.Servers.v0.Server = ...
-const auth: Archon.Websocket.v0.WSAuth = ...
 ```
 
-Each API has a `types.ts` in its module directory (`modules/labrinth/types.ts`, `modules/archon/types.ts`, etc.) using nested namespaces: `Namespace.Domain.Version.Type`.
+Each API has a `types.ts` in its module directory (`modules/labrinth/types.ts`, `modules/kyros/types.ts`, etc.) using nested namespaces: `Namespace.Domain.Version.Type`.
 
 ## Features (Middleware)
 
@@ -156,48 +149,6 @@ await handle.promise
 ```
 
 See `packages/ui/src/components/servers/files/upload/FileUploadDropdown.vue` and `apps/frontend/src/providers/version/manage-version-modal.ts` for real usage.
-
-## WebSocket
-
-WebSocket support is attached to `client.archon.sockets` (only on `GenericShroudEditClient`). It provides event-based communication with ShroudEdit Hosting servers.
-
-### Connection Flow
-
-```
-client.archon.sockets.safeConnect(serverId)
-  → fetches JWT auth via archon.servers_v0.getWebSocketAuth()
-  → opens wss:// connection
-  → sends { event: 'auth', jwt: token }
-  → server responds with { event: 'auth-ok' }
-  → ready to receive events
-```
-
-Auto-reconnects on unexpected disconnection with exponential backoff (base 1s, max 30s, up to 10 attempts).
-
-### Subscribing to Events
-
-```ts
-const unsub = client.archon.sockets.on(serverId, 'stats', (data) => {
-	// data is typed as Archon.Websocket.v0.WSStatsEvent
-	cpuUsage.value = data.cpu_percent
-})
-
-// Clean up
-onUnmounted(() => {
-	unsub()
-	client.archon.sockets.disconnect(serverId)
-})
-```
-
-Event types: `log`, `stats`, `power-state`, `uptime`, `backup-progress`, `installation-result`, `filesystem-ops`, `new-mod`, `auth-expiring`, `auth-incorrect`, `auth-ok`.
-
-### Sending Commands
-
-```ts
-client.archon.sockets.send(serverId, { event: 'command', cmd: '/say hello' })
-```
-
-See `apps/frontend/src/pages/hosting/manage/[id].vue` for the full server panel WebSocket usage.
 
 ## Adding a New API Module
 

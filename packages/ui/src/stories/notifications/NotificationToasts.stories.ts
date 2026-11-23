@@ -47,16 +47,6 @@ export const FigmaExamples: Story = {
 					@dismiss="noop"
 				/>
 				<NotificationToast
-					type="server-invite"
-					actor-name="Fetch"
-					:actor-avatar-url="avatarUrl"
-					entity-name="ShroudEdit SMP"
-					@accept="noop"
-					@decline="noop"
-					@dismiss="noop"
-					@open-actor="noop"
-				/>
-				<NotificationToast
 					type="instance-invite"
 					actor-name="Fetch"
 					:actor-avatar-url="avatarUrl"
@@ -90,31 +80,6 @@ export const FigmaExamples: Story = {
 	}),
 }
 
-export const ServerInvite: Story = {
-	render: () => ({
-		components: { NotificationToast },
-		setup() {
-			return {
-				avatarUrl,
-				instanceIconUrl: EnshroudedServerIcon,
-				noop,
-			}
-		},
-		template: /* html */ `
-			<NotificationToast
-				type="server-invite"
-				actor-name="Fetch"
-				:actor-avatar-url="avatarUrl"
-				entity-name="ShroudEdit SMP"
-				@accept="noop"
-				@decline="noop"
-				@dismiss="noop"
-				@open-actor="noop"
-			/>
-		`,
-	}),
-}
-
 export const MissingAvatarFallback: Story = {
 	render: () => ({
 		components: { NotificationToast },
@@ -126,9 +91,9 @@ export const MissingAvatarFallback: Story = {
 		},
 		template: /* html */ `
 			<NotificationToast
-				type="server-invite"
+				type="instance-invite"
 				actor-name="Fetch"
-				entity-name="ShroudEdit SMP"
+				entity-name="New Creation"
 				@accept="noop"
 				@decline="noop"
 				@dismiss="noop"

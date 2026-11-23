@@ -2,8 +2,6 @@ import type { ShroudEditApiError } from '../core/errors'
 import type { ClientConfig } from '../types/client'
 import type { RequestOptions } from '../types/request'
 import { appendRequestParams, parseResponseErrorData, toFetchBody } from '../utils/fetch'
-import { GenericSyncClient } from './sync-generic'
-import { GenericWebSocketClient } from './websocket-generic'
 import { XHRUploadClient } from './xhr-upload-client'
 
 /**
@@ -42,22 +40,6 @@ interface HttpError extends Error {
 export class TauriShroudEditClient extends XHRUploadClient {
 	declare protected config: TauriClientConfig
 
-	constructor(config: TauriClientConfig) {
-		super(config)
-
-		Object.defineProperty(this.archon, 'sockets', {
-			value: new GenericWebSocketClient(this),
-			writable: false,
-			enumerable: true,
-			configurable: false,
-		})
-		Object.defineProperty(this.archon, 'sync', {
-			value: new GenericSyncClient(this),
-			writable: false,
-			enumerable: true,
-			configurable: false,
-		})
-	}
 
 	protected async executeRequest<T>(url: string, options: RequestOptions): Promise<T> {
 		try {

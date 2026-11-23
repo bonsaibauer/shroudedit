@@ -37,7 +37,6 @@ const socialSettings = ref<InstanceType<typeof AccountSocialSettings> | null>(nu
 const emptySocialState = {
 	friendPrivacy: 'everyone',
 	sharedInstancesPrivacy: 'everyone',
-	hostingAccessPrivacy: 'everyone',
 }
 
 function getBlockedUsers(): Promise<Labrinth.BlockedUsers.v3.BlockedUserId[]> {

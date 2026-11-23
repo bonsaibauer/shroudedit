@@ -35,28 +35,11 @@
 								: 'base'
 						"
 						:color="
-							(holdingShift && version === anchorVersion
+							holdingShift && version === anchorVersion
 								? 'purple'
 								: modelValue.includes(version)
 									? 'green'
-									: 'standard') &&
-							(holdingShift && version === anchorVersion
-								? 'purple'
-								: modelValue.includes(version)
-									? 'green'
-									: 'standard') !== 'standard'
-								? (holdingShift && version === anchorVersion
-										? 'purple'
-										: modelValue.includes(version)
-											? 'green'
-											: 'standard') === 'medal-promo'
-									? 'medal_promotion'
-									: holdingShift && version === anchorVersion
-										? 'purple'
-										: modelValue.includes(version)
-											? 'green'
-											: 'standard'
-								: undefined
+									: undefined
 						"
 						class="!py-1.5 focus:outline-none"
 						:class="[

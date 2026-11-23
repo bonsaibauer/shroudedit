@@ -33,7 +33,6 @@ export interface PopupNotificationProgressItem {
 
 export type PopupNotificationToastType =
 	| 'friend-request'
-	| 'server-invite'
 	| 'instance-invite'
 	| 'instance-download'
 	| 'instance-ready'
