@@ -4,12 +4,6 @@
 
 		<h2>Provider information</h2>
 		<p>
-			<em>
-				Statutory information under Section 5 of the German Digital Services Act (DDG) and Section
-				18(1) of the German Interstate Media Treaty (MStV).
-			</em>
-		</p>
-		<p>
 			<strong>Betreiber:</strong> Philipp Feierabend<br />
 			c/o IMPREGO<br />
 			Golzwarder Straße 28<br />
@@ -24,9 +18,6 @@
 		</p>
 
 		<h2>Responsible for editorial content</h2>
-		<p>
-			<em>Designation under Section 18(2) of the German Interstate Media Treaty (MStV).</em>
-		</p>
 		<p>
 			Philipp Feierabend<br />
 			c/o IMPREGO<br />
