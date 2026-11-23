@@ -57,12 +57,13 @@
 		<p>
 			The ShroudForge Wiki uses a separate MediaWiki account system. It is not the ShroudEdit account
 			system. To create a Wiki account, you must provide a username, email address and password. A real
-			name is optional. We also process account and session data and the pages, edits and other
-			contributions you make. Wiki contributions and their revision history are publicly accessible and
-			are attributed to your Wiki username. If you edit while logged out, your IP address may be shown
-			publicly with the edit. We use these data to provide and secure the Wiki and to maintain its
-			public page history. Processing is based on Article 6(1)(b) GDPR for account and Wiki functions and
-			Article 6(1)(f) GDPR for security and reliable operation.
+			name is optional. We also process account and session data and the content you contribute to the
+			Wiki, including page text, edits, edit summaries, uploaded files and their descriptions, as well as
+			revision history and timestamps. Wiki contributions and their revision history are publicly
+			accessible and are attributed to your Wiki username. If you edit while logged out, your IP address
+			may be shown publicly with the edit. We use these data to provide and secure the Wiki and to
+			maintain its public page history. Processing is based on Article 6(1)(b) GDPR for account and Wiki
+			functions and Article 6(1)(f) GDPR for security and reliable operation.
 		</p>
 		<h3>Connected ShroudForge editor</h3>
 		<p>
