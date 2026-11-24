@@ -646,6 +646,7 @@ async fn project_create_inner(
 					data,
 					project_id,
 					current_user.id,
+					create_data.project_type == "schematic",
 					&all_loaders,
 					transaction,
 					redis,
@@ -1142,6 +1143,7 @@ async fn create_initial_version(
 	version_data: &InitialVersionData,
 	project_id: ProjectId,
 	author: UserId,
+	is_schematic_project: bool,
 	all_loaders: &[models::loader_fields::Loader],
 	transaction: &mut PgTransaction<'_>,
 	redis: &RedisPool,
@@ -1187,6 +1189,7 @@ async fn create_initial_version(
 		&version_data.fields,
 		&loader_fields,
 		&mut loader_field_enum_values,
+		is_schematic_project,
 	)?;
 
 	let dependencies = version_data

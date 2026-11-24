@@ -48,6 +48,15 @@ fn default_requested_status() -> VersionStatus {
 	VersionStatus::Listed
 }
 
+const SCHEMATIC_VERSION_FIELDS: [&str; 6] = [
+	"schematic_format_version",
+	"world_editor_version",
+	"schematic_width",
+	"schematic_height",
+	"schematic_depth",
+	"schematic_installation",
+];
+
 #[derive(Serialize, Deserialize, Validate, Clone)]
 pub struct InitialVersionData {
 	#[serde(alias = "mod_id")]
@@ -270,14 +279,14 @@ async fn version_create_inner(
                 let project_id: models::DBProjectId = version_create_data.project_id.unwrap().into();
 
                 // Ensure that the project this version is being added to exists
-                if models::DBProject::get_id(project_id, &mut *transaction, redis)
-                    .await?
-                    .is_none()
-                {
-                    return Err(CreateError::InvalidInput(
-                        "An invalid project id was supplied".to_string(),
-                    ));
-                }
+				let project = models::DBProject::get_id(project_id, &mut *transaction, redis)
+					.await?
+					.ok_or_else(|| {
+						CreateError::InvalidInput(
+							"An invalid project id was supplied".to_string(),
+						)
+					})?;
+				let is_schematic_project = project.components.schematic.is_some();
 
                 // Check that the user creating this version is a team member
                 // of the project the version is being added to.
@@ -373,6 +382,7 @@ async fn version_create_inner(
                     &version_create_data.fields,
                     &loader_fields,
                     &mut loader_field_enum_values,
+					is_schematic_project,
                 )?;
 
                 let dependencies = version_create_data
@@ -1172,17 +1182,26 @@ pub fn try_create_version_fields(
 		models::LoaderFieldId,
 		Vec<LoaderFieldEnumValue>,
 	>,
+	is_schematic_project: bool,
 ) -> Result<Vec<VersionField>, CreateError> {
 	let mut version_fields = vec![];
-	let mut remaining_mandatory_loader_fields = loader_fields
+	let applicable_loader_fields = loader_fields
+		.iter()
+		.filter(|loader_field| {
+			is_schematic_project
+				|| !SCHEMATIC_VERSION_FIELDS.contains(&loader_field.field.as_str())
+		})
+		.cloned()
+		.collect::<Vec<_>>();
+	let mut remaining_mandatory_loader_fields = applicable_loader_fields
 		.iter()
 		.filter(|lf| !lf.optional)
 		.map(|lf| lf.field.clone())
 		.collect::<HashSet<_>>();
 	for (key, value) in submitted_fields {
-		let loader_field = loader_fields
+		let loader_field = applicable_loader_fields
 			.iter()
-			.find(|lf| &lf.field == key)
+			.find(|lf| lf.field.as_str() == key.as_str())
 			.ok_or_else(|| {
 				CreateError::InvalidInput(format!(
 					"Loader field '{key}' does not exist for any loaders supplied,"
