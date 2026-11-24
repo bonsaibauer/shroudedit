@@ -1,0 +1,59 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tSELECT file_id, sha256, engine_name, category, result, scope,\n\t\t\tverdict::text AS \"verdict!\"\n\t\tFROM virustotal_finding_verdicts verdicts\n\t\tWHERE (scope = 'local' AND file_id = ANY($1::bigint[]) AND EXISTS (\n\t\t\tSELECT 1 FROM virustotal_file_scans scan\n\t\t\tWHERE scan.file_id = verdicts.file_id AND scan.sha256 = verdicts.sha256\n\t\t\t\tAND scan.submitted_at IS NOT NULL AND verdicts.updated_at >= scan.checked_at\n\t\t)) OR (scope = 'global' AND sha256 = ANY($2::text[]))\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "file_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "sha256",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "engine_name",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "category",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "result",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "scope",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "verdict!",
+        "type_info": "Text"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8Array",
+        "TextArray"
+      ]
+    },
+    "nullable": [
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "35c4a7e36a7740bac16bfa00387ca3312bc9b7b37d8dfb8d0417aa50edaecf1b"
+}

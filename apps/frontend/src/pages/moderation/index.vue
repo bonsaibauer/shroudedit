@@ -413,7 +413,7 @@ function toApiProjectType(label: string): string | undefined {
 		case 'Shaders':
 			return 'shader'
 		case 'Servers':
-			return 'server'
+			return 'enshrouded_server'
 		case 'Fucked up':
 			return 'none'
 		default:

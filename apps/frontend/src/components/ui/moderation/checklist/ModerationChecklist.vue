@@ -359,10 +359,24 @@
 									<LinkIcon v-else aria-hidden="true" />
 									Withhold
 								</Button>
+								<ButtonLink
+									v-if="malwareApprovalWaiting"
+									:to="'/moderation/technical-review/' + projectV2.id"
+									:title="formatMessage(malwareMessages.waiting)"
+									type="outlined"
+								>
+									{{ formatMessage(malwareMessages.details) }}
+									<span v-if="versionsAwaitingMalware[0]">
+										{{ versionsAwaitingMalware[0].version_number }}
+										<span v-if="firstFileAwaitingMalware">
+											· {{ firstFileAwaitingMalware.filename }}</span
+										>
+									</span>
+								</ButtonLink>
 								<Button
 									type="colored"
 									color="green"
-									:disabled="loadingModerationDecision"
+									:disabled="loadingModerationDecision || malwareApprovalWaiting"
 									@click="sendMessage(approveSendStatus)"
 								>
 									<SpinnerIcon
@@ -450,6 +464,7 @@ import {
 	ButtonLink,
 	Collapsible,
 	ConfirmModal,
+	defineMessages,
 	IconButton,
 	injectNotificationManager,
 	injectProjectPageContext,
@@ -458,6 +473,7 @@ import {
 	TeleportOverflowMenu,
 	Textarea,
 	useDebugLogger,
+	useVIntl,
 } from '@shroudedit/ui'
 import type { ProjectStatus } from '@shroudedit/utils'
 import { renderHighlightedString } from '@shroudedit/utils'
@@ -491,6 +507,7 @@ import {
 } from '~/services/moderation/queue-eligibility.ts'
 
 import { type LiveNode, STATE_KEY } from './checklist-context'
+import { canDownloadVersion } from '~/utils/version-malware'
 
 const notifications = injectNotificationManager()
 const { addNotification } = notifications
@@ -504,7 +521,7 @@ const props = defineProps<{
 	collapsed: boolean
 }>()
 
-const { projectV2, projectV3, versions, loadVersions, invalidate, thread } =
+const { projectV2, projectV3, versions, versionsLoaded, loadVersions, invalidate, thread } =
 	injectProjectPageContext()
 setMessageProject(projectV3, projectV2)
 const missingMdPaths = new Set<string>()
@@ -726,6 +743,34 @@ const generatedMessage = computed(() => message.value !== null)
 const loadingMessage = ref(false)
 const moderationDecision = ref<ProjectStatus | null>(null)
 const loadingModerationDecision = computed(() => moderationDecision.value !== null)
+const { formatMessage } = useVIntl()
+const malwareMessages = defineMessages({
+	waiting: {
+		id: 'moderation.virusTotal.approval.waiting',
+		defaultMessage: 'VirusTotal review required before approval',
+	},
+	details: {
+		id: 'moderation.virusTotal.approval.details',
+		defaultMessage: 'Open technical review',
+	},
+})
+const versionsAwaitingMalware = computed(() =>
+	(versions.value ?? []).filter(
+		(version) =>
+			['listed', 'archived', 'unlisted'].includes(version.status) &&
+			version.files.length > 0 &&
+			!canDownloadVersion(version),
+	),
+)
+const malwareApprovalWaiting = computed(
+	() =>
+		!['approved', 'archived', 'unlisted', 'private'].includes(projectV2.value.status) &&
+		(versionsAwaitingMalware.value.length > 0 ||
+			(!versionsLoaded.value && !projectV3.value?.enshrouded_server)),
+)
+const firstFileAwaitingMalware = computed(() =>
+	versionsAwaitingMalware.value[0]?.files.find((file) => !canDownloadVersion({ files: [file] })),
+)
 const approveSendStatus = computed<ProjectStatus>(() => {
 	const requested = projectV2.value.requested_status
 	return requested ?? 'approved'
@@ -1636,6 +1681,10 @@ async function refreshModerationCaches(threadId?: string) {
 }
 
 async function sendMessage(status: ProjectStatus) {
+	if (status === approveSendStatus.value && malwareApprovalWaiting.value) {
+		addNotification({ type: 'error', title: formatMessage(malwareMessages.waiting) })
+		return
+	}
 	const projectId = projectV2.value?.id
 	const threadId = projectV2.value?.thread_id
 

@@ -557,6 +557,7 @@ async fn version_create_inner(
 				primary: file.primary,
 				size: file.size,
 				file_type: file.file_type,
+				malware: crate::models::projects::FileMalwareScan::default(),
 			})
 			.collect::<Vec<_>>(),
 		dependencies: version_data.dependencies,
@@ -705,8 +706,9 @@ pub async fn upload_file_to_version(
 		if let Err(e) = rollback_result {
 			return Err(e.into());
 		}
-	} else if let Ok((_, project_id)) = &result {
+	} else if let Ok((_, project_id, version)) = &result {
 		transaction.commit().await?;
+		models::DBVersion::clear_cache(version, &redis).await?;
 		models::DBProject::clear_cache(*project_id, None, Some(true), &redis)
 			.await?;
 		search_state
@@ -715,7 +717,7 @@ pub async fn upload_file_to_version(
 			.await;
 	}
 
-	result.map(|(response, _)| response)
+	result.map(|(response, _, _)| response)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -730,7 +732,14 @@ async fn upload_file_to_version_inner(
 	version_id: models::DBVersionId,
 	session_queue: &AuthQueue,
 	kafka_client: &KafkaClientState,
-) -> Result<(HttpResponse, models::DBProjectId), CreateError> {
+) -> Result<
+	(
+		HttpResponse,
+		models::DBProjectId,
+		models::version_item::VersionQueryResult,
+	),
+	CreateError,
+> {
 	let mut initial_file_data: Option<InitialFileData> = None;
 	let mut file_builders: Vec<VersionFileBuilder> = Vec::new();
 
@@ -928,10 +937,7 @@ async fn upload_file_to_version_inner(
 		}
 	}
 
-	// Clear version cache
-	models::DBVersion::clear_cache(&version, &redis).await?;
-
-	Ok((HttpResponse::NoContent().body(""), db_project_id))
+	Ok((HttpResponse::NoContent().body(""), db_project_id, version))
 }
 
 // This function is used for adding a file to a version, uploading the initial
@@ -1189,7 +1195,8 @@ pub fn try_create_version_fields(
 		.iter()
 		.filter(|loader_field| {
 			is_schematic_project
-				|| !SCHEMATIC_VERSION_FIELDS.contains(&loader_field.field.as_str())
+				|| !SCHEMATIC_VERSION_FIELDS
+					.contains(&loader_field.field.as_str())
 		})
 		.cloned()
 		.collect::<Vec<_>>();

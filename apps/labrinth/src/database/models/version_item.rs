@@ -1,6 +1,7 @@
 use super::ids::*;
 use super::loader_fields::VersionField;
 use crate::database::PgTransaction;
+use crate::database::advisory_lock::AdvisoryLock;
 
 use crate::database::models::loader_fields::{
 	QueryLoaderField, QueryLoaderFieldEnumValue, QueryVersionField,
@@ -187,6 +188,10 @@ impl VersionFileBuilder {
 		file_host: &dyn FileHost,
 		kafka_client: &KafkaClientState,
 	) -> Result<DBFileId> {
+		AdvisoryLock::VirusTotalProject(project_id)
+			.acquire(transaction)
+			.await
+			.wrap_err("locking project for version file creation")?;
 		let file_id = generate_file_id(&mut *transaction)
 			.await
 			.wrap_err("generating file id")?;

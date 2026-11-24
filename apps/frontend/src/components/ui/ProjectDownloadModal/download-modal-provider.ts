@@ -1,3 +1,8 @@
+import {
+	canDownloadVersion,
+	hasPendingMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
 import type { AbstractShroudEditClient, Labrinth } from '@shroudedit/api-client'
 import {
 	type CdnDownloadReason,
@@ -29,6 +34,7 @@ export interface DownloadDependencyRow {
 	isAdditionalFile?: boolean
 	projectHref?: string
 	downloadHref?: string
+	downloadColor?: 'green' | 'blue'
 	filename?: string
 	fileSize?: number
 	metadataLabel?: string
@@ -41,6 +47,7 @@ export interface DownloadableDependencyFile {
 	href: string
 	filename: string
 	name: string
+	color?: 'green' | 'blue'
 }
 
 export interface ProjectDownloadSelection {
@@ -276,7 +283,10 @@ export function provideDownloadModalProvider(
 			name: file.filename,
 			hideIcon: true,
 			isAdditionalFile: true,
-			downloadHref: getDownloadUrl(file.url),
+			downloadHref: canDownloadVersion(options.selectedVersion.value)
+				? getDownloadUrl(file.url)
+				: undefined,
+			downloadColor: malwareDownloadColor(options.selectedVersion.value),
 			filename: file.filename,
 			fileSize: file.size,
 			metadataLabel: fileTypeDisplayLabel(file.file_type),
@@ -312,7 +322,14 @@ export function provideDownloadModalProvider(
 	)
 
 	const downloadableDependencyFilesLoaded = computed(() => {
-		return selectedDownloadRowsLoaded.value
+		return (
+			selectedDownloadRowsLoaded.value &&
+			!visibleResolvedDependencies.value.some((dependency) => {
+				const versionId = dependency.version_id
+				const version = versionId ? dependencyVersionById.value.get(versionId) : undefined
+				return !!version && !canDownloadVersion(version)
+			})
+		)
 	})
 
 	async function preloadDependenciesForSelection(selection: ProjectDownloadSelection) {
@@ -398,7 +415,10 @@ export function provideDownloadModalProvider(
 			icon: project.icon_url ?? undefined,
 			projectHref: `/${project.project_type}/${project.slug || project.id}`,
 			downloadHref:
-				'reason' in dependency || !primaryFile ? undefined : getDownloadUrl(primaryFile.url),
+				'reason' in dependency || !primaryFile || !canDownloadVersion(version)
+					? undefined
+					: getDownloadUrl(primaryFile.url),
+			downloadColor: malwareDownloadColor(version),
 			filename: primaryFile?.filename,
 			fileSize: primaryFile?.size,
 			metadataLabel,
@@ -416,7 +436,7 @@ export function provideDownloadModalProvider(
 		version: Labrinth.Versions.v3.Version | undefined,
 		primaryFile: Labrinth.Versions.v3.VersionFile | undefined,
 	): DownloadDependencyRow[] {
-		if (!version || !isDataPackProject(project)) return []
+		if (!version || !canDownloadVersion(version) || !isDataPackProject(project)) return []
 
 		return version.files
 			.filter((file) => file !== primaryFile && file.file_type === 'required-resource-pack')
@@ -426,6 +446,7 @@ export function provideDownloadModalProvider(
 				hideIcon: true,
 				isAdditionalFile: true,
 				downloadHref: getDownloadUrl(file.url),
+				downloadColor: malwareDownloadColor(version),
 				filename: file.filename,
 				fileSize: file.size,
 				metadataLabel: fileTypeDisplayLabel(file.file_type),
@@ -540,6 +561,7 @@ function dependencyVersionsQueryOptions(
 	return {
 		queryKey: computed(() => ['project-download-modal', 'resolved-versions', versionIds.value]),
 		queryFn: () => client.labrinth.versions_v3.getVersions(versionIds.value),
+		refetchInterval: (query) => (hasPendingMalware(query.state.data) ? 15_000 : false),
 		staleTime: STALE_TIME,
 	}
 }
@@ -674,6 +696,7 @@ function collectDownloadableDependencyFiles(
 				href: row.downloadHref,
 				filename: row.filename || filenameFromUrl(row.downloadHref),
 				name: row.name,
+				color: row.downloadColor,
 			})
 		}
 

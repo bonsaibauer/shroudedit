@@ -58,7 +58,9 @@
 									type="quiet"
 									color="brand"
 									class="ml-auto"
-									:href="createDownloadUrl(version)"
+									:href="createDownloadUrl(version) ?? ''"
+									:disabled="!canDownloadVersion(version)"
+									:color="canDownloadVersion(version) ? malwareDownloadColor(version) : undefined"
 									:download="getPrimaryFile(version)?.filename"
 									:title="`Download ${version.name}`"
 								>
@@ -102,6 +104,12 @@ import VersionFilterControl from '@shroudedit/ui/src/components/version/VersionF
 import { renderHighlightedString } from '@shroudedit/utils'
 import { useQuery } from '@tanstack/vue-query'
 import { onMounted, watch } from 'vue'
+
+import {
+	canDownloadVersion,
+	hasPendingMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
 
 const { createProjectDownloadUrl, updateVersionsFilterContext } = useCdnDownloadContext()
 
@@ -177,6 +185,7 @@ const { data: fetchedVersions, isLoading: isLoadingVersions } = useQuery({
 		return versions
 	},
 	enabled: computed(() => paginatedVersionIds.value.length > 0),
+	refetchInterval: (query) => (hasPendingMalware(query.state.data) ? 15_000 : false),
 })
 
 const paginatedVersions = computed(() => {
@@ -243,7 +252,7 @@ function getPrimaryFile(version) {
 
 function createDownloadUrl(version) {
 	const file = getPrimaryFile(version)
-	if (!file?.url) return undefined
+	if (!file?.url || !canDownloadVersion(version)) return undefined
 
 	return createProjectDownloadUrl(file.url, {
 		reason: cdnDownloadReason.value,

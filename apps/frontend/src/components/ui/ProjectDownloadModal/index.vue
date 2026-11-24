@@ -39,7 +39,11 @@
 		<template v-if="showDependencyDownloadActions" #actions>
 			<div class="flex flex-wrap justify-end gap-2 p-2">
 				<Button
-					:disabled="!!downloadingActionType || !dependencyDownloadFilesLoaded"
+					:disabled="
+						!!downloadingActionType ||
+						!dependencyDownloadFilesLoaded ||
+						!canDownloadVersion(selectedVersion)
+					"
 					@click="downloadSelectedVersionZip"
 				>
 					<SpinnerIcon
@@ -53,10 +57,14 @@
 				<SplitButton
 					v-if="hasRecommendedDownloadFiles"
 					type="colored"
-					color="brand"
+					:color="downloadActionColor"
 					:options="downloadWithRecommendedOptions"
 					:menu-label="formatMessage(messages.downloadWithRecommended)"
-					:disabled="!!downloadingActionType || !dependencyDownloadFilesLoaded"
+					:disabled="
+						!!downloadingActionType ||
+						!dependencyDownloadFilesLoaded ||
+						!canDownloadVersion(selectedVersion)
+					"
 					@click="downloadFilesWithDependencies"
 				>
 					<SpinnerIcon
@@ -70,8 +78,12 @@
 				<Button
 					v-else
 					type="colored"
-					color="brand"
-					:disabled="!!downloadingActionType || !dependencyDownloadFilesLoaded"
+					:color="downloadActionColor"
+					:disabled="
+						!!downloadingActionType ||
+						!dependencyDownloadFilesLoaded ||
+						!canDownloadVersion(selectedVersion)
+					"
 					@click="downloadFilesWithDependencies"
 				>
 					<SpinnerIcon
@@ -88,6 +100,11 @@
 </template>
 
 <script setup lang="ts">
+import {
+	canDownloadVersion,
+	hasPendingMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
 import type { Labrinth } from '@shroudedit/api-client'
 import { DownloadIcon, SpinnerIcon } from '@shroudedit/assets'
 import {
@@ -244,6 +261,7 @@ const { data: versionsV3, isFetching: versionsV3Loading } = useQuery({
 		}),
 	staleTime: STALE_TIME_LONG,
 	enabled: computed(() => !!resolvedProjectId.value && versionsEnabled.value),
+	refetchInterval: (query) => (hasPendingMalware(query.state.data) ? 15_000 : false),
 })
 
 const versions = computed<Labrinth.Versions.v3.Version[]>(() =>
@@ -292,7 +310,7 @@ const dependencyDownloadFilesLoaded = downloadModalProvider.downloadableDependen
 const downloadRowsLoaded = downloadModalProvider.downloadRowsLoaded
 
 const selectedVersionDownloadFiles = computed<DownloadableFile[]>(() => {
-	if (!selectedVersion.value) return []
+	if (!selectedVersion.value || !canDownloadVersion(selectedVersion.value)) return []
 
 	return selectedVersion.value.files
 		.filter(
@@ -309,7 +327,12 @@ const selectedVersionDownloadFiles = computed<DownloadableFile[]>(() => {
 })
 
 const recommendedDownloadFiles = computed<DownloadableFile[]>(() => {
-	if (project.value?.project_type !== 'datapack' || !selectedVersion.value) return []
+	if (
+		project.value?.project_type !== 'datapack' ||
+		!selectedVersion.value ||
+		!canDownloadVersion(selectedVersion.value)
+	)
+		return []
 
 	return selectedVersion.value.files
 		.filter(
@@ -324,6 +347,12 @@ const recommendedDownloadFiles = computed<DownloadableFile[]>(() => {
 			filename: file.filename,
 		}))
 })
+
+const downloadActionColor = computed(() =>
+	dependencyDownloadFiles.value.some((file) => file.color === 'blue')
+		? 'blue'
+		: malwareDownloadColor(selectedVersion.value),
+)
 
 const hasRecommendedDownloadFiles = computed(() => recommendedDownloadFiles.value.length > 0)
 
@@ -533,7 +562,12 @@ function onDownload() {
 }
 
 async function downloadSelectedVersionZip() {
-	if (downloadingActionType.value || !dependencyDownloadFilesLoaded.value) return
+	if (
+		downloadingActionType.value ||
+		!dependencyDownloadFilesLoaded.value ||
+		!canDownloadVersion(selectedVersion.value)
+	)
+		return
 
 	downloadingActionType.value = 'zip'
 	const files = dedupeDownloadFiles([
@@ -572,7 +606,12 @@ async function downloadSelectedVersionZip() {
 }
 
 async function downloadFilesWithDependencies() {
-	if (downloadingActionType.value || !dependencyDownloadFilesLoaded.value) return
+	if (
+		downloadingActionType.value ||
+		!dependencyDownloadFilesLoaded.value ||
+		!canDownloadVersion(selectedVersion.value)
+	)
+		return
 
 	downloadingActionType.value = 'dependencies'
 
@@ -598,7 +637,12 @@ async function downloadFilesWithDependencies() {
 }
 
 async function downloadFilesWithRecommended() {
-	if (downloadingActionType.value || !dependencyDownloadFilesLoaded.value) return
+	if (
+		downloadingActionType.value ||
+		!dependencyDownloadFilesLoaded.value ||
+		!canDownloadVersion(selectedVersion.value)
+	)
+		return
 
 	downloadingActionType.value = 'recommended'
 

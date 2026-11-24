@@ -56,17 +56,18 @@
 					class="mb-4"
 				>
 					<template #headerActions="{ primaryFile, promotedFiles }">
+						<VersionMalwareStatus v-if="primaryFile" :scan="getVersionMalware(version)" />
 						<ButtonLink
 							v-tooltip="
 								primaryFile?.url
 									? primaryFile.filename + ' (' + formatBytes(primaryFile.size) + ')'
 									: formatMessage(messages.noPrimaryFile)
 							"
-							type="colored"
-							color="brand"
-							:href="decoratedPrimaryFileUrl"
+							:type="decoratedPrimaryFileUrl ? 'colored' : 'base'"
+							:color="decoratedPrimaryFileUrl ? malwareDownloadColor(version) : undefined"
+							:href="decoratedPrimaryFileUrl ?? ''"
 							:download="primaryFile?.filename"
-							:disabled="primaryFile?.url === undefined"
+							:disabled="!decoratedPrimaryFileUrl"
 							@click="emit('onDownload')"
 						>
 							<DownloadIcon aria-hidden="true" />
@@ -74,13 +75,13 @@
 						</ButtonLink>
 						<ButtonLink
 							v-if="
-								!!primaryFile?.url &&
+								!!decoratedPrimaryFileUrl &&
 								isStaff(auth.user) &&
 								modSettings.get(moderationSettings.General.SlicerButtonInVersions)
 							"
 							v-tooltip="`Open in Slicer`"
 							target="_blank"
-							:href="`https://slicer.run/?url=${encodeURIComponent(primaryFile?.url)}`"
+							:href="`https://slicer.run/?url=${encodeURIComponent(decoratedPrimaryFileUrl)}`"
 						>
 							<ExternalIcon aria-hidden="true" />
 							Slicer
@@ -95,12 +96,14 @@
 							:key="`promoted-file-${file.hashes.sha1}`"
 							v-tooltip="file.filename + ' (' + formatBytes(file.size) + ')'"
 							:href="
-								createProjectDownloadUrl(file.url, {
-									reason: 'dependency',
-								})
+								decoratedPrimaryFileUrl
+									? createProjectDownloadUrl(file.url, { reason: 'dependency' })
+									: ''
 							"
-							:download="primaryFile?.filename"
-							:disabled="primaryFile?.url === undefined"
+							:download="file.filename"
+							:type="decoratedPrimaryFileUrl ? 'outlined' : 'base'"
+							:color="decoratedPrimaryFileUrl ? malwareDownloadColor(version) : undefined"
+							:disabled="!decoratedPrimaryFileUrl"
 							@click="emit('onDownload')"
 						>
 							<DownloadIcon aria-hidden="true" />
@@ -210,7 +213,8 @@
 					</template>
 					<template #supplementaryResourceActions="{ file }">
 						<ButtonLink
-							:href="decorateDownloadUrl(file.url)"
+							:href="decoratedPrimaryFileUrl ? decorateDownloadUrl(file.url) : ''"
+							:disabled="!decoratedPrimaryFileUrl"
 							:title="`Download ${file.filename}`"
 							:download="file.filename"
 							tabindex="0"
@@ -293,11 +297,16 @@
 								)?.filename
 							"
 							:disabled="
-								!getDependencyPrimaryFile(
+								!getDependencyDownloadUrl(
 									dependency.version ?? getDependencyVersion(dependency.dependency),
-								)?.url
+								)
 							"
-							class="!w-9 !rounded-full !px-0 !text-brand [&>svg]:!text-brand"
+							:color="
+								getDependencyDownloadColor(
+									dependency.version ?? getDependencyVersion(dependency.dependency),
+								)
+							"
+							class="!w-9 !rounded-full !px-0"
 						>
 							<DownloadIcon />
 						</ButtonLink>
@@ -312,6 +321,19 @@
 						</IconButton>
 					</template>
 				</VersionPage>
+				<section v-if="version.files.length > 1" class="rounded-xl bg-surface-3 p-4">
+					<h3 class="m-0 text-base font-semibold">{{ formatMessage(messages.malwareReports) }}</h3>
+					<ul class="m-0 list-none p-0">
+						<li
+							v-for="file in version.files"
+							:key="file.hashes.sha512"
+							class="flex items-center justify-between gap-2"
+						>
+							<span class="min-w-0 break-all">{{ file.filename }}</span>
+							<VersionMalwareStatus :scan="file.malware" />
+						</li>
+					</ul>
+				</section>
 				<section
 					v-if="isSchematic"
 					class="mb-4 flex flex-col gap-4 rounded-2xl border border-solid border-surface-4 bg-surface-2 p-4"
@@ -417,6 +439,13 @@
 	</div>
 </template>
 <script setup lang="ts">
+import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
+import {
+	canDownloadVersion,
+	getVersionMalware,
+	hasPendingMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
 import type { Labrinth } from '@shroudedit/api-client'
 import {
 	BoxIcon,
@@ -547,6 +576,8 @@ const {
 	queryFn: () =>
 		client.labrinth.versions_v3.getVersionFromIdOrNumber(project.value.id, versionLookupKey.value!),
 	enabled: computed(() => !!project.value.id && !!versionLookupKey.value),
+	refetchInterval: (query) =>
+		query.state.data && hasPendingMalware([query.state.data]) ? 15_000 : false,
 	staleTime: STALE_TIME,
 })
 
@@ -784,7 +815,7 @@ async function deleteVersion() {
 
 const decoratedPrimaryFileUrl = computed(() => {
 	const url = primaryFile.value?.url
-	if (!url) return undefined
+	if (!url || !canDownloadVersion(version.value)) return undefined
 	return createProjectDownloadUrl(url, { reason: cdnDownloadReason.value })
 })
 
@@ -793,6 +824,7 @@ function decorateDownloadUrl(url: string) {
 }
 
 const messages = defineMessages({
+	malwareReports: { id: 'version.malware.reports', defaultMessage: 'VirusTotal reports' },
 	noPrimaryFile: {
 		id: 'version.download.no-primary-file',
 		defaultMessage: 'Error: No primary file found',
@@ -936,11 +968,19 @@ const dependencyVersionPrimaryFiles = computed(() => {
 		...(enrichment.value?.versions ?? []),
 		...Object.values(projectOnlyDependencyVersions.value ?? {}),
 	]
-	const primaryFileMap: Record<string, Labrinth.Versions.v2.VersionFile> = {}
+	const primaryFileMap: Record<
+		string,
+		{ file: Labrinth.Versions.v2.VersionFile; color: 'blue' | 'green' }
+	> = {}
 	versions.forEach((depVersion) => {
+		if (!depVersion || !canDownloadVersion(depVersion)) return
 		const depPrimaryFile = depVersion.files.find((file) => file.primary) ?? depVersion.files[0]
 
-		primaryFileMap[depVersion.id] = depPrimaryFile
+		if (depPrimaryFile)
+			primaryFileMap[depVersion.id] = {
+				file: depPrimaryFile,
+				color: malwareDownloadColor(depVersion),
+			}
 	})
 	return primaryFileMap
 })
@@ -982,7 +1022,11 @@ function getOnlyCompatibleDependencyVersion(
 }
 
 function getDependencyPrimaryFile(version?: Labrinth.Versions.v2.Version) {
-	return version ? dependencyVersionPrimaryFiles.value[version.id] : undefined
+	return version ? dependencyVersionPrimaryFiles.value[version.id]?.file : undefined
+}
+
+function getDependencyDownloadColor(version?: Labrinth.Versions.v2.Version) {
+	return version ? dependencyVersionPrimaryFiles.value[version.id]?.color : undefined
 }
 
 function getDependencyPrimaryFileTooltip(version?: Labrinth.Versions.v2.Version) {

@@ -1,0 +1,71 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tSELECT f.id, v.mod_id, f.version_id, v.status AS version_status,\n\t\t\ts.status::text AS \"scan_status?\", s.analysis_id AS \"analysis_id?\",\n\t\t\ts.submitted_at AS \"submitted_at?\",\n\t\t\ts.analysis AS \"analysis?: sqlx::types::Json<Value>\",\n\t\t\t(\n\t\t\t\tSELECT jsonb_agg(jsonb_build_array(d.engine_name, d.category, d.result, d.verdict::text))\n\t\t\t\tFROM virustotal_finding_verdicts d\n\t\t\t\tWHERE d.scope = 'local' AND d.file_id = f.id AND d.sha256 = s.sha256\n\t\t\t\t\tAND d.updated_at >= s.checked_at\n\t\t\t) AS \"decisions?: sqlx::types::Json<Vec<[String; 4]>>\"\n\t\tFROM versions v\n\t\tINNER JOIN files f ON f.version_id = v.id\n\t\tLEFT JOIN virustotal_file_scans s ON s.file_id = f.id\n\t\tWHERE v.id = ANY($1::bigint[]) OR v.mod_id = ANY($2::bigint[])\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "mod_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 2,
+        "name": "version_id",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "version_status",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "scan_status?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 5,
+        "name": "analysis_id?",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "submitted_at?",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "analysis?: sqlx::types::Json<Value>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 8,
+        "name": "decisions?: sqlx::types::Json<Vec<[String; 4]>>",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8Array",
+        "Int8Array"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      null,
+      true,
+      true,
+      true,
+      null
+    ]
+  },
+  "hash": "55a88ff2c07a69f98663febb49189d6443945bbf7f9573aea73aa37989163f24"
+}

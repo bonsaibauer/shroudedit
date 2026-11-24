@@ -856,6 +856,7 @@ impl From<VersionQueryResult> for Version {
 					primary: f.primary,
 					size: f.size,
 					file_type: f.file_type,
+					malware: FileMalwareScan::default(),
 				})
 				.collect(),
 			dependencies: data
@@ -997,6 +998,41 @@ pub struct VersionFile {
 	pub size: u32,
 	/// The type of the file
 	pub file_type: Option<FileType>,
+	#[serde(default)]
+	pub malware: FileMalwareScan,
+}
+
+#[derive(
+	Debug,
+	Default,
+	Clone,
+	Copy,
+	PartialEq,
+	Eq,
+	Serialize,
+	Deserialize,
+	utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum MalwareStatus {
+	#[default]
+	Pending,
+	Passed,
+	ManuallyApproved,
+	Blocked,
+}
+
+impl MalwareStatus {
+	pub fn allows_download(self) -> bool {
+		matches!(self, Self::Passed | Self::ManuallyApproved)
+	}
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, utoipa::ToSchema)]
+pub struct FileMalwareScan {
+	pub status: MalwareStatus,
+	pub analysis_url: Option<String>,
+	pub failed: bool,
 }
 
 /// A dendency which describes what versions are required, break support, or are optional to the

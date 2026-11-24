@@ -61,11 +61,12 @@
 				v-tooltip="downloadTooltip"
 				type="quiet"
 				:href="dependency.downloadHref"
+				:color="dependency.downloadColor"
 				:download="dependency.filename"
 				class="!w-9 !rounded-full !px-0"
 				@click="emit('download')"
 			>
-				<DownloadIcon aria-hidden="true" class="size-6 text-secondary" />
+				<DownloadIcon aria-hidden="true" class="size-6" />
 			</ButtonLink>
 			<IconButton
 				v-else
@@ -123,6 +124,7 @@ interface DownloadDependencyRow {
 	isAdditionalFile?: boolean
 	projectHref?: string
 	downloadHref?: string
+	downloadColor?: 'green' | 'blue'
 	filename?: string
 	fileSize?: number
 	metadataLabel?: string

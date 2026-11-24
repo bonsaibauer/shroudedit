@@ -68,6 +68,7 @@
 			:open-modal="currentMember ? () => handleOpenCreateVersionModal() : undefined"
 		>
 			<template #actions="{ version }">
+				<VersionMalwareStatus v-if="getPrimaryFile(version)" :scan="getVersionMalware(version)" />
 				<TeleportOverflowMenu
 					type="quiet"
 					:label="formatMessage(messages.editVersionTooltip)"
@@ -115,9 +116,10 @@
 							id: 'download',
 							label: formatMessage(commonMessages.downloadButton),
 							type: 'link',
-							tone: 'brand',
+							tone: canDownloadVersion(version) ? malwareDownloadColor(version) : undefined,
 							hoverFilled: true,
-							href: createDownloadUrl(version),
+							disabled: !canDownloadVersion(version),
+							href: createDownloadUrl(version) ?? '',
 							download: getPrimaryFile(version)?.filename,
 							shown: !!getPrimaryFile(version),
 						},
@@ -350,6 +352,13 @@ import {
 } from '@shroudedit/ui'
 import { useTemplateRef, watch } from 'vue'
 
+import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
+import {
+	canDownloadVersion,
+	getVersionMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
+
 import CreateProjectVersionModal from '~/components/ui/create-project-version/CreateProjectVersionModal.vue'
 import ValidationMessage from '~/components/ValidationMessage.vue'
 import { getSignInRouteObj } from '~/composables/auth.ts'
@@ -431,7 +440,7 @@ watch(
 
 function createDownloadUrl(version: Labrinth.Versions.v3.Version) {
 	const file = getPrimaryFile(version)
-	if (!file?.url) return undefined
+	if (!file?.url || !canDownloadVersion(version)) return undefined
 
 	return createProjectDownloadUrl(file.url, {
 		reason: cdnDownloadReason.value,

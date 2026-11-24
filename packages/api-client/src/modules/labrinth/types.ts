@@ -1503,6 +1503,7 @@ export namespace Labrinth {
 				primary: boolean
 				size: number
 				file_type?: FileType
+				malware?: Labrinth.Versions.v3.FileMalwareScan
 			}
 
 			export type Dependency = {
@@ -1625,6 +1626,13 @@ export namespace Labrinth {
 				primary: boolean
 				size: number
 				file_type?: FileType
+				malware?: FileMalwareScan
+			}
+
+			export interface FileMalwareScan {
+				status: 'pending' | 'passed' | 'manually_approved' | 'blocked'
+				analysis_url: string | null
+				failed: boolean
 			}
 
 			export interface Version {
@@ -2531,6 +2539,7 @@ export namespace Labrinth {
 				status: VirusTotalScanStatus
 				analysis_id: string | null
 				analysis_url: string | null
+				malware: Labrinth.Versions.v3.FileMalwareScan
 				checked_at: string | null
 				error: string | null
 				analysis: VirusTotalAnalysis | null
@@ -2572,6 +2581,7 @@ export namespace Labrinth {
 
 			export type UpdateFindingVerdictRequest = {
 				file_id: string
+				analysis_id: string
 				sha256: string
 				engine_name: string
 				category: string

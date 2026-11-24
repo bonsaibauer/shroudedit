@@ -17,11 +17,10 @@ use crate::{
 			DBUserId, thread_item::ThreadMessageBuilder,
 		},
 	},
-	env::ENV,
 	models::{
 		ids::{FileId, ProjectId, ThreadId, VersionId},
 		pats::Scopes,
-		projects::{Project, ProjectStatus},
+		projects::{FileMalwareScan, Project, ProjectStatus},
 		threads::{MessageBody, TechReviewVerdict, Thread},
 	},
 	queue::session::AuthQueue,
@@ -188,6 +187,7 @@ pub struct FileReport {
 	pub status: VirusTotalScanStatus,
 	pub analysis_id: Option<String>,
 	pub analysis_url: Option<String>,
+	pub malware: FileMalwareScan,
 	pub checked_at: Option<DateTime<Utc>>,
 	pub error: Option<String>,
 	pub analysis: Option<Value>,
@@ -236,6 +236,7 @@ pub struct SearchResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct UpdateFindingVerdict {
 	pub file_id: FileId,
+	pub analysis_id: String,
 	pub sha256: String,
 	pub engine_name: String,
 	pub category: String,
@@ -539,9 +540,12 @@ async fn fetch_project_reports(
 		r#"
 		SELECT file_id, sha256, engine_name, category, result, scope,
 			verdict::text AS "verdict!"
-		FROM virustotal_finding_verdicts
-		WHERE (scope = 'local' AND file_id = ANY($1::bigint[]))
-			OR (scope = 'global' AND sha256 = ANY($2::text[]))
+		FROM virustotal_finding_verdicts verdicts
+		WHERE (scope = 'local' AND file_id = ANY($1::bigint[]) AND EXISTS (
+			SELECT 1 FROM virustotal_file_scans scan
+			WHERE scan.file_id = verdicts.file_id AND scan.sha256 = verdicts.sha256
+				AND scan.submitted_at IS NOT NULL AND verdicts.updated_at >= scan.checked_at
+		)) OR (scope = 'global' AND sha256 = ANY($2::text[]))
 		"#,
 		&file_ids,
 		&hashes,
@@ -568,6 +572,8 @@ async fn fetch_project_reports(
 		}
 	}
 
+	let mut file_scans =
+		tech_review_queue::file_scan_results(pool, &[], project_ids).await?;
 	let mut reports = project_ids
 		.iter()
 		.map(|project_id| {
@@ -666,6 +672,10 @@ async fn fetch_project_reports(
 			.unwrap_or_default();
 		let scan_status = row.scan_status.as_deref().unwrap_or("queued");
 		let analysis_id = row.analysis_id;
+		let malware = file_scans
+			.remove(&row.file_id)
+			.map(|scan| scan.malware)
+			.unwrap_or_default();
 		let file_report = FileReport {
 			file_id: row.file_id.into(),
 			file_name: row.filename,
@@ -673,9 +683,8 @@ async fn fetch_project_reports(
 			download_url: row.url,
 			sha256,
 			status: VirusTotalScanStatus::from_db(scan_status),
-			analysis_url: analysis_id.as_ref().map(|id| {
-				format!("https://www.virustotal.com/gui/file-analysis/{id}")
-			}),
+			analysis_url: malware.analysis_url.clone(),
+			malware,
 			analysis_id,
 			checked_at: row.checked_at,
 			error: row.error,
@@ -751,7 +760,9 @@ pub async fn update_finding_verdicts(
 		.await
 		.wrap_internal_err("starting finding decision transaction")?;
 	let mut affected_projects = Vec::new();
-	for update in updates.into_inner() {
+	let mut updates = updates.into_inner();
+	updates.sort_by_key(|update| DBFileId::from(update.file_id).0);
+	for update in updates {
 		if update.sha256.len() != 64
 			|| !update.sha256.bytes().all(|byte| byte.is_ascii_hexdigit())
 		{
@@ -769,9 +780,11 @@ pub async fn update_finding_verdicts(
 			FROM virustotal_file_scans scan
 			INNER JOIN files ON files.id = scan.file_id
 			INNER JOIN versions version ON version.id = files.version_id
-			WHERE scan.file_id = $1
+			WHERE scan.file_id = $1 AND scan.analysis_id = $2 AND scan.status = 'completed' AND scan.submitted_at IS NOT NULL
+			FOR UPDATE OF scan
 			"#,
 			file_id.0,
+			&update.analysis_id,
 		)
 		.fetch_optional(&mut transaction)
 		.await
@@ -927,48 +940,35 @@ pub async fn submit_report(
 		.begin()
 		.await
 		.wrap_internal_err("starting project verdict transaction")?;
-	let pending = sqlx::query_scalar!(
-		r#"
-		WITH findings AS (
-			SELECT version.mod_id AS project_id, scan.file_id, scan.sha256,
-				COALESCE(result.value->>'engine_name', result.key) AS engine_name,
-				COALESCE(result.value->>'category', '') AS category,
-				COALESCE(result.value->>'result', '') AS result
-			FROM virustotal_file_scans scan
-			INNER JOIN files ON files.id = scan.file_id
-			INNER JOIN versions version ON version.id = files.version_id
-			CROSS JOIN LATERAL jsonb_each(COALESCE(scan.analysis->'results', '{}'::jsonb)) result
-			WHERE scan.status = 'completed'
-				AND version.mod_id = $1
-				AND result.value->>'category' IN ('malicious', 'suspicious')
-				AND (
-					COALESCE((scan.analysis->'stats'->>'malicious')::integer, 0) >= $2
-					OR COALESCE((scan.analysis->'stats'->>'suspicious')::integer, 0) > 0
-				)
-		), decisions AS (
-			SELECT findings.file_id
-			FROM findings
-			LEFT JOIN virustotal_finding_verdicts local_verdict
-				ON local_verdict.scope = 'local' AND local_verdict.file_id = findings.file_id
-				AND local_verdict.engine_name = findings.engine_name AND local_verdict.category = findings.category AND local_verdict.result = findings.result
-			LEFT JOIN virustotal_finding_verdicts global_verdict
-				ON global_verdict.scope = 'global' AND global_verdict.sha256 = findings.sha256
-				AND global_verdict.engine_name = findings.engine_name AND global_verdict.category = findings.category AND global_verdict.result = findings.result
-			WHERE local_verdict.verdict IS NULL AND global_verdict.verdict IS NULL
-		)
-		SELECT COUNT(*) FROM decisions
-		"#,
-		project_id.0,
-		ENV.VIRUSTOTAL_DETECTION_THRESHOLD as i32,
+	crate::database::advisory_lock::AdvisoryLock::VirusTotalProject(project_id)
+		.acquire(&mut transaction)
+		.await
+		.wrap_internal_err("locking project for technical review verdict")?;
+	let scans = tech_review_queue::file_scan_results(
+		&mut transaction,
+		&[],
+		&[project_id],
 	)
-	.fetch_one(&mut transaction)
-	.await
-	.wrap_internal_err("checking unresolved VirusTotal findings")?
-	.unwrap_or_default();
-	if pending > 0 {
-		return Err(ApiError::Request(eyre::eyre!(
-			"project still has unresolved VirusTotal findings"
-		)));
+	.await?;
+	match submit.verdict {
+		TechReviewVerdict::Safe
+			if scans
+				.values()
+				.any(|scan| !scan.malware.status.allows_download()) =>
+		{
+			return Err(ApiError::Request(eyre::eyre!(
+				"project still has files awaiting malware review"
+			)));
+		}
+		TechReviewVerdict::Unsafe
+			if !scans.values().any(|scan| scan.confirmed)
+				|| scans.values().any(|scan| scan.unresolved) =>
+		{
+			return Err(ApiError::Request(eyre::eyre!(
+				"a confirmed finding and resolved open findings are required"
+			)));
+		}
+		_ => {}
 	}
 
 	sqlx::query_scalar!(

@@ -11,7 +11,6 @@ use rdkafka::{
 	util::Timeout,
 };
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use sha2::{Digest, Sha256};
 use tracing::{info, warn};
 use uuid::Uuid;
@@ -51,7 +50,6 @@ pub struct VirusTotalFileScanEvent {
 struct VirusTotalFileScanMessage {
 	event_metadata: EventMetadata,
 	file_id: FileId,
-	force: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -93,7 +91,7 @@ async fn enqueue_file_inner(
 			force,
 		},
 	);
-	sqlx::query!(
+	let queued = sqlx::query!(
 		r#"
 		INSERT INTO virustotal_file_scans (file_id, status, event_id)
 		VALUES ($1, 'queued', $2)
@@ -110,13 +108,18 @@ async fn enqueue_file_inner(
 			next_poll_at = NULL,
 			event_id = EXCLUDED.event_id,
 			updated_at = NOW()
+		WHERE $3 OR (virustotal_file_scans.status = 'completed' AND virustotal_file_scans.submitted_at IS NULL)
 		"#,
 		file_id.0,
 		event.event_metadata.event_id,
+		force,
 	)
 	.execute(&mut *transaction)
 	.await
 	.wrap_err("recording queued VirusTotal scan")?;
+	if queued.rows_affected() == 0 {
+		return Ok(());
+	}
 	let key = event.data.file_id.to_string();
 	let payload = serde_json::to_vec(&event)
 		.wrap_err("serializing VirusTotal file scan event")?;
@@ -156,8 +159,16 @@ pub async fn run(
 	);
 
 	let mut poll_interval = tokio::time::interval(POLL_INTERVAL);
+	let mut backfill_interval = tokio::time::interval(Duration::from_secs(60));
+	backfill_interval
+		.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
 	loop {
 		tokio::select! {
+			_ = backfill_interval.tick() => {
+				if let Err(err) = enqueue_unscanned_files(&pool, &kafka_client).await {
+					warn!("Queueing unscanned version files failed: {err:#}");
+				}
+			}
 			_ = poll_interval.tick() => {
 				if let Err(err) = poll_submitted_analyses(&pool, &client).await {
 					warn!("VirusTotal analysis polling failed: {err:#}");
@@ -189,6 +200,38 @@ pub async fn run(
 			}
 		}
 	}
+}
+
+async fn enqueue_unscanned_files(
+	pool: &PgPool,
+	kafka_client: &KafkaClientState,
+) -> Result<()> {
+	let file_ids = sqlx::query_scalar!(
+		r#"
+		SELECT f.id
+		FROM files f
+		LEFT JOIN virustotal_file_scans scan ON scan.file_id = f.id
+		WHERE (scan.file_id IS NULL OR (scan.status = 'completed' AND scan.submitted_at IS NULL))
+			AND (SELECT COUNT(*) FROM virustotal_file_scans WHERE status = 'queued') < 16
+		ORDER BY f.id
+		LIMIT 4
+		"#,
+	)
+	.fetch_all(pool)
+	.await
+	.wrap_err("finding files without their own VirusTotal scan")?;
+	for file_id in file_ids {
+		let mut transaction = pool
+			.begin()
+			.await
+			.wrap_err("beginning file scan backfill")?;
+		enqueue_file(&mut transaction, kafka_client, DBFileId(file_id)).await?;
+		transaction
+			.commit()
+			.await
+			.wrap_err("committing file scan backfill")?;
+	}
+	Ok(())
 }
 
 async fn process_message(
@@ -235,7 +278,7 @@ async fn process_message(
 
 	let existing = sqlx::query!(
 		r#"
-		SELECT event_id, analysis_id, status::text AS "status!"
+		SELECT event_id, status::text AS "status!"
 		FROM virustotal_file_scans
 		WHERE file_id = $1
 		"#,
@@ -245,113 +288,49 @@ async fn process_message(
 	.await
 	.wrap_err("checking existing VirusTotal scan")?;
 
-	if existing
-		.as_ref()
-		.is_some_and(|row| row.event_id == scan_id && row.status != "queued")
+	if !existing
+		.is_some_and(|row| row.event_id == scan_id && row.status == "queued")
 	{
 		return commit_message(consumer, message);
 	}
 
 	let storage_key = event_storage_key(&file.url)?;
-	let file_data = file_host
+	let file_data = match file_host
 		.read_file(&storage_key, FileHostPublicity::Public)
 		.await
-		.wrap_err("reading file from public storage for VirusTotal")?;
-	let sha256 = hex::encode(Sha256::digest(&file_data));
-
-	if !event.force
-		&& let Some(existing) = existing.as_ref()
-		&& existing.analysis_id.is_some()
-		&& existing.status == "submitted"
 	{
-		return commit_message(consumer, message);
-	}
-
-	if !event.force {
-		let reused = sqlx::query!(
-			r#"
-			SELECT analysis_id, analysis AS "analysis: sqlx::types::Json<Value>", checked_at
-			FROM virustotal_file_scans
-			WHERE sha256 = $1 AND status = 'completed' AND file_id != $2
-			ORDER BY checked_at DESC
-			LIMIT 1
-			"#,
-			sha256,
-			file_id.0,
-		)
-		.fetch_optional(pool)
-		.await
-		.wrap_err("finding a completed VirusTotal analysis for identical content")?;
-
-		if let Some(reused) = reused {
-			sqlx::query!(
-				r#"
-				INSERT INTO virustotal_file_scans (
-					file_id, sha256, analysis_id, status, analysis, checked_at,
-					event_id, updated_at
-				)
-				VALUES ($1, $2, $3, 'completed', $4, $5, $6, NOW())
-				ON CONFLICT (file_id) DO UPDATE SET
-					sha256 = EXCLUDED.sha256,
-					analysis_id = EXCLUDED.analysis_id,
-					status = EXCLUDED.status,
-					analysis = EXCLUDED.analysis,
-					checked_at = EXCLUDED.checked_at,
-					next_poll_at = NULL,
-					event_id = EXCLUDED.event_id,
-					error = NULL,
-					updated_at = NOW()
-				"#,
-				file_id.0,
-				sha256,
-				reused.analysis_id,
-				reused.analysis.map(|analysis| analysis.0),
-				reused.checked_at,
+		Ok(data) => data,
+		Err(error) => {
+			record_submission_failure(
+				pool,
+				file_id,
+				file.project_id,
 				scan_id,
+				&format!("{error:#}"),
 			)
-			.execute(pool)
-			.await
-			.wrap_err("reusing completed VirusTotal analysis")?;
+			.await?;
 			return commit_message(consumer, message);
 		}
-	}
-
-	sqlx::query!(
-		r#"
-		INSERT INTO virustotal_file_scans (
-			file_id, sha256, status, event_id, submission_attempts,
-			poll_attempts, analysis, analysis_id, error, submitted_at,
-			checked_at, next_poll_at, updated_at
-		)
-		VALUES ($1, $2, 'queued', $3, 0, 0, NULL, NULL, NULL, NULL, NULL, NULL, NOW())
-		ON CONFLICT (file_id) DO UPDATE SET
-			sha256 = EXCLUDED.sha256,
-			status = 'queued',
-			analysis_id = NULL,
-			analysis = NULL,
-			error = NULL,
-			submission_attempts = 0,
-			poll_attempts = 0,
-			submitted_at = NULL,
-			checked_at = NULL,
-			next_poll_at = NULL,
-			event_id = EXCLUDED.event_id,
-			updated_at = NOW()
-		WHERE virustotal_file_scans.event_id != EXCLUDED.event_id
-		"#,
+	};
+	let sha256 = hex::encode(Sha256::digest(&file_data));
+	let updated = sqlx::query!(
+		"UPDATE virustotal_file_scans SET sha256 = $2 WHERE file_id = $1 AND event_id = $3 AND status = 'queued'",
 		file_id.0,
 		sha256,
 		scan_id,
 	)
 	.execute(pool)
 	.await
-	.wrap_err("recording VirusTotal scan request")?;
+	.wrap_err("recording uploaded file hash for VirusTotal")?;
+	if updated.rows_affected() == 0 {
+		return commit_message(consumer, message);
+	}
 
 	wait_for_active_analysis_slot(pool, client).await?;
 	let mut last_error = String::new();
 	let mut analysis_id = None;
 	for attempt in 1..=MAX_SUBMISSION_ATTEMPTS {
-		sqlx::query!(
+		let updated = sqlx::query!(
 			"UPDATE virustotal_file_scans SET submission_attempts = $2, updated_at = NOW() WHERE file_id = $1 AND event_id = $3",
 			file_id.0,
 			attempt,
@@ -360,6 +339,9 @@ async fn process_message(
 		.execute(pool)
 		.await
 		.wrap_err("recording VirusTotal submission attempt")?;
+		if updated.rows_affected() == 0 {
+			return commit_message(consumer, message);
+		}
 
 		let upload_result = if file_data.len() > MAX_DIRECT_UPLOAD_BYTES {
 			reserve_api_request(pool).await?;
@@ -424,18 +406,52 @@ async fn process_message(
 		.await
 		.wrap_err("saving VirusTotal analysis ID")?;
 	} else {
-		sqlx::query!(
-			"UPDATE virustotal_file_scans SET status = 'failed', error = $2, updated_at = NOW() WHERE file_id = $1 AND event_id = $3",
-			file_id.0,
-			last_error,
+		record_submission_failure(
+			pool,
+			file_id,
+			file.project_id,
 			scan_id,
+			&last_error,
 		)
-		.execute(pool)
-		.await
-		.wrap_err("recording failed VirusTotal submission")?;
+		.await?;
 	}
 
 	commit_message(consumer, message)
+}
+
+async fn record_submission_failure(
+	pool: &PgPool,
+	file_id: DBFileId,
+	project_id: crate::database::models::DBProjectId,
+	scan_id: Uuid,
+	error: &str,
+) -> Result<()> {
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_err("beginning failed scan transaction")?;
+	let updated = sqlx::query!(
+		"UPDATE virustotal_file_scans SET status = 'failed', error = $2, updated_at = NOW() WHERE file_id = $1 AND event_id = $3",
+		file_id.0,
+		error,
+		scan_id,
+	)
+	.execute(&mut transaction)
+	.await
+	.wrap_err("recording failed VirusTotal submission")?;
+	if updated.rows_affected() != 0 {
+		tech_review_queue::sync_projects(
+			&[project_id],
+			tech_review_queue::TechReviewRemovalReason::ScanCompleted,
+			&mut transaction,
+		)
+		.await?;
+	}
+	transaction
+		.commit()
+		.await
+		.wrap_err("committing failed scan")?;
+	Ok(())
 }
 
 async fn wait_for_file_transaction(
@@ -586,8 +602,7 @@ async fn poll_submitted_analyses(
 	let rows = sqlx::query!(
 		r#"
 		SELECT scan.file_id AS "file_id!: DBFileId",
-			scan.analysis_id AS "analysis_id!", scan.sha256,
-			scan.status::text AS "status!", scan.poll_attempts,
+			scan.analysis_id AS "analysis_id!", scan.event_id, scan.poll_attempts,
 			version.mod_id AS "project_id!: crate::database::models::DBProjectId"
 		FROM virustotal_file_scans scan
 		INNER JOIN files ON files.id = scan.file_id
@@ -615,7 +630,11 @@ async fn poll_submitted_analyses(
 				};
 				let poll_after =
 					ENV.VIRUSTOTAL_POLL_INTERVAL_SECONDS.max(1) as i64;
-				sqlx::query!(
+				let mut transaction = pool
+					.begin()
+					.await
+					.wrap_err("beginning scan result transaction")?;
+				let updated = sqlx::query!(
 					r#"
 					UPDATE virustotal_file_scans
 					SET status = CASE
@@ -629,34 +648,31 @@ async fn poll_submitted_analyses(
 						error = CASE WHEN NOT $2 AND NOT $3 THEN 'VirusTotal returned an unknown analysis status' ELSE NULL END,
 						poll_attempts = 0,
 						updated_at = NOW()
-					WHERE file_id = $1 AND analysis_id = $6 AND status = 'submitted'
+					WHERE file_id = $1 AND event_id = $6 AND status = 'submitted'
 					"#,
 					row.file_id.0,
 					scan_status == "submitted",
 					scan_status == "completed",
 					analysis.clone(),
 					poll_after as f64,
-					&row.analysis_id,
+					row.event_id,
 				)
-				.execute(pool)
+				.execute(&mut transaction)
 				.await
 				.wrap_err("saving VirusTotal analysis result")?;
 
-				if scan_status == "completed" {
-					let mut transaction = pool.begin().await.wrap_err(
-						"beginning technical review queue transaction",
-					)?;
+				if scan_status != "submitted" && updated.rows_affected() != 0 {
 					tech_review_queue::sync_projects(
 						&[row.project_id],
 						tech_review_queue::TechReviewRemovalReason::ScanCompleted,
 						&mut transaction,
 					)
 					.await?;
-					transaction
-						.commit()
-						.await
-						.wrap_err("committing technical review queue entry")?;
 				}
+				transaction
+					.commit()
+					.await
+					.wrap_err("committing VirusTotal analysis result")?;
 			}
 			Err(err) => {
 				let attempts = row.poll_attempts + 1;
@@ -664,7 +680,11 @@ async fn poll_submitted_analyses(
 				let next_poll =
 					ENV.VIRUSTOTAL_POLL_INTERVAL_SECONDS.max(1) as i64;
 				let error = format!("{err:#}");
-				sqlx::query!(
+				let mut transaction = pool
+					.begin()
+					.await
+					.wrap_err("beginning scan polling error transaction")?;
+				let updated = sqlx::query!(
 					r#"
 					UPDATE virustotal_file_scans
 					SET status = CASE WHEN $2 THEN 'failed'::virustotal_scan_status ELSE status END,
@@ -673,18 +693,29 @@ async fn poll_submitted_analyses(
 						checked_at = NOW(),
 						next_poll_at = CASE WHEN $2 THEN NULL ELSE NOW() + make_interval(secs => $5) END,
 						updated_at = NOW()
-					WHERE file_id = $1 AND analysis_id = $6 AND status = 'submitted'
+					WHERE file_id = $1 AND event_id = $6 AND status = 'submitted'
 					"#,
 					row.file_id.0,
 					should_fail,
 					&error,
 					attempts,
 					next_poll as f64,
-					&row.analysis_id,
+					row.event_id,
 				)
-				.execute(pool)
+				.execute(&mut transaction)
 				.await
 				.wrap_err("recording VirusTotal polling error")?;
+				if should_fail && updated.rows_affected() != 0 {
+					tech_review_queue::sync_projects(
+						&[row.project_id],
+						tech_review_queue::TechReviewRemovalReason::ScanCompleted,
+						&mut transaction,
+					).await?;
+				}
+				transaction
+					.commit()
+					.await
+					.wrap_err("committing VirusTotal polling error")?;
 				warn!(
 					file_id = row.file_id.0,
 					attempt = attempts,

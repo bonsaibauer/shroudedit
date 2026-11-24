@@ -48,30 +48,39 @@
 				</span>
 			</div>
 		</div>
-		<ButtonLink
-			v-if="primaryFile && showDownload"
-			v-tooltip="circular ? formatMessage(messages.download) : null"
-			:type="downloadButtonType"
-			:color="downloadButtonColor"
-			:href="primaryFileDownloadUrl"
-			:download="primaryFile.filename"
-			:aria-label="
-				formatMessage(messages.downloadVersion, {
-					version: version.version_number,
-				})
-			"
-			:class="circular ? '!w-9 !rounded-full !px-0' : undefined"
-			@click="emit('download')"
-		>
-			<DownloadIcon aria-hidden="true" />
-			<template v-if="!circular">
-				{{ formatMessage(messages.download) }}
-			</template>
-		</ButtonLink>
+		<div v-if="primaryFile && showDownload" class="flex items-center gap-1" @click.stop>
+			<VersionMalwareStatus :scan="getVersionMalware(version)" />
+			<ButtonLink
+				v-tooltip="circular ? formatMessage(messages.download) : null"
+				:type="downloadButtonType"
+				:color="canDownloadVersion(props.version) ? malwareDownloadColor(props.version) : undefined"
+				:href="primaryFileDownloadUrl"
+				:disabled="!canDownloadVersion(props.version)"
+				:download="primaryFile.filename"
+				:aria-label="
+					formatMessage(messages.downloadVersion, {
+						version: version.version_number,
+					})
+				"
+				:class="circular ? '!w-9 !rounded-full !px-0' : undefined"
+				@click="emit('download')"
+			>
+				<DownloadIcon aria-hidden="true" />
+				<template v-if="!circular">
+					{{ formatMessage(messages.download) }}
+				</template>
+			</ButtonLink>
+		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
+import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
+import {
+	canDownloadVersion,
+	getVersionMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
 import type { Labrinth } from '@shroudedit/api-client'
 import { DownloadIcon, RadioButtonCheckedIcon, RadioButtonIcon } from '@shroudedit/assets'
 import { ButtonLink } from '@shroudedit/ui'
@@ -145,7 +154,7 @@ const primaryFile = computed<Labrinth.Versions.v3.VersionFile | null>(() => {
 })
 
 const primaryFileDownloadUrl = computed(() => {
-	if (!primaryFile.value) return '#'
+	if (!primaryFile.value || !canDownloadVersion(props.version)) return ''
 
 	return createProjectDownloadUrl(primaryFile.value.url, {
 		reason: props.downloadReason,
@@ -160,15 +169,9 @@ const publishedLabel = computed(() =>
 const publishedTooltip = computed(() => formatDateTime(props.version.date_published))
 const downloadButtonType = computed(() => {
 	if (props.type === 'transparent') return 'quiet'
-	return props.color === 'brand' ? 'colored' : 'base'
+	return canDownloadVersion(props.version) || props.color === 'brand' ? 'colored' : 'base'
 })
-const downloadButtonColor = computed(() =>
-	downloadButtonType.value === 'colored' || downloadButtonType.value === 'quiet'
-		? props.color === 'brand'
-			? 'brand'
-			: undefined
-		: undefined,
-)
+
 const primaryFileSizeLabel = computed(() => {
 	if (!primaryFile.value) return ''
 	return formatBytes(primaryFile.value.size)

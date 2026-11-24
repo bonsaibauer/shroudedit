@@ -232,7 +232,7 @@ pub async fn filter_visible_versions(
 		.await
 		.unwrap_or_default();
 
-	Ok(versions
+	let mut versions = versions
 		.into_iter()
 		.map(|v| {
 			let files_missing = missing
@@ -259,7 +259,13 @@ pub async fn filter_visible_versions(
 			version.files_missing_attribution = files_missing;
 			version
 		})
-		.collect())
+		.collect::<Vec<_>>();
+	crate::routes::internal::moderation::tech_review_queue::attach_file_scans(
+		pool,
+		&mut versions,
+	)
+	.await?;
+	Ok(versions)
 }
 
 impl ValidateAuthorized for models::DBOAuthClient {

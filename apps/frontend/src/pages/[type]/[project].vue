@@ -486,6 +486,8 @@ import {
 	SearchIcon,
 	SettingsIcon,
 } from '@shroudedit/assets'
+import { hasPendingMalware } from '~/utils/version-malware'
+
 import { getMarginTarget, moderationSettings } from '@shroudedit/moderation'
 import {
 	Admonition,
@@ -961,6 +963,7 @@ const {
 			apiVersion: 3,
 		}),
 	staleTime: STALE_TIME_LONG,
+	refetchInterval: (query) => (hasPendingMalware(query.state.data) ? 15_000 : false),
 	enabled: computed(() => !!projectId.value && (versionsEnabled.value || isStaff(auth.value.user))),
 })
 

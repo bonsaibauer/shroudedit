@@ -149,6 +149,11 @@ pub async fn version_project_get_helper(
                  })
                  .unwrap_or_default();
 
+			tech_review_queue::attach_file_scans(
+				&pool,
+				std::slice::from_mut(&mut v),
+			)
+			.await?;
 			return Ok(HttpResponse::Ok().json(v));
 		}
 	}
@@ -337,6 +342,11 @@ pub async fn version_get_helper(
 			})
 			.unwrap_or_default();
 
+		tech_review_queue::attach_file_scans(
+			&pool,
+			std::slice::from_mut(&mut version),
+		)
+		.await?;
 		return Ok(web::Json(version));
 	}
 
@@ -872,6 +882,10 @@ pub async fn version_edit_helper(
 			}
 
 			if let Some(status) = &new_version.status {
+				crate::database::advisory_lock::AdvisoryLock::VirusTotalProject(version_item.inner.project_id)
+					.acquire(&mut transaction)
+					.await
+					.wrap_internal_err("locking project for version visibility change")?;
 				if !status.can_be_requested() {
 					return Err(ApiError::Request(eyre::eyre!(
 						"The requested status cannot be set!",

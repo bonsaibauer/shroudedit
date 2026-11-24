@@ -12,9 +12,14 @@ import {
 import type { Thread } from '@shroudedit/utils'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 
+import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
 import ThreadView from '~/components/ui/thread/ThreadView.vue'
+import { canDownloadVersion } from '~/utils/version-malware'
 
-type FileReview = Labrinth.TechReview.Internal.FileReport & { version_number: string }
+type FileReview = Labrinth.TechReview.Internal.FileReport & {
+	version_number: string
+	versionDownloadAllowed: boolean
+}
 
 const { formatMessage } = useVIntl()
 const messages = defineMessages({
@@ -31,11 +36,6 @@ const messages = defineMessages({
 		id: 'moderation.virusTotal.project.description',
 		defaultMessage:
 			'VirusTotal results inform this review. A safe verdict closes technical review without approving the project.',
-	},
-	passReview: { id: 'moderation.virusTotal.project.passReview', defaultMessage: 'Pass review' },
-	rejectUnsafe: {
-		id: 'moderation.virusTotal.project.rejectUnsafe',
-		defaultMessage: 'Reject as unsafe',
 	},
 	loading: {
 		id: 'moderation.virusTotal.project.loading',
@@ -54,10 +54,6 @@ const messages = defineMessages({
 		defaultMessage: 'No version files are available.',
 	},
 	download: { id: 'moderation.virusTotal.project.download', defaultMessage: 'Download' },
-	openAnalysis: {
-		id: 'moderation.virusTotal.project.openAnalysis',
-		defaultMessage: 'Open analysis',
-	},
 	runScan: {
 		id: 'moderation.virusTotal.project.runScan',
 		defaultMessage: 'Run VirusTotal scan again',
@@ -91,25 +87,13 @@ const messages = defineMessages({
 		id: 'moderation.virusTotal.project.localFalsePositive',
 		defaultMessage: 'False positive for this file',
 	},
-	globalFalsePositive: {
-		id: 'moderation.virusTotal.project.globalFalsePositive',
-		defaultMessage: 'False positive for this SHA-256',
-	},
 	localUnsafe: {
 		id: 'moderation.virusTotal.project.localUnsafe',
 		defaultMessage: 'Mark unsafe locally',
 	},
-	globalUnsafe: {
-		id: 'moderation.virusTotal.project.globalUnsafe',
-		defaultMessage: 'Mark unsafe for this SHA-256',
-	},
 	resetLocal: {
 		id: 'moderation.virusTotal.project.resetLocal',
 		defaultMessage: 'Reset local decision',
-	},
-	resetGlobal: {
-		id: 'moderation.virusTotal.project.resetGlobal',
-		defaultMessage: 'Reset global decision',
 	},
 	threadHeading: {
 		id: 'moderation.virusTotal.project.threadHeading',
@@ -130,10 +114,6 @@ const messages = defineMessages({
 	reviewCompleted: {
 		id: 'moderation.virusTotal.notifications.reviewCompleted',
 		defaultMessage: 'Technical review completed',
-	},
-	passed: {
-		id: 'moderation.virusTotal.notifications.passed',
-		defaultMessage: 'The project passed technical review.',
 	},
 	rejected: {
 		id: 'moderation.virusTotal.notifications.rejected',
@@ -161,6 +141,12 @@ const isSubmitting = ref(false)
 const reviewQuery = useQuery({
 	queryKey: computed(() => ['virustotal-review', projectId.value]),
 	queryFn: () => client.labrinth.tech_review_internal.getProjectReport(projectId.value),
+	refetchInterval: (query) =>
+		query.state.data?.project_report?.versions.some((version) =>
+			version.files.some((file) => file.malware.status === 'pending' && !file.malware.failed),
+		)
+			? 15_000
+			: false,
 })
 const projectQuery = useQuery({
 	queryKey: computed(() => ['project', projectId.value]),
@@ -169,9 +155,22 @@ const projectQuery = useQuery({
 
 const files = computed<FileReview[]>(
 	() =>
-		reviewQuery.data.value?.project_report?.versions.flatMap((version) =>
-			version.files.map((file) => ({ ...file, version_number: version.version_number })),
-		) ?? [],
+		reviewQuery.data.value?.project_report?.versions
+			.flatMap((version) =>
+				version.files.map((file) => ({
+					...file,
+					version_number: version.version_number,
+					versionDownloadAllowed: canDownloadVersion(version),
+					findings: file.findings.filter(
+						(finding) => finding.category === 'malicious' || finding.category === 'suspicious',
+					),
+				})),
+			)
+			?.sort(
+				(a, b) =>
+					Number(b.malware.status === 'blocked' || b.malware.failed) -
+					Number(a.malware.status === 'blocked' || a.malware.failed),
+			) ?? [],
 )
 const thread = computed(() => reviewQuery.data.value?.thread as unknown as Thread | undefined)
 
@@ -192,7 +191,11 @@ async function rerunScan(file: FileReview) {
 			title: formatMessage(messages.scanQueued),
 			text: file.file_name,
 		})
-		await queryClient.invalidateQueries({ queryKey: ['virustotal-review', projectId.value] })
+		await Promise.all([
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review', projectId.value] }),
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review-queue'] }),
+			queryClient.invalidateQueries({ queryKey: ['project', projectId.value, 'versions'] }),
+		])
 	} catch (error) {
 		addNotification({
 			type: 'error',
@@ -207,25 +210,29 @@ async function rerunScan(file: FileReview) {
 async function setFindingVerdict(
 	file: FileReview,
 	finding: Labrinth.TechReview.Internal.VirusTotalFinding,
-	scope: Labrinth.TechReview.Internal.FindingVerdictScope,
 	verdict: Labrinth.TechReview.Internal.VirusTotalVerdict | null,
 ) {
-	if (!file.sha256) return
+	if (!file.sha256 || !file.analysis_id) return
 	const key = findingKey(file, finding)
 	pendingFindingActions.value.add(key)
 	try {
 		await client.labrinth.tech_review_internal.updateFindingVerdicts([
 			{
 				file_id: file.file_id,
+				analysis_id: file.analysis_id,
 				sha256: file.sha256,
 				engine_name: finding.engine_name,
 				category: finding.category,
 				result: finding.result,
-				scope,
+				scope: 'local',
 				verdict,
 			},
 		])
-		await queryClient.invalidateQueries({ queryKey: ['virustotal-review', projectId.value] })
+		await Promise.all([
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review', projectId.value] }),
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review-queue'] }),
+			queryClient.invalidateQueries({ queryKey: ['project', projectId.value, 'versions'] }),
+		])
 	} catch (error) {
 		addNotification({
 			type: 'error',
@@ -237,14 +244,14 @@ async function setFindingVerdict(
 	}
 }
 
-async function submitReview(verdict: 'safe' | 'unsafe') {
+async function rejectProject() {
 	isSubmitting.value = true
 	try {
-		await client.labrinth.tech_review_internal.submitProject(projectId.value, { verdict })
+		await client.labrinth.tech_review_internal.submitProject(projectId.value, { verdict: 'unsafe' })
 		addNotification({
 			type: 'success',
 			title: formatMessage(messages.reviewCompleted),
-			text: formatMessage(verdict === 'safe' ? messages.passed : messages.rejected),
+			text: formatMessage(messages.rejected),
 		})
 		await router.push('/moderation/technical-review')
 	} catch (error) {
@@ -274,10 +281,7 @@ async function submitReview(verdict: 'safe' | 'unsafe') {
 				</p>
 			</div>
 			<div class="flex gap-2">
-				<Button :disabled="isSubmitting" @click="submitReview('safe')">{{
-					formatMessage(messages.passReview)
-				}}</Button>
-				<Button type="colored" color="red" :disabled="isSubmitting" @click="submitReview('unsafe')">
+				<Button type="colored" color="red" :disabled="isSubmitting" @click="rejectProject">
 					{{ formatMessage(messages.rejectUnsafe) }}
 				</Button>
 			</div>
@@ -310,17 +314,15 @@ async function submitReview(verdict: 'safe' | 'unsafe') {
 								<p v-if="file.error" class="mb-0 mt-2 text-sm text-red">{{ file.error }}</p>
 							</div>
 							<div class="flex flex-wrap gap-2">
-								<ButtonLink :href="file.download_url" target="_blank" type="outlined">{{
-									formatMessage(messages.download)
-								}}</ButtonLink>
+								<VersionMalwareStatus :scan="file.malware" />
 								<ButtonLink
-									v-if="file.analysis_url"
-									:href="file.analysis_url"
+									v-if="file.versionDownloadAllowed"
+									:href="file.download_url"
+									:color="file.malware.status === 'manually_approved' ? 'blue' : 'green'"
 									target="_blank"
 									type="outlined"
+									>{{ formatMessage(messages.download) }}</ButtonLink
 								>
-									{{ formatMessage(messages.openAnalysis) }}
-								</ButtonLink>
 								<Button :disabled="pendingFileActions.has(file.file_id)" @click="rerunScan(file)">
 									{{
 										formatMessage(
@@ -367,55 +369,38 @@ async function submitReview(verdict: 'safe' | 'unsafe') {
 									<span class="text-sm text-secondary">
 										{{
 											formatMessage(messages.decision, {
-												decision:
-													finding.local_verdict ??
-													finding.global_verdict ??
-													formatMessage(messages.pending),
+												decision: finding.local_verdict ?? formatMessage(messages.pending),
 											})
 										}}
 									</span>
 								</div>
 								<div
-									v-if="file.sha256 && ['malicious', 'suspicious'].includes(finding.category)"
+									v-if="
+										file.status === 'completed' &&
+										file.malware.analysis_url &&
+										file.sha256 &&
+										['malicious', 'suspicious'].includes(finding.category)
+									"
 									class="mt-3 flex flex-wrap gap-2"
 								>
 									<Button
 										type="outlined"
 										:disabled="pendingFindingActions.has(findingKey(file, finding))"
-										@click="setFindingVerdict(file, finding, 'local', 'safe')"
+										@click="setFindingVerdict(file, finding, 'safe')"
 										>{{ formatMessage(messages.localFalsePositive) }}</Button
 									>
 									<Button
 										type="outlined"
 										:disabled="pendingFindingActions.has(findingKey(file, finding))"
-										@click="setFindingVerdict(file, finding, 'global', 'safe')"
-										>{{ formatMessage(messages.globalFalsePositive) }}</Button
-									>
-									<Button
-										type="outlined"
-										:disabled="pendingFindingActions.has(findingKey(file, finding))"
-										@click="setFindingVerdict(file, finding, 'local', 'unsafe')"
+										@click="setFindingVerdict(file, finding, 'unsafe')"
 										>{{ formatMessage(messages.localUnsafe) }}</Button
-									>
-									<Button
-										type="outlined"
-										:disabled="pendingFindingActions.has(findingKey(file, finding))"
-										@click="setFindingVerdict(file, finding, 'global', 'unsafe')"
-										>{{ formatMessage(messages.globalUnsafe) }}</Button
 									>
 									<Button
 										v-if="finding.local_verdict"
 										type="quiet"
 										:disabled="pendingFindingActions.has(findingKey(file, finding))"
-										@click="setFindingVerdict(file, finding, 'local', null)"
+										@click="setFindingVerdict(file, finding, null)"
 										>{{ formatMessage(messages.resetLocal) }}</Button
-									>
-									<Button
-										v-if="finding.global_verdict"
-										type="quiet"
-										:disabled="pendingFindingActions.has(findingKey(file, finding))"
-										@click="setFindingVerdict(file, finding, 'global', null)"
-										>{{ formatMessage(messages.resetGlobal) }}</Button
 									>
 								</div>
 							</div>

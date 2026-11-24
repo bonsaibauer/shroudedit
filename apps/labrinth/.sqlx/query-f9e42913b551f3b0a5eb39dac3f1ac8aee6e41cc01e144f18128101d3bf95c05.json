@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tSELECT f.id\n\t\tFROM files f\n\t\tLEFT JOIN virustotal_file_scans scan ON scan.file_id = f.id\n\t\tWHERE (scan.file_id IS NULL OR (scan.status = 'completed' AND scan.submitted_at IS NULL))\n\t\t\tAND (SELECT COUNT(*) FROM virustotal_file_scans WHERE status = 'queued') < 16\n\t\tORDER BY f.id\n\t\tLIMIT 4\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "f9e42913b551f3b0a5eb39dac3f1ac8aee6e41cc01e144f18128101d3bf95c05"
+}

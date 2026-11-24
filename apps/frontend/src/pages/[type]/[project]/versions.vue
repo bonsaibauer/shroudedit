@@ -43,13 +43,16 @@
 				:open-modal="currentMember ? () => handleOpenCreateVersionModal() : undefined"
 			>
 				<template #actions="{ version }">
+					<VersionMalwareStatus v-if="getPrimaryFile(version)" :scan="getVersionMalware(version)" />
 					<ButtonLink
 						v-if="getPrimaryFile(version)"
 						v-tooltip="`Download`"
 						type="quiet"
-						:href="createDownloadUrl(version)"
+						:href="createDownloadUrl(version) ?? ''"
+						:disabled="!canDownloadVersion(version)"
+						:color="canDownloadVersion(version) ? malwareDownloadColor(version) : undefined"
 						:download="getPrimaryFile(version)?.filename"
-						class="!w-9 !rounded-full !px-0 hover:!bg-button-bg [&>svg]:!text-green"
+						class="!w-9 !rounded-full !px-0 hover:!bg-button-bg"
 						aria-label="Download"
 						@click="emit('onDownload')"
 					>
@@ -57,7 +60,7 @@
 					</ButtonLink>
 					<ButtonLink
 						v-if="
-							!!getPrimaryFile(version) &&
+							!!createDownloadUrl(version) &&
 							isStaff(auth.user) &&
 							modSettings.get(moderationSettings.General.SlicerButtonInVersions)
 						"
@@ -117,9 +120,10 @@
 								id: 'download',
 								label: 'Download',
 								type: 'link',
-								tone: 'brand',
+								tone: canDownloadVersion(version) ? malwareDownloadColor(version) : undefined,
 								hoverFilled: true,
-								href: createDownloadUrl(version),
+								disabled: !canDownloadVersion(version),
+								href: createDownloadUrl(version) ?? '',
 								download: getPrimaryFile(version)?.filename,
 								shown: !!getPrimaryFile(version),
 							},
@@ -164,6 +168,7 @@
 								tone: 'orange',
 								action: () => projectC2paScanModal.openC2paModal(createDownloadUrl(version)),
 								shown: isStaff(auth.user),
+								disabled: !canDownloadVersion(version),
 							},
 							{ type: 'divider', shown: currentMember || flags.developerMode },
 							{
@@ -298,6 +303,13 @@ import {
 import { isStaff } from '@shroudedit/utils'
 import { onMounted, useTemplateRef, watch } from 'vue'
 
+import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
+import {
+	canDownloadVersion,
+	getVersionMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
+
 import CreateProjectVersionModal from '~/components/ui/create-project-version/CreateProjectVersionModal.vue'
 import ProjectC2paScanModal from '~/components/ui/moderation/ProjectC2paScanModal.vue'
 import { getSignInRouteObj } from '~/composables/auth.ts'
@@ -374,7 +386,7 @@ watch(
 
 function createDownloadUrl(version) {
 	const file = getPrimaryFile(version)
-	if (!file?.url) return undefined
+	if (!file?.url || !canDownloadVersion(version)) return undefined
 
 	return createProjectDownloadUrl(file.url, {
 		reason: cdnDownloadReason.value,

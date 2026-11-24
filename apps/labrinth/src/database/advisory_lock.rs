@@ -1,6 +1,9 @@
 use std::fmt::{self, Display, Formatter};
 
-use crate::database::{PgTransaction, models::DBFileId};
+use crate::database::{
+	PgTransaction,
+	models::{DBFileId, DBProjectId},
+};
 
 /// A transaction-scoped PostgreSQL advisory lock used by Labrinth.
 ///
@@ -9,6 +12,7 @@ use crate::database::{PgTransaction, models::DBFileId};
 /// numeric IDs from contending with each other.
 pub enum AdvisoryLock {
 	VirusTotalFile(DBFileId),
+	VirusTotalProject(DBProjectId),
 	VirusTotalApiQuota,
 	DiscordRoleEmailCampaign,
 }
@@ -48,6 +52,13 @@ impl Display for AdvisoryLock {
 		match self {
 			Self::VirusTotalFile(file_id) => {
 				write!(formatter, "labrinth:virustotal-file:{}", file_id.0)
+			}
+			Self::VirusTotalProject(project_id) => {
+				write!(
+					formatter,
+					"labrinth:virustotal-project:{}",
+					project_id.0
+				)
 			}
 			Self::VirusTotalApiQuota => {
 				formatter.write_str("labrinth:virustotal-api-quota")

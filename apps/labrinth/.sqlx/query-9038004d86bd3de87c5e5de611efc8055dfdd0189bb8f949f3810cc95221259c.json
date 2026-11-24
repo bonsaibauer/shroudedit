@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE virustotal_file_scans SET sha256 = $2 WHERE file_id = $1 AND event_id = $3 AND status = 'queued'",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "9038004d86bd3de87c5e5de611efc8055dfdd0189bb8f949f3810cc95221259c"
+}

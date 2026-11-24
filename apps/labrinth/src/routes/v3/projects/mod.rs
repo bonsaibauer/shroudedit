@@ -496,6 +496,27 @@ pub async fn project_edit_internal(
 		&& (submit_for_review
 			|| (project_item.inner.status == ProjectStatus::Processing
 				&& !leave_review));
+	let recheck_server = !user.role.is_mod()
+		&& project_item.inner.status.is_approved()
+		&& project_item
+			.inner
+			.components
+			.enshrouded_server
+			.as_ref()
+			.zip(
+				new_project
+					.enshrouded_server
+					.as_ref()
+					.and_then(Option::as_ref),
+			)
+			.is_some_and(|(server, edit)| {
+				edit.address
+					.as_ref()
+					.is_some_and(|address| address != &server.address)
+					|| edit
+						.query_port
+						.is_some_and(|port| port != server.query_port)
+			});
 	if submit_for_review {
 		if !perms.contains(ProjectPermissions::EDIT_DETAILS) {
 			return Err(ApiError::Auth(eyre!(
@@ -648,6 +669,24 @@ pub async fn project_edit_internal(
 
 			if status.is_approved() && !project_item.inner.status.is_approved()
 			{
+				crate::database::advisory_lock::AdvisoryLock::VirusTotalProject(project_item.inner.id)
+					.acquire(&mut transaction)
+					.await
+					.wrap_internal_err("locking project for malware review")?;
+				let scans = tech_review_queue::file_scan_results(
+					&mut transaction,
+					&[],
+					&[project_item.inner.id],
+				)
+				.await?;
+				if scans.values().any(|scan| {
+					!scan.version_status.is_hidden()
+						&& !scan.malware.status.allows_download()
+				}) {
+					return Err(ApiError::Request(eyre!(
+						"all visible version files must pass malware review before project approval"
+					)));
+				}
 				sqlx::query!(
 					"
                     UPDATE mods
@@ -811,7 +850,14 @@ pub async fn project_edit_internal(
 		}
 	}
 
-	if let Some(requested_status) = &new_project.requested_status {
+	let requested_status = new_project.requested_status.or_else(|| {
+		let status = new_project
+			.status
+			.filter(ProjectStatus::can_be_requested)
+			.unwrap_or(project_item.inner.status);
+		(recheck_server && status.can_be_requested()).then_some(Some(status))
+	});
+	if let Some(requested_status) = &requested_status {
 		if !perms.contains(ProjectPermissions::EDIT_DETAILS) {
 			return Err(ApiError::Auth(eyre::eyre!(
 				"You do not have the permissions to edit the requested status of this project!",
@@ -1285,9 +1331,10 @@ pub async fn project_edit_internal(
 			.status
 			.is_some_and(|status| status.is_searchable());
 	let became_unsearchable = project_item.inner.status.is_searchable()
-		&& new_project
-			.status
-			.is_some_and(|status| !status.is_searchable());
+		&& (recheck_server
+			|| new_project
+				.status
+				.is_some_and(|status| !status.is_searchable()));
 
 	reindex_versions |= update(
 		&mut transaction,
@@ -1341,7 +1388,7 @@ pub async fn project_edit_internal(
 	.await
 	.wrap_api_err("deleting unused images")?;
 
-	if validate_for_review {
+	if validate_for_review || recheck_server {
 		let reloaded_project = validate::ensure_project_is_valid_for_review(
 			id,
 			&pool,
@@ -1350,7 +1397,7 @@ pub async fn project_edit_internal(
 		)
 		.await?;
 
-		if submit_for_review {
+		if submit_for_review || recheck_server {
 			submit_project_for_review(
 				&reloaded_project,
 				&user,

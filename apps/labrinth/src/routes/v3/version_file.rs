@@ -112,8 +112,13 @@ pub async fn get_version_from_hash(
 				)));
 			}
 
-			Ok(HttpResponse::Ok()
-				.json(models::projects::Version::from(version)))
+			let mut version = models::projects::Version::from(version);
+			tech_review_queue::attach_file_scans(
+				&pool,
+				std::slice::from_mut(&mut version),
+			)
+			.await?;
+			Ok(HttpResponse::Ok().json(version))
 		} else {
 			Err(ApiError::NotFound(eyre::eyre!("resource not found")))
 		}
@@ -279,9 +284,13 @@ pub async fn get_update_from_hash(
 				)));
 			}
 
-			return Ok(
-				HttpResponse::Ok().json(models::projects::Version::from(first))
-			);
+			let mut version = models::projects::Version::from(first);
+			tech_review_queue::attach_file_scans(
+				&pool,
+				std::slice::from_mut(&mut version),
+			)
+			.await?;
+			return Ok(HttpResponse::Ok().json(version));
 		}
 	}
 	Err(ApiError::NotFound(eyre::eyre!("resource not found")))
