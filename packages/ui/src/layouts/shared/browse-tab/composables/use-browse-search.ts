@@ -36,7 +36,7 @@ export interface UseBrowseSearchOptions {
 	environmentOverride?: ComputedRef<EnvironmentSearchOverride | undefined>
 	active?: ComputedRef<boolean>
 	search: (params: string) => Promise<BrowseSearchResponse>
-	persistentQueryParams: string[]
+	persistentQueryParams?: string[]
 	getExtraQueryParams?: () => Record<string, string | undefined>
 	maxResultsOptions?: ComputedRef<number[]>
 	displayMode?: Ref<'list' | 'grid' | 'gallery'> | ComputedRef<'list' | 'grid' | 'gallery'>
@@ -85,6 +85,7 @@ export function useBrowseSearch(options: UseBrowseSearchOptions): BrowseSearchSt
 	const debug = useDebugLogger('BrowseSearch')
 	const route = useRoute()
 	const router = useRouter()
+	const persistentQueryParams = options.persistentQueryParams ?? []
 
 	debug('init, projectType:', options.projectType.value)
 
@@ -220,7 +221,7 @@ export function useBrowseSearch(options: UseBrowseSearchOptions): BrowseSearchSt
 	const selectedAdvancedIds = computed(() => getAdvancedOptionIds(effectiveCurrentFilters.value))
 
 	function hasSearchQuery(): boolean {
-		return Object.keys(route.query).some((key) => !options.persistentQueryParams.includes(key))
+		return Object.keys(route.query).some((key) => !persistentQueryParams.includes(key))
 	}
 
 	function getCompatiblePrefs(): FilterValue[] {
@@ -387,7 +388,7 @@ export function useBrowseSearch(options: UseBrowseSearchOptions): BrowseSearchSt
 		const persistentParams: Record<string, string | (string | null)[] | null | undefined> = {}
 
 		for (const [key, value] of Object.entries(route.query)) {
-			if (options.persistentQueryParams.includes(key)) {
+			if (persistentQueryParams.includes(key)) {
 				persistentParams[key] = value
 			}
 		}

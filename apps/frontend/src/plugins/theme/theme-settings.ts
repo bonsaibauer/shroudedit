@@ -10,7 +10,7 @@ export function useThemeSettings(getDefaultTheme?: () => Theme) {
 	getDefaultTheme ??= () => 'dark'
 
 	const config = useRuntimeConfig()
-	const $settings = useCookie<ThemeSettings>('color-mode', {
+	const $settings = useCookie<ThemeSettings | null>('color-mode', {
 		maxAge: 60 * 60 * 24 * 365 * 10,
 		sameSite: 'lax',
 		secure: config.public.cookieSecure,
@@ -18,29 +18,33 @@ export function useThemeSettings(getDefaultTheme?: () => Theme) {
 		path: '/',
 	})
 
-	// reset theme settings to a default value if the cookie is missing or contains invalid value
-	if ($settings.value == null || typeof $settings.value !== 'object') {
-		$settings.value = {
-			preference: 'system',
-			value: getDefaultTheme(),
-			syncAcrossDevices: true,
-		}
+	const defaults = (): ThemeSettings => ({
+		preference: 'system',
+		value: getDefaultTheme(),
+		syncAcrossDevices: true,
+	})
+	const readSettings = () =>
+		$settings.value && typeof $settings.value === 'object' ? $settings.value : null
+	if (!readSettings()) $settings.value = defaults()
+
+	function updateSettings(patch: Partial<ThemeSettings>) {
+		$settings.value = { ...(readSettings() ?? defaults()), ...patch }
 	}
 
 	return reactive({
 		preferred: computed({
-			get: () => $settings.value.preference ?? 'system',
-			set: (value) => ($settings.value.preference = value),
+			get: () => readSettings()?.preference ?? 'system',
+			set: (value) => updateSettings({ preference: value }),
 		}),
 
 		active: computed({
-			get: () => $settings.value.value ?? getDefaultTheme(),
-			set: (value) => ($settings.value.value = value),
+			get: () => readSettings()?.value ?? getDefaultTheme(),
+			set: (value) => updateSettings({ value }),
 		}),
 
 		syncAcrossDevices: computed({
-			get: () => $settings.value.syncAcrossDevices ?? true,
-			set: (value) => ($settings.value.syncAcrossDevices = value),
+			get: () => readSettings()?.syncAcrossDevices ?? true,
+			set: (value) => updateSettings({ syncAcrossDevices: value }),
 		}),
 	})
 }

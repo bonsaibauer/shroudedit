@@ -803,6 +803,8 @@
   "moderation.page.technicalReview": "Technische Überprüfung",
   "moderation.virusTotal.approval.details": "Technische Prüfung öffnen",
   "moderation.virusTotal.approval.waiting": "VirusTotal-Prüfung vor Projektfreigabe erforderlich",
+  "moderation.virusTotal.project.clearanceUnavailable": "Die API liefert für einige Dateien noch keinen Freigabestatus für den Download.",
+  "moderation.virusTotal.project.rejectUnsafe": "Als unsicher ablehnen",
   "modpack-scan-modal.batch.label": "{amount} pro Stapel",
   "modpack-scan-modal.batch.placeholder": "Stapelanzahl",
   "modpack-scan-modal.delete-all-groups-confirmation.description": "Hierdurch werden alle Zuordnungsgruppen für dieses Projekt und alle darin enthaltenen Dateien dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden.",

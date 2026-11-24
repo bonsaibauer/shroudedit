@@ -327,6 +327,10 @@
   "moderation.moderate": "Moderare",
   "moderation.page.projects": "Proiecte",
   "moderation.page.reports": "Rapoarte",
+  "moderation.virusTotal.approval.details": "Deschide verificarea tehnică",
+  "moderation.virusTotal.approval.waiting": "Verificarea VirusTotal este necesară înainte de aprobarea proiectului",
+  "moderation.virusTotal.project.clearanceUnavailable": "API-ul nu indică încă dacă este permisă descărcarea anumitor fișiere.",
+  "moderation.virusTotal.project.rejectUnsafe": "Respinge din motive de securitate",
   "muralpay.country.at": "Austria",
   "muralpay.country.be": "Belgia",
   "muralpay.country.cy": "Cipru",
@@ -572,5 +576,11 @@
   "ui.latest-news-row.latest-news": "Cele mai recente noutăți de pe ShroudEdit",
   "ui.latest-news-row.view-all": "Vedeți toate noutățile",
   "create-project-version.sfbp.metadata-description": "Fișierul .sfbp este încărcat fără modificări. Aceste detalii descriu blueprintul din ShroudForge World Editor pe ShroudEdit.",
+  "version.malware.blocked": "Detecție VirusTotal. Descărcarea este blocată",
+  "version.malware.failed": "Verificarea VirusTotal a eșuat",
+  "version.malware.manually-approved": "Aprobat manual de moderatori",
+  "version.malware.passed": "Verificarea VirusTotal a fost trecută",
+  "version.malware.pending": "În așteptarea verificării VirusTotal",
+  "version.malware.reports": "Rapoarte VirusTotal",
   "version.schematic.sfbp-installation": "Descarcă fișierul .sfbp, deschide ShroudForge World Editor, alege Importă blueprint și selectează fișierul descărcat."
 }

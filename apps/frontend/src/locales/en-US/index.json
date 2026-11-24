@@ -833,6 +833,7 @@
   "moderation.virusTotal.notifications.submitError": "Could not submit review",
   "moderation.virusTotal.project.back": "Review queue",
   "moderation.virusTotal.project.checked": "Checked {date}",
+  "moderation.virusTotal.project.clearanceUnavailable": "The API does not provide download clearance for some files yet.",
   "moderation.virusTotal.project.decision": "Decision: {decision}",
   "moderation.virusTotal.project.description": "VirusTotal results inform this review. A safe verdict closes technical review without approving the project.",
   "moderation.virusTotal.project.download": "Download",

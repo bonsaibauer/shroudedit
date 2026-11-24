@@ -445,6 +445,10 @@
   "moderation.page.projects": "Mga Proyekto",
   "moderation.page.reports": "Mga Sumbong",
   "moderation.page.technicalReview": "Tech review",
+  "moderation.virusTotal.approval.details": "Buksan ang teknikal na pagsusuri",
+  "moderation.virusTotal.approval.waiting": "Kailangan ang pagsusuri ng VirusTotal bago aprubahan ang proyekto",
+  "moderation.virusTotal.project.clearanceUnavailable": "Hindi pa ipinapakita ng API kung puwedeng i-download ang ilang file.",
+  "moderation.virusTotal.project.rejectUnsafe": "Tanggihan dahil hindi ligtas",
   "modpack-scan-modal.failed": "Nabigo",
   "muralpay.account-type.checking": "Sinusuri",
   "muralpay.account-type.savings": "Savings",
@@ -818,5 +822,11 @@
   "version.environment.unknown.description": "Ang environment na \"{environment}\" ay hindi kinikilala.",
   "version.environment.unknown.title": "Hindi kilalang environment",
   "create-project-version.sfbp.metadata-description": "Ina-upload ang .sfbp file nang walang pagbabago. Inilalarawan ng mga detalyeng ito ang blueprint mula sa ShroudForge World Editor sa ShroudEdit.",
+  "version.malware.blocked": "May natukoy ang VirusTotal. Naka-block ang pag-download",
+  "version.malware.failed": "Nabigo ang pagsusuri ng VirusTotal",
+  "version.malware.manually-approved": "Manu-manong inaprubahan ng mga moderator",
+  "version.malware.passed": "Nakapasa sa pagsusuri ng VirusTotal",
+  "version.malware.pending": "Naghihintay ng pagsusuri ng VirusTotal",
+  "version.malware.reports": "Mga ulat ng VirusTotal",
   "version.schematic.sfbp-installation": "I-download ang .sfbp file, buksan ang ShroudForge World Editor, piliin ang Import blueprint, at piliin ang na-download na file."
 }

@@ -201,6 +201,10 @@
   "moderation.moderate": "Moderoi",
   "moderation.page.projects": "Projektit",
   "moderation.page.reports": "Raportit",
+  "moderation.virusTotal.approval.details": "Avaa tekninen tarkastus",
+  "moderation.virusTotal.approval.waiting": "Projektin hyväksyminen edellyttää VirusTotal-tarkastusta",
+  "moderation.virusTotal.project.clearanceUnavailable": "Rajapinta ei vielä ilmoita, onko joidenkin tiedostojen lataus hyväksytty.",
+  "moderation.virusTotal.project.rejectUnsafe": "Hylkää turvattomana",
   "project-moderation-nags.required": "Vaadittu",
   "project-moderation-nags.suggestion": "Ehdotus",
   "project-moderation-nags.warning": "Varoitus",
@@ -248,5 +252,11 @@
   "layout.banner.dev.title": "Katselet ShroudEditin Dev-ympäristöä",
   "report.note.copyright.community-report": "Huomaa, että tällä lomakkeella lähetetään yhteisön ilmoitus uudelleen ladatusta sisällöstä, ei virallista oikeudenhaltijan ilmoitusta.",
   "report.note.copyright.formal-notice": "Tee virallinen tekijänoikeusloukkausilmoitus <copyright-policy-link>tekijänoikeuskäytäntömme</copyright-policy-link> mukaisesti.",
+  "version.malware.blocked": "VirusTotal-havainto. Lataus estetty",
+  "version.malware.failed": "VirusTotal-tarkastus epäonnistui",
+  "version.malware.manually-approved": "Moderaattorien manuaalisesti hyväksymä",
+  "version.malware.passed": "VirusTotal-tarkastus läpäisty",
+  "version.malware.pending": "Odottaa VirusTotal-tarkastusta",
+  "version.malware.reports": "VirusTotal-raportit",
   "version.schematic.sfbp-installation": "Lataa .sfbp-tiedosto, avaa ShroudForge World Editor, valitse Tuo blueprint ja valitse ladattu tiedosto."
 }

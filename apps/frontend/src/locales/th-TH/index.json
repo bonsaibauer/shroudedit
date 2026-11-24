@@ -190,6 +190,10 @@
   "landing.notifications.has-been-updated": "{title} ได้รับการอัปเดตแล้ว!",
   "landing.notifications.heading": "การแจ้งเตือน",
   "landing.notifications.received-time": "ได้รับเมื่อ {time}",
+  "moderation.virusTotal.approval.details": "เปิดการตรวจสอบทางเทคนิค",
+  "moderation.virusTotal.approval.waiting": "ต้องผ่านการตรวจสอบ VirusTotal ก่อนอนุมัติโครงการ",
+  "moderation.virusTotal.project.clearanceUnavailable": "API ยังไม่ระบุว่าอนุญาตให้ดาวน์โหลดบางไฟล์หรือไม่",
+  "moderation.virusTotal.project.rejectUnsafe": "ปฏิเสธเนื่องจากไม่ปลอดภัย",
   "project.settings.server.add-group": "เพิ่มกลุ่ม",
   "project.settings.server.group-name": "ชื่อกลุ่ม",
   "project.settings.server.invalid-group-names": "ชื่อกลุ่มต้องไม่ว่างเปล่าและต้องไม่ซ้ำกัน",
@@ -205,5 +209,11 @@
   "report.not-for.copyright-notice.description": "ดู<policy-link>นโยบายลิขสิทธิ์</policy-link>ของเรา",
   "report.note.copyright.community-report": "โปรดทราบว่าแบบฟอร์มนี้ใช้ส่งรายงานจากชุมชนเกี่ยวกับเนื้อหาที่อัปโหลดซ้ำ ไม่ใช่หนังสือแจ้งทางกฎหมายอย่างเป็นทางการ",
   "report.note.copyright.formal-notice": "หากต้องการส่งหนังสือแจ้งการละเมิดลิขสิทธิ์อย่างเป็นทางการ โปรดทำตาม<copyright-policy-link>นโยบายลิขสิทธิ์</copyright-policy-link>ของเรา",
+  "version.malware.blocked": "VirusTotal ตรวจพบปัญหา จึงบล็อกการดาวน์โหลด",
+  "version.malware.failed": "การตรวจสอบ VirusTotal ล้มเหลว",
+  "version.malware.manually-approved": "ผู้ดูแลอนุมัติด้วยตนเองแล้ว",
+  "version.malware.passed": "ผ่านการตรวจสอบ VirusTotal แล้ว",
+  "version.malware.pending": "รอการตรวจสอบ VirusTotal",
+  "version.malware.reports": "รายงาน VirusTotal",
   "version.schematic.sfbp-installation": "ดาวน์โหลดไฟล์ .sfbp เปิด ShroudForge World Editor เลือกนำเข้า blueprint แล้วเลือกไฟล์ที่ดาวน์โหลด"
 }

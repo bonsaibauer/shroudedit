@@ -456,6 +456,10 @@
   "moderation.moderate": "Moderasi",
   "moderation.page.projects": "Proyek",
   "moderation.page.reports": "Laporan",
+  "moderation.virusTotal.approval.details": "Buka tinjauan teknis",
+  "moderation.virusTotal.approval.waiting": "Pemeriksaan VirusTotal diperlukan sebelum proyek disetujui",
+  "moderation.virusTotal.project.clearanceUnavailable": "API belum menyediakan status izin unduh untuk beberapa berkas.",
+  "moderation.virusTotal.project.rejectUnsafe": "Tolak karena tidak aman",
   "muralpay.account-type.checking": "Giro",
   "muralpay.account-type.savings": "Tabungan",
   "muralpay.country.at": "Austria",
@@ -843,5 +847,11 @@
   "version.environment.unknown.description": "Lingkungan \"{environment}\" tidak dikenal.",
   "version.environment.unknown.title": "Lingkungan tidak dikenal",
   "create-project-version.sfbp.metadata-description": "File .sfbp diunggah tanpa perubahan. Detail ini menjelaskan blueprint dari ShroudForge World Editor di ShroudEdit.",
+  "version.malware.blocked": "Temuan VirusTotal. Unduhan diblokir",
+  "version.malware.failed": "Pemeriksaan VirusTotal gagal",
+  "version.malware.manually-approved": "Disetujui secara manual oleh moderator",
+  "version.malware.passed": "Lolos pemeriksaan VirusTotal",
+  "version.malware.pending": "Menunggu pemeriksaan VirusTotal",
+  "version.malware.reports": "Laporan VirusTotal",
   "version.schematic.sfbp-installation": "Unduh file .sfbp, buka ShroudForge World Editor, pilih Impor blueprint, lalu pilih file yang telah diunduh."
 }

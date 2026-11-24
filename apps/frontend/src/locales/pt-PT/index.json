@@ -668,6 +668,10 @@
   "moderation.moderate": "Moderar",
   "moderation.page.projects": "Projetos",
   "moderation.page.reports": "Denúncias",
+  "moderation.virusTotal.approval.details": "Abrir a revisão técnica",
+  "moderation.virusTotal.approval.waiting": "É necessária uma análise do VirusTotal antes de aprovar o projeto",
+  "moderation.virusTotal.project.clearanceUnavailable": "A API ainda não indica se a transferência de alguns ficheiros está autorizada.",
+  "moderation.virusTotal.project.rejectUnsafe": "Rejeitar por motivos de segurança",
   "muralpay.account-type.checking": "Conta corrente",
   "muralpay.account-type.savings": "Poupança",
   "muralpay.country.at": "Áustria",
@@ -1105,5 +1109,11 @@
   "version.environment.unknown.description": "O ambiente: “{environment}” não é reconhecido.",
   "version.environment.unknown.title": "Ambiente desconhecido",
   "create-project-version.sfbp.metadata-description": "O ficheiro .sfbp é carregado sem alterações. Estes dados descrevem o blueprint do ShroudForge World Editor no ShroudEdit.",
+  "version.malware.blocked": "Deteção do VirusTotal. Transferência bloqueada",
+  "version.malware.failed": "A análise do VirusTotal falhou",
+  "version.malware.manually-approved": "Aprovado manualmente pela moderação",
+  "version.malware.passed": "Aprovado na análise do VirusTotal",
+  "version.malware.pending": "A aguardar análise do VirusTotal",
+  "version.malware.reports": "Relatórios do VirusTotal",
   "version.schematic.sfbp-installation": "Transfira o ficheiro .sfbp, abra o ShroudForge World Editor, escolha Importar blueprint e selecione o ficheiro transferido."
 }

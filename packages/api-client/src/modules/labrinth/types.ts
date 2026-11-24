@@ -2539,7 +2539,7 @@ export namespace Labrinth {
 				status: VirusTotalScanStatus
 				analysis_id: string | null
 				analysis_url: string | null
-				malware: Labrinth.Versions.v3.FileMalwareScan
+				malware?: Labrinth.Versions.v3.FileMalwareScan
 				checked_at: string | null
 				error: string | null
 				analysis: VirusTotalAnalysis | null

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { Labrinth } from '@shroudedit/api-client'
+import { type Labrinth, ShroudEditApiError } from '@shroudedit/api-client'
 import {
 	Button,
 	ButtonLink,
+	commonMessages,
 	defineMessages,
 	injectNotificationManager,
 	injectShroudEditClient,
@@ -44,6 +45,14 @@ const messages = defineMessages({
 	loadError: {
 		id: 'moderation.virusTotal.project.loadError',
 		defaultMessage: 'Could not load the project report.',
+	},
+	clearanceUnavailable: {
+		id: 'moderation.virusTotal.project.clearanceUnavailable',
+		defaultMessage: 'The API does not provide download clearance for some files yet.',
+	},
+	rejectUnsafe: {
+		id: 'moderation.virusTotal.project.rejectUnsafe',
+		defaultMessage: 'Reject as unsafe',
 	},
 	filesHeading: {
 		id: 'moderation.virusTotal.project.filesHeading',
@@ -143,7 +152,11 @@ const reviewQuery = useQuery({
 	queryFn: () => client.labrinth.tech_review_internal.getProjectReport(projectId.value),
 	refetchInterval: (query) =>
 		query.state.data?.project_report?.versions.some((version) =>
-			version.files.some((file) => file.malware.status === 'pending' && !file.malware.failed),
+			version.files.some((file) =>
+				file.malware
+					? file.malware.status === 'pending' && !file.malware.failed
+					: file.status === 'queued' || file.status === 'submitted',
+			),
 		)
 			? 15_000
 			: false,
@@ -168,10 +181,14 @@ const files = computed<FileReview[]>(
 			)
 			?.sort(
 				(a, b) =>
-					Number(b.malware.status === 'blocked' || b.malware.failed) -
-					Number(a.malware.status === 'blocked' || a.malware.failed),
+					Number(b.malware?.status === 'blocked' || b.malware?.failed === true) -
+					Number(a.malware?.status === 'blocked' || a.malware?.failed === true),
 			) ?? [],
 )
+const reportHttpStatus = computed(() => {
+	const error = reviewQuery.error.value
+	return error instanceof ShroudEditApiError ? error.statusCode : undefined
+})
 const thread = computed(() => reviewQuery.data.value?.thread as unknown as Thread | undefined)
 
 function stats(file: FileReview) {
@@ -281,7 +298,12 @@ async function rejectProject() {
 				</p>
 			</div>
 			<div class="flex gap-2">
-				<Button type="colored" color="red" :disabled="isSubmitting" @click="rejectProject">
+				<Button
+					type="colored"
+					color="red"
+					:disabled="isSubmitting || !reviewQuery.data.value?.project_report"
+					@click="rejectProject"
+				>
 					{{ formatMessage(messages.rejectUnsafe) }}
 				</Button>
 			</div>
@@ -290,12 +312,28 @@ async function rejectProject() {
 		<div v-if="reviewQuery.isLoading.value" class="rounded-xl bg-surface-2 p-5 text-secondary">
 			{{ formatMessage(messages.loading) }}
 		</div>
-		<div v-else-if="reviewQuery.error.value" class="rounded-xl bg-surface-2 p-5 text-red">
-			{{ formatMessage(messages.loadError) }}
+		<div
+			v-else-if="reviewQuery.error.value"
+			class="flex flex-wrap items-center gap-3 rounded-xl bg-surface-2 p-5"
+		>
+			<span class="text-red">
+				{{ formatMessage(messages.loadError) }}
+				<span v-if="reportHttpStatus">(HTTP {{ reportHttpStatus }})</span>
+			</span>
+			<Button
+				type="outlined"
+				:disabled="reviewQuery.isFetching.value"
+				@click="reviewQuery.refetch()"
+			>
+				{{ formatMessage(commonMessages.retryButton) }}
+			</Button>
 		</div>
 		<template v-else>
 			<section class="rounded-xl bg-surface-2 p-4">
 				<h3 class="mb-3 mt-0 text-lg font-semibold">{{ formatMessage(messages.filesHeading) }}</h3>
+				<p v-if="files.some((file) => !file.malware)" class="mb-3 mt-0 text-secondary">
+					{{ formatMessage(messages.clearanceUnavailable) }}
+				</p>
 				<div v-if="files.length === 0" class="text-secondary">
 					{{ formatMessage(messages.noFiles) }}
 				</div>
@@ -314,11 +352,19 @@ async function rejectProject() {
 								<p v-if="file.error" class="mb-0 mt-2 text-sm text-red">{{ file.error }}</p>
 							</div>
 							<div class="flex flex-wrap gap-2">
-								<VersionMalwareStatus :scan="file.malware" />
+								<VersionMalwareStatus
+									:scan="
+										file.malware ?? {
+											status: 'pending',
+											analysis_url: file.analysis_url,
+											failed: file.status === 'failed' || file.status === 'unknown',
+										}
+									"
+								/>
 								<ButtonLink
 									v-if="file.versionDownloadAllowed"
 									:href="file.download_url"
-									:color="file.malware.status === 'manually_approved' ? 'blue' : 'green'"
+									:color="file.malware?.status === 'manually_approved' ? 'blue' : 'green'"
 									target="_blank"
 									type="outlined"
 									>{{ formatMessage(messages.download) }}</ButtonLink
@@ -377,7 +423,7 @@ async function rejectProject() {
 								<div
 									v-if="
 										file.status === 'completed' &&
-										file.malware.analysis_url &&
+										file.malware?.analysis_url &&
 										file.sha256 &&
 										['malicious', 'suspicious'].includes(finding.category)
 									"

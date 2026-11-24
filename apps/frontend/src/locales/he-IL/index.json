@@ -375,6 +375,10 @@
   "layout.nav.search": "חיפוש",
   "moderation.page.projects": "פרויקטים",
   "moderation.page.reports": "דיווחים",
+  "moderation.virusTotal.approval.details": "פתיחת הבדיקה הטכנית",
+  "moderation.virusTotal.approval.waiting": "נדרשת בדיקת VirusTotal לפני אישור הפרויקט",
+  "moderation.virusTotal.project.clearanceUnavailable": "ממשק ה־API עדיין לא מציין אם אפשר להוריד חלק מהקבצים.",
+  "moderation.virusTotal.project.rejectUnsafe": "דחייה עקב סיכון אבטחה",
   "muralpay.account-type.savings": "חשבון חיסכון",
   "muralpay.country.at": "אוסטריה",
   "muralpay.country.be": "בלגיה",
@@ -584,5 +588,11 @@
   "settings.pats.modal.create.expires.label": "פג תוקף",
   "settings.pats.modal.create.name.label": "שם",
   "create-project-version.sfbp.metadata-description": "קובץ ‎.sfbp‎ מועלה ללא שינוי. הפרטים האלה מתארים את ה־blueprint שנוצר ב־ShroudForge World Editor ב־ShroudEdit.",
+  "version.malware.blocked": "ממצא של VirusTotal. ההורדה חסומה",
+  "version.malware.failed": "בדיקת VirusTotal נכשלה",
+  "version.malware.manually-approved": "הקובץ אושר ידנית על ידי צוות הניהול",
+  "version.malware.passed": "בדיקת VirusTotal עברה בהצלחה",
+  "version.malware.pending": "ממתין לבדיקת VirusTotal",
+  "version.malware.reports": "דוחות VirusTotal",
   "version.schematic.sfbp-installation": "הורידו את קובץ ‎.sfbp‎, פתחו את ShroudForge World Editor, בחרו בייבוא blueprint ובחרו את הקובץ שהורדתם."
 }

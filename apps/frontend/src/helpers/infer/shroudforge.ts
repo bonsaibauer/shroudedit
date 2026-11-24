@@ -6,26 +6,32 @@ import extensionSchema from './schemas/shroudforge-1.8.1/extended.mod.schema.jso
 import manifestSchema from './schemas/shroudforge-1.8.1/manifest.schema.json'
 import localeSchema from './schemas/shroudforge-1.8.1/mod-locale.schema.json'
 
-const ajv = new Ajv2020({ ownProperties: true, strict: false })
 interface ModManifest {
 	id: string
 	name: string
 	version: string
 }
 
-const validateManifest = ajv.compile<ModManifest>({
-	type: manifestSchema.type,
-	required: manifestSchema.required,
-	properties: Object.fromEntries(
-		Object.entries(manifestSchema.properties).filter(([key]) =>
-			manifestSchema.required.includes(key),
-		),
-	),
-})
-const validateLauncher = ajv.compile<'EML' | 'SF'>(extensionSchema.properties.launcher)
-const validateTargets = ajv.compile<('client' | 'server')[]>(extensionSchema.properties.targets)
-const validateChangelog = ajv.compile<string[]>(extensionSchema.properties.changelog)
-const validateLocale = ajv.compile(localeSchema)
+let validators: ReturnType<typeof createValidators> | undefined
+
+function createValidators() {
+	const ajv = new Ajv2020({ ownProperties: true, strict: false })
+	return {
+		validateManifest: ajv.compile<ModManifest>({
+			type: manifestSchema.type,
+			required: manifestSchema.required,
+			properties: Object.fromEntries(
+				Object.entries(manifestSchema.properties).filter(([key]) =>
+					manifestSchema.required.includes(key),
+				),
+			),
+		}),
+		validateLauncher: ajv.compile<'EML' | 'SF'>(extensionSchema.properties.launcher),
+		validateTargets: ajv.compile<('client' | 'server')[]>(extensionSchema.properties.targets),
+		validateChangelog: ajv.compile<string[]>(extensionSchema.properties.changelog),
+		validateLocale: ajv.compile(localeSchema),
+	}
+}
 
 export class InvalidModManifestError extends Error {
 	constructor(readonly filename?: string) {
@@ -49,6 +55,8 @@ export async function inferShroudForgeVersion(
 	entries: FileEntry[],
 	requireManifest: boolean,
 ): Promise<InferredVersionInfo> {
+	const { validateManifest, validateLauncher, validateTargets, validateChangelog, validateLocale } =
+		(validators ??= createValidators())
 	const packagePaths = new Set<string>()
 	const manifests = new Map<string, ModManifest>()
 	for (const entry of entries) {

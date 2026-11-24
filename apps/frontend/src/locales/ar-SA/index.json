@@ -777,6 +777,10 @@
   "moderation.page.projects": "المشاريع",
   "moderation.page.reports": "البلاغات",
   "moderation.page.technicalReview": "المراجعة التقنية",
+  "moderation.virusTotal.approval.details": "فتح المراجعة التقنية",
+  "moderation.virusTotal.approval.waiting": "يجب إجراء فحص VirusTotal قبل الموافقة على المشروع",
+  "moderation.virusTotal.project.clearanceUnavailable": "لم توفر واجهة API حالة السماح بتنزيل بعض الملفات بعد.",
+  "moderation.virusTotal.project.rejectUnsafe": "رفض لعدم الأمان",
   "modpack-scan-modal.batch.label": "{amount} لكل دفعة",
   "modpack-scan-modal.batch.placeholder": "كمية الدفعة",
   "modpack-scan-modal.delete-all-groups-confirmation.description": "سيؤدي هذا إلى حذف جميع مجموعات الإسناد لهذا المشروع وجميع الملفات الموجودة بداخلها نهائيًا. لا يمكن التراجع عن هذا الإجراء.",
@@ -1002,5 +1006,11 @@
   "create-project-version.sfbp.metadata-description": "يُرفع ملف ‎.sfbp‎ دون تغيير. تصف هذه التفاصيل مخطط ShroudForge World Editor على ShroudEdit.",
   "report.note.copyright.community-report": "يرجى ملاحظة أن هذا النموذج يرسل بلاغًا مجتمعيًا عن محتوى أُعيد رفعه، وليس إشعارًا قانونيًا رسميًا.",
   "report.note.copyright.formal-notice": "لتقديم إشعار رسمي بانتهاك حقوق الطبع والنشر، يُرجى اتباع <copyright-policy-link>سياسة حقوق الطبع والنشر</copyright-policy-link>.",
+  "version.malware.blocked": "رصد VirusTotal نتيجة مشبوهة. التنزيل محظور",
+  "version.malware.failed": "فشل فحص VirusTotal",
+  "version.malware.manually-approved": "وافق فريق الإشراف يدويًا",
+  "version.malware.passed": "اجتاز فحص VirusTotal",
+  "version.malware.pending": "فحص VirusTotal قيد الانتظار",
+  "version.malware.reports": "تقارير VirusTotal",
   "version.schematic.sfbp-installation": "نزّل ملف ‎.sfbp‎، وافتح ShroudForge World Editor، واختر استيراد مخطط، ثم حدّد الملف الذي نزّلته."
 }
