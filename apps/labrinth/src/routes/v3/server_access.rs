@@ -13,9 +13,7 @@ use crate::auth::checks::is_visible_project;
 use crate::auth::get_user_from_headers;
 use crate::database::models::{DBProject, DBTeamMember};
 use crate::database::{PgPool, ReadOnlyPgPool};
-use crate::models::exp::enshrouded::{
-	EnshroudedPasswordVisibility, EnshroudedServerRole,
-};
+use crate::models::exp::enshrouded::EnshroudedPasswordVisibility;
 use crate::models::pats::Scopes;
 use crate::models::teams::ProjectPermissions;
 use crate::queue::session::AuthQueue;
@@ -94,8 +92,6 @@ pub async fn get_server_access(
 				.filter(|group| {
 					group.password_visibility
 						== EnshroudedPasswordVisibility::Public
-						&& group.role != EnshroudedServerRole::Admin
-						&& !group.can_kick_ban
 				})
 				.map(|group| group.name.trim().to_lowercase())
 				.collect::<std::collections::HashSet<_>>()
@@ -218,11 +214,6 @@ pub async fn set_server_access(
 		if group.password_visibility != EnshroudedPasswordVisibility::Public {
 			return Err(ApiError::Request(eyre!(
 				"public password requires `password_visibility` to be `public`"
-			)));
-		}
-		if group.role == EnshroudedServerRole::Admin || group.can_kick_ban {
-			return Err(ApiError::Request(eyre!(
-				"admin passwords cannot be public"
 			)));
 		}
 	}

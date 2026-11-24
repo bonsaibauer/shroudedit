@@ -341,12 +341,6 @@ fn validate_user_groups(groups: &[EnshroudedUserGroup]) -> Result<()> {
 			group.reserved_slots <= 16,
 			"`reserved_slots` must not exceed 16"
 		);
-		eyre::ensure!(
-			group.password_visibility != EnshroudedPasswordVisibility::Public
-				|| (group.role != EnshroudedServerRole::Admin
-					&& !group.can_kick_ban),
-			"admin passwords cannot be public"
-		);
 	}
 	Ok(())
 }

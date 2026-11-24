@@ -108,7 +108,7 @@
 							:open="group._new || undefined"
 							class="rounded-xl border border-solid border-surface-4 bg-surface-2 p-3"
 						>
-							<summary class="cursor-pointer pr-10 font-semibold text-contrast">
+							<summary class="cursor-pointer break-words pr-10 font-semibold leading-6 text-contrast">
 								{{ group.name || formatMessage(messages.newGroup) }}
 								<span class="ml-2 text-sm font-normal text-secondary">
 									{{ formatGroupSummary(group) }}
@@ -160,7 +160,7 @@
 									<span class="label__title">{{ formatMessage(messages.passwordVisibility) }}</span>
 									<Combobox
 										v-model="group.password_visibility"
-										:options="passwordVisibilityOptions(group)"
+										:options="passwordVisibilityOptions"
 										:disabled="!hasPermission"
 									/>
 								</label>
@@ -182,20 +182,21 @@
 								</p>
 							</div>
 						</details>
-						<IconButton
-							:label="
-								formatMessage(messages.removeGroup, {
-									group: group.name || formatMessage(messages.newGroup),
-								})
-							"
-							type="quiet"
-							size="xs"
-							class="absolute right-2 top-2"
-							:disabled="!hasPermission"
-							@click="removeGroup(group._key)"
-						>
-							<XIcon aria-hidden="true" />
-						</IconButton>
+						<div class="absolute right-2 top-2 flex">
+							<IconButton
+								:label="
+									formatMessage(messages.removeGroup, {
+										group: group.name || formatMessage(messages.newGroup),
+									})
+								"
+								type="quiet"
+								color="red"
+								:disabled="!hasPermission"
+								@click="removeGroup(group._key)"
+							>
+								<XCircleIcon aria-hidden="true" />
+							</IconButton>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -211,7 +212,7 @@
 </template>
 
 <script setup>
-import { PlusIcon, RefreshCwIcon, SpinnerIcon, XIcon } from '@shroudedit/assets'
+import { PlusIcon, RefreshCwIcon, SpinnerIcon, XCircleIcon } from '@shroudedit/assets'
 import {
 	Button,
 	Checkbox,
@@ -544,32 +545,13 @@ const voiceChatModeOptions = computed(() => [
 	{ value: 'proximity', label: formatMessage(messages.proximity) },
 	{ value: 'global', label: formatMessage(messages.global) },
 ])
-function passwordVisibilityOptions(group) {
-	const options = [
-		{ value: 'none', label: formatMessage(messages.passwordNone) },
-		{ value: 'required', label: formatMessage(messages.passwordRequired) },
-		{ value: 'contact_owner', label: formatMessage(messages.passwordContact) },
-	]
-	if (group.role !== 'admin' && !group.can_kick_ban) {
-		options.push({ value: 'public', label: formatMessage(messages.passwordPublic) })
-	}
-	return options
-}
+const passwordVisibilityOptions = computed(() => [
+	{ value: 'none', label: formatMessage(messages.passwordNone) },
+	{ value: 'required', label: formatMessage(messages.passwordRequired) },
+	{ value: 'contact_owner', label: formatMessage(messages.passwordContact) },
+	{ value: 'public', label: formatMessage(messages.passwordPublic) },
+])
 
-watch(
-	userGroups,
-	(groups) => {
-		for (const group of groups) {
-			if (
-				(group.role === 'admin' || group.can_kick_ban) &&
-				group.password_visibility === 'public'
-			) {
-				group.password_visibility = 'contact_owner'
-			}
-		}
-	},
-	{ deep: true },
-)
 function formatGroupSummary(group) {
 	const slots = Number(group.reserved_slots) || 0
 	return slots > 0 ? `${slots} ${formatMessage(messages.reservedSlots).toLowerCase()}` : ''
