@@ -108,6 +108,12 @@
 			not be reused for administrative access or other services. Listings must not conceal paywalls,
 			misrepresent player counts or redirect users to unrelated services.
 		</p>
+		<h3>4.5. Mod loaders and similar software</h3>
+		<p>
+			Uploading or publishing mod loaders and similar software designed to load or run mods is not
+			permitted on ShroudEdit. This includes EML and comparable loaders. Mod loaders may still be
+			mentioned in project descriptions as a requirement for using a mod.
+		</p>
 
 		<h2 id="copyright-reuploads">5. Copyright, licences and reuploads</h2>
 		<p>

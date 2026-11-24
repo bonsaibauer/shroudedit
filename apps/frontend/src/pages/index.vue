@@ -224,7 +224,10 @@
 					</div>
 					<div class="blob-demonstration gradient-border">
 						<div class="launcher-view">
-							<QuestionMarkIcon class="question-mark-placeholder" aria-hidden="true" />
+							<img
+								src="/branding/mod-loaders.svg"
+								:alt="formatMessage(messages.modLoadersIllustrationAlt)"
+							/>
 						</div>
 					</div>
 				</div>
@@ -241,7 +244,6 @@ import {
 	CompassIcon,
 	DashboardIcon,
 	LogInIcon,
-	QuestionMarkIcon,
 	SearchIcon,
 	ShroudEditIcon,
 } from '@shroudedit/assets'
@@ -268,7 +270,7 @@ const formatRelativeTime = useRelativeTime()
 const { formatMessage } = useVIntl()
 const { labrinth } = injectShroudEditClient()
 
-const searchQuery = ref('leave')
+const searchQuery = ref('Auto Loot')
 const sortType = ref('relevance')
 const sortOptions = ['relevance', 'downloads', 'follows', 'updated', 'newest']
 
@@ -346,7 +348,7 @@ const messages = defineMessages({
 	playersDescription: {
 		id: 'landing.section.for-players.description',
 		defaultMessage:
-			'From magical biomes to cursed dungeons, you can be sure to find content to bring your gameplay to the next level.',
+			'Discover creative content from the Enshrouded community and find new ideas for your next adventure.',
 	},
 	findWhatYouWantHeading: {
 		id: 'landing.feature.search.heading',
@@ -366,13 +368,17 @@ const messages = defineMessages({
 		defaultMessage: 'Get notified every time your favorite projects update and stay in the loop.',
 	},
 	playWithLauncherHeading: {
-		id: 'landing.feature.tools.heading.enshrouded',
-		defaultMessage: 'Connect your favorite community tools',
+		id: 'landing.feature.mod-loaders.heading',
+		defaultMessage: 'Your mods, your favorite tools',
 	},
 	playWithLauncherDescription: {
-		id: 'landing.feature.tools.description.enshrouded',
+		id: 'landing.feature.mod-loaders.description',
 		defaultMessage:
-			"ShroudEdit's open-source API lets community tools add deep integration. You can also <link>discover and share World Editor schematics</link> through the same platform.",
+			"ShroudForge is preparing a ShroudEdit integration to discover, install, and update mods. Other community tools can connect through our open-source API. You can also <link>discover and share ShroudForge World Editor blueprints</link>.",
+	},
+	modLoadersIllustrationAlt: {
+		id: 'landing.feature.mod-loaders.illustration-alt',
+		defaultMessage: 'ShroudForge, EMF, Kiln, and Shroudtopia logos',
 	},
 	notificationsHeading: {
 		id: 'landing.notifications.heading',
@@ -780,10 +786,9 @@ const contentTypeMessages = defineMessages({
 					justify-content: center;
 				}
 
-				.question-mark-placeholder {
-					width: min(64%, 18rem);
+					img {
+						width: 100%;
 					height: auto;
-					filter: drop-shadow(0 1rem 2rem rgba(199, 138, 255, 0.2));
 				}
 			}
 		}
