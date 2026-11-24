@@ -125,21 +125,21 @@ const footerLinks: {
 		label: defineMessage({ id: 'layout.footer.resources', defaultMessage: 'Resources' }),
 		links: [
 			{
-				href: 'https://shroudedit.com/placeholder/help-center',
+				href: 'https://status.shroudedit.com',
 				label: defineMessage({
-					id: 'layout.footer.resources.help-center',
-					defaultMessage: 'Help Center',
+					id: 'layout.footer.resources.status',
+					defaultMessage: 'Status',
 				}),
 			},
 			{
-				href: 'https://shroudedit.com/placeholder/translate',
+				href: 'https://github.com/bonsaibauer/shroudedit/blob/1.1.0/docs/translations.md',
 				label: defineMessage({
 					id: 'layout.footer.resources.translate',
 					defaultMessage: 'Translate',
 				}),
 			},
 			{
-				href: 'https://shroudedit.com/placeholder/issues',
+				href: 'https://github.com/bonsaibauer/shroudedit/issues/new/choose',
 				label: defineMessage({
 					id: 'layout.footer.resources.report-issues',
 					defaultMessage: 'Report issues',
