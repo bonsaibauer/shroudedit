@@ -374,7 +374,7 @@ const messages = defineMessages({
 	playWithLauncherDescription: {
 		id: 'landing.feature.mod-loaders.description',
 		defaultMessage:
-			"ShroudForge is preparing a ShroudEdit integration to discover, install, and update mods. Other community tools can connect through our open-source API. You can also <link>discover and share ShroudForge World Editor blueprints</link>.",
+			'ShroudForge is preparing a ShroudEdit integration to discover, install, and update mods. Other community tools can connect through our open-source API. You can also <link>discover and share ShroudForge World Editor blueprints</link>.',
 	},
 	modLoadersIllustrationAlt: {
 		id: 'landing.feature.mod-loaders.illustration-alt',
@@ -786,8 +786,8 @@ const contentTypeMessages = defineMessages({
 					justify-content: center;
 				}
 
-					img {
-						width: 100%;
+				img {
+					width: 100%;
 					height: auto;
 				}
 			}

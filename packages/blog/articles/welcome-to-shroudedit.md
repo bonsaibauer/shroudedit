@@ -52,4 +52,4 @@ Have fun exploring, creating, and sharing!
 
 **bonsaibauer**
 
-*Made with love 💚*
+_Made with love 💚_
