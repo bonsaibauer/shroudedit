@@ -6,9 +6,9 @@
 		<h2>1. Provider and scope</h2>
 		<p>
 			These Terms of Use govern access to and use of ShroudEdit, including
-			<strong>shroudedit.com</strong> and its API, and the related ShroudForge services, including the
-			ShroudForge website, Wiki and status page (collectively, the <strong>“Service”</strong>). The
-			Service is operated by:
+			<strong>shroudedit.com</strong> and its API, and the related ShroudForge services, including
+			the ShroudForge website, Wiki and status page (collectively, the <strong>“Service”</strong>).
+			The Service is operated by:
 		</p>
 		<p>
 			<strong>Operator:</strong> Philipp Feierabend<br />
@@ -19,8 +19,8 @@
 			Email: <a href="mailto:support@shroudedit.com">support@shroudedit.com</a>
 		</p>
 		<p>
-			By creating an account or using account-based functions of the Service, you agree to these Terms.
-			Our <nuxt-link to="/legal/rules">Content Rules</nuxt-link>,
+			By creating an account or using account-based functions of the Service, you agree to these
+			Terms. Our <nuxt-link to="/legal/rules">Content Rules</nuxt-link>,
 			<nuxt-link to="/legal/copyright">Copyright Policy</nuxt-link> and
 			<nuxt-link to="/legal/privacy">Privacy Policy</nuxt-link> form part of the rules governing the
 			Service.
@@ -49,11 +49,11 @@
 		<h2>4. The Service</h2>
 		<p>
 			The Service includes the ShroudEdit community platform for discovering, publishing and sharing
-			Enshrouded mods, World Editor schematics, modpacks and server listings, as well as the related
-			ShroudForge website and Wiki. The Wiki uses a separate MediaWiki account system. Features may
-			change as the project evolves. We may maintain, update, restrict or discontinue features where
-			reasonably necessary. We do not guarantee uninterrupted availability or compatibility with every
-			game, loader, server or third-party tool.
+			Enshrouded mods, World Editor <span translate="no">Blueprints</span>, modpacks and server
+			listings, as well as the related ShroudForge website and Wiki. The Wiki uses a separate
+			MediaWiki account system. Features may change as the project evolves. We may maintain, update,
+			restrict or discontinue features where reasonably necessary. We do not guarantee uninterrupted
+			availability or compatibility with every game, loader, server or third-party tool.
 		</p>
 		<p>
 			ShroudEdit is an independent community project. It is not an official Enshrouded service and
@@ -63,13 +63,13 @@
 		<h2>5. User content and project files</h2>
 		<p>
 			You retain ownership of content you provide through the Service, including project files,
-			schematics, images, descriptions, comments and Wiki pages, edits and uploads
-			(<strong>“User Content”</strong>). You grant us a worldwide, non-exclusive, royalty-free licence to
-			host, cache, reproduce, technically modify, display and
-			distribute User Content only as necessary to operate, secure and promote the Service and make
-			the content available according to the settings and licence you selected. Public Wiki
-			contributions are available under CC BY-SA 4.0 unless the relevant page states otherwise. These
-			Terms do not replace that licence.
+			<span translate="no">Blueprints</span>, images, descriptions, comments and Wiki pages, edits
+			and uploads (<strong>“User Content”</strong>). You grant us a worldwide, non-exclusive,
+			royalty-free licence to host, cache, reproduce, technically modify, display and distribute
+			User Content only as necessary to operate, secure and promote the Service and make the content
+			available according to the settings and licence you selected. Public Wiki contributions are
+			available under CC BY-SA 4.0 unless the relevant page states otherwise. These Terms do not
+			replace that licence.
 		</p>
 		<p>
 			You confirm that you hold all rights and permissions needed for the upload and the licence
@@ -80,8 +80,8 @@
 			Deletion ends our licence for future use except where continued processing is necessary for
 			backups, legal obligations, security records, dispute resolution or content already lawfully
 			downloaded or included in a modpack by another user. We will remove remaining copies from
-			active systems within a reasonable period, subject to those exceptions. Wiki revisions may remain in
-			the public history under the applicable Wiki licence.
+			active systems within a reasonable period, subject to those exceptions. Wiki revisions may
+			remain in the public history under the applicable Wiki licence.
 		</p>
 
 		<h2>6. Downloads and third-party content</h2>
@@ -174,10 +174,10 @@
 
 		<h2>14. Governing law and jurisdiction</h2>
 		<p>
-			German law applies, excluding the UN Convention on Contracts for the International Sale of
-			Goods. For consumers, this choice does not remove mandatory protections provided by the law of
-			their country of habitual residence. Statutory rules on jurisdiction apply. Jurisdiction
-			clauses for merchants and legal entities under public law apply only where legally permitted.
+			German law applies. For consumers, this choice does not remove mandatory protections provided
+			by the law of their country of habitual residence. Statutory rules on jurisdiction apply.
+			Jurisdiction clauses for merchants and legal entities under public law apply only where
+			legally permitted.
 		</p>
 
 		<h2>15. Contact</h2>

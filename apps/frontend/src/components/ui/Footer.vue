@@ -14,6 +14,7 @@ import {
 import { commonSettingsMessages } from '@shroudedit/ui/src/utils/common-messages.js'
 
 import TextLogo from '~/components/brand/TextLogo.vue'
+import { legalMessages } from '~/utils/legal-messages'
 
 const flags = useFeatureFlags()
 const { formatMessage } = useVIntl()
@@ -154,46 +155,31 @@ const footerLinks: {
 		],
 	},
 	{
-		label: defineMessage({ id: 'layout.footer.legal', defaultMessage: 'Legal' }),
+		label: legalMessages.heading,
 		links: [
 			{
 				href: '/legal/imprint',
-				label: defineMessage({
-					id: 'layout.footer.legal.imprint',
-					defaultMessage: 'Imprint',
-				}),
+				label: legalMessages.imprint,
 			},
 			{
 				href: '/legal/rules',
-				label: defineMessage({ id: 'layout.footer.legal.rules', defaultMessage: 'Content Rules' }),
+				label: legalMessages.rules,
 			},
 			{
 				href: '/legal/terms',
-				label: defineMessage({
-					id: 'layout.footer.legal.terms-of-use',
-					defaultMessage: 'Terms of Use',
-				}),
+				label: legalMessages.terms,
 			},
 			{
 				href: '/legal/privacy',
-				label: defineMessage({
-					id: 'layout.footer.legal.privacy-policy',
-					defaultMessage: 'Privacy Policy',
-				}),
+				label: legalMessages.privacy,
 			},
 			{
 				href: '/legal/security',
-				label: defineMessage({
-					id: 'layout.footer.legal.security-notice',
-					defaultMessage: 'Security Notice',
-				}),
+				label: legalMessages.security,
 			},
 			{
 				href: '/legal/copyright',
-				label: defineMessage({
-					id: 'layout.footer.legal.copyright-policy',
-					defaultMessage: 'Copyright Policy',
-				}),
+				label: legalMessages.copyright,
 			},
 		],
 	},

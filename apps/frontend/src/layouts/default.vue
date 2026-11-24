@@ -60,7 +60,7 @@
 			:api-url="config.public.apiBaseUrl"
 		/>
 
-		<ViewOnModrinthBanner />
+		<ViewOnProductionBanner />
 		<header
 			class="desktop-only relative z-[5] mx-auto grid max-w-[1280px] grid-cols-[1fr_auto] items-center gap-2 px-6 py-4 lg:grid-cols-[auto_1fr_auto]"
 		>
@@ -621,7 +621,7 @@
 			<OrganizationCreateModal ref="modal_organization_creation" />
 			<slot id="main" />
 		</main>
-		<ModrinthFooter />
+		<Footer />
 	</div>
 </template>
 <script setup>
@@ -694,11 +694,11 @@ import PreviewBanner from '~/components/ui/banner/PreviewBanner.vue'
 import TaxComplianceBanner from '~/components/ui/banner/TaxComplianceBanner.vue'
 import TaxIdMismatchBanner from '~/components/ui/banner/TaxIdMismatchBanner.vue'
 import VerifyEmailBanner from '~/components/ui/banner/VerifyEmailBanner.vue'
-import ViewOnModrinthBanner from '~/components/ui/banner/ViewOnModrinthBanner.vue'
+import ViewOnProductionBanner from '~/components/ui/banner/ViewOnProductionBanner.vue'
 import CollectionCreateModal from '~/components/ui/create/CollectionCreateModal.vue'
 import OrganizationCreateModal from '~/components/ui/create/OrganizationCreateModal.vue'
 import ProjectCreateModal from '~/components/ui/create/ProjectCreateModal.vue'
-import ModrinthFooter from '~/components/ui/ModrinthFooter.vue'
+import Footer from '~/components/ui/Footer.vue'
 import {
 	forgetStoredAccount,
 	switchToSignedOut,

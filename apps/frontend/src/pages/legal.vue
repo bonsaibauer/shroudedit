@@ -3,13 +3,25 @@
 		<div class="normal-page__sidebar">
 			<NavStack
 				:items="[
-					{ type: 'heading', label: 'Legal' },
-					{ link: '/legal/imprint', label: 'Imprint', icon: InfoIcon },
-					{ link: '/legal/rules', label: 'Content Rules', icon: ScaleIcon },
-					{ link: '/legal/terms', label: 'Terms of Use', icon: HeartHandshakeIcon },
-					{ link: '/legal/privacy', label: 'Privacy Policy', icon: LockIcon },
-					{ link: '/legal/security', label: 'Security Notice', icon: ShieldIcon },
-					{ link: '/legal/copyright', label: 'Copyright Policy', icon: CopyrightIcon },
+					{ type: 'heading', label: formatMessage(legalMessages.heading) },
+					{ link: '/legal/imprint', label: formatMessage(legalMessages.imprint), icon: InfoIcon },
+					{ link: '/legal/rules', label: formatMessage(legalMessages.rules), icon: ScaleIcon },
+					{
+						link: '/legal/terms',
+						label: formatMessage(legalMessages.terms),
+						icon: HeartHandshakeIcon,
+					},
+					{ link: '/legal/privacy', label: formatMessage(legalMessages.privacy), icon: LockIcon },
+					{
+						link: '/legal/security',
+						label: formatMessage(legalMessages.security),
+						icon: ShieldIcon,
+					},
+					{
+						link: '/legal/copyright',
+						label: formatMessage(legalMessages.copyright),
+						icon: CopyrightIcon,
+					},
 				]"
 			/>
 		</div>
@@ -28,9 +40,12 @@ import {
 	ScaleIcon,
 	ShieldIcon,
 } from '@shroudedit/assets'
+import { useVIntl } from '@shroudedit/ui'
 
 import NavStack from '~/components/ui/NavStack.vue'
+import { legalMessages } from '~/utils/legal-messages'
 
+const { formatMessage } = useVIntl()
 const route = useNativeRoute()
 </script>
 

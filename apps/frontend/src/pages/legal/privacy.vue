@@ -67,23 +67,25 @@
 			Article 6(1)(b) GDPR for account and Wiki functions and Article 6(1)(f) GDPR for security and
 			reliable operation.
 		</p>
-		<h3>Connected ShroudForge editor</h3>
+		<h3>Connected ShroudForge Modloader</h3>
 		<p>
-			If you authorize a compatible ShroudForge editor to use the ShroudEdit API, we process the
-			account and authorization information, access scopes, API requests, project and version
-			identifiers, and blueprint files needed to carry out your request. The editor receives an
-			access token limited to the authorization you grant and can use it to create or update
-			ShroudEdit blueprint versions. The legal basis is Article 6(1)(b) GDPR for the functions you
-			request and Article 6(1)(f) GDPR for API security and abuse prevention.
+			If you authorize ShroudForge Modloader to use the ShroudEdit API, we process the account and
+			authorization information, access scopes, API requests, project and version identifiers, and
+			<span translate="no">Blueprint</span> and mod files needed to carry out your request. The
+			modloader receives an access token limited to the authorization you grant and can use it to
+			create or update ShroudEdit <span translate="no">Blueprint</span> and mod versions. The legal
+			basis is Article 6(1)(b) GDPR for the functions you request and Article 6(1)(f) GDPR for API
+			security and abuse prevention.
 		</p>
 
 		<h3>Projects, uploads and community functions</h3>
 		<p>
-			When you publish or interact with content, we process project files, schematics, modpacks,
-			images, descriptions, metadata, licences, dependencies, server listings, comments, reports,
-			team memberships, follows and other information you provide. Public profile and project data
-			is displayed according to the function you use. Processing is based on Article 6(1)(b) GDPR
-			and, for moderation, fraud prevention and platform integrity, Article 6(1)(f) GDPR.
+			When you publish or interact with content, we process project files,
+			<span translate="no">Blueprints</span>, modpacks, images, descriptions, metadata, licences,
+			dependencies, server listings, comments, reports, team memberships, follows and other
+			information you provide. Public profile and project data is displayed according to the
+			function you use. Processing is based on Article 6(1)(b) GDPR and, for moderation, fraud
+			prevention and platform integrity, Article 6(1)(f) GDPR.
 		</p>
 
 		<h3>Downloads, views and internal statistics</h3>

@@ -21,4 +21,4 @@ providePageContext({ selectedProjectId, refresh })
 const page = injectPageContext()
 ```
 
-Use props and emits for direct parent-child communication. Use a provider when several nested components need the same page state or service. Keep API access behind the ShroudEdit API client provider in `packages/ui/src/providers/api-client.ts`; the website initializes that client in `apps/frontend/src/providers/setup/modrinth-client.ts`.
+Use props and emits for direct parent-child communication. Use a provider when several nested components need the same page state or service. Keep API access behind the ShroudEdit API client provider in `packages/ui/src/providers/api-client.ts`; the website initializes that client in `apps/frontend/src/providers/setup/shroudedit-client.ts`.

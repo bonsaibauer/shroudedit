@@ -6,18 +6,18 @@
 		<p>
 			These Content Rules form part of the
 			<nuxt-link to="/legal/terms">Terms of Use</nuxt-link> and apply to all projects, files,
-			schematics, modpacks, server listings, images, descriptions, comments and other material
-			shared through the Service, including contributions to the ShroudForge Wiki
-			(<strong>“Content”</strong>).
+			<span translate="no">Blueprints</span>, modpacks, server listings, images, descriptions,
+			comments and other material shared through the Service, including contributions to the
+			ShroudForge Wiki (<strong>“Content”</strong>).
 		</p>
 		<p>
-			The project requirements in section 4 apply to ShroudEdit project listings. The other rules apply
-			to Content across the Service.
+			The project requirements in section 4 apply to ShroudEdit project listings. The other rules
+			apply to Content across the Service.
 		</p>
 		<p>
 			Use the report button where available, or email
-			<a href="mailto:support@shroudedit.com">support@shroudedit.com</a> if there is no report button.
-			Copyright reports are handled under our
+			<a href="mailto:support@shroudedit.com">support@shroudedit.com</a> if there is no report
+			button. Copyright reports are handled under our
 			<nuxt-link to="/legal/copyright">Copyright Policy</nuxt-link>. Include the content URL in your
 			report.
 		</p>
@@ -66,8 +66,8 @@
 
 		<h2 id="project-description">3. Clear and honest project listings</h2>
 		<p>
-			A project listing must clearly explain what the project does, how it is installed or used, what
-			game and loader versions it supports and any important limitations or risks. Titles,
+			A project listing must clearly explain what the project does, how it is installed or used,
+			what game and loader versions it supports and any important limitations or risks. Titles,
 			summaries, categories, dependencies, licences and environment tags must be accurate and must
 			not be used to manipulate search or impersonate another project.
 		</p>
@@ -86,12 +86,14 @@
 			Shroudforge or EML where applicable. Any client/server requirements and configuration steps
 			must be disclosed.
 		</p>
-		<h3>4.2. Schematics</h3>
+		<h3>4.2. <span translate="no">Blueprints</span></h3>
 		<p>
-			Schematics must be genuine ShroudForge World Editor <code>.sfbp</code> content and must
-			provide the relevant schematic format version, dimensions, compatible game and World Editor
-			versions, and installation or import instructions. A schematic must not include a world or
-			asset that the uploader is not permitted to redistribute.
+			<span translate="no">Blueprints</span> must be genuine ShroudForge World Editor
+			<code>.sfbp</code> content and must provide the relevant
+			<span translate="no">Blueprint</span> format version, dimensions, compatible game and World
+			Editor versions, and installation or import instructions. A
+			<span translate="no">Blueprint</span> must not include a world or asset that the uploader is
+			not permitted to redistribute.
 		</p>
 		<h3>4.3. Modpacks</h3>
 		<p>
@@ -135,10 +137,10 @@
 		<h2 id="moderation">8. Enforcement</h2>
 		<p>
 			Depending on severity and context, we may request changes, reject a submission, reduce
-			visibility, remove files or Wiki edits, suspend distribution, restrict Wiki editing or restrict
-			an account. We consider intent,
-			harm, recurrence, cooperation and the reliability of available evidence. Where required by
-			law, we provide reasons and an opportunity to request review. Appeals may be sent to
+			visibility, remove files or Wiki edits, suspend distribution, restrict Wiki editing or
+			restrict an account. We consider intent, harm, recurrence, cooperation and the reliability of
+			available evidence. Where required by law, we provide reasons and an opportunity to request
+			review. Appeals may be sent to
 			<a href="mailto:support@shroudedit.com">support@shroudedit.com</a>.
 		</p>
 	</div>

@@ -12,10 +12,11 @@
 
 		<h2>Reporting copyright infringement</h2>
 		<p>
-			If you believe content available through the Service infringes your rights, send a sufficiently
-			precise notice to
+			If you believe content available through the Service infringes your rights, send a
+			sufficiently precise notice to
 			<a href="mailto:copyright@shroudedit.com">copyright@shroudedit.com</a>. You may also use the
-			reporting function where available. Include the exact URL, including the Wiki page or file URL.
+			reporting function where available. Include the exact URL, including the Wiki page or file
+			URL.
 		</p>
 		<p>A notice should include:</p>
 		<ul>
@@ -30,9 +31,9 @@
 		<h2>Review and action</h2>
 		<p>
 			We assess notices promptly, carefully and impartially. We may request further information,
-			restrict access while a claim is reviewed, remove content, including Wiki pages or edits, or reject
-			an unsupported notice. Our action will be limited to what is reasonably necessary. Where legally
-			required, we will notify the uploader of the decision and its reasons.
+			restrict access while a claim is reviewed, remove content, including Wiki pages or edits, or
+			reject an unsupported notice. Our action will be limited to what is reasonably necessary.
+			Where legally required, we will notify the uploader of the decision and its reasons.
 		</p>
 
 		<h2>Response by the uploader</h2>
@@ -48,9 +49,9 @@
 
 		<h2>Repeated or serious infringement</h2>
 		<p>
-			We may suspend or terminate accounts or restrict Wiki editing for repeated or serious infringement
-			of intellectual property rights. Decisions take account of the nature, severity, frequency and
-			reliability of the reports as well as any successful objections.
+			We may suspend or terminate accounts or restrict Wiki editing for repeated or serious
+			infringement of intellectual property rights. Decisions take account of the nature, severity,
+			frequency and reliability of the reports as well as any successful objections.
 		</p>
 
 		<h2>Misuse of the reporting process</h2>
