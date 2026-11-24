@@ -94,81 +94,109 @@
 							{{ formatMessage(messages.accessGroupsHint) }}
 						</p>
 					</div>
-					<details
-						v-for="group in userGroups"
-						:key="group.name"
-						class="rounded-xl border border-solid border-surface-4 bg-surface-2 p-3"
+					<Button
+						type="outlined"
+						class="w-fit"
+						:disabled="!hasPermission || userGroups.length >= 32"
+						@click="addGroup"
 					>
-						<summary class="cursor-pointer font-semibold text-contrast">
-							{{ group.name }}
-							<span class="ml-2 text-sm font-normal text-secondary">
-								{{ formatGroupSummary(group) }}
-							</span>
-						</summary>
-						<div class="mt-4 flex flex-col gap-3">
-							<div class="grid gap-2 sm:grid-cols-2">
-								<Checkbox
-									v-model="group.can_kick_ban"
-									:disabled="!hasPermission"
-									:label="formatMessage(messages.kickBan)"
-								/>
-								<Checkbox
-									v-model="group.can_access_inventories"
-									:disabled="!hasPermission"
-									:label="formatMessage(messages.inventories)"
-								/>
-								<Checkbox
-									v-model="group.can_edit_world"
-									:disabled="!hasPermission"
-									:label="formatMessage(messages.editWorld)"
-								/>
-								<Checkbox
-									v-model="group.can_edit_base"
-									:disabled="!hasPermission"
-									:label="formatMessage(messages.editBase)"
-								/>
-								<Checkbox
-									v-model="group.can_extend_base"
-									:disabled="!hasPermission"
-									:label="formatMessage(messages.extendBase)"
-								/>
-							</div>
-							<label>
-								<span class="label__title">{{ formatMessage(messages.reservedSlots) }}</span>
-								<Input
-									v-model="group.reserved_slots"
-									type="number"
-									min="0"
-									max="16"
-									:disabled="!hasPermission"
-								/>
-							</label>
-							<label>
-								<span class="label__title">{{ formatMessage(messages.passwordVisibility) }}</span>
-								<Combobox
-									v-model="group.password_visibility"
-									:options="passwordVisibilityOptions(group)"
-									:disabled="!hasPermission"
-								/>
-							</label>
-							<label v-if="group.password_visibility === 'public'">
-								<span class="label__title">{{ formatMessage(messages.publicPassword) }}</span>
-								<Input
-									v-model="publicPasswords[group.name]"
-									type="password"
-									maxlength="128"
-									:disabled="!hasPermission"
-									autocomplete="new-password"
-								/>
-								<p v-if="group.role === 'friend'" class="mb-0 mt-1 text-sm text-orange">
-									{{ formatMessage(messages.friendWarning) }}
+						<PlusIcon aria-hidden="true" />
+						{{ formatMessage(messages.addGroup) }}
+					</Button>
+					<div v-for="group in userGroups" :key="group._key" class="relative">
+						<details
+							:open="group._new || undefined"
+							class="rounded-xl border border-solid border-surface-4 bg-surface-2 p-3"
+						>
+							<summary class="cursor-pointer pr-10 font-semibold text-contrast">
+								{{ group.name || formatMessage(messages.newGroup) }}
+								<span class="ml-2 text-sm font-normal text-secondary">
+									{{ formatGroupSummary(group) }}
+								</span>
+							</summary>
+							<div class="mt-4 flex flex-col gap-3">
+								<label>
+									<span class="label__title">{{ formatMessage(messages.groupName) }}</span>
+									<Input v-model="group.name" maxlength="64" :disabled="!hasPermission" />
+								</label>
+								<div class="grid gap-2 sm:grid-cols-2">
+									<Checkbox
+										v-model="group.can_kick_ban"
+										:disabled="!hasPermission"
+										:label="formatMessage(messages.kickBan)"
+									/>
+									<Checkbox
+										v-model="group.can_access_inventories"
+										:disabled="!hasPermission"
+										:label="formatMessage(messages.inventories)"
+									/>
+									<Checkbox
+										v-model="group.can_edit_world"
+										:disabled="!hasPermission"
+										:label="formatMessage(messages.editWorld)"
+									/>
+									<Checkbox
+										v-model="group.can_edit_base"
+										:disabled="!hasPermission"
+										:label="formatMessage(messages.editBase)"
+									/>
+									<Checkbox
+										v-model="group.can_extend_base"
+										:disabled="!hasPermission"
+										:label="formatMessage(messages.extendBase)"
+									/>
+								</div>
+								<label>
+									<span class="label__title">{{ formatMessage(messages.reservedSlots) }}</span>
+									<Input
+										v-model="group.reserved_slots"
+										type="number"
+										min="0"
+										max="16"
+										:disabled="!hasPermission"
+									/>
+								</label>
+								<label>
+									<span class="label__title">{{ formatMessage(messages.passwordVisibility) }}</span>
+									<Combobox
+										v-model="group.password_visibility"
+										:options="passwordVisibilityOptions(group)"
+										:disabled="!hasPermission"
+									/>
+								</label>
+								<label v-if="group.password_visibility === 'public'">
+									<span class="label__title">{{ formatMessage(messages.publicPassword) }}</span>
+									<Input
+										v-model="publicPasswords[group._key]"
+										type="password"
+										maxlength="128"
+										:disabled="!hasPermission"
+										autocomplete="new-password"
+									/>
+									<p v-if="group.role === 'friend'" class="mb-0 mt-1 text-sm text-orange">
+										{{ formatMessage(messages.friendWarning) }}
+									</p>
+								</label>
+								<p v-else-if="group.password_visibility === 'none'" class="m-0 text-sm text-orange">
+									{{ formatMessage(messages.noPasswordWarning) }}
 								</p>
-							</label>
-							<p v-else-if="group.password_visibility === 'none'" class="m-0 text-sm text-orange">
-								{{ formatMessage(messages.noPasswordWarning) }}
-							</p>
-						</div>
-					</details>
+							</div>
+						</details>
+						<IconButton
+							:label="
+								formatMessage(messages.removeGroup, {
+									group: group.name || formatMessage(messages.newGroup),
+								})
+							"
+							type="quiet"
+							size="xs"
+							class="absolute right-2 top-2"
+							:disabled="!hasPermission"
+							@click="removeGroup(group._key)"
+						>
+							<XIcon aria-hidden="true" />
+						</IconButton>
+					</div>
 				</div>
 			</div>
 		</section>
@@ -183,8 +211,9 @@
 </template>
 
 <script setup>
-import { RefreshCwIcon, SpinnerIcon } from '@shroudedit/assets'
+import { PlusIcon, RefreshCwIcon, SpinnerIcon, XIcon } from '@shroudedit/assets'
 import {
+	Button,
 	Checkbox,
 	Combobox,
 	commonProjectSettingsMessages,
@@ -253,6 +282,17 @@ const messages = defineMessages({
 		id: 'project.settings.server.access-groups-hint',
 		defaultMessage:
 			'These settings are provided by the server owner and should match enshrouded_server.json.',
+	},
+	addGroup: { id: 'project.settings.server.add-group', defaultMessage: 'Add group' },
+	newGroup: { id: 'project.settings.server.new-group', defaultMessage: 'New group' },
+	groupName: { id: 'project.settings.server.group-name', defaultMessage: 'Group name' },
+	removeGroup: {
+		id: 'project.settings.server.remove-group',
+		defaultMessage: 'Remove {group}',
+	},
+	invalidGroupNames: {
+		id: 'project.settings.server.invalid-group-names',
+		defaultMessage: 'Group names must be non-empty and unique.',
 	},
 	kickBan: {
 		id: 'project.settings.server.permission-kick-ban',
@@ -335,6 +375,7 @@ const pingLoading = ref(false)
 const pingResult = ref(null)
 const saving = ref(false)
 let pingTimer
+let nextGroupKey = 0
 
 const hasPermission = computed(() => {
 	const EDIT_DETAILS = 1 << 2
@@ -419,6 +460,29 @@ function defaultUserGroups() {
 	]
 }
 
+function addGroup() {
+	if (!hasPermission.value || userGroups.value.length >= 32) return
+	userGroups.value.push({
+		_key: nextGroupKey++,
+		_new: true,
+		name: '',
+		role: 'custom',
+		can_kick_ban: false,
+		can_access_inventories: false,
+		can_edit_world: false,
+		can_edit_base: false,
+		can_extend_base: false,
+		reserved_slots: 0,
+		password_visibility: 'required',
+	})
+}
+
+function removeGroup(key) {
+	if (!hasPermission.value) return
+	userGroups.value = userGroups.value.filter((group) => group._key !== key)
+	delete publicPasswords.value[key]
+}
+
 function init(v3, entries = []) {
 	if (!v3) return
 	const server = v3.enshrouded_server
@@ -429,11 +493,17 @@ function init(v3, entries = []) {
 	voiceChatEnabled.value = server?.voice_chat_enabled ?? false
 	voiceChatMode.value = server?.voice_chat_mode ?? 'proximity'
 	textChatEnabled.value = server?.text_chat_enabled ?? false
-	userGroups.value = (server?.user_groups?.length ? server.user_groups : defaultUserGroups()).map(
-		(group) => ({ ...group }),
-	)
+	userGroups.value = (server?.user_groups ?? defaultUserGroups()).map((group) => ({
+		...group,
+		_key: nextGroupKey++,
+	}))
 	publicPasswords.value = Object.fromEntries(
-		entries.map((entry) => [entry.group_name, entry.password]),
+		userGroups.value.flatMap((group) => {
+			const entry = entries.find(
+				(entry) => entry.group_name.trim().toLowerCase() === group.name.trim().toLowerCase(),
+			)
+			return entry ? [[group._key, entry.password]] : []
+		}),
 	)
 	originalState.value = structuredClone(currentState())
 	initializedProjectId.value = v3.id
@@ -561,8 +631,17 @@ async function handleSave() {
 		})
 		return
 	}
+	const names = userGroups.value.map((group) => group.name.trim().toLowerCase())
+	if (names.some((name) => !name) || new Set(names).size !== names.length) {
+		addNotification({
+			title: formatMessage(commonProjectSettingsMessages.server),
+			text: formatMessage(messages.invalidGroupNames),
+			type: 'error',
+		})
+		return
+	}
 	const missingPublicPassword = userGroups.value.some(
-		(group) => group.password_visibility === 'public' && !publicPasswords.value[group.name]?.trim(),
+		(group) => group.password_visibility === 'public' && !publicPasswords.value[group._key]?.trim(),
 	)
 	if (missingPublicPassword) {
 		addNotification({
@@ -583,7 +662,17 @@ async function handleSave() {
 				voice_chat_enabled: modified.value.voiceChatEnabled,
 				voice_chat_mode: modified.value.voiceChatMode,
 				text_chat_enabled: modified.value.textChatEnabled,
-				user_groups: modified.value.userGroups,
+				user_groups: modified.value.userGroups.map((group) => ({
+					name: group.name.trim(),
+					role: group.role,
+					can_kick_ban: group.can_kick_ban,
+					can_access_inventories: group.can_access_inventories,
+					can_edit_world: group.can_edit_world,
+					can_edit_base: group.can_edit_base,
+					can_extend_base: group.can_extend_base,
+					reserved_slots: group.reserved_slots,
+					password_visibility: group.password_visibility,
+				})),
 			},
 		})
 		if (!projectSaved) return
@@ -593,8 +682,8 @@ async function handleSave() {
 				passwords: modified.value.userGroups
 					.filter((group) => group.password_visibility === 'public')
 					.map((group) => ({
-						group_name: group.name,
-						password: publicPasswords.value[group.name].trim(),
+						group_name: group.name.trim(),
+						password: publicPasswords.value[group._key].trim(),
 					})),
 			})
 		} catch {
