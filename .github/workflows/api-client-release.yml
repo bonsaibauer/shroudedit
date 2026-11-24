@@ -1,6 +1,7 @@
 name: 'Publish: API Client to npm'
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - .github/workflows/api-client-release.yml
@@ -33,6 +34,11 @@ jobs:
       - name: Check for api-client changes
         id: changes
         run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
           if [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
             echo "changed=true" >> "$GITHUB_OUTPUT"
             exit 0
@@ -132,4 +138,6 @@ jobs:
       - name: Publish api-client
         if: steps.changes.outputs.changed == 'true'
         working-directory: packages/api-client
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm publish --access public --provenance --no-git-checks
