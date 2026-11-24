@@ -1,6 +1,7 @@
 import type { Labrinth, UploadProgress } from '@shroudedit/api-client'
 import { SaveIcon, SpinnerIcon } from '@shroudedit/assets'
 import {
+	commonMessages,
 	type ComboboxOption,
 	createContext,
 	defineMessage,
@@ -18,27 +19,13 @@ import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import type { ComponentExposed } from 'vue-component-type-helpers'
 
 import { useGeneratedState } from '~/composables/generated'
-import { inferVersionInfo } from '~/helpers/infer'
+import {
+	type InferredVersionInfo,
+	inferVersionInfo,
+	InvalidModManifestError,
+} from '~/helpers/infer'
 
 import { stageConfigs } from './stages'
-
-// this interface should be in infer.js, but gotta refactor that to ts first
-export interface InferredVersionInfo {
-	name?: string
-	version_number?: string
-	version_type?: 'alpha' | 'beta' | 'release'
-	loaders?: string[]
-	game_versions?: string[]
-	project_type?: Labrinth.Projects.v2.ProjectType
-	environment?: Labrinth.Projects.v3.Environment
-	dependencies?: Labrinth.Versions.v3.Dependency[]
-	schematic_format_version?: number
-	world_editor_version?: string
-	schematic_width?: number
-	schematic_height?: number
-	schematic_depth?: number
-	schematic_installation?: string
-}
 
 const EMPTY_DRAFT_VERSION: Labrinth.Versions.v3.DraftVersion = {
 	project_id: '',
@@ -181,6 +168,16 @@ export const fileTypeMessages: Record<
 	}),
 }
 
+const invalidModManifestMessage = defineMessage({
+	id: 'create-project-version.invalid-mod-manifest',
+	defaultMessage: '{filename} must contain a valid id, name, and version.',
+})
+
+const missingModManifestMessage = defineMessage({
+	id: 'create-project-version.missing-mod-manifest',
+	defaultMessage: 'Upload a ZIP archive that contains a mod.json file.',
+})
+
 const sfbpMessages = {
 	invalidTitle: defineMessage({
 		id: 'create-project-version.sfbp.invalid-title',
@@ -297,7 +294,8 @@ export function createManageVersionContext(
 	}
 
 	async function handleNewFiles(newFiles: File[]) {
-		handlingNewFiles.value = true
+		if (handlingNewFiles.value || newFiles.length === 0) return
+
 		if (
 			projectType.value === 'schematic' &&
 			newFiles.some((file) => !file.name.toLowerCase().endsWith('.sfbp'))
@@ -307,57 +305,54 @@ export function createManageVersionContext(
 				text: formatMessage(sfbpMessages.invalidExtension),
 				type: 'error',
 			})
-			handlingNewFiles.value = false
 			return
 		}
-		// detect primary file if no primary file is set
-		const primaryFileIndex = primaryFile.value ? null : detectPrimaryFileIndex(newFiles)
 
+		const primaryFileIndex = primaryFile.value ? null : detectPrimaryFileIndex(newFiles)
 		if (hasSupplementaryMrpackFile(newFiles, primaryFileIndex)) {
 			notifyInvalidSupplementaryMrpack()
-			handlingNewFiles.value = false
 			return
 		}
 
-		newFiles.forEach((file) => filesToAdd.value.push({ file }))
-
-		if (primaryFileIndex !== null) {
-			if (primaryFileIndex) swapPrimaryFile(primaryFileIndex)
-		}
-
-		if (!editingVersion.value && modal.value?.currentStageIndex === 0) {
+		handlingNewFiles.value = true
+		try {
 			if (primaryFileIndex !== null) {
-				const primaryFileData = filesToAdd.value[0]?.file
-				if (primaryFileData) {
-					if (!(await addDetectedData(primaryFileData))) {
-						handlingNewFiles.value = false
-						return
-					}
-				}
-				if (filesToAdd.value.length === 1 && primaryFileData) {
-					modal.value?.nextStage()
-				}
+				const file = newFiles[primaryFileIndex]
+				if (!(await addDetectedData(file))) return
+				filesToAdd.value.push({ file })
 			}
-		}
 
-		handlingNewFiles.value = false
+			newFiles.forEach((file, index) => {
+				if (index !== primaryFileIndex) filesToAdd.value.push({ file })
+			})
+
+			if (
+				primaryFileIndex !== null &&
+				!editingVersion.value &&
+				filesToAdd.value.length === 1 &&
+				modal.value?.currentStageIndex === 0
+			) {
+				modal.value.nextStage()
+			}
+		} finally {
+			handlingNewFiles.value = false
+		}
 	}
 
 	async function replacePrimaryFile(file: File) {
-		if (file && !editingVersion.value) {
+		if (!editingVersion.value && (await addDetectedData(file))) {
 			filesToAdd.value[0] = { file }
 		}
-		await addDetectedData(file)
 	}
 
 	async function swapPrimaryFile(index: number) {
 		const files = filesToAdd.value
-		if (index <= 0 || index >= files.length) return
+		if (index <= 0 || index >= files.length || editingVersion.value) return
+		if (!(await addDetectedData(files[index].file))) return
+
 		files[0].fileType = 'unknown'
 		files[index].fileType = 'unknown'
 		;[files[0], files[index]] = [files[index], files[0]]
-
-		await addDetectedData(files[0].file)
 	}
 
 	const tags = useGeneratedState()
@@ -386,17 +381,13 @@ export function createManageVersionContext(
 		file: File,
 		project: Labrinth.Projects.v2.Project,
 	): Promise<InferredVersionInfo> {
-		const inferred = (await inferVersionInfo(
-			file,
-			project,
-			tags.value.gameVersions,
-		)) as InferredVersionInfo
-
-		inferred.environment = await inferEnvironmentFromVersions(project.id, inferred.loaders ?? [])
-
+		const inferred = await inferVersionInfo(file, project, tags.value.gameVersions)
 		inferred.loaders = inferred.loaders?.filter((loader) =>
 			PROJECT_TYPE_LOADERS.mod.includes(loader),
 		)
+		if (inferred.loaders?.length) {
+			inferred.environment ??= await inferEnvironmentFromVersions(project.id, inferred.loaders)
+		}
 
 		inferredVersionData.value = inferred
 
@@ -516,7 +507,7 @@ export function createManageVersionContext(
 	}
 
 	function detectPrimaryFileIndex(files: File[]): number {
-		const extensionPriority = ['.jar', '.zip', '.litemod', '.mrpack', '.mrpack-primary']
+		const extensionPriority = ['.sfbp', '.zip', '.mrpack', '.mrpack-primary']
 
 		for (const ext of extensionPriority) {
 			const matches = files.filter((file) => file.name.toLowerCase().endsWith(ext))
@@ -537,17 +528,26 @@ export function createManageVersionContext(
 
 		try {
 			const inferredData = await setInferredVersionData(primaryFileData, projectV2.value)
-			const mappedInferredData: Partial<Labrinth.Versions.v3.DraftVersion> = {
-				...inferredData,
-				name: inferredData.name || '',
-			}
+			const detectedFields = Object.fromEntries(
+				Object.entries(inferredData).filter(([, value]) => value !== undefined),
+			)
 
 			draftVersion.value = {
 				...draftVersion.value,
-				...mappedInferredData,
+				...detectedFields,
 			}
 			return true
 		} catch (err) {
+			if (err instanceof InvalidModManifestError) {
+				addNotification({
+					title: formatMessage(commonMessages.errorNotificationTitle),
+					text: err.filename
+						? formatMessage(invalidModManifestMessage, { filename: err.filename })
+						: formatMessage(missingModManifestMessage),
+					type: 'error',
+				})
+				return false
+			}
 			console.error('Error parsing version file data', err)
 			if (projectType.value === 'schematic') {
 				const message = err instanceof Error ? err.message : formatMessage(sfbpMessages.readFailure)

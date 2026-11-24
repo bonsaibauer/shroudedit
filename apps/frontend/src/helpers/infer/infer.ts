@@ -1,57 +1,32 @@
-import JSZip from 'jszip'
+import type { Labrinth } from '@shroudedit/api-client'
 
-import { createLoaderParsers } from './loader-parsers'
-import { createMultiFileDetectors } from './multi-file-detectors'
-import { createPackParser } from './pack-parsers'
-import { extractVersionDetailsFromFilename } from './version-utils'
+import { inferShroudForgeVersion, InvalidModManifestError } from './shroudforge'
 
-export type GameVersion = { version: string; version_type: string }
+export type InferredVersionInfo = Partial<
+	Pick<
+		Labrinth.Versions.v3.DraftVersion,
+		| 'name'
+		| 'version_number'
+		| 'version_type'
+		| 'loaders'
+		| 'game_versions'
+		| 'environment'
+		| 'changelog'
+		| 'schematic_format_version'
+		| 'schematic_width'
+		| 'schematic_height'
+		| 'schematic_depth'
+	>
+>
 
-export type Project = { title: string; actualProjectType?: string }
-
-export type RawFile = File | (Blob & { name: string })
-
-export interface InferredVersionInfo {
-	name?: string
-	version_number?: string
-	version_type?: 'alpha' | 'beta' | 'release'
-	loaders?: string[]
-	game_versions?: string[]
-	dependencies?: Array<{
-		project_id?: string
-		version_id?: string
-		dependency_type: 'required' | 'optional'
-	}>
-	schematic_format_version?: number
-	world_editor_version?: string
-	schematic_width?: number
-	schematic_height?: number
-	schematic_depth?: number
-	schematic_installation?: string
-}
-
-async function readMrpackManifest(rawFile: RawFile): Promise<string> {
-	const { BlobReader, TextWriter, ZipReader } = await import('@zip.js/zip.js')
-	const reader = new ZipReader(new BlobReader(rawFile))
-
-	try {
-		const entries = await reader.getEntries()
-		const manifest = entries.find(
-			(entry) => !entry.directory && entry.filename === 'modrinth.index.json',
-		)
-
-		if (!manifest || manifest.directory) {
-			throw new Error('Missing modrinth.index.json')
-		}
-
-		return await manifest.getData(new TextWriter())
-	} finally {
-		await reader.close()
-	}
+function versionType(version: string): Labrinth.Versions.v3.VersionChannel {
+	const prerelease = version.split('+')[0].split('-').slice(1).join('-')
+	if (prerelease.startsWith('alpha')) return 'alpha'
+	return prerelease ? 'beta' : 'release'
 }
 
 async function inferSfbpMetadata(
-	rawFile: RawFile,
+	rawFile: File,
 ): Promise<
 	Pick<
 		InferredVersionInfo,
@@ -103,128 +78,62 @@ async function inferSfbpMetadata(
 	}
 }
 
-/**
- * Fills in missing version information from the filename if not already present.
- */
-function fillMissingFromFilename(
-	result: InferredVersionInfo,
-	filename: string,
-	projectTitle: string,
-): InferredVersionInfo {
-	const filenameDetails = extractVersionDetailsFromFilename(filename)
-
-	if (!result.version_number && filenameDetails.versionNumber) {
-		result.version_number = filenameDetails.versionNumber
-	}
-
-	if (!result.version_type) {
-		result.version_type = filenameDetails.versionType
-	}
-
-	if (!result.name && result.version_number) {
-		result.name = `${projectTitle} ${result.version_number}`
-	}
-
-	return result
-}
-
-/**
- * Main function to infer version information from a file.
- * Analyzes mod loaders, packs, and other Enshrouded-related file formats.
- */
-export const inferVersionInfo = async function (
-	rawFile: RawFile,
-	project: Project,
-	gameVersions: GameVersion[],
+export async function inferVersionInfo(
+	file: File,
+	project: Pick<Labrinth.Projects.v2.Project, 'title' | 'actualProjectType'>,
+	gameVersions: readonly Labrinth.Tags.v2.GameVersion[],
 ): Promise<InferredVersionInfo> {
-	const simplifiedGameVersions = gameVersions
-		.filter((it) => it.version_type === 'release')
-		.map((it) => it.version)
-	const loaderParsers = createLoaderParsers(project, gameVersions, simplifiedGameVersions)
-	const fileName = rawFile.name.toLowerCase()
+	const filename = file.name.toLowerCase()
 	if (project.actualProjectType === 'schematic') {
-		if (!fileName.endsWith('.sfbp')) {
+		if (!filename.endsWith('.sfbp')) {
 			throw new Error('Blueprints must use the .sfbp file extension')
 		}
-
-		return fillMissingFromFilename(await inferSfbpMetadata(rawFile), rawFile.name, project.title)
+		return inferSfbpMetadata(file)
 	}
 
-	if (fileName.endsWith('.mrpack') || fileName.endsWith('.mrpack-primary')) {
-		const manifest = await readMrpackManifest(rawFile)
-		const result = loaderParsers['modrinth.index.json'](manifest)
-		return fillMissingFromFilename(result, rawFile.name, project.title)
+	const isModpack = filename.endsWith('.mrpack') || filename.endsWith('.mrpack-primary')
+	const requireManifest =
+		!isModpack && (project.actualProjectType === 'mod' || project.actualProjectType === 'project')
+	if (!isModpack && !filename.endsWith('.zip')) {
+		if (requireManifest) throw new InvalidModManifestError()
+		return {}
 	}
 
-	const zipReader = new JSZip()
-	const zip = await zipReader.loadAsync(rawFile)
-
-	const packParser = createPackParser(project, gameVersions, rawFile)
-	const multiFileDetectors = createMultiFileDetectors(project, gameVersions, rawFile)
-
-	const inferFunctions = {
-		...loaderParsers,
-		'pack.mcmeta': packParser,
-	}
-
-	// Multi-loader detection
-	const multiLoaderFiles = [
-		'META-INF/neoforge.mods.toml',
-		'META-INF/mods.toml',
-		'fabric.mod.json',
-		'quilt.mod.json',
-	]
-	const detectedLoaderFiles = multiLoaderFiles.filter((fileName) => zip.file(fileName) !== null)
-	if (detectedLoaderFiles.length > 1) {
-		const results: InferredVersionInfo[] = []
-		for (const fileName of detectedLoaderFiles) {
-			const file = zip.file(fileName)
-			if (file !== null) {
-				const text = await file.async('text')
-				const parser = inferFunctions[fileName as keyof typeof inferFunctions]
-				if (parser) {
-					const result = await parser(text, zip)
-					if (result && Object.keys(result).length > 0) results.push(result)
-				}
-			}
+	const { BlobReader, TextWriter, ZipReader } = await import('@zip.js/zip.js')
+	const reader = new ZipReader(new BlobReader(file))
+	try {
+		const entries = await reader.getEntries().catch((error) => {
+			if (requireManifest) throw new InvalidModManifestError()
+			throw error
+		})
+		if (!isModpack) {
+			const inferred = await inferShroudForgeVersion(
+				entries.filter((entry) => !entry.directory),
+				requireManifest,
+			)
+			if (inferred.version_number) inferred.version_type = versionType(inferred.version_number)
+			return inferred
 		}
-		if (results.length > 0) {
-			const combinedLoaders = [...new Set(results.flatMap((r) => r.loaders || []))]
-			const allGameVersions = [...new Set(results.flatMap((r) => r.game_versions || []))]
-			const primaryResult = results.find((r) => r.version_number) || results[0]
 
-			const mergedResult = {
-				name: primaryResult.name,
-				version_number: primaryResult.version_number,
-				version_type: primaryResult.version_type,
-				loaders: combinedLoaders,
-				game_versions: allGameVersions,
-			}
-			return fillMissingFromFilename(mergedResult, rawFile.name, project.title)
+		const manifest = entries.find(
+			(entry) => !entry.directory && entry.filename === 'modrinth.index.json',
+		)
+		if (!manifest || manifest.directory) throw new Error('Missing modrinth.index.json')
+
+		const pack: { versionId?: string; dependencies?: { enshrouded?: string } } = JSON.parse(
+			await manifest.getData(new TextWriter()),
+		)
+		const version = pack.versionId
+		const gameVersion = pack.dependencies?.enshrouded
+		return {
+			name: version ? `${project.title} ${version}` : undefined,
+			version_number: version,
+			version_type: version ? versionType(version) : undefined,
+			game_versions: gameVersions
+				.filter(({ version }) => version === gameVersion)
+				.map(({ version }) => version),
 		}
+	} finally {
+		await reader.close()
 	}
-
-	// Standard single-loader detection
-	for (const fileName in inferFunctions) {
-		const file = zip.file(fileName)
-
-		if (file !== null) {
-			const text = await file.async('text')
-			const parser = inferFunctions[fileName as keyof typeof inferFunctions]
-			if (parser) {
-				const result = await parser(text, zip)
-				return fillMissingFromFilename(result, rawFile.name, project.title)
-			}
-		}
-	}
-
-	// Multi-file detection functions
-	for (const detector of Object.values(multiFileDetectors)) {
-		const result = await detector(zip)
-		if (result !== null) {
-			return fillMissingFromFilename(result, rawFile.name, project.title)
-		}
-	}
-
-	return fillMissingFromFilename({}, rawFile.name, project.title)
 }

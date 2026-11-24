@@ -4,7 +4,6 @@
 			v-model="draftVersion.loaders"
 			:loaders="availableLoaders"
 			:toggle-loader="toggleLoader"
-			:include-geyser="includeGeyser"
 		/>
 
 		<div v-if="draftVersion.loaders.length" class="space-y-1">
@@ -51,7 +50,7 @@ const generatedState = useGeneratedState()
 
 const loaders = computed(() => generatedState.value.loaders)
 
-const { draftVersion, inferredVersionData, projectType } = injectManageVersionContext()
+const { draftVersion, projectType } = injectManageVersionContext()
 
 const availableLoaders = computed(() =>
 	projectType.value === 'schematic'
@@ -60,8 +59,6 @@ const availableLoaders = computed(() =>
 			)
 		: generatedState.value.loaders,
 )
-
-const includeGeyser = computed(() => inferredVersionData.value?.loaders?.includes('geyser'))
 
 const toggleLoader = (loader: string) => {
 	if (draftVersion.value.loaders.includes(loader)) {

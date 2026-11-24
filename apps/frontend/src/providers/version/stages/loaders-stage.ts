@@ -10,14 +10,7 @@ export const stageConfig: StageConfigInput<ManageVersionContextValue> = {
 	id: 'add-loaders',
 	stageContent: markRaw(LoadersStage),
 	title: (ctx) => (ctx.editingVersion.value ? 'Edit version' : 'Loaders'),
-	skip: (ctx) => {
-		const inferredLoadersLength = ctx.inferredVersionData.value?.loaders?.length ?? 0
-		return (
-			inferredLoadersLength > 0 ||
-			ctx.editingVersion.value ||
-			(inferredLoadersLength === 0 && ctx.projectType.value === 'modpack')
-		)
-	},
+	skip: (ctx) => ctx.editingVersion.value || ctx.projectType.value === 'modpack',
 	hideStageInBreadcrumb: (ctx) => !ctx.primaryFile.value || ctx.handlingNewFiles.value,
 	cannotNavigateForward: (ctx) => ctx.draftVersion.value.loaders.length === 0,
 	leftButtonConfig: (ctx) => ({
