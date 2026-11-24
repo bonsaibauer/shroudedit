@@ -20,6 +20,7 @@ const tailwindConfig = {
 				orange: '#e08325',
 				green: '#00af5c',
 				blue: '#1f68c0',
+				'mail-brand': '#18344d',
 				purple: '#8e32f3',
 				gray: '#595b61',
 				brand: {

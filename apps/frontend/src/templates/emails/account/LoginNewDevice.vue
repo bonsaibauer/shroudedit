@@ -5,10 +5,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 </script>
 
 <template>
-	<StyledEmail
-		title="Sign in from new device"
-		:manual-links="[{ link: 'https://support.shroudedit.com', label: 'Support Portal' }]"
-	>
+	<StyledEmail title="Sign in from new device">
 		<Heading as="h1" class="mb-2 text-2xl font-bold"> Sign in from new device </Heading>
 
 		<Text class="text-muted text-base">Hi <span class="no-auto-link">{user.name}</span>,</Text>
@@ -70,9 +67,9 @@ import StyledEmail from '../shared/StyledEmail.vue'
 
 		<Text class="text-muted text-base">
 			If this wasn't you, please update your password and review your account security settings. If
-			you cannot do this, contact us immediately through our
-			<VLink href="https://support.shroudedit.com" class="text-green underline"
-				>Support Portal</VLink
+			you cannot do this, contact us immediately at
+			<VLink href="mailto:support@shroudedit.com" class="text-mail-brand underline"
+				>support@shroudedit.com</VLink
 			>.
 		</Text>
 	</StyledEmail>

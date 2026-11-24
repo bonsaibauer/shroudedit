@@ -13,7 +13,6 @@ import StyledEmail from '../shared/StyledEmail.vue'
 				link: 'https://shroudedit.com/dashboard/report/{newreport.id}',
 				label: 'View report in dashboard',
 			},
-			{ link: 'https://support.shroudedit.com', label: 'Support Portal' },
 		]"
 	>
 		<Heading as="h1" class="mb-2 text-2xl font-bold"
@@ -28,7 +27,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 
 		<Text class="text-base">
 			Our team takes all reports seriously and will investigate according to our
-			<VLink href="https://shroudedit.com/legal/rules" class="text-green underline"
+			<VLink href="https://shroudedit.com/legal/rules" class="text-mail-brand underline"
 				>Content Rules</VLink
 			>, <VLink href="https://shroudedit.com/legal/terms">Terms of Service</VLink> and
 			<VLink href="https://shroudedit.com/legal/copyright">Copyright Policy</VLink>. You'll receive
@@ -39,7 +38,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 			If you have any additional information about this report, you can
 			<VLink
 				href="https://shroudedit.com/dashboard/report/{newreport.id}"
-				class="text-green underline"
+				class="text-mail-brand underline"
 				>view it here</VLink
 			>.
 		</Text>

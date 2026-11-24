@@ -16,7 +16,7 @@ defineProps<{
 			<Container class="max-w-[600px]">
 				<Row>
 					<Column>
-						<VLink href="https://shroudedit.com" class="text-xl font-bold text-green">
+						<VLink href="https://shroudedit.com" class="text-xl font-bold text-mail-brand">
 							ShroudEdit
 						</VLink>
 					</Column>
@@ -37,12 +37,25 @@ defineProps<{
 						<VLink
 							href="https://shroudedit.com"
 							aria-label="ShroudEdit"
-							class="font-bold text-green"
+							class="font-bold text-mail-brand"
 						>
 							ShroudEdit
 						</VLink>
 						<Text class="mb-0 mt-2 text-xs" :style="{ color: '#4d4d4d' }">
-							Enshrouded mods, schematics, modpacks and servers.
+							Enshrouded mods, schematics, modpacks and servers.<br />
+							Philipp Feierabend · c/o IMPREGO · Golzwarder Straße 28 · 26919 Brake (Unterweser),
+							Germany<br />
+							<VLink href="mailto:support@shroudedit.com" class="text-mail-brand underline"
+								>support@shroudedit.com</VLink
+							>
+							·
+							<VLink href="https://shroudedit.com/legal/imprint" class="text-mail-brand underline"
+								>Imprint</VLink
+							>
+							·
+							<VLink href="https://shroudedit.com/legal/privacy" class="text-mail-brand underline"
+								>Privacy Policy</VLink
+							>
 						</Text>
 					</Column>
 				</Row>

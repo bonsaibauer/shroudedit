@@ -13,7 +13,6 @@ import StyledEmail from '../shared/StyledEmail.vue'
 				link: 'https://shroudedit.com/project/{project.id}/moderation',
 				label: 'Your project\'s moderation thread',
 			},
-			{ link: 'https://support.shroudedit.com', label: 'Support Portal' },
 		]"
 	>
 		<Section class="mb-4 mt-2">
@@ -36,7 +35,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 			<b>{project.newstatus}</b> by the moderation team. Please review any messages left in the
 			<VLink
 				href="https://shroudedit.com/project/{project.id}/moderation"
-				class="text-green underline"
+				class="text-mail-brand underline"
 				>moderation thread</VLink
 			>
 			which might be relevant to why the status was changed.
@@ -45,16 +44,16 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		<Button
 			href="https://shroudedit.com/project/{project.id}"
 			target="_blank"
-			class="text-accentContrast inline-block rounded-[12px] bg-brand pb-3 pl-4 pr-4 pt-3 text-[14px] font-bold"
+			class="text-accentContrast inline-block rounded-[12px] bg-mail-brand pb-3 pl-4 pr-4 pt-3 text-[14px] font-bold"
 		>
 			View project
 		</Button>
 
 		<Text class="text-base">
 			If you believe this status was applied in error, you can reply in the moderation thread or
-			contact support through our
-			<VLink href="https://support.shroudedit.com" class="text-green underline"
-				>Support Portal</VLink
+			contact support at
+			<VLink href="mailto:support@shroudedit.com" class="text-mail-brand underline"
+				>support@shroudedit.com</VLink
 			>.
 		</Text>
 

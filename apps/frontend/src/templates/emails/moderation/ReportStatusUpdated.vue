@@ -13,7 +13,6 @@ import StyledEmail from '../shared/StyledEmail.vue'
 				link: 'https://shroudedit.com/dashboard/report/{report.id}',
 				label: 'View report in dashboard',
 			},
-			{ link: 'https://support.shroudedit.com', label: 'Support Portal' },
 		]"
 	>
 		<Heading as="h1" class="mb-2 text-2xl font-bold"
@@ -29,7 +28,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 
 		<Text class="text-base">
 			You can
-			<VLink href="https://shroudedit.com/dashboard/report/{report.id}" class="text-green underline"
+			<VLink href="https://shroudedit.com/dashboard/report/{report.id}" class="text-mail-brand underline"
 				>view the full report thread</VLink
 			>
 			to see the update. If you have more information to add, please reply in the report thread for

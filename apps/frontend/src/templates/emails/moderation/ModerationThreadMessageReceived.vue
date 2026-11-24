@@ -13,7 +13,6 @@ import StyledEmail from '../shared/StyledEmail.vue'
 				link: 'https://shroudedit.com/project/{project.id}/moderation',
 				label: 'Your project\'s moderation thread',
 			},
-			{ link: 'https://support.shroudedit.com', label: 'Support Portal' },
 		]"
 	>
 		<Section class="mb-4 mt-2">
@@ -35,7 +34,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 			ShroudEdit's moderation team has left a message on your project,
 			<VLink
 				href="https://shroudedit.com/project/{project.id}/moderation"
-				class="text-green underline"
+				class="text-mail-brand underline"
 				>{project.name}</VLink
 			>.
 		</Text>
@@ -45,7 +44,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 				Please
 				<VLink
 					href="https://shroudedit.com/project/{project.id}/moderation"
-					class="text-green underline"
+					class="text-mail-brand underline"
 					>sign in to view the message</VLink
 				>
 				and reply if requested. It's important to address feedback from the moderation team

@@ -10,7 +10,6 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		:manual-links="[
 			{ link: 'https://shroudedit.com/project/{project.id}', label: 'Project page' },
 			{ link: 'https://shroudedit.com/dashboard/notifications', label: 'Notification dashboard' },
-			{ link: 'https://support.shroudedit.com', label: 'Support Portal' },
 		]"
 	>
 		<Section class="mb-4 mt-2">
@@ -29,13 +28,13 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		<Text class="text-base">
 			ShroudEdit user
 			<b
-				><VLink href="https://shroudedit.com/user/{inviter.name}" class="text-green underline">
+				><VLink href="https://shroudedit.com/user/{inviter.name}" class="text-mail-brand underline">
 					{inviter.name}
 				</VLink></b
 			>
 			has invited you to join the project
 			<b>
-				<VLink href="https://shroudedit.com/project/{project.id}" class="text-green underline">
+				<VLink href="https://shroudedit.com/project/{project.id}" class="text-mail-brand underline">
 					{project.name}
 				</VLink>
 			</b>
@@ -53,16 +52,16 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		<Button
 			href="https://shroudedit.com/dashboard/notifications"
 			target="_blank"
-			class="text-accentContrast inline-block rounded-[12px] bg-brand pb-3 pl-4 pr-4 pt-3 text-[14px] font-bold"
+			class="text-accentContrast inline-block rounded-[12px] bg-mail-brand pb-3 pl-4 pr-4 pt-3 text-[14px] font-bold"
 		>
 			Review invitation
 		</Button>
 
 		<Text class="text-base">
 			If you were not expecting this invitation you should reject the invitation. If you believe
-			this was sent in error or is abusive, please contact support
-			<VLink href="https://support.shroudedit.com" class="text-green underline">
-				through the Support Portal</VLink
+			this was sent in error or is abusive, please contact support at
+			<VLink href="mailto:support@shroudedit.com" class="text-mail-brand underline"
+				>support@shroudedit.com</VLink
 			>.
 		</Text>
 	</StyledEmail>

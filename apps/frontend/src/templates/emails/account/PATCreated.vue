@@ -5,10 +5,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 </script>
 
 <template>
-	<StyledEmail
-		title="A new personal access token has been created"
-		:manual-links="[{ link: 'https://support.shroudedit.com', label: 'Support Portal' }]"
-	>
+	<StyledEmail title="A new personal access token has been created">
 		<Heading as="h1" class="mb-2 text-2xl font-bold">
 			A new personal access token has been created
 		</Heading>
@@ -18,9 +15,9 @@ import StyledEmail from '../shared/StyledEmail.vue'
 			A new personal access token, <b>{newpat.token_name}</b>, has been added to your account.
 		</Text>
 		<Text class="text-muted text-base">
-			If you did not create this token, please contact us immediately through our
-			<VLink href="https://support.shroudedit.com" class="text-green underline"
-				>Support Portal</VLink
+			If you did not create this token, please contact us immediately at
+			<VLink href="mailto:support@shroudedit.com" class="text-mail-brand underline"
+				>support@shroudedit.com</VLink
 			>.
 		</Text>
 	</StyledEmail>

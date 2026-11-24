@@ -10,7 +10,6 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		:manual-links="[
 			{ link: 'https://shroudedit.com/project/{project.id}', label: 'Project page' },
 			{ link: 'https://shroudedit.com/legal/rules', label: 'Community Guidelines' },
-			{ link: 'https://support.shroudedit.com', label: 'Support Portal' },
 		]"
 	>
 		<Section class="mb-4 mt-2">
@@ -30,7 +29,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 
 		<Text class="text-base">
 			Your project
-			<VLink href="https://shroudedit.com/project/{project.id}" class="text-green underline"
+			<VLink href="https://shroudedit.com/project/{project.id}" class="text-mail-brand underline"
 				>{project.name}</VLink
 			>
 			has been <b>approved</b> by the moderation team!
@@ -39,15 +38,15 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		<Button
 			href="https://shroudedit.com/project/{project.id}"
 			target="_blank"
-			class="text-accentContrast inline-block rounded-[12px] bg-brand pb-3 pl-4 pr-4 pt-3 text-[14px] font-bold"
+			class="text-accentContrast inline-block rounded-[12px] bg-mail-brand pb-3 pl-4 pr-4 pt-3 text-[14px] font-bold"
 		>
 			View project
 		</Button>
 
 		<Text class="text-base">
-			If you have questions or believe something isn't correct, you can reach out via the
-			<VLink href="https://support.shroudedit.com" class="text-green underline"
-				>Support Portal</VLink
+			If you have questions or believe something isn't correct, you can contact support at
+			<VLink href="mailto:support@shroudedit.com" class="text-mail-brand underline"
+				>support@shroudedit.com</VLink
 			>.
 		</Text>
 
