@@ -12,16 +12,17 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 	/**
 	 * Get versions for a project (v3)
 	 *
-	 * @param id - Project ID or slug (e.g., 'sodium' or 'AANobbMI')
-	 * @param options - Optional query parameters to filter versions
+	 * @param id - Project ID or slug (e.g., 'my-enshrouded-mod' or 'p1A2b3C4')
+	 * @param options - Filters and API version. Uses v2 unless apiVersion is set to 3.
 	 * @returns Promise resolving to an array of v3 versions
 	 *
 	 * @example
 	 * ```typescript
-	 * const versions = await client.labrinth.versions_v3.getProjectVersions('sodium')
-	 * const filteredVersions = await client.labrinth.versions_v3.getProjectVersions('sodium', {
-	 *   game_versions: ['1.20.1'],
-	 *   loaders: ['fabric']
+	 * const versions = await client.labrinth.versions_v3.getProjectVersions('my-enshrouded-mod')
+	 * const filteredVersions = await client.labrinth.versions_v3.getProjectVersions('my-enshrouded-mod', {
+	 *   apiVersion: 3,
+	 *   game_versions: ['0.9.1.2'],
+	 *   loaders: ['shroudforge']
 	 * })
 	 * console.log(versions[0].version_number)
 	 * ```
@@ -30,9 +31,14 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 		id: string,
 		options?: Labrinth.Versions.v3.GetProjectVersionsParams,
 	): Promise<Labrinth.Versions.v3.Version[]> {
+		const apiVersion = options?.apiVersion ?? 2
 		const params: Record<string, string | boolean> = {}
 		if (options?.game_versions?.length) {
-			params.game_versions = JSON.stringify(options.game_versions)
+			if (apiVersion === 3) {
+				params.loader_fields = JSON.stringify({ game_versions: options.game_versions })
+			} else {
+				params.game_versions = JSON.stringify(options.game_versions)
+			}
 		}
 		if (options?.loaders?.length) {
 			params.loaders = JSON.stringify(options.loaders)
@@ -49,7 +55,7 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 
 		return this.client.request<Labrinth.Versions.v3.Version[]>(`/project/${id}/version`, {
 			api: 'labrinth',
-			version: options?.apiVersion ?? 2,
+			version: apiVersion,
 			method: 'GET',
 			params: Object.keys(params).length > 0 ? params : undefined,
 		})
@@ -63,7 +69,7 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const version = await client.labrinth.versions_v3.getVersion('DXtmvS8i')
+	 * const version = await client.labrinth.versions_v3.getVersion('v1A2b3C4')
 	 * console.log(version.version_number)
 	 * ```
 	 */
@@ -83,7 +89,7 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const versions = await client.labrinth.versions_v3.getVersions(['DXtmvS8i', 'abc123'])
+	 * const versions = await client.labrinth.versions_v3.getVersions(['v1A2b3C4', 'abc123'])
 	 * console.log(versions[0].version_number)
 	 * ```
 	 */
@@ -105,8 +111,8 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const version = await client.labrinth.versions_v3.getVersionFromIdOrNumber('sodium', 'DXtmvS8i')
-	 * const versionByNumber = await client.labrinth.versions_v3.getVersionFromIdOrNumber('sodium', '0.4.12')
+	 * const version = await client.labrinth.versions_v3.getVersionFromIdOrNumber('my-enshrouded-mod', 'v1A2b3C4')
+	 * const versionByNumber = await client.labrinth.versions_v3.getVersionFromIdOrNumber('my-enshrouded-mod', '0.4.12')
 	 * ```
 	 */
 	public async getVersionFromIdOrNumber(
@@ -126,25 +132,27 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 	/**
 	 * Create a new version for a project (v3)
 	 *
-	 * Creates a new version on an existing project. At least one file must be
-	 * attached unless the version is created as a draft.
+	 * Creates a new version on an existing project.
 	 *
-	 * @param data - JSON metadata payload for the version (must include file_parts)
-	 * @param files - Array of uploaded files, in the same order as `data.file_parts`
+	 * @param draftVersion - Version metadata, including compatible Enshrouded versions
+	 * @param versionFiles - Files to upload with the version
 	 *
-	 * @returns A promise resolving to the newly created version data
+	 * @returns An upload handle for the request
 	 *
 	 * @example
 	 * ```ts
-	 * const version = await client.labrinth.versions_v3.createVersion('sodium', {
-	 *   name: 'v0.5.0',
-	 *   version_number: '0.5.0',
-	 *   version_type: 'release',
-	 *   loaders: ['fabric'],
-	 *   game_versions: ['1.20.1'],
-	 *   project_id: 'sodium',
-	 *   file_parts: ['primary']
-	 * }, [fileObject])
+	 * const upload = client.labrinth.versions_v3.createVersion(
+	 *   {
+	 *     name: 'v0.5.0',
+	 *     version_number: '0.5.0',
+	 *     changelog: 'Initial release.',
+	 *     version_type: 'release',
+	 *     loaders: ['shroudforge'],
+	 *     game_versions: ['0.9.1.2'],
+	 *     project_id: project.id,
+	 *   },
+	 *   [{ file: fileObject }],
+	 * )
 	 * ```
 	 */
 
@@ -224,7 +232,7 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```ts
-	 * const updated = await client.labrinth.versions_v3.modifyVersion('DXtmvS8i', {
+	 * const updated = await client.labrinth.versions_v3.modifyVersion('v1A2b3C4', {
 	 *   name: 'v1.0.1',
 	 *   changelog: 'Updated changelog',
 	 *   featured: true,
@@ -252,7 +260,7 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.versions_v3.deleteVersion('DXtmvS8i')
+	 * await client.labrinth.versions_v3.deleteVersion('v1A2b3C4')
 	 * ```
 	 */
 	public async deleteVersion(versionId: string): Promise<void> {

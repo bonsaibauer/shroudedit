@@ -1011,7 +1011,7 @@ pub struct VersionListFilters {
 	pub offset: Option<usize>,
 	/*
 		Loader fields to filter with:
-		"game_versions": ["1.16.5", "1.17"]
+		"game_versions": ["0.9.0.0", "0.9.1.2"]
 
 		Returns if it matches any of the values
 	*/

@@ -17,7 +17,7 @@ pub(super) fn validate(project: &Project) -> Vec<ProjectNag> {
 
 	if server.is_some_and(|server| server.address.trim().is_empty()) {
 		nags.push(ProjectNag::new(
-			ProjectNagKind::AddJavaAddress,
+			ProjectNagKind::AddServerAddress,
 			ProjectNagSeverity::Required,
 		));
 	}

@@ -1,9 +1,9 @@
 {
   "nags.add-description.title": "เพิ่มคำอธิบาย",
   "nags.add-icon.title": "เพิ่มไอคอน",
-  "nags.add-java-address.description": "ระบุที่อยู่ IP และพอร์ตที่ผู้เล่น Java Edition สามารถใช้เพื่อเชื่อมต่อเข้าเซิร์ฟเวอร์ของคุณได้",
-  "nags.add-java-address.title": "เพิ่มที่อยู่ Java",
   "nags.add-links.title": "เพิ่มลิงก์ภายนอก",
+  "nags.add-server-address.description": "ระบุที่อยู่และพอร์ตสำหรับการสอบถามผ่าน UDP ของเซิร์ฟเวอร์ Enshrouded ของคุณ",
+  "nags.add-server-address.title": "เพิ่มที่อยู่เซิร์ฟเวอร์",
   "nags.description-too-short.title": "เพิ่มคำอธิบาย",
   "nags.edit-description.title": "แก้ไขคำอธิบาย",
   "nags.edit-license.title": "แก้ไขไลเซนส์",

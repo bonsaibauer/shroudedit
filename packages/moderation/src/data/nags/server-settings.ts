@@ -3,10 +3,10 @@ import { defineMessages } from '@shroudedit/ui'
 import type { NagDefinitions } from './types.ts'
 
 const messages = defineMessages({
-	addressTitle: { id: 'nags.add-java-address.title', defaultMessage: 'Add a Java address' },
+	addressTitle: { id: 'nags.add-server-address.title', defaultMessage: 'Add a server address' },
 	address: {
-		id: 'nags.add-java-address.description',
-		defaultMessage: 'Add the IP address and port Java Edition players can use to join your server.',
+		id: 'nags.add-server-address.description',
+		defaultMessage: 'Enter the address and UDP query port for your Enshrouded server.',
 	},
 	languagesTitle: {
 		id: 'nags.all-languages.title',
@@ -46,7 +46,7 @@ const messages = defineMessages({
 })
 
 export const serverSettingNags = {
-	'add-java-address': {
+	'add-server-address': {
 		title: messages.addressTitle,
 		description: messages.address,
 		destination: 'server',

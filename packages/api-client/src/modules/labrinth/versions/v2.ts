@@ -9,16 +9,16 @@ export class LabrinthVersionsV2Module extends AbstractModule {
 	/**
 	 * Get versions for a project (v2)
 	 *
-	 * @param id - Project ID or slug (e.g., 'sodium' or 'AANobbMI')
+	 * @param id - Project ID or slug (e.g., 'my-enshrouded-mod' or 'p1A2b3C4')
 	 * @param options - Optional query parameters to filter versions
 	 * @returns Promise resolving to an array of v2 versions
 	 *
 	 * @example
 	 * ```typescript
-	 * const versions = await client.labrinth.versions_v2.getProjectVersions('sodium')
-	 * const filteredVersions = await client.labrinth.versions_v2.getProjectVersions('sodium', {
-	 *   game_versions: ['1.20.1'],
-	 *   loaders: ['fabric'],
+	 * const versions = await client.labrinth.versions_v2.getProjectVersions('my-enshrouded-mod')
+	 * const filteredVersions = await client.labrinth.versions_v2.getProjectVersions('my-enshrouded-mod', {
+	 *   game_versions: ['0.9.1.2'],
+	 *   loaders: ['shroudforge'],
 	 *   include_changelog: false
 	 * })
 	 * console.log(versions[0].version_number)
@@ -61,7 +61,7 @@ export class LabrinthVersionsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const version = await client.labrinth.versions_v2.getVersion('DXtmvS8i')
+	 * const version = await client.labrinth.versions_v2.getVersion('v1A2b3C4')
 	 * console.log(version.version_number)
 	 * ```
 	 */
@@ -93,7 +93,7 @@ export class LabrinthVersionsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const versions = await client.labrinth.versions_v2.getVersions(['DXtmvS8i', 'abc123'])
+	 * const versions = await client.labrinth.versions_v2.getVersions(['v1A2b3C4', 'abc123'])
 	 * console.log(versions[0].version_number)
 	 * ```
 	 */
@@ -115,8 +115,8 @@ export class LabrinthVersionsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const version = await client.labrinth.versions_v2.getVersionFromIdOrNumber('sodium', 'DXtmvS8i')
-	 * const versionByNumber = await client.labrinth.versions_v2.getVersionFromIdOrNumber('sodium', '0.4.12')
+	 * const version = await client.labrinth.versions_v2.getVersionFromIdOrNumber('my-enshrouded-mod', 'v1A2b3C4')
+	 * const versionByNumber = await client.labrinth.versions_v2.getVersionFromIdOrNumber('my-enshrouded-mod', '0.4.12')
 	 * ```
 	 */
 	public async getVersionFromIdOrNumber(
@@ -140,7 +140,7 @@ export class LabrinthVersionsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.versions_v2.deleteVersion('DXtmvS8i')
+	 * await client.labrinth.versions_v2.deleteVersion('v1A2b3C4')
 	 * ```
 	 */
 	public async deleteVersion(versionId: string): Promise<void> {

@@ -34,7 +34,7 @@ interface HttpError extends Error {
  *   ]
  * })
  *
- * const project = await client.request('/project/sodium', { api: 'labrinth', version: 2 })
+ * const project = await client.request('/project/my-enshrouded-mod', { api: 'labrinth', version: 2 })
  * ```
  */
 export class TauriShroudEditClient extends XHRUploadClient {

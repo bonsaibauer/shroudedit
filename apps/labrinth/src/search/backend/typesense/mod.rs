@@ -5,7 +5,7 @@
 //! Users expect very specific behavior when searching for projects on the
 //! platform. When making changes to search, you must ensure that the query
 //! behavior is roughly the same as before your changes - that means test with
-//! strings like `sodi`, `sodiu`, `sodium`, `sodium `, etc. and make sure the
+//! strings like `bluep`, `bluepr`, `blueprint`, `blueprint `, etc. and make sure the
 //! same results still appear.
 //!
 //! Before submitting a document into Typesense, we normalize the project name
@@ -27,23 +27,22 @@
 //! searching into the project document, it's because collating version info
 //! into the project doc will break filtering on multiple fields. Let's say for
 //! example we have a project with 2 versions:
-//! - NeoForge 1.21.1
-//! - Fabric 1.20.0
+//! - ShroudForge on Enshrouded 0.9.1.2
+//! - Shroudtopia on Enshrouded 0.9.0.0
 //!
 //! If we put both of these versions into the project object, we'd end up with
 //! a document like:
 //! ```json
 //! {
 //!   "name": "My Project",
-//!   "game_versions": ["1.21.1", "1.20.0"],
-//!   "loaders": ["neoforge", "fabric"]
+//!   "game_versions": ["0.9.1.2", "0.9.0.0"],
+//!   "loaders": ["shroudforge", "shroudtopia"]
 //! }
 //! ```
 //!
-//! If a user now searches for a mod for NeoForge 1.20.0, this project will
-//! match - when in reality it shouldn't, because it has no versions compatible
-//! with NeoForge 1.20.0! Only either Neoforge 1.21.1, or Fabric 1.20.0.
-//! Keeping the projects/versions document split retains this behavior.
+//! A search for ShroudForge on Enshrouded 0.9.0.0 would match the combined
+//! document. Separate version documents require both filters to match the
+//! same version.
 //!
 //! What if we put a `versions` object into the project document? This is
 //! terrible because:
@@ -91,8 +90,8 @@
 //!
 //! ### Filtering on multiple version fields
 //!
-//! If you search for `categories = fabric AND game_versions = 1.21`, then
-//! you're searching for *one* project with *both* these conditions set.
+//! If you search for `categories = shroudforge AND game_versions = 0.9.1.2`,
+//! both conditions must match the same version of a project.
 //! Project categories are inherited by every version document, while loaders
 //! remain specific to each version. This preserves the legacy behavior where
 //! `categories` can match either a project category or a loader, and allows
@@ -123,10 +122,8 @@
 //! author), since the full set of categories, environments, etc. is known
 //! and finite. All of these values can be represented as whitespace-free,
 //! atomic, single tokens in Typesense, if we set
-//! `symbols_to_index = ["-", ".", "_"]`. This means that `fabric-api` is
-//! treated as one token `fabric-api`, not as `fabric` and `api`. So if we use
-//! the filter `categories:fabric-api`, it will match for that *one token*
-//! `fabric-api` instead of full text search.
+//! `symbols_to_index = ["-", ".", "_"]`. For example, the filter
+//! `game_versions:0.9.1.2` matches `0.9.1.2` as a single token.
 //!
 //! For this, we use the `:` operator instead of `:=` to tell
 //! Typesense to treat this as an exact token match.

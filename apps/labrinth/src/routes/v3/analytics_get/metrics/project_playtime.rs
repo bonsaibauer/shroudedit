@@ -33,7 +33,7 @@ pub enum ProjectPlaytimeField {
 	ProjectId,
 	/// Version ID of this project.
 	VersionId,
-	/// Game mod loader which was used to count this playtime, e.g. Fabric.
+	/// Game mod loader that was used to count this playtime, e.g. ShroudForge.
 	Loader,
 	/// Game version which this project was played on.
 	GameVersion,

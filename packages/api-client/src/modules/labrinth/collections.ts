@@ -14,7 +14,7 @@ export class LabrinthCollectionsModule extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const collection = await client.labrinth.collections.get('AANobbMI')
+	 * const collection = await client.labrinth.collections.get('c1D2e3F4')
 	 * ```
 	 */
 	public async get(id: string): Promise<Labrinth.Collections.Collection> {
@@ -33,7 +33,7 @@ export class LabrinthCollectionsModule extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const collections = await client.labrinth.collections.getMultiple(['AANobbMI', 'BBNoobMI'])
+	 * const collections = await client.labrinth.collections.getMultiple(['c1D2e3F4', 'c5D6e7F8'])
 	 * ```
 	 */
 	public async getMultiple(ids: string[]): Promise<Labrinth.Collections.Collection[]> {
@@ -53,7 +53,7 @@ export class LabrinthCollectionsModule extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.collections.edit('AANobbMI', {
+	 * await client.labrinth.collections.edit('c1D2e3F4', {
 	 *   name: 'Updated name',
 	 *   description: 'Updated description',
 	 *   status: 'listed'
@@ -76,7 +76,7 @@ export class LabrinthCollectionsModule extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.collections.delete('AANobbMI')
+	 * await client.labrinth.collections.delete('c1D2e3F4')
 	 * ```
 	 */
 	public async delete(id: string): Promise<void> {
@@ -96,7 +96,7 @@ export class LabrinthCollectionsModule extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.collections.editIcon('AANobbMI', iconFile, 'png')
+	 * await client.labrinth.collections.editIcon('c1D2e3F4', iconFile, 'png')
 	 * ```
 	 */
 	public async editIcon(id: string, icon: Blob, ext: string): Promise<void> {
@@ -115,7 +115,7 @@ export class LabrinthCollectionsModule extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.collections.deleteIcon('AANobbMI')
+	 * await client.labrinth.collections.deleteIcon('c1D2e3F4')
 	 * ```
 	 */
 	public async deleteIcon(id: string): Promise<void> {

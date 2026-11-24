@@ -10,12 +10,12 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	/**
 	 * Get a project by ID or slug (v3)
 	 *
-	 * @param id - Project ID or slug (e.g., 'sodium' or 'AANobbMI')
+	 * @param id - Project ID or slug (e.g., 'my-enshrouded-mod' or 'p1A2b3C4')
 	 * @returns Promise resolving to the v3 project data
 	 *
 	 * @example
 	 * ```typescript
-	 * const project = await client.labrinth.projects_v3.get('sodium')
+	 * const project = await client.labrinth.projects_v3.get('my-enshrouded-mod')
 	 * console.log(project.project_types) // v3 field
 	 * ```
 	 */
@@ -48,7 +48,7 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const deps = await client.labrinth.projects_v3.getDependencies('sodium')
+	 * const deps = await client.labrinth.projects_v3.getDependencies('my-enshrouded-mod')
 	 * console.log(deps.projects) // Array of project objects
 	 * console.log(deps.versions) // Array of version objects
 	 * ```
@@ -72,7 +72,7 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const projects = await client.labrinth.projects_v3.getMultiple(['sodium', 'lithium'])
+	 * const projects = await client.labrinth.projects_v3.getMultiple(['my-enshrouded-mod', 'another-mod'])
 	 * ```
 	 */
 	public async getMultiple(ids: string[]): Promise<Labrinth.Projects.v3.Project[]> {
@@ -116,7 +116,7 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v3.edit('sodium', {
+	 * await client.labrinth.projects_v3.edit('my-enshrouded-mod', {
 	 *   environment: 'client_and_server'
 	 * })
 	 * ```
@@ -222,7 +222,7 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v3.changeIcon('sodium', imageFile, 'png')
+	 * await client.labrinth.projects_v3.changeIcon('my-enshrouded-mod', imageFile, 'png')
 	 * ```
 	 */
 	public async changeIcon(id: string, file: Blob, ext: string): Promise<void> {
@@ -242,7 +242,7 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v3.deleteIcon('sodium')
+	 * await client.labrinth.projects_v3.deleteIcon('my-enshrouded-mod')
 	 * ```
 	 */
 	public async deleteIcon(id: string): Promise<void> {
@@ -262,10 +262,10 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v3.createGalleryImage('sodium', imageFile, {
+	 * await client.labrinth.projects_v3.createGalleryImage('my-enshrouded-mod', imageFile, {
 	 *   featured: true,
 	 *   name: 'Screenshot 1',
-	 *   description: 'Main menu with Sodium enabled'
+	 *   description: 'In-game screenshot with the mod enabled'
 	 * })
 	 * ```
 	 */
@@ -305,7 +305,7 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v3.deleteGalleryImage('sodium', 'https://cdn.shroudedit.com/...')
+	 * await client.labrinth.projects_v3.deleteGalleryImage('my-enshrouded-mod', 'https://cdn.shroudedit.com/...')
 	 * ```
 	 */
 	public async deleteGalleryImage(id: string, url: string): Promise<void> {
@@ -325,7 +325,7 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const { disclosures } = await client.labrinth.projects_v3.getDisclosures('sodium')
+	 * const { disclosures } = await client.labrinth.projects_v3.getDisclosures('my-enshrouded-mod')
 	 * ```
 	 */
 	public async getDisclosures(id: string): Promise<Labrinth.Projects.v3.GetProjectDisclosures> {
@@ -347,7 +347,7 @@ export class LabrinthProjectsV3Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v3.modifyDisclosures('sodium', {
+	 * await client.labrinth.projects_v3.modifyDisclosures('my-enshrouded-mod', {
 	 *   set: [{ type: 'ai_content', uses: ['text'], note: 'Translations are AI-generated.' }],
 	 *   remove: ['advertisements'],
 	 * })

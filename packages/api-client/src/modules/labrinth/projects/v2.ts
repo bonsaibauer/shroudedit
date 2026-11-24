@@ -9,13 +9,13 @@ export class LabrinthProjectsV2Module extends AbstractModule {
 	/**
 	 * Get a project by ID or slug
 	 *
-	 * @param id - Project ID or slug (e.g., 'sodium' or 'AANobbMI')
+	 * @param id - Project ID or slug (e.g., 'my-enshrouded-mod' or 'p1A2b3C4')
 	 * @returns Promise resolving to the project data
 	 *
 	 * @example
 	 * ```typescript
-	 * const project = await client.labrinth.projects_v2.get('sodium')
-	 * console.log(project.title) // "Sodium"
+	 * const project = await client.labrinth.projects_v2.get('my-enshrouded-mod')
+	 * console.log(project.title) // "My Enshrouded Mod"
 	 * ```
 	 */
 	public async get(id: string): Promise<Labrinth.Projects.v2.Project> {
@@ -29,7 +29,7 @@ export class LabrinthProjectsV2Module extends AbstractModule {
 	/**
 	 * Check that a project slug or ID exists and return its canonical project ID.
 	 *
-	 * @param idOrSlug - Project ID or slug (e.g. `sodium` or `AANobbMI`)
+	 * @param idOrSlug - Project ID or slug (e.g. `my-enshrouded-mod` or `p1A2b3C4`)
 	 */
 	public async check(idOrSlug: string): Promise<Labrinth.Projects.v2.ProjectCheckResponse> {
 		const encoded = encodeURIComponent(idOrSlug)
@@ -51,7 +51,7 @@ export class LabrinthProjectsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const projects = await client.labrinth.projects_v2.getMultiple(['sodium', 'lithium', 'phosphor'])
+	 * const projects = await client.labrinth.projects_v2.getMultiple(['my-enshrouded-mod', 'another-mod', 'sample-mod'])
 	 * ```
 	 */
 	public async getMultiple(ids: string[]): Promise<Labrinth.Projects.v2.Project[]> {
@@ -101,7 +101,7 @@ export class LabrinthProjectsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v2.edit('sodium', {
+	 * await client.labrinth.projects_v2.edit('my-enshrouded-mod', {
 	 *   description: 'Updated description'
 	 * })
 	 * ```
@@ -141,7 +141,7 @@ export class LabrinthProjectsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * const deps = await client.labrinth.projects_v2.getDependencies('sodium')
+	 * const deps = await client.labrinth.projects_v2.getDependencies('my-enshrouded-mod')
 	 * console.log(deps.projects) // dependent projects
 	 * console.log(deps.versions) // dependent versions
 	 * ```
@@ -163,10 +163,10 @@ export class LabrinthProjectsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v2.createGalleryImage('sodium', imageFile, {
+	 * await client.labrinth.projects_v2.createGalleryImage('my-enshrouded-mod', imageFile, {
 	 *   featured: true,
 	 *   title: 'Screenshot 1',
-	 *   description: 'Main menu with Sodium enabled'
+	 *   description: 'In-game screenshot with the mod enabled'
 	 * })
 	 * ```
 	 */
@@ -207,7 +207,7 @@ export class LabrinthProjectsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v2.editGalleryImage('sodium', 'https://cdn.shroudedit.com/...', {
+	 * await client.labrinth.projects_v2.editGalleryImage('my-enshrouded-mod', 'https://cdn.shroudedit.com/...', {
 	 *   featured: false,
 	 *   title: 'Updated title'
 	 * })
@@ -247,7 +247,7 @@ export class LabrinthProjectsV2Module extends AbstractModule {
 	 *
 	 * @example
 	 * ```typescript
-	 * await client.labrinth.projects_v2.deleteGalleryImage('sodium', 'https://cdn.shroudedit.com/...')
+	 * await client.labrinth.projects_v2.deleteGalleryImage('my-enshrouded-mod', 'https://cdn.shroudedit.com/...')
 	 * ```
 	 */
 	public async deleteGalleryImage(id: string, url: string): Promise<void> {

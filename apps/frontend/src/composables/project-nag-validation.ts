@@ -20,7 +20,7 @@ export type ProjectSettingsField =
 	| 'permissions'
 	| 'server-region'
 	| 'server-languages'
-	| 'java-address'
+	| 'server-address'
 	| 'server-compatibility'
 	| 'tags'
 	| 'versions'
@@ -75,7 +75,7 @@ export const projectNagFields = {
 	permissions: ['review-permissions'],
 	'server-region': ['select-country'],
 	'server-languages': ['all-languages', 'too-many-languages', 'select-language'],
-	'java-address': ['add-java-address'],
+	'server-address': ['add-server-address'],
 	'server-compatibility': ['select-compatibility'],
 	tags: [
 		'select-tags',

@@ -99,7 +99,7 @@ pub enum ProjectNagKind {
 	// Server settings
 	SelectCountry,
 	AllLanguages,
-	AddJavaAddress,
+	AddServerAddress,
 	SelectCompatibility,
 	TooManyLanguages,
 	SelectLanguage,

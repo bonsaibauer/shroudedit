@@ -138,6 +138,4 @@ jobs:
       - name: Publish api-client
         if: steps.changes.outputs.changed == 'true'
         working-directory: packages/api-client
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm publish --access public --provenance --no-git-checks

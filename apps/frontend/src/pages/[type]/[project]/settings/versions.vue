@@ -478,12 +478,12 @@ const messages = defineMessages({
 	withheldVersionsWarningTitle: {
 		id: 'project.versions.withheld-versions-warning.title',
 		defaultMessage:
-			'{count, plural, one {Version {version_name}} other {Versions}} withheld due to unknown embedded content',
+			'{count, plural, =1 {Version {version_name}} other {Versions}} withheld due to unknown embedded content',
 	},
 	withheldVersionsWarningDescription: {
 		id: 'project.versions.withheld-versions-warning.description',
 		defaultMessage:
-			'{count, plural, one {This version is} other {These versions are}} currently withheld and not publicly listed. Please provide proof that you have permission to redistribute certain files included in the modpack {count, plural, one {version} other {versions}}.',
+			'{count, plural, =1 {This version is} other {These versions are}} currently withheld and not publicly listed. Please provide proof that you have permission to redistribute certain files included in the modpack {count, plural, =1 {version} other {versions}}.',
 	},
 	deleteVersionConfirmTitle: {
 		id: 'project.versions.delete-confirm.title',

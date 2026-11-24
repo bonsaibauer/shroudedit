@@ -1437,10 +1437,6 @@ export const projectCompatibilityMessages = defineMessages({
 		id: `project.about.compatibility.title`,
 		defaultMessage: 'Compatibility',
 	},
-	enshroudedJava: {
-		id: `project.about.compatibility.game.enshroudedJava`,
-		defaultMessage: 'Enshrouded: Java Edition',
-	},
 	gameVersion: {
 		id: `project.about.compatibility.game-version`,
 		defaultMessage: 'Game version',

@@ -246,7 +246,7 @@ export class CircuitBreakerFeature extends AbstractFeature {
 	 *
 	 * @example
 	 * ```typescript
-	 * const state = circuitBreaker.getCircuitState('GET_/v2/project/sodium')
+	 * const state = circuitBreaker.getCircuitState('GET_/v2/project/my-enshrouded-mod')
 	 * console.log(`Failures: ${state?.failures}, Last failure: ${state?.lastFailure}`)
 	 * ```
 	 */
@@ -260,7 +260,7 @@ export class CircuitBreakerFeature extends AbstractFeature {
 	 * @example
 	 * ```typescript
 	 * // Reset circuit after manual intervention
-	 * circuitBreaker.resetCircuit('GET_/v2/project/sodium')
+	 * circuitBreaker.resetCircuit('GET_/v2/project/my-enshrouded-mod')
 	 * ```
 	 */
 	resetCircuit(key: string): void {

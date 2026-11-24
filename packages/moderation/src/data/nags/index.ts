@@ -41,8 +41,11 @@ export type { FieldValidationMessage } from './types.ts'
 export function normalizeProjectNagKind(
 	kind: string,
 ): Labrinth.Projects.v3.NormalizedProjectNagKind | null {
-	const normalized = kind.replaceAll('_', '-') as Labrinth.Projects.v3.NormalizedProjectNagKind
-	return normalized in nagDefinitions ? normalized : null
+	const normalized = kind.replaceAll('_', '-')
+	if (normalized === 'add-java-address') return 'add-server-address'
+	return normalized in nagDefinitions
+		? (normalized as Labrinth.Projects.v3.NormalizedProjectNagKind)
+		: null
 }
 
 function toNagStatus(severity: Labrinth.Projects.v3.ProjectNagSeverity): NagStatus {

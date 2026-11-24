@@ -1030,7 +1030,7 @@ export namespace Labrinth {
 
 			export type ProjectSearchParams = {
 				query?: string
-				facets?: string[][] // in the format of [["categories:forge"],["versions:1.17.1"]]
+				facets?: string[][] // in the format of [["categories:shroudforge"],["game_versions:0.9.1.2"]]
 				new_filters?: string
 				filters?: string
 				index?: 'relevance' | 'downloads' | 'follows' | 'newest' | 'updated'
@@ -1143,7 +1143,7 @@ export namespace Labrinth {
 				| 'misused-discord-link'
 				| 'verify-external-links'
 				| 'review-permissions'
-				| 'add-java-address'
+				| 'add-server-address'
 				| 'all-languages'
 				| 'select-compatibility'
 				| 'select-country'

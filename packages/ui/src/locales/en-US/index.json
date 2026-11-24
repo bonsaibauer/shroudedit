@@ -1008,7 +1008,6 @@
   "project.about.compatibility.environments.singleplayer": "Singleplayer",
   "project.about.compatibility.environments.singleplayer-only": "Singleplayer only",
   "project.about.compatibility.game-version": "Game version",
-  "project.about.compatibility.game.enshroudedJava": "Enshrouded: Java Edition",
   "project.about.compatibility.platforms": "Platforms",
   "project.about.compatibility.platforms-plural": "{count, plural, one {Platform} other {Platforms}}",
   "project.about.compatibility.title": "Compatibility",

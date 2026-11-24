@@ -212,12 +212,12 @@
 						<p>
 							<IntlFormatted :message-id="messages.playWithLauncherDescription">
 								<template #link="{ children }">
-									<nuxt-link
+									<a
 										class="underline hover:brightness-[--hover-brightness]"
-										to="/discover/schematics"
+										href="https://shroudforge.net"
 									>
 										<component :is="() => children" />
-									</nuxt-link>
+									</a>
 								</template>
 							</IntlFormatted>
 						</p>
@@ -374,7 +374,7 @@ const messages = defineMessages({
 	playWithLauncherDescription: {
 		id: 'landing.feature.mod-loaders.description',
 		defaultMessage:
-			'ShroudForge is preparing a ShroudEdit integration to discover, install, and update mods. Other community tools can connect through our open-source API. You can also <link>discover and share ShroudForge World Editor blueprints</link>.',
+			'Download the ShroudForge Modloader from <link>shroudforge.net</link>. ShroudForge is preparing a ShroudEdit integration to discover, install, and update mods. Other community tools can connect through our open-source API.',
 	},
 	modLoadersIllustrationAlt: {
 		id: 'landing.feature.mod-loaders.illustration-alt',

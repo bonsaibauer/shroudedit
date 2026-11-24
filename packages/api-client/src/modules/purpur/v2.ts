@@ -11,7 +11,7 @@ export class PurpurVersionsV2Module extends AbstractModule {
 	}
 
 	/**
-	 * Get the Purpur project info including all supported Enshrouded versions.
+	 * Get the Purpur project info including all supported game versions.
 	 */
 	public async getProject(): Promise<Purpur.Versions.v2.Project> {
 		return this.client.request<Purpur.Versions.v2.Project>('/purpur', {
@@ -23,9 +23,9 @@ export class PurpurVersionsV2Module extends AbstractModule {
 	}
 
 	/**
-	 * Get available Purpur builds for a Enshrouded version.
+	 * Get available Purpur builds for a Minecraft version.
 	 *
-	 * @param mcVersion - Enshrouded version (e.g. "1.21.4")
+	 * @param mcVersion - Minecraft version (e.g. "1.21.4")
 	 */
 	public async getBuilds(mcVersion: string): Promise<Purpur.Versions.v2.VersionBuilds> {
 		return this.client.request<Purpur.Versions.v2.VersionBuilds>(`/purpur/${mcVersion}`, {

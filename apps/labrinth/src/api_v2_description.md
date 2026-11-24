@@ -98,7 +98,6 @@ These bullet points cover most changes in the v2 API, but please note that field
   - The gallery field is an array of URLs to images that are part of the project's gallery
 - The gallery is a new feature which allows the user to upload images showcasing their mod to the CDN which will be displayed on their mod page
 - Internal change: Any project file uploaded to ShroudEdit is now validated to make sure it's a valid Enshrouded mod, Modpack, etc.
-  - For example, a Forge 1.17 mod with a JAR not containing a mods.toml will not be allowed to be uploaded to ShroudEdit
 - In project creation, projects may not upload a mod with no versions to review, however they can be saved as a draft
   - Similarly, for version creation, a version may not be uploaded without any files
 - Donation URLs have been enabled

@@ -98,7 +98,7 @@
 		</section>
 		<section v-if="server" class="flex flex-col gap-2">
 			<h3 class="m-0 text-base text-primary">
-				{{ formatMessage(messages.accessAndCommunication) }}
+				{{ formatMessage(messages.communication) }}
 			</h3>
 			<div class="flex flex-wrap gap-1.5">
 				<TagItem>
@@ -122,30 +122,67 @@
 					<template v-else>{{ formatMessage(messages.voiceChatDisabled) }}</template>
 				</TagItem>
 			</div>
-			<div v-if="server.user_groups.length" class="flex flex-col gap-2">
+		</section>
+		<section v-if="server?.user_groups.length" class="flex flex-col gap-2">
+			<h3 class="m-0 text-base text-primary">{{ formatMessage(messages.access) }}</h3>
+			<div class="flex flex-col gap-4">
 				<div
 					v-for="group in server.user_groups"
 					:key="group.name"
-					class="rounded-xl border border-solid border-surface-4 bg-surface-2 p-3"
+					class="flex flex-col gap-1.5"
 				>
-					<div class="flex items-center justify-between gap-2">
+					<div class="flex items-center gap-2">
+						<component
+							:is="groupIcon(group.role)"
+							aria-hidden="true"
+							class="h-4 w-4 shrink-0 text-primary"
+						/>
 						<span class="font-semibold text-contrast">{{ group.name }}</span>
+					</div>
+					<div class="flex flex-col items-start gap-1.5 pl-6">
+						<span
+							v-if="!publicPasswordByGroup[group.name]"
+							class="inline-flex items-center gap-1.5 text-xs text-secondary"
+						>
+							<component
+								:is="group.password_visibility === 'none' ? LockOpenIcon : LockIcon"
+								aria-hidden="true"
+								class="h-4 w-4 shrink-0"
+							/>
+							{{ passwordStatus(group) }}
+						</span>
+						<div v-if="permissionLabels(group).length" class="flex flex-wrap gap-1.5">
+							<TagItem v-for="permission in permissionLabels(group)" :key="permission">
+								{{ permission }}
+							</TagItem>
+						</div>
+						<span v-else class="text-xs text-secondary">
+							{{ formatMessage(messages.noPermissions) }}
+						</span>
+						<span
+							v-if="group.reserved_slots"
+							class="inline-flex items-center gap-1.5 text-xs text-secondary"
+						>
+							<UsersIcon aria-hidden="true" class="h-4 w-4 shrink-0" />
+							{{ formatMessage(messages.reservedSlots, { count: group.reserved_slots }) }}
+						</span>
 						<button
 							v-if="publicPasswordByGroup[group.name]"
 							type="button"
-							class="cursor-pointer border-0 bg-transparent p-0 text-sm font-semibold text-brand hover:underline"
+							class="inline-flex cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0 text-sm font-semibold text-brand hover:underline"
 							@click="copyPassword(group.name)"
 						>
-							{{ formatMessage(messages.copyPassword) }}
+							<CheckIcon
+								v-if="copiedPasswordGroup === group.name"
+								aria-hidden="true"
+								class="h-4 w-4 shrink-0"
+							/>
+							<CopyIcon v-else aria-hidden="true" class="h-4 w-4 shrink-0" />
+							{{
+								formatMessage(copiedPasswordGroup === group.name ? messages.copied : messages.copyPassword)
+							}}
 						</button>
-						<span v-else class="text-xs text-secondary">{{ passwordStatus(group) }}</span>
 					</div>
-					<p class="mb-0 mt-1 text-xs text-secondary">
-						{{ permissionLabels(group).join(' · ') || formatMessage(messages.noPermissions) }}
-					</p>
-					<p v-if="group.reserved_slots" class="mb-0 mt-1 text-xs text-secondary">
-						{{ formatMessage(messages.reservedSlots, { count: group.reserved_slots }) }}
-					</p>
 				</div>
 			</div>
 			<p class="m-0 text-xs text-secondary">{{ formatMessage(messages.ownerProvided) }}</p>
@@ -154,10 +191,20 @@
 </template>
 <script setup lang="ts">
 import type { Labrinth } from '@shroudedit/api-client'
-import { CopyIcon, getLoaderIcon } from '@shroudedit/assets'
+import {
+	CheckIcon,
+	CopyIcon,
+	EyeIcon,
+	getLoaderIcon,
+	LockIcon,
+	LockOpenIcon,
+	ShieldIcon,
+	UserIcon,
+	UsersIcon,
+} from '@shroudedit/assets'
 import { SERVER_LANGUAGES } from '@shroudedit/ui'
 import { formatVersionsForDisplay, type GameVersionTag, type PlatformTag } from '@shroudedit/utils'
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, ref } from 'vue'
 
 import { defineMessages, useVIntl } from '../../composables'
 import { injectNotificationManager } from '../../providers'
@@ -239,6 +286,23 @@ const supportedVersionsList = computed(() => {
 
 const { addNotification } = injectNotificationManager()
 const { formatMessage } = useVIntl()
+const copiedPasswordGroup = ref<string | null>(null)
+let copiedPasswordResetTimeout: ReturnType<typeof setTimeout> | undefined
+
+onBeforeUnmount(() => clearTimeout(copiedPasswordResetTimeout))
+
+function groupIcon(role: Labrinth.Projects.v3.EnshroudedServerRole) {
+	switch (role) {
+		case 'admin':
+			return ShieldIcon
+		case 'friend':
+			return UsersIcon
+		case 'visitor':
+			return EyeIcon
+		default:
+			return UserIcon
+	}
+}
 
 function handleCopyIP() {
 	navigator.clipboard.writeText(ipAddress.value).then(() => {
@@ -254,6 +318,11 @@ function copyPassword(groupName: string) {
 	const password = publicPasswordByGroup.value[groupName]
 	if (!password) return
 	navigator.clipboard.writeText(password).then(() => {
+		copiedPasswordGroup.value = groupName
+		clearTimeout(copiedPasswordResetTimeout)
+		copiedPasswordResetTimeout = setTimeout(() => {
+			copiedPasswordGroup.value = null
+		}, 2000)
 		addNotification({
 			type: 'success',
 			title: formatMessage(messages.copied),
@@ -315,9 +384,13 @@ const messages = defineMessages({
 		id: `project.about.server.languages`,
 		defaultMessage: 'Languages',
 	},
-	accessAndCommunication: {
-		id: `project.about.server.access-and-communication`,
-		defaultMessage: 'Access & communication',
+	communication: {
+		id: `project.about.server.communication`,
+		defaultMessage: 'Communication',
+	},
+	access: {
+		id: `project.about.server.access`,
+		defaultMessage: 'Access',
 	},
 	textChatEnabled: {
 		id: `project.about.server.text-chat-enabled`,

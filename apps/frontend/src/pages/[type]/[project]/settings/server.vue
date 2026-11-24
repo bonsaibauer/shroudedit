@@ -41,11 +41,6 @@
 					</IconButton>
 					<span v-if="pingResult?.online" class="text-green">
 						{{ formatMessage(messages.online) }}
-						<template v-if="pingResult.data?.game_version">
-							· {{ pingResult.data.game_version }} · {{ pingResult.data.players_online }}/{{
-								pingResult.data.players_max
-							}}
-						</template>
 					</span>
 					<span v-else-if="pingResult && !pingLoading" class="text-orange">
 						{{ formatMessage(messages.offline) }}

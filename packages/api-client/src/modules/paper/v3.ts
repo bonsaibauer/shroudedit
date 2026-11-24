@@ -11,7 +11,7 @@ export class PaperVersionsV3Module extends AbstractModule {
 	}
 
 	/**
-	 * Get the Paper project info including all supported Enshrouded versions.
+	 * Get the Paper project info including all supported game versions.
 	 */
 	public async getProject(): Promise<Paper.Versions.v3.Project> {
 		return this.client.request<Paper.Versions.v3.Project>('/projects/paper', {
@@ -23,12 +23,12 @@ export class PaperVersionsV3Module extends AbstractModule {
 	}
 
 	/**
-	 * Get available Paper builds for a Enshrouded version (includes channel per build).
+	 * Get available Paper builds for a Minecraft version (includes channel per build).
 	 *
 	 * Fill (`fill.papermc.io`) returns a JSON array of builds at this path — not a `{ builds }`
 	 * wrapper like some other Paper API shapes — so we normalize to `VersionBuilds`.
 	 *
-	 * @param mcVersion - Enshrouded version (e.g. "1.21.4")
+	 * @param mcVersion - Minecraft version (e.g. "1.21.4")
 	 */
 	public async getBuilds(mcVersion: string): Promise<Paper.Versions.v3.VersionBuilds> {
 		const builds = await this.client.request<Paper.Versions.v3.Build[]>(

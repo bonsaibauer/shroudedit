@@ -18,7 +18,7 @@ import {
 	EarlyShadersBadge,
 	ModeratorBadge,
 	PrideBadge,
-	StaffBadge,
+	ShroudEditIcon,
 } from '@shroudedit/assets'
 import {
 	defineMessage,
@@ -81,7 +81,7 @@ type Badge = {
 
 const BADGES = [
 	{
-		icon: StaffBadge,
+		icon: ShroudEditIcon,
 		name: defineMessage({
 			id: 'user.profile.badge.staff.name',
 			defaultMessage: 'ShroudEdit Team',

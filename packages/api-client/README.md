@@ -31,14 +31,14 @@ const client = new GenericShroudEditClient({
 	features: [new AuthFeature({ token: process.env.SHROUDEDIT_TOKEN })],
 })
 
-const project: Labrinth.Projects.v2.Project = await client.labrinth.projects_v2.get('sodium')
+const project: Labrinth.Projects.v2.Project = await client.labrinth.projects_v2.get('my-enshrouded-mod')
 const members = await client.labrinth.projects_v3.getMembers(project.id)
 ```
 
 You can still make direct requests through the same platform layer:
 
 ```ts
-const project = await client.request<Labrinth.Projects.v2.Project>('/project/sodium', {
+const project = await client.request<Labrinth.Projects.v2.Project>('/project/my-enshrouded-mod', {
 	api: 'labrinth',
 	version: 2,
 })
@@ -78,7 +78,7 @@ const client = new TauriShroudEditClient({
 	features: [new AuthFeature({ token: process.env.SHROUDEDIT_TOKEN })],
 })
 
-const project = await client.labrinth.projects_v2.get('sodium')
+const project = await client.labrinth.projects_v2.get('my-enshrouded-mod')
 ```
 
 ## API Modules
@@ -96,7 +96,7 @@ Types are exported from the package root:
 ```ts
 import type { Labrinth } from '@shroudedit/api-client'
 
-const project: Labrinth.Projects.v3.Project = await client.labrinth.projects_v3.get('sodium')
+const project: Labrinth.Projects.v3.Project = await client.labrinth.projects_v3.get('my-enshrouded-mod')
 ```
 
 ## Base URLs

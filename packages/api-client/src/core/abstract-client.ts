@@ -102,7 +102,7 @@ export abstract class AbstractShroudEditClient extends AbstractUploadClient {
 	/**
 	 * Make a request to the API
 	 *
-	 * @param path - API path (e.g., '/project/sodium')
+	 * @param path - API path (e.g., '/project/my-enshrouded-mod')
 	 * @param options - Request options
 	 * @returns Promise resolving to the response data
 	 * @throws {ShroudEditApiError} When the request fails or features throw errors
