@@ -11,7 +11,7 @@ import {
 	useVIntl,
 } from '@shroudedit/ui'
 import type { Thread } from '@shroudedit/utils'
-import { useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 
 import ThreadView from '~/components/ui/thread/ThreadView.vue'
 import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
@@ -36,7 +36,7 @@ const messages = defineMessages({
 	reviewDescription: {
 		id: 'moderation.virusTotal.project.description',
 		defaultMessage:
-			'VirusTotal results inform this review. A safe verdict closes technical review without approving the project.',
+			'Mark false positives in the findings for each file. Technical review closes automatically once all files are cleared.',
 	},
 	loading: {
 		id: 'moderation.virusTotal.project.loading',
@@ -49,6 +49,10 @@ const messages = defineMessages({
 	clearanceUnavailable: {
 		id: 'moderation.virusTotal.project.clearanceUnavailable',
 		defaultMessage: 'The API does not provide download clearance for some files yet.',
+	},
+	passReview: {
+		id: 'moderation.virusTotal.project.passReview',
+		defaultMessage: 'Close technical review',
 	},
 	rejectUnsafe: {
 		id: 'moderation.virusTotal.project.rejectUnsafe',
@@ -145,21 +149,29 @@ const formatBytes = useFormatBytes()
 const projectId = computed(() => String(route.params.project))
 const pendingFileActions = ref<Set<string>>(new Set())
 const pendingFindingActions = ref<Set<string>>(new Set())
-const isSubmitting = ref(false)
+
+function allFilesCleared(report?: Labrinth.TechReview.Internal.ProjectReport | null) {
+	const versions = report?.versions
+	return (
+		!!versions?.some((version) => version.files.length > 0) &&
+		versions.every((version) => version.files.length === 0 || canDownloadVersion(version))
+	)
+}
 
 const reviewQuery = useQuery({
 	queryKey: computed(() => ['virustotal-review', projectId.value]),
 	queryFn: () => client.labrinth.tech_review_internal.getProjectReport(projectId.value),
-	refetchInterval: (query) =>
-		query.state.data?.project_report?.versions.some((version) =>
+	refetchInterval: ({ state: { data } }) => {
+		const report = data?.project_report
+		const scanPending = report?.versions.some((version) =>
 			version.files.some((file) =>
 				file.malware
 					? file.malware.status === 'pending' && !file.malware.failed
 					: file.status === 'queued' || file.status === 'submitted',
 			),
 		)
-			? 15_000
-			: false,
+		return scanPending || (data?.needs_review && allFilesCleared(report)) ? 15_000 : false
+	},
 })
 const projectQuery = useQuery({
 	queryKey: computed(() => ['project', projectId.value]),
@@ -185,6 +197,19 @@ const files = computed<FileReview[]>(
 					Number(a.malware?.status === 'blocked' || a.malware?.failed === true),
 			) ?? [],
 )
+const projectVerdict = computed<Labrinth.TechReview.Internal.VirusTotalVerdict | null>(() => {
+	const review = reviewQuery.data.value
+	if (!review?.needs_review) return null
+	if (allFilesCleared(review.project_report)) return 'safe'
+
+	const blockingFindings = files.value
+		.filter((file) => file.malware?.status === 'blocked')
+		.flatMap((file) => file.findings)
+	return blockingFindings.some((finding) => finding.local_verdict === 'unsafe') &&
+		blockingFindings.every((finding) => finding.local_verdict != null)
+		? 'unsafe'
+		: null
+})
 const reportHttpStatus = computed(() => {
 	const error = reviewQuery.error.value
 	return error instanceof ShroudEditApiError ? error.statusCode : undefined
@@ -261,26 +286,35 @@ async function setFindingVerdict(
 	}
 }
 
-async function rejectProject() {
-	isSubmitting.value = true
-	try {
-		await client.labrinth.tech_review_internal.submitProject(projectId.value, { verdict: 'unsafe' })
+const submitReview = useMutation({
+	mutationFn: ({
+		projectId,
+		verdict,
+	}: {
+		projectId: string
+		verdict: Labrinth.TechReview.Internal.VirusTotalVerdict
+	}) => client.labrinth.tech_review_internal.submitProject(projectId, { verdict }),
+	onSuccess: async (_data, { projectId, verdict }) => {
+		await Promise.all([
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review', projectId] }),
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review-queue'] }),
+			queryClient.invalidateQueries({ queryKey: ['project', projectId] }),
+		])
 		addNotification({
 			type: 'success',
 			title: formatMessage(messages.reviewCompleted),
-			text: formatMessage(messages.rejected),
+			text: verdict === 'unsafe' ? formatMessage(messages.rejected) : '',
 		})
 		await router.push('/moderation/technical-review')
-	} catch (error) {
+	},
+	onError: (error) => {
 		addNotification({
 			type: 'error',
 			title: formatMessage(messages.submitError),
 			text: String(error),
 		})
-	} finally {
-		isSubmitting.value = false
-	}
-}
+	},
+})
 </script>
 
 <template>
@@ -297,14 +331,18 @@ async function rejectProject() {
 					{{ formatMessage(messages.reviewDescription) }}
 				</p>
 			</div>
-			<div v-if="reviewQuery.data.value?.needs_review" class="flex gap-2">
+			<div v-if="projectVerdict" class="flex gap-2">
 				<Button
 					type="colored"
-					color="red"
-					:disabled="isSubmitting || !reviewQuery.data.value?.project_report"
-					@click="rejectProject"
+					:color="projectVerdict === 'safe' ? 'blue' : 'red'"
+					:disabled="
+						submitReview.isPending.value || pendingFileActions.size > 0 || pendingFindingActions.size > 0
+					"
+					@click="projectVerdict && submitReview.mutate({ projectId, verdict: projectVerdict })"
 				>
-					{{ formatMessage(messages.rejectUnsafe) }}
+					{{
+						formatMessage(projectVerdict === 'safe' ? messages.passReview : messages.rejectUnsafe)
+					}}
 				</Button>
 			</div>
 		</div>
@@ -425,7 +463,7 @@ async function rejectProject() {
 										file.status === 'completed' &&
 										file.malware?.analysis_url &&
 										file.sha256 &&
-										['malicious', 'suspicious'].includes(finding.category)
+										(file.malware.status === 'blocked' || file.malware.status === 'manually_approved')
 									"
 									class="mt-3 flex flex-wrap gap-2"
 								>
