@@ -709,7 +709,6 @@ import { getSignInRouteObj } from '~/composables/auth.ts'
 import { logout } from '~/composables/user.js'
 import { errors as generatedStateErrors, taxComplianceThresholds } from '~/generated/state.json'
 import { provideCurrentProjectId } from '~/providers/current-project.ts'
-import { getProjectTypeMessage } from '~/utils/i18n-project-type.ts'
 
 const { formatMessage } = useVIntl()
 const { addNotification } = injectNotificationManager()
@@ -967,19 +966,19 @@ const isBrowseMenuOpen = ref(false)
 const navRoutes = computed(() => [
 	{
 		id: 'mods',
-		label: formatMessage(getProjectTypeMessage('mod', true)),
+		label: formatMessage(commonProjectTypeCategoryMessages.mod),
 		href: '/discover/mods',
 	},
 	{
-		label: formatMessage(getProjectTypeMessage('schematic', true)),
+		label: formatMessage(commonProjectTypeCategoryMessages.schematic),
 		href: '/discover/schematics',
 	},
 	{
-		label: formatMessage(getProjectTypeMessage('modpack', true)),
+		label: formatMessage(commonProjectTypeCategoryMessages.modpack),
 		href: '/discover/modpacks',
 	},
 	{
-		label: formatMessage(getProjectTypeMessage('server', true)),
+		label: formatMessage(commonProjectTypeCategoryMessages.server),
 		href: '/discover/servers',
 	},
 ])

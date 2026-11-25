@@ -473,6 +473,8 @@
   "project-type.all": "الكل",
   "project-type.datapack.capital": "{count, plural, one {Data Pack} other {Data Packs}}",
   "project-type.datapack.category": "داتاباك",
-  "project-type.mod.category": "مودات",
-  "project-type.modpack.category": "مودباكاتات"
+  "project-type.mod.category": "mods",
+  "project-type.modpack.category": "modpacks",
+  "project-type.schematic.category": "schematics",
+  "project-type.server.category": "servers"
 }
