@@ -119,14 +119,14 @@
 					<span>
 						<IntlFormatted :message-id="messages.confirmationSupportText">
 							<template #support-link="{ children }">
-								<nuxt-link
-									to="https://support.shroudedit.com"
+								<a
+									href="mailto:support@shroudedit.com"
 									class="text-link"
 									target="_blank"
 									rel="noopener noreferrer"
 								>
 									<component :is="() => normalizeChildren(children)" />
-								</nuxt-link>
+								</a>
 							</template>
 						</IntlFormatted>
 					</span>
@@ -261,7 +261,7 @@ const messages = defineMessages({
 	confirmationSupportText: {
 		id: 'dashboard.creator-tax-form-modal.confirmation.support-text',
 		defaultMessage:
-			'You can freely withdraw now. If you have questions or need to update your details <support-link>contact support</support-link>.',
+			'You can freely withdraw now. If you have questions or need to update your details, <support-link>email support@shroudedit.com</support-link>.',
 	},
 	downloadButton: {
 		id: 'dashboard.creator-tax-form-modal.confirmation.download-button',

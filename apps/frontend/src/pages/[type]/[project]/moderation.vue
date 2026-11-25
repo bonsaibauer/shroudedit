@@ -82,18 +82,12 @@
 						{{ formatMessage(messages.threadPrivateDescription) }}
 					</p>
 					<p class="mb-0 mt-3 leading-tight">
-						<IntlFormatted :message-id="messages.threadHelpCenterNote1">
-							<template #help-center-link="{ children }">
-								<a class="text-link" href="https://support.shroudedit.com" target="_blank">
-									<component :is="() => normalizeChildren(children)" />
-								</a>
-							</template>
-						</IntlFormatted>
+						<IntlFormatted :message-id="messages.threadSupportNote1" />
 					</p>
 					<p class="mb-0 mt-2 leading-tight">
-						<IntlFormatted :message-id="messages.threadHelpCenterNote2">
-							<template #help-center-link="{ children }">
-								<a class="text-link" href="https://support.shroudedit.com" target="_blank">
+						<IntlFormatted :message-id="messages.threadSupportNote2">
+							<template #support-email="{ children }">
+								<a class="text-link" href="mailto:support@shroudedit.com">
 									<component :is="() => normalizeChildren(children)" />
 								</a>
 							</template>
@@ -187,15 +181,15 @@ const messages = defineMessages({
 		defaultMessage:
 			'This is a private conversation thread with the ShroudEdit moderators. They may message you with issues concerning this project.',
 	},
-	threadHelpCenterNote1: {
-		id: 'project.moderation.thread.help-center-note.1',
+	threadSupportNote1: {
+		id: 'project.moderation.thread.support-note.1',
 		defaultMessage:
 			'Content moderators cannot provide support for most issues and messages to this thread do not notify staff.',
 	},
-	threadHelpCenterNote2: {
-		id: 'project.moderation.thread.help-center-note.2',
+	threadSupportNote2: {
+		id: 'project.moderation.thread.support-note.2',
 		defaultMessage:
-			'If you need assistance or have additional inquiries, please visit the <help-center-link>ShroudEdit Help Center</help-center-link> and click the blue bubble to contact support.',
+			'If you need assistance or have additional inquiries, email <support-email>support@shroudedit.com</support-email>.',
 	},
 	threadApprovedWarning: {
 		id: 'project.moderation.thread.approved-warning',

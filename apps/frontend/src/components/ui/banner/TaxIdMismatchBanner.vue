@@ -34,7 +34,7 @@ const messages = defineMessages({
 				<ButtonLink
 					type="colored"
 					color="red"
-					to="https://support.shroudedit.com"
+					href="mailto:support@shroudedit.com"
 					target="_blank"
 					rel="noopener"
 				>

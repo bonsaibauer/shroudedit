@@ -17,7 +17,7 @@
 				Do not transfer organizations to buyers. This is a common scam and against our TOS. If you
 				encounter a buyer, please
 				<a
-					href="https://support.shroudedit.com"
+					href="mailto:support@shroudedit.com"
 					target="_blank"
 					rel="noopener noreferrer"
 					class="underline"

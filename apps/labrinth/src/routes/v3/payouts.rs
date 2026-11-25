@@ -94,7 +94,7 @@ pub async fn post_compliance_form(
 				&& !c.tin_matched
 			{
 				return Err(ApiError::Request(eyre::eyre!(
-                    "Your TIN/SSN did not match the IRS records. Please contact support https://support.shroudedit.com".to_owned(),
+					"Your TIN/SSN did not match the IRS records. Please email support@shroudedit.com".to_owned(),
                 )));
 			}
 
@@ -669,7 +669,7 @@ pub async fn create_payout(
 
 	if requires_manual_review {
 		return Err(ApiError::Request(eyre::eyre!(
-			"More information is required to proceed. Please contact support (https://support.shroudedit.com, support@shroudedit.com)",
+			"More information is required to proceed. Please email support@shroudedit.com",
 		)));
 	}
 

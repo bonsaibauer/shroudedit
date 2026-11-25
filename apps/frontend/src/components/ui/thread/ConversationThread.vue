@@ -59,9 +59,9 @@
 			<div class="flex max-w-[45rem] flex-col gap-3">
 				<p class="m-0">{{ formatMessage(messages.replyModalDescription) }}</p>
 				<p class="m-0">
-					<IntlFormatted :message-id="messages.replyModalHelpCenterNote">
-						<template #help-center-link="{ children }">
-							<a class="text-link" href="https://support.shroudedit.com" target="_blank">
+					<IntlFormatted :message-id="messages.replyModalSupportNote">
+						<template #support-email="{ children }">
+							<a class="text-link" href="mailto:support@shroudedit.com">
 								<component :is="() => children" />
 							</a>
 						</template>
@@ -468,10 +468,10 @@ const messages = defineMessages({
 		defaultMessage:
 			'Your project is already approved. As such, the moderation team does not actively monitor this thread. However, they may still see your message if there is a problem with your project.',
 	},
-	replyModalHelpCenterNote: {
-		id: 'conversation-thread.reply-modal.help-center-note',
+	replyModalSupportNote: {
+		id: 'conversation-thread.reply-modal.support-note',
 		defaultMessage:
-			'If you need to get in contact with the moderation team, please use the <help-center-link>ShroudEdit Help Center</help-center-link> and click the blue bubble in the bottom right corner to contact support.',
+			'If you need to contact the moderation team, email <support-email>support@shroudedit.com</support-email>.',
 	},
 	replyModalConfirmationDescription: {
 		id: 'conversation-thread.reply-modal.confirmation.description',

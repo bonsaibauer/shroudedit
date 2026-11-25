@@ -197,16 +197,6 @@
 				>
 					<template v-if="isShroudEditUser" #summary>
 						<IntlFormatted :message-id="messages.officialAccountBio">
-							<template #support-link>
-								<a
-									href="https://support.shroudedit.com"
-									class="text-link"
-									target="_blank"
-									rel="noopener noreferrer"
-								>
-									https://support.shroudedit.com
-								</a>
-							</template>
 							<template #email>
 								<a
 									href="mailto:support@shroudedit.com"
@@ -614,8 +604,7 @@ const messages = defineMessages({
 	},
 	officialAccountBio: {
 		id: 'profile.official-account.bio',
-		defaultMessage:
-			'The official user account of ShroudEdit. Get support at <support-link></support-link> or via email at <email></email>',
+		defaultMessage: 'The official user account of ShroudEdit. Get support via email at <email></email>',
 	},
 	blockButton: {
 		id: 'profile.button.block',

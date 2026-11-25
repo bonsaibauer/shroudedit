@@ -16,7 +16,7 @@
 					<ButtonLink
 						type="colored"
 						color="red"
-						to="https://support.shroudedit.com"
+						href="mailto:support@shroudedit.com"
 						target="_blank"
 					>
 						<MessageIcon />{{ formatMessage(messages.contactSupport) }}</ButtonLink
@@ -35,7 +35,7 @@
 					<ButtonLink
 						type="colored"
 						color="orange"
-						to="https://support.shroudedit.com"
+						href="mailto:support@shroudedit.com"
 						target="_blank"
 					>
 						<MessageIcon />{{ formatMessage(messages.contactSupport) }}</ButtonLink

@@ -308,7 +308,7 @@
   "conversation-thread.reply-modal.confirmation.label": "モデレーターがこのスレッドを積極的に監視していないことを理解しました。\n",
   "conversation-thread.reply-modal.description": "あなたのプロジェクトはすでに承認されています。そのため、モデレーションチームはこのスレッドを積極的に監視していません。ただし、プロジェクトに問題がある場合は、メッセージを確認することがあります。\n",
   "conversation-thread.reply-modal.header": "スレッドに返信する\n",
-  "conversation-thread.reply-modal.help-center-note": "モデレーションチームに連絡する必要がある場合は、<help-center-link>ShroudEditヘルプセンター</help-center-link>を利用し、右下の青い吹き出しをクリックしてサポートにお問い合わせください。\n",
+  "conversation-thread.reply-modal.support-note": "モデレーションチームへの連絡が必要な場合は、<support-email>support@shroudedit.com</support-email>までメールでお問い合わせください。\n",
   "conversation-thread.resubmit-modal.confirmation.description": "モデレーターからのメッセージに対応したことを確認する\n",
   "conversation-thread.resubmit-modal.confirmation.label": "モデレーターからのコメントに適切に対応したことを確認します。\n",
   "conversation-thread.resubmit-modal.description": "<project-title>{projectTitle}</project-title>をモデレーターによる再審査に提出します。\n",

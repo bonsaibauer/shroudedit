@@ -178,7 +178,7 @@ export function flattenStaticVariables(): Record<string, string> {
 	vars[`TOS`] = `[Terms of Use](https://shroudedit.com/legal/terms)`
 	vars[`COPYRIGHT_POLICY`] = `[Copyright Policy](https://shroudedit.com/legal/copyright)`
 	vars[`SUPPORT`] =
-		`please visit the [ShroudEdit Help Center](https://support.shroudedit.com/) and click the blue bubble to contact support.`
+		`please email [support@shroudedit.com](mailto:support@shroudedit.com) to contact support.`
 	vars[`MODPACK_PERMISSIONS_GUIDE`] =
 		`our guide to [Obtaining Modpack Permissions](https://support.shroudedit.com/en/articles/8797527)`
 	vars[`MODPACKS_ON_SHROUDEDIT`] =

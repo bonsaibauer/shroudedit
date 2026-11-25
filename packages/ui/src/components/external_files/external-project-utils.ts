@@ -136,7 +136,7 @@ export const PERMISSION_REASONS: Record<
 		description: defineMessage({
 			id: 'external-files.permissions-card.reason.globally-allowed.description',
 			defaultMessage:
-				"We've seen this file before and have prepared an attribution for you. If something seems wrong, please contact ShroudEdit Support via the Help Center",
+				"We've seen this file before and have prepared an attribution for you. If something seems wrong, please email support@shroudedit.com to contact ShroudEdit Support.",
 		}),
 		notesLabel: null,
 		notesDescription: null,

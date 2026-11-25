@@ -295,7 +295,7 @@
   "conversation-thread.reply-modal.confirmation.label": "أقرّ بأن المشرفين لا يراقبون الموضوع بشكل نشط.",
   "conversation-thread.reply-modal.description": "مشروعك معتمد بالفعل. وبناءً على ذلك، لا يراقب فريق الإشراف هذا الموضوع بشكل نشط. ومع ذلك، قد يطّلعون على رسالتك إذا كانت هناك مشكلة في مشروعك.",
   "conversation-thread.reply-modal.header": "الرد على الموضوع",
-  "conversation-thread.reply-modal.help-center-note": "إذا كنت بحاجة إلى التواصل مع فريق الإشراف، يُرجى استخدام <help-center-link>مركز مساعدة ShroudEdit</help-center-link> والنقر على الفقاعة الزرقاء في الزاوية السفلية اليمنى للتواصل مع الدعم.",
+  "conversation-thread.reply-modal.support-note": "إذا كنت بحاجة إلى التواصل مع فريق الإشراف، يُرجى مراسلة <support-email>support@shroudedit.com</support-email>.",
   "conversation-thread.resubmit-modal.confirmation.description": "تأكيد أنني قد عالجت رسائل المشرفين",
   "conversation-thread.resubmit-modal.confirmation.label": "أؤكد أنني تعاملت بشكل مناسب مع ملاحظات المشرفين.",
   "conversation-thread.resubmit-modal.description": "أنت تعيد إرسال <project-title>{projectTitle}</project-title> لمراجعته مرة أخرى من قِبل المشرفين.",
