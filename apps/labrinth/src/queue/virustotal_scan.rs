@@ -162,9 +162,16 @@ pub async fn run(
 	let mut backfill_interval = tokio::time::interval(Duration::from_secs(60));
 	backfill_interval
 		.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+	let mut reconcile_review_queue = true;
 	loop {
 		tokio::select! {
 			_ = backfill_interval.tick() => {
+				if reconcile_review_queue {
+					match tech_review_queue::reconcile_cleared_projects(&pool).await {
+						Ok(()) => reconcile_review_queue = false,
+						Err(err) => warn!("Reconciling technical review queue failed: {err:#}"),
+					}
+				}
 				if let Err(err) = enqueue_unscanned_files(&pool, &kafka_client).await {
 					warn!("Queueing unscanned version files failed: {err:#}");
 				}

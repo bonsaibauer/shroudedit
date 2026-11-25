@@ -316,17 +316,13 @@ pub async fn sync_projects(
 	removal_reason: TechReviewRemovalReason,
 	txn: &mut PgTransaction<'_>,
 ) -> Result<(), ApiError> {
-	let mut project_ids =
-		project_ids.iter().copied().unique().collect::<Vec<_>>();
-	project_ids.sort_by_key(|id| id.0);
-	for project_id in &project_ids {
-		AdvisoryLock::VirusTotalProject(*project_id)
-			.acquire(txn)
-			.await
-			.wrap_internal_err(
-				"locking project for technical review queue sync",
-			)?;
-	}
+	let project_ids = project_ids
+		.iter()
+		.copied()
+		.unique()
+		.sorted_unstable_by_key(|id| id.0)
+		.collect::<Vec<_>>();
+	lock_projects(&project_ids, txn).await?;
 	let scans = file_scan_results(&mut *txn, &[], &project_ids).await?;
 	let needs_review = scans
 		.values()
@@ -340,4 +336,56 @@ pub async fn sync_projects(
 		.partition(|project_id| needs_review.contains(project_id));
 	add_projects(&waiting, txn).await?;
 	remove_projects(&finished, removal_reason, txn).await
+}
+
+pub async fn reconcile_cleared_projects(pool: &PgPool) -> Result<(), ApiError> {
+	let project_ids = sqlx::query_scalar!(
+		r#"SELECT project_id AS "project_id!: DBProjectId" FROM technical_review_queue ORDER BY project_id"#,
+	)
+	.fetch_all(pool)
+	.await
+	.wrap_internal_err("reading existing technical review queue entries")?;
+
+	for project_ids in project_ids.chunks(32) {
+		let mut txn = pool.begin().await.wrap_internal_err(
+			"starting technical review queue reconciliation",
+		)?;
+		lock_projects(project_ids, &mut txn).await?;
+		let scans = file_scan_results(&mut txn, &[], project_ids).await?;
+		let awaiting_clearance = scans
+			.values()
+			.filter(|scan| !scan.malware.status.allows_download())
+			.map(|scan| scan.project_id)
+			.collect::<HashSet<_>>();
+		let cleared = project_ids
+			.iter()
+			.copied()
+			.filter(|id| !awaiting_clearance.contains(id))
+			.collect::<Vec<_>>();
+		remove_projects(
+			&cleared,
+			TechReviewRemovalReason::ScanCompleted,
+			&mut txn,
+		)
+		.await?;
+		txn.commit().await.wrap_internal_err(
+			"committing technical review queue reconciliation",
+		)?;
+	}
+	Ok(())
+}
+
+async fn lock_projects(
+	project_ids: &[DBProjectId],
+	txn: &mut PgTransaction<'_>,
+) -> Result<(), ApiError> {
+	for &project_id in project_ids {
+		AdvisoryLock::VirusTotalProject(project_id)
+			.acquire(txn)
+			.await
+			.wrap_internal_err(
+				"locking project for technical review queue sync",
+			)?;
+	}
+	Ok(())
 }
