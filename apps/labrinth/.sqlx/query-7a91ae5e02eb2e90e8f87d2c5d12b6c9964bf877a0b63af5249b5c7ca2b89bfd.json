@@ -1,0 +1,41 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\t\tSELECT scan.sha256, scan.analysis AS \"analysis: sqlx::types::Json<Value>\",\n\t\t\t\tversion.mod_id AS \"project_id!: DBProjectId\",\n\t\t\t\tversion.id AS \"version_id!: DBVersionId\"\n\t\t\tFROM virustotal_file_scans scan\n\t\t\tINNER JOIN files ON files.id = scan.file_id\n\t\t\tINNER JOIN versions version ON version.id = files.version_id\n\t\t\tWHERE scan.file_id = $1 AND scan.analysis_id = $2 AND scan.status = 'completed' AND scan.submitted_at IS NOT NULL\n\t\t\tFOR UPDATE OF scan\n\t\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "sha256",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "analysis: sqlx::types::Json<Value>",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 2,
+        "name": "project_id!: DBProjectId",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 3,
+        "name": "version_id!: DBVersionId",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8",
+        "Text"
+      ]
+    },
+    "nullable": [
+      true,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "7a91ae5e02eb2e90e8f87d2c5d12b6c9964bf877a0b63af5249b5c7ca2b89bfd"
+}

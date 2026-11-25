@@ -1,0 +1,31 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\t\t\tSELECT DISTINCT files.version_id AS \"version_id!: DBVersionId\",\n\t\t\t\t\tversion.mod_id AS \"project_id!: DBProjectId\"\n\t\t\t\tFROM virustotal_file_scans scan\n\t\t\t\tINNER JOIN files ON files.id = scan.file_id\n\t\t\t\tINNER JOIN versions version ON version.id = files.version_id\n\t\t\t\tWHERE scan.sha256 = $1\n\t\t\t\t\tAND scan.status = 'completed'\n\t\t\t\t\tAND scan.submitted_at IS NOT NULL\n\t\t\t\t\tAND EXISTS (\n\t\t\t\t\t\tSELECT 1\n\t\t\t\t\t\tFROM jsonb_each(COALESCE(scan.analysis->'results', '{}'::jsonb)) finding\n\t\t\t\t\t\tWHERE COALESCE(finding.value->>'engine_name', finding.key) = $2\n\t\t\t\t\t\t\tAND finding.value->>'category' = $3\n\t\t\t\t\t\t\tAND COALESCE(finding.value->>'result', '') = $4\n\t\t\t\t\t)\n\t\t\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "version_id!: DBVersionId",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 1,
+        "name": "project_id!: DBProjectId",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Text",
+        "Text",
+        "Text"
+      ]
+    },
+    "nullable": [
+      false,
+      false
+    ]
+  },
+  "hash": "318441ac96d6cddd4fe44a382360f90414343ee180b24a018adcb6e0147c7a2b"
+}

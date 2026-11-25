@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT project_id AS \"project_id!: DBProjectId\"\n\t\tFROM technical_review_queue WHERE project_id = ANY($1::bigint[])",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "project_id!: DBProjectId",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8Array"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "c7db89aba457fee641f29a9e7edbf5434e7ff19a4920a7d38f0550152d818a0e"
+}

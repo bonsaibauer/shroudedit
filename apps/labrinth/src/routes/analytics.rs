@@ -1,6 +1,6 @@
 use crate::auth::get_user_from_headers;
-use crate::database::models::DBProject;
 use crate::database::PgPool;
+use crate::database::models::DBProject;
 use crate::env::ENV;
 use crate::models::analytics::{EnshroudedServerPlay, PageView, Playtime};
 use crate::models::ids::ProjectId;

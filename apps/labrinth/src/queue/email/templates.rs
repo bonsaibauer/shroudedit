@@ -441,7 +441,7 @@ async fn collect_template_variables(
 		} => {
 			let project = DBProject::get_id(
 				DBProjectId(project_id.0 as i64),
-				exec,
+				&mut *exec,
 				redis,
 			)
 			.await
@@ -477,7 +477,7 @@ async fn collect_template_variables(
 		} => {
 			let project = DBProject::get_id(
 				DBProjectId(project_id.0 as i64),
-				exec,
+				&mut *exec,
 				redis,
 			)
 			.await

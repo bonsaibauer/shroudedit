@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n\t\tSELECT team_members.user_id AS \"user_id!: DBUserId\"\n\t\tFROM mods\n\t\tINNER JOIN team_members ON team_members.team_id = mods.team_id\n\t\tWHERE mods.id = $1 AND team_members.accepted\n\t\t",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "user_id!: DBUserId",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "466be6deab6dcdb9939782cbeab4fb0bb160f0a1fcdcda73548e35fa013e9859"
+}

@@ -375,7 +375,7 @@ async fn project_team_members(
 	project_id: DBProjectId,
 	txn: &mut PgTransaction<'_>,
 ) -> Result<Vec<DBUserId>, ApiError> {
-	Ok(sqlx::query_scalar!(
+	sqlx::query_scalar!(
 		r#"
 		SELECT team_members.user_id AS "user_id!: DBUserId"
 		FROM mods
@@ -384,9 +384,9 @@ async fn project_team_members(
 		"#,
 		project_id.0,
 	)
-	.fetch_all(&mut **txn)
+	.fetch_all(&mut *txn)
 	.await
-	.wrap_internal_err("fetching project members for malware status email")?)
+	.wrap_internal_err("fetching project members for malware status email")
 }
 
 fn assess_analysis(
@@ -508,7 +508,7 @@ pub async fn sync_projects(
 		FROM technical_review_queue WHERE project_id = ANY($1::bigint[])"#,
 		&project_ids.iter().map(|id| id.0).collect::<Vec<_>>(),
 	)
-	.fetch_all(&mut **txn)
+	.fetch_all(&mut *txn)
 	.await
 	.wrap_internal_err("checking projects already in technical review queue")?
 	.into_iter()

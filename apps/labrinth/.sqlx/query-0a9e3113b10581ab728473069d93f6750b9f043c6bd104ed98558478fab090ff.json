@@ -1,0 +1,12 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                INSERT INTO users (id, username, email, role)\n                VALUES (2100, 'prefix_under_score', 'prefix_under_score@shroudedit.com', 'developer')\n                ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": []
+  },
+  "hash": "0a9e3113b10581ab728473069d93f6750b9f043c6bd104ed98558478fab090ff"
+}

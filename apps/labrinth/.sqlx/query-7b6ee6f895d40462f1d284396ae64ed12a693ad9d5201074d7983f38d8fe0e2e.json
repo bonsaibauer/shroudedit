@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n\t\tSELECT url, filename, size, version.mod_id AS \"project_id!: crate::database::models::DBProjectId\"\n\t\tFROM files\n\t\tINNER JOIN versions version ON version.id = files.version_id\n\t\tWHERE files.id = $1\n\t\t",
+  "query": "\n\t\tSELECT url, filename, size,\n\t\t\tversion.mod_id AS \"project_id!: crate::database::models::DBProjectId\",\n\t\t\tversion.id AS \"version_id!: DBVersionId\"\n\t\tFROM files\n\t\tINNER JOIN versions version ON version.id = files.version_id\n\t\tWHERE files.id = $1\n\t\t",
   "describe": {
     "columns": [
       {
@@ -22,6 +22,11 @@
         "ordinal": 3,
         "name": "project_id!: crate::database::models::DBProjectId",
         "type_info": "Int8"
+      },
+      {
+        "ordinal": 4,
+        "name": "version_id!: DBVersionId",
+        "type_info": "Int8"
       }
     ],
     "parameters": {
@@ -33,8 +38,9 @@
       false,
       false,
       false,
+      false,
       false
     ]
   },
-  "hash": "a74e4f671a7a16654023245a59d218934dfb57160eb5968ca31670fc2cf12445"
+  "hash": "7b6ee6f895d40462f1d284396ae64ed12a693ad9d5201074d7983f38d8fe0e2e"
 }
