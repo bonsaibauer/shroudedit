@@ -9,8 +9,6 @@ body:
       options:
         - label: I checked the [existing issues](https://github.com/bonsaibauer/shroudedit/issues?q=is%3Aissue) for duplicate problems
           required: true
-        - label: I have tried resolving the issue using the [support portal](https://support.shroudedit.com)
-          required: true
   - type: textarea
     attributes:
       label: Describe the bug
