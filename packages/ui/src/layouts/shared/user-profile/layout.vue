@@ -604,7 +604,8 @@ const messages = defineMessages({
 	},
 	officialAccountBio: {
 		id: 'profile.official-account.bio',
-		defaultMessage: 'The official user account of ShroudEdit. Get support via email at <email></email>',
+		defaultMessage:
+			'The official user account of ShroudEdit. Get support via email at <email></email>',
 	},
 	blockButton: {
 		id: 'profile.button.block',

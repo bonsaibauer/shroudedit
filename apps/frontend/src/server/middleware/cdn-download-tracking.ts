@@ -56,8 +56,8 @@ export default defineEventHandler(async (event) => {
 		const countPromise = countDownload(event, trackingUrl, versionFilePath).catch((error) => {
 			console.error('[cdn-download-tracking] failed to count download', error)
 		})
-		const cloudflareContext =
-			(event.context as typeof event.context & CloudflareEventContext).cloudflare?.context
+		const cloudflareContext = (event.context as typeof event.context & CloudflareEventContext)
+			.cloudflare?.context
 
 		if (cloudflareContext?.waitUntil) {
 			cloudflareContext.waitUntil(countPromise)
@@ -69,11 +69,7 @@ export default defineEventHandler(async (event) => {
 	return originResponse
 })
 
-async function countDownload(
-	event: H3Event,
-	requestUrl: URL,
-	versionFilePath: RegExpMatchArray,
-) {
+async function countDownload(event: H3Event, requestUrl: URL, versionFilePath: RegExpMatchArray) {
 	const adminKey = await readEnv('LABRINTH_ADMIN_KEY')
 	const apiBaseUrl = await readEnv('BASE_URL')
 	if (!adminKey || !apiBaseUrl) {

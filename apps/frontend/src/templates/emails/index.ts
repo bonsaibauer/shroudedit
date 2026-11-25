@@ -25,8 +25,7 @@ export default {
 		import('./moderation/ModerationThreadMessageReceived.vue'),
 	'moderation-information-requested': () =>
 		import('./moderation/ModerationInformationRequested.vue'),
-	'virustotal-status-updated': () =>
-		import('./moderation/VirusTotalStatusUpdated.vue'),
+	'virustotal-status-updated': () => import('./moderation/VirusTotalStatusUpdated.vue'),
 
 	// Project
 	'project-status-updated-neutral': () => import('./project/ProjectStatusUpdatedNeutral.vue'),

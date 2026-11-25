@@ -3,7 +3,6 @@ import { type Labrinth, ShroudEditApiError } from '@shroudedit/api-client'
 import {
 	Button,
 	ButtonLink,
-	MarkdownEditor,
 	commonMessages,
 	defineMessages,
 	injectNotificationManager,
@@ -228,9 +227,7 @@ const reportHttpStatus = computed(() => {
 	return error instanceof ShroudEditApiError ? error.statusCode : undefined
 })
 const thread = computed(() => reviewQuery.data.value?.thread as unknown as Thread | undefined)
-const requestableVersions = computed(
-	() => reviewQuery.data.value?.project_report?.versions ?? [],
-)
+const requestableVersions = computed(() => reviewQuery.data.value?.project_report?.versions ?? [])
 
 watch(
 	requestableVersions,
@@ -429,13 +426,13 @@ const submitReview = useMutation({
 					type="colored"
 					color="blue"
 					:disabled="
-						submitReview.isPending.value || pendingFileActions.size > 0 || pendingFindingActions.size > 0
+						submitReview.isPending.value ||
+						pendingFileActions.size > 0 ||
+						pendingFindingActions.size > 0
 					"
 					@click="projectVerdict && submitReview.mutate({ projectId })"
 				>
-					{{
-						formatMessage(messages.passReview)
-					}}
+					{{ formatMessage(messages.passReview) }}
 				</Button>
 			</div>
 		</div>
@@ -516,8 +513,7 @@ const submitReview = useMutation({
 								file.sha256 &&
 								file.analysis_id &&
 								file.findings.length > 0 &&
-								(file.malware?.status === 'blocked' ||
-									file.malware?.status === 'manually_approved')
+								(file.malware?.status === 'blocked' || file.malware?.status === 'manually_approved')
 							"
 							class="mt-3 rounded-lg border border-surface-5 p-3"
 						>
@@ -525,7 +521,11 @@ const submitReview = useMutation({
 								<Button
 									type="outlined"
 									color="blue"
-									:disabled="file.findings.some((finding) => pendingFindingActions.has(findingKey(file, finding)))"
+									:disabled="
+										file.findings.some((finding) =>
+											pendingFindingActions.has(findingKey(file, finding)),
+										)
+									"
 									@click="setFileVerdict(file, 'safe')"
 								>
 									{{ formatMessage(messages.localFalsePositive) }}
@@ -533,7 +533,11 @@ const submitReview = useMutation({
 								<Button
 									type="outlined"
 									color="red"
-									:disabled="file.findings.some((finding) => pendingFindingActions.has(findingKey(file, finding)))"
+									:disabled="
+										file.findings.some((finding) =>
+											pendingFindingActions.has(findingKey(file, finding)),
+										)
+									"
 									@click="setFileVerdict(file, 'unsafe')"
 								>
 									{{ formatMessage(messages.localUnsafe) }}
@@ -587,7 +591,8 @@ const submitReview = useMutation({
 										file.status === 'completed' &&
 										file.malware?.analysis_url &&
 										file.sha256 &&
-										(file.malware.status === 'blocked' || file.malware.status === 'manually_approved')
+										(file.malware.status === 'blocked' ||
+											file.malware.status === 'manually_approved')
 									"
 									class="mt-3 flex flex-wrap gap-2"
 								>

@@ -16,8 +16,8 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		<Text class="text-muted text-base">Hi <span class="no-auto-link">{user.name}</span>,</Text>
 
 		<Text class="text-muted text-base">
-			The {payout.amount} earned during {payout.period} has been processed and is now available
-			to withdraw from your account.
+			The {payout.amount} earned during {payout.period} has been processed and is now available to
+			withdraw from your account.
 		</Text>
 
 		<Button

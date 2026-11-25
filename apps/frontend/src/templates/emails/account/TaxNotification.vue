@@ -11,8 +11,8 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		<Text class="text-muted text-base">Hi <span class="no-auto-link">{user.name}</span>,</Text>
 
 		<Text class="text-muted text-base">
-			The tax rate for your {taxnotification.service} subscription is changing. Starting with
-			your next {taxnotification.billing_interval} payment, the charge will be updated as follows.
+			The tax rate for your {taxnotification.service} subscription is changing. Starting with your
+			next {taxnotification.billing_interval} payment, the charge will be updated as follows.
 		</Text>
 
 		<Text class="text-muted text-base">
@@ -28,8 +28,8 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		</Text>
 
 		<Text class="text-muted text-base">
-			The pre-tax price of your subscription has not changed. Only the tax amount has changed
-			to reflect local tax requirements.
+			The pre-tax price of your subscription has not changed. Only the tax amount has changed to
+			reflect local tax requirements.
 		</Text>
 	</StyledEmail>
 </template>

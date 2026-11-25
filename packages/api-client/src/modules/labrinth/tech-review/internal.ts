@@ -60,15 +60,12 @@ export class LabrinthTechReviewInternalModule extends AbstractModule {
 		projectId: string,
 		data: { version_id: string; message: string },
 	): Promise<void> {
-		return this.client.request<void>(
-			`/moderation/tech-review/request-information/${projectId}`,
-			{
-				api: 'labrinth',
-				version: 'internal',
-				method: 'POST',
-				body: data,
-			},
-		)
+		return this.client.request<void>(`/moderation/tech-review/request-information/${projectId}`, {
+			api: 'labrinth',
+			version: 'internal',
+			method: 'POST',
+			body: data,
+		})
 	}
 
 	public async runFileScan(fileId: string): Promise<void> {

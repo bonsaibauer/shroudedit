@@ -252,10 +252,7 @@ const formatDateTime = useFormatDateTime({
 const timeSincePosted = ref(formatRelativeTime(props.message.created))
 
 const isPrivateMessage = computed(() => {
-	return (
-		props.message.body.private ||
-		props.message.body.type === 'tech_review'
-	)
+	return props.message.body.private || props.message.body.type === 'tech_review'
 })
 
 async function deleteMessage() {
