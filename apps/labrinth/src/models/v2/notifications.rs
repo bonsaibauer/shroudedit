@@ -190,6 +190,12 @@ impl LegacyNotification {
 			NotificationBody::ModerationMessageReceived { .. } => {
 				Some("moderation_message_received".to_string())
 			}
+			NotificationBody::ModerationInformationRequested { .. } => {
+				Some("moderation_information_requested".to_string())
+			}
+			NotificationBody::VirusTotalStatusUpdated { .. } => {
+				Some("virustotal_status_updated".to_string())
+			}
 			NotificationBody::ReportStatusUpdated { .. } => {
 				Some("report_status_updated".to_string())
 			}
@@ -320,6 +326,12 @@ impl LegacyNotification {
 			}
 			NotificationBody::ModerationMessageReceived { project_id } => {
 				LegacyNotificationBody::ModerationMessageReceived { project_id }
+			}
+			NotificationBody::ModerationInformationRequested { .. } => {
+				LegacyNotificationBody::Unknown
+			}
+			NotificationBody::VirusTotalStatusUpdated { .. } => {
+				LegacyNotificationBody::Unknown
 			}
 			NotificationBody::ReportStatusUpdated { report_id } => {
 				LegacyNotificationBody::ReportStatusUpdated { report_id }

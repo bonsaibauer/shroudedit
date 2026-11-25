@@ -14,7 +14,7 @@ use crate::{
 		PgPool,
 		models::{
 			DBFileId, DBProject, DBProjectId, DBThread, DBThreadId, DBUser,
-			DBUserId, thread_item::ThreadMessageBuilder,
+			DBUserId, DBVersionId, thread_item::ThreadMessageBuilder,
 		},
 	},
 	models::{
@@ -25,13 +25,13 @@ use crate::{
 	},
 	queue::session::AuthQueue,
 	routes::ApiError,
-	search::SearchState,
 	util::error::{ApiContext as _, Context as _},
 };
 
 pub fn config(cfg: &mut web::ServiceConfig) {
 	cfg.service(search_projects)
 		.service(get_project_report)
+		.service(request_information)
 		.service(submit_report)
 		.service(update_finding_verdicts);
 }
@@ -275,6 +275,113 @@ pub struct UpdateFindingVerdict {
 pub struct SubmitReport {
 	pub verdict: TechReviewVerdict,
 	pub message: Option<String>,
+}
+
+#[derive(Debug, Deserialize, utoipa::ToSchema)]
+pub struct RequestInformation {
+	pub version_id: VersionId,
+	pub message: String,
+}
+
+#[utoipa::path(
+	context_path = "/moderation/tech-review",
+	tag = "moderation",
+	security(("bearer_auth" = [])),
+	request_body = RequestInformation,
+	responses((status = NO_CONTENT))
+)]
+#[post("/request-information/{project_id}")]
+pub async fn request_information(
+	req: HttpRequest,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+	session_queue: web::Data<AuthQueue>,
+	web::Json(request): web::Json<RequestInformation>,
+	path: web::Path<(ProjectId,)>,
+) -> Result<(), ApiError> {
+	let user = check_is_moderator_from_headers(
+		&req,
+		&**pool,
+		&redis,
+		&session_queue,
+		Scopes::PROJECT_WRITE,
+	)
+	.await
+	.wrap_auth_err("authenticating API request")?;
+	if request.message.trim().is_empty() || request.message.len() > 65536 {
+		return Err(ApiError::Request(eyre::eyre!(
+			"a question of up to 65536 bytes is required"
+		)));
+	}
+
+	let project_id = DBProjectId::from(path.into_inner().0);
+	let version_id = DBVersionId::from(request.version_id);
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting information request transaction")?;
+	crate::database::advisory_lock::AdvisoryLock::VirusTotalProject(project_id)
+		.acquire(&mut transaction)
+		.await
+		.wrap_internal_err("locking project for information request")?;
+	let queued = sqlx::query_scalar!(
+		"SELECT EXISTS(SELECT 1 FROM technical_review_queue WHERE project_id = $1) AS \"exists!\"",
+		project_id.0,
+	)
+	.fetch_one(&mut transaction)
+	.await
+	.wrap_internal_err("checking technical review queue for information request")?;
+	if !queued {
+		return Err(ApiError::NotFound(eyre::eyre!(
+			"project is not awaiting technical review"
+		)));
+	}
+	let version_exists = sqlx::query_scalar!(
+		"SELECT EXISTS(SELECT 1 FROM versions WHERE id = $1 AND mod_id = $2) AS \"exists!\"",
+		version_id.0,
+		project_id.0,
+	)
+	.fetch_one(&mut transaction)
+	.await
+	.wrap_internal_err("checking information request version")?;
+	if !version_exists {
+		return Err(ApiError::Request(eyre::eyre!(
+			"version does not belong to the project"
+		)));
+	}
+	let thread_id = sqlx::query_scalar!(
+		"SELECT id AS \"id!: DBThreadId\" FROM threads WHERE mod_id = $1 ORDER BY id LIMIT 1",
+		project_id.0,
+	)
+	.fetch_one(&mut transaction)
+	.await
+	.wrap_internal_err("fetching moderation thread for information request")?;
+	ThreadMessageBuilder {
+		author_id: Some(user.id.into()),
+		body: MessageBody::Text {
+			body: request.message,
+			private: false,
+			replying_to: None,
+			associated_images: Vec::new(),
+		},
+		thread_id,
+		hide_identity: user.role.is_mod(),
+	}
+	.insert(&mut transaction)
+	.await
+	.wrap_internal_err("adding public moderation information request")?;
+	tech_review_queue::notify_information_requested(
+		project_id,
+		version_id,
+		&mut transaction,
+		&redis,
+	)
+	.await?;
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing moderation information request")?;
+	Ok(())
 }
 
 #[utoipa::path(
@@ -883,6 +990,7 @@ pub async fn update_finding_verdicts(
 		.await
 		.wrap_internal_err("starting finding decision transaction")?;
 	let mut affected_projects = Vec::new();
+	let mut before_statuses = HashMap::new();
 	let mut updates = updates.into_inner();
 	updates.sort_by_key(|update| DBFileId::from(update.file_id).0);
 	for update in updates {
@@ -899,7 +1007,9 @@ pub async fn update_finding_verdicts(
 		let file_id = DBFileId::from(update.file_id);
 		let row = sqlx::query!(
 			r#"
-			SELECT scan.sha256, scan.analysis AS "analysis: sqlx::types::Json<Value>", version.mod_id AS "project_id!: DBProjectId"
+			SELECT scan.sha256, scan.analysis AS "analysis: sqlx::types::Json<Value>",
+				version.mod_id AS "project_id!: DBProjectId",
+				version.id AS "version_id!: DBVersionId"
 			FROM virustotal_file_scans scan
 			INNER JOIN files ON files.id = scan.file_id
 			INNER JOIN versions version ON version.id = files.version_id
@@ -947,6 +1057,56 @@ pub async fn update_finding_verdicts(
 				"finding is not present in the saved VirusTotal analysis"
 			)));
 		}
+
+		let affected: Vec<(DBVersionId, DBProjectId)> = if update.scope
+			== FindingVerdictScope::Global
+		{
+			sqlx::query!(
+				r#"
+				SELECT DISTINCT files.version_id AS "version_id!: DBVersionId",
+					version.mod_id AS "project_id!: DBProjectId"
+				FROM virustotal_file_scans scan
+				INNER JOIN files ON files.id = scan.file_id
+				INNER JOIN versions version ON version.id = files.version_id
+				WHERE scan.sha256 = $1
+					AND scan.status = 'completed'
+					AND scan.submitted_at IS NOT NULL
+					AND EXISTS (
+						SELECT 1
+						FROM jsonb_each(COALESCE(scan.analysis->'results', '{}'::jsonb)) finding
+						WHERE COALESCE(finding.value->>'engine_name', finding.key) = $2
+							AND finding.value->>'category' = $3
+							AND COALESCE(finding.value->>'result', '') = $4
+					)
+				"#,
+				&update.sha256,
+				&update.engine_name,
+				&update.category,
+				&update.result,
+			)
+			.fetch_all(&mut transaction)
+			.await
+			.wrap_internal_err("finding versions affected by global verdict")?
+			.into_iter()
+			.map(|item| (item.version_id, item.project_id))
+			.collect()
+		} else {
+			vec![(row.version_id, row.project_id)]
+		};
+		let affected_version_ids = affected
+			.iter()
+			.map(|(version_id, _)| *version_id)
+			.collect::<Vec<_>>();
+		let statuses = tech_review_queue::version_malware_statuses(
+			&mut transaction,
+			&affected_version_ids,
+		)
+		.await?;
+		for (version_id, status) in statuses {
+			before_statuses.entry(version_id).or_insert(status);
+		}
+		affected_projects
+			.extend(affected.iter().map(|(_, project_id)| *project_id));
 
 		match update.scope {
 			FindingVerdictScope::Local => {
@@ -1013,8 +1173,21 @@ pub async fn update_finding_verdicts(
 				}
 			}
 		}
-		affected_projects.push(row.project_id);
 	}
+	let affected_version_ids =
+		before_statuses.keys().copied().collect::<Vec<_>>();
+	let after_statuses = tech_review_queue::version_malware_statuses(
+		&mut transaction,
+		&affected_version_ids,
+	)
+	.await?;
+	tech_review_queue::notify_version_malware_status_changes(
+		&before_statuses,
+		&after_statuses,
+		&mut transaction,
+		&redis,
+	)
+	.await?;
 	tech_review_queue::sync_projects(
 		&affected_projects
 			.iter()
@@ -1045,7 +1218,6 @@ pub async fn submit_report(
 	pool: web::Data<PgPool>,
 	redis: web::Data<RedisPool>,
 	session_queue: web::Data<AuthQueue>,
-	search_state: web::Data<SearchState>,
 	web::Json(submit): web::Json<SubmitReport>,
 	path: web::Path<(ProjectId,)>,
 ) -> Result<(), ApiError> {
@@ -1058,6 +1230,11 @@ pub async fn submit_report(
 	)
 	.await
 	.wrap_auth_err("authenticating API request")?;
+	if submit.verdict == TechReviewVerdict::Unsafe {
+		return Err(ApiError::Request(eyre::eyre!(
+			"unsafe findings must be decided on their individual file reports"
+		)));
+	}
 	let project_id = DBProjectId::from(path.into_inner().0);
 	let mut transaction = pool
 		.begin()
@@ -1073,25 +1250,13 @@ pub async fn submit_report(
 		&[project_id],
 	)
 	.await?;
-	match submit.verdict {
-		TechReviewVerdict::Safe
-			if scans
-				.values()
-				.any(|scan| !scan.malware.status.allows_download()) =>
-		{
-			return Err(ApiError::Request(eyre::eyre!(
-				"project still has files awaiting malware review"
-			)));
-		}
-		TechReviewVerdict::Unsafe
-			if !scans.values().any(|scan| scan.confirmed)
-				|| scans.values().any(|scan| scan.unresolved) =>
-		{
-			return Err(ApiError::Request(eyre::eyre!(
-				"a confirmed finding and resolved open findings are required"
-			)));
-		}
-		_ => {}
+	if scans
+		.values()
+		.any(|scan| !scan.malware.status.allows_download())
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"project still has files awaiting malware review"
+		)));
 	}
 
 	sqlx::query_scalar!(
@@ -1130,7 +1295,7 @@ pub async fn submit_report(
 	ThreadMessageBuilder {
 		author_id: Some(user.id.into()),
 		body: MessageBody::TechReview {
-			verdict: submit.verdict,
+			verdict: TechReviewVerdict::Safe,
 		},
 		thread_id,
 		hide_identity: user.role.is_mod(),
@@ -1138,52 +1303,9 @@ pub async fn submit_report(
 	.insert(&mut transaction)
 	.await
 	.wrap_internal_err("recording technical review verdict")?;
-
-	if submit.verdict == TechReviewVerdict::Unsafe {
-		let status = sqlx::query!(
-			r#"
-			WITH old AS (SELECT id, status FROM mods WHERE id = $2),
-			updated AS (
-				UPDATE mods SET status = $1 FROM threads thread
-				WHERE mods.id = $2 AND thread.mod_id = mods.id
-				RETURNING mods.id, thread.id AS thread_id
-			)
-			SELECT updated.thread_id AS "thread_id!: DBThreadId", old.status AS "old_status!"
-			FROM updated INNER JOIN old ON old.id = updated.id
-			"#,
-			ProjectStatus::Rejected.as_str(),
-			project_id.0,
-		)
-		.fetch_one(&mut transaction)
-		.await
-		.wrap_internal_err("rejecting project after technical review")?;
-		ThreadMessageBuilder {
-			author_id: Some(user.id.into()),
-			body: MessageBody::StatusChange {
-				new_status: ProjectStatus::Rejected,
-				old_status: ProjectStatus::from_string(&status.old_status),
-			},
-			thread_id: status.thread_id,
-			hide_identity: user.role.is_mod(),
-		}
-		.insert(&mut transaction)
-		.await
-		.wrap_internal_err("recording project rejection status change")?;
-	}
 	transaction
 		.commit()
 		.await
 		.wrap_internal_err("committing technical review verdict")?;
-	if submit.verdict == TechReviewVerdict::Unsafe {
-		crate::routes::v3::projects::clear_project_cache_and_queue_search(
-			&redis,
-			&search_state,
-			project_id,
-			None,
-			None,
-		)
-		.await
-		.wrap_api_err("clearing rejected project cache")?;
-	}
 	Ok(())
 }

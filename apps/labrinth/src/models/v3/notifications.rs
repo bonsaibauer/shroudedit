@@ -53,6 +53,8 @@ pub enum NotificationType {
 	TaxNotification,
 	PatCreated,
 	ModerationMessageReceived,
+	ModerationInformationRequested,
+	VirusTotalStatusUpdated,
 	ReportStatusUpdated,
 	ReportSubmitted,
 	ProjectStatusApproved,
@@ -90,6 +92,12 @@ impl NotificationType {
 			NotificationType::PayoutAvailable => "payout_available",
 			NotificationType::ModerationMessageReceived => {
 				"moderation_message_received"
+			}
+			NotificationType::ModerationInformationRequested => {
+				"moderation_information_requested"
+			}
+			NotificationType::VirusTotalStatusUpdated => {
+				"virustotal_status_updated"
 			}
 			NotificationType::ReportStatusUpdated => "report_status_updated",
 			NotificationType::ReportSubmitted => "report_submitted",
@@ -130,6 +138,12 @@ impl NotificationType {
 			"payout_available" => NotificationType::PayoutAvailable,
 			"moderation_message_received" => {
 				NotificationType::ModerationMessageReceived
+			}
+			"moderation_information_requested" => {
+				NotificationType::ModerationInformationRequested
+			}
+			"virustotal_status_updated" => {
+				NotificationType::VirusTotalStatusUpdated
 			}
 			"report_status_updated" => NotificationType::ReportStatusUpdated,
 			"report_submitted" => NotificationType::ReportSubmitted,
@@ -194,6 +208,15 @@ pub enum NotificationBody {
 	/// email notifications, not for site notifications.
 	ModerationMessageReceived {
 		project_id: ProjectId,
+	},
+	ModerationInformationRequested {
+		project_id: ProjectId,
+		version_id: VersionId,
+	},
+	VirusTotalStatusUpdated {
+		project_id: ProjectId,
+		version_id: Option<VersionId>,
+		status: VirusTotalEmailStatus,
 	},
 	ReportStatusUpdated {
 		report_id: ReportId,
@@ -276,6 +299,16 @@ pub enum NotificationBody {
 	Unknown,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum VirusTotalEmailStatus {
+	Passed,
+	ReviewRequired,
+	ManuallyApproved,
+	UnsafeConfirmed,
+	ScanFailed,
+}
+
 impl NotificationBody {
 	pub fn notification_type(&self) -> NotificationType {
 		match &self {
@@ -298,6 +331,12 @@ impl NotificationBody {
 			NotificationBody::PatCreated { .. } => NotificationType::PatCreated,
 			NotificationBody::ModerationMessageReceived { .. } => {
 				NotificationType::ModerationMessageReceived
+			}
+			NotificationBody::ModerationInformationRequested { .. } => {
+				NotificationType::ModerationInformationRequested
+			}
+			NotificationBody::VirusTotalStatusUpdated { .. } => {
+				NotificationType::VirusTotalStatusUpdated
 			}
 			NotificationBody::ReportStatusUpdated { .. } => {
 				NotificationType::ReportStatusUpdated
@@ -527,6 +566,18 @@ impl From<DBNotification> for Notification {
                     "#".to_string(),
                     vec![],
                 ),
+                NotificationBody::VirusTotalStatusUpdated { .. } => (
+                    "Security check update".to_string(),
+                    "There is an update about your uploaded files.".to_string(),
+                    "#".to_string(),
+                    vec![],
+                ),
+				NotificationBody::ModerationInformationRequested { .. } => (
+					"More information is needed".to_string(),
+					"The moderation team has asked a question about your project.".to_string(),
+					"#".to_string(),
+					vec![],
+				),
                 NotificationBody::ProjectStatusNeutral { .. } => (
                     "Project status updated".to_string(),
                     "Your project status has been updated.".to_string(),

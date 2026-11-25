@@ -114,14 +114,13 @@
 				<Badge :type="message.body.verdict" />.
 			</span>
 			<span v-else-if="message.body.type === 'tech_review_entered'">
-				The project has entered the technical review queue.
+				{{ formatMessage(messages.technicalReviewEntered) }}
 			</span>
 			<span v-else-if="message.body.type === 'tech_review_exited'">
 				{{ formatMessage(messages.technicalReviewExited) }}
 			</span>
 			<span v-else-if="message.body.type === 'tech_review_exit_file_deleted'">
-				The project has left the technical review queue as all files pending review were deleted by
-				the user.
+				{{ formatMessage(messages.technicalReviewExitFileDeleted) }}
 			</span>
 		</div>
 		<span class="message__date shrink-0">
@@ -212,10 +211,19 @@ const settings = useModerationSettings()
 const { formatMessage } = useVIntl()
 
 const messages = defineMessages({
+	technicalReviewEntered: {
+		id: 'thread-message.technical-review.entered',
+		defaultMessage: 'The project has entered the technical review queue.',
+	},
 	technicalReviewExited: {
 		id: 'thread-message.technical-review.exited',
 		defaultMessage:
 			'The project has left the technical review queue as all pending findings have been resolved.',
+	},
+	technicalReviewExitFileDeleted: {
+		id: 'thread-message.technical-review.exit-file-deleted',
+		defaultMessage:
+			'The project has left the technical review queue because all files awaiting review were deleted.',
 	},
 })
 
@@ -246,12 +254,7 @@ const timeSincePosted = ref(formatRelativeTime(props.message.created))
 const isPrivateMessage = computed(() => {
 	return (
 		props.message.body.private ||
-		[
-			'tech_review',
-			'tech_review_entered',
-			'tech_review_exited',
-			'tech_review_exit_file_deleted',
-		].includes(props.message.body.type)
+		props.message.body.type === 'tech_review'
 	)
 })
 

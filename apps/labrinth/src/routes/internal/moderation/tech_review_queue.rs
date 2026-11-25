@@ -8,24 +8,37 @@ use crate::{
 		Executor, PgPool, PgTransaction,
 		advisory_lock::AdvisoryLock,
 		models::{
-			DBFileId, DBProjectId, DBThreadId, DBVersionId,
+			DBFileId, DBProjectId, DBThreadId, DBUserId, DBVersionId,
+			notification_item::NotificationBuilder,
 			thread_item::ThreadMessageBuilder,
 		},
 	},
 	env::ENV,
 	models::{
+		notifications::{NotificationBody, VirusTotalEmailStatus},
 		projects::{FileMalwareScan, MalwareStatus, Version, VersionStatus},
 		threads::MessageBody,
 	},
 	routes::ApiError,
 	util::error::Context,
 };
+use xredis::RedisPool;
 
 #[derive(Debug, Clone, Copy)]
 pub enum TechReviewRemovalReason {
 	ScanCompleted,
 	FileDeleted,
 	ReviewCompleted,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum VersionMalwareStatus {
+	Pending,
+	Passed,
+	ReviewRequired,
+	ManuallyApproved,
+	UnsafeConfirmed,
+	ScanFailed,
 }
 
 pub async fn add_projects(
@@ -131,9 +144,10 @@ pub async fn remove_projects(
 
 pub(crate) struct FileScanResult {
 	pub project_id: DBProjectId,
-	version_id: DBVersionId,
+	pub version_id: DBVersionId,
 	pub version_status: VersionStatus,
 	pub malware: FileMalwareScan,
+	pub scan_complete: bool,
 	pub unresolved: bool,
 	pub confirmed: bool,
 }
@@ -154,10 +168,16 @@ pub(crate) async fn file_scan_results<'a>(
 			s.submitted_at AS "submitted_at?",
 			s.analysis AS "analysis?: sqlx::types::Json<Value>",
 			(
-				SELECT jsonb_agg(jsonb_build_array(d.engine_name, d.category, d.result, d.verdict::text))
+				SELECT jsonb_agg(
+					jsonb_build_array(d.engine_name, d.category, d.result, d.verdict::text)
+					ORDER BY d.engine_name, d.category, d.result, (d.scope = 'local') DESC
+				)
 				FROM virustotal_finding_verdicts d
-				WHERE d.scope = 'local' AND d.file_id = f.id AND d.sha256 = s.sha256
-					AND d.updated_at >= s.checked_at
+				WHERE d.sha256 = s.sha256
+					AND (
+						(d.scope = 'local' AND d.file_id = f.id AND d.updated_at >= s.checked_at)
+						OR d.scope = 'global'
+					)
 			) AS "decisions?: sqlx::types::Json<Vec<[String; 4]>>"
 		FROM versions v
 		INNER JOIN files f ON f.version_id = v.id
@@ -178,6 +198,10 @@ pub(crate) async fn file_scan_results<'a>(
 				project_id: DBProjectId(row.mod_id),
 				version_id: DBVersionId(row.version_id),
 				version_status: VersionStatus::from_string(&row.version_status),
+				scan_complete: matches!(
+					row.scan_status.as_deref(),
+					Some("completed" | "failed" | "unknown")
+				),
 				malware: FileMalwareScan {
 					status: MalwareStatus::Pending,
 					analysis_url: row
@@ -218,6 +242,151 @@ pub(crate) async fn file_scan_results<'a>(
 			(DBFileId(row.id), result)
 		})
 		.collect())
+}
+
+pub(crate) async fn version_malware_statuses<'a>(
+	executor: impl Executor<'a, Database = sqlx::Postgres>,
+	version_ids: &[DBVersionId],
+) -> Result<HashMap<DBVersionId, (DBProjectId, VersionMalwareStatus)>, ApiError>
+{
+	if version_ids.is_empty() {
+		return Ok(HashMap::new());
+	}
+
+	let scans = file_scan_results(executor, version_ids, &[]).await?;
+	let mut by_version: HashMap<
+		DBVersionId,
+		(DBProjectId, Vec<FileScanResult>),
+	> = HashMap::new();
+	for scan in scans.into_values() {
+		by_version
+			.entry(scan.version_id)
+			.or_insert_with(|| (scan.project_id, Vec::new()))
+			.1
+			.push(scan);
+	}
+
+	Ok(by_version
+		.into_iter()
+		.map(|(version_id, (project_id, scans))| {
+			let status = if scans.iter().any(|scan| scan.unresolved) {
+				VersionMalwareStatus::ReviewRequired
+			} else if scans.iter().any(|scan| scan.malware.failed) {
+				VersionMalwareStatus::ScanFailed
+			} else if scans.iter().any(|scan| scan.confirmed) {
+				VersionMalwareStatus::UnsafeConfirmed
+			} else if scans.iter().any(|scan| !scan.scan_complete) {
+				VersionMalwareStatus::Pending
+			} else if scans
+				.iter()
+				.any(|scan| scan.malware.status == MalwareStatus::Pending)
+			{
+				VersionMalwareStatus::ScanFailed
+			} else if scans.iter().any(|scan| {
+				scan.malware.status == MalwareStatus::ManuallyApproved
+			}) {
+				VersionMalwareStatus::ManuallyApproved
+			} else {
+				VersionMalwareStatus::Passed
+			};
+			(version_id, (project_id, status))
+		})
+		.collect())
+}
+
+pub(crate) async fn notify_version_malware_status_changes(
+	before: &HashMap<DBVersionId, (DBProjectId, VersionMalwareStatus)>,
+	after: &HashMap<DBVersionId, (DBProjectId, VersionMalwareStatus)>,
+	txn: &mut PgTransaction<'_>,
+	redis: &RedisPool,
+) -> Result<(), ApiError> {
+	let mut users_by_project: HashMap<DBProjectId, Vec<DBUserId>> =
+		HashMap::new();
+	for (version_id, (project_id, status)) in after {
+		if before
+			.get(version_id)
+			.is_some_and(|(_, old_status)| old_status == status)
+		{
+			continue;
+		}
+		let email_status = match status {
+			VersionMalwareStatus::Pending => continue,
+			VersionMalwareStatus::Passed => VirusTotalEmailStatus::Passed,
+			VersionMalwareStatus::ReviewRequired => {
+				VirusTotalEmailStatus::ReviewRequired
+			}
+			VersionMalwareStatus::ManuallyApproved => {
+				VirusTotalEmailStatus::ManuallyApproved
+			}
+			VersionMalwareStatus::UnsafeConfirmed => {
+				VirusTotalEmailStatus::UnsafeConfirmed
+			}
+			VersionMalwareStatus::ScanFailed => {
+				VirusTotalEmailStatus::ScanFailed
+			}
+		};
+		let users = if let Some(users) = users_by_project.get(project_id) {
+			users.clone()
+		} else {
+			let users = project_team_members(*project_id, txn).await?;
+			users_by_project.insert(*project_id, users.clone());
+			users
+		};
+		if users.is_empty() {
+			continue;
+		}
+		NotificationBuilder {
+			body: NotificationBody::VirusTotalStatusUpdated {
+				project_id: (*project_id).into(),
+				version_id: Some((*version_id).into()),
+				status: email_status,
+			},
+		}
+		.insert_many(users, txn, redis)
+		.await
+		.wrap_internal_err("queuing VirusTotal status email")?;
+	}
+	Ok(())
+}
+
+pub(crate) async fn notify_information_requested(
+	project_id: DBProjectId,
+	version_id: DBVersionId,
+	txn: &mut PgTransaction<'_>,
+	redis: &RedisPool,
+) -> Result<(), ApiError> {
+	let users = project_team_members(project_id, txn).await?;
+	if users.is_empty() {
+		return Ok(());
+	}
+	NotificationBuilder {
+		body: NotificationBody::ModerationInformationRequested {
+			project_id: project_id.into(),
+			version_id: version_id.into(),
+		},
+	}
+	.insert_many(users, txn, redis)
+	.await
+	.wrap_internal_err("queuing moderation information request email")?;
+	Ok(())
+}
+
+async fn project_team_members(
+	project_id: DBProjectId,
+	txn: &mut PgTransaction<'_>,
+) -> Result<Vec<DBUserId>, ApiError> {
+	Ok(sqlx::query_scalar!(
+		r#"
+		SELECT team_members.user_id AS "user_id!: DBUserId"
+		FROM mods
+		INNER JOIN team_members ON team_members.team_id = mods.team_id
+		WHERE mods.id = $1 AND team_members.accepted
+		"#,
+		project_id.0,
+	)
+	.fetch_all(&mut **txn)
+	.await
+	.wrap_internal_err("fetching project members for malware status email")?)
 }
 
 fn assess_analysis(
@@ -326,14 +495,29 @@ pub async fn sync_projects(
 	let scans = file_scan_results(&mut *txn, &[], &project_ids).await?;
 	let needs_review = scans
 		.values()
-		.filter(|scan| {
-			scan.malware.status == MalwareStatus::Blocked || scan.malware.failed
-		})
+		.filter(|scan| scan.unresolved || scan.malware.failed)
 		.map(|scan| scan.project_id)
 		.collect::<HashSet<_>>();
-	let (waiting, finished): (Vec<_>, Vec<_>) = project_ids
-		.into_iter()
-		.partition(|project_id| needs_review.contains(project_id));
+	let pending = scans
+		.values()
+		.filter(|scan| !scan.scan_complete)
+		.map(|scan| scan.project_id)
+		.collect::<HashSet<_>>();
+	let queued = sqlx::query_scalar!(
+		r#"SELECT project_id AS "project_id!: DBProjectId"
+		FROM technical_review_queue WHERE project_id = ANY($1::bigint[])"#,
+		&project_ids.iter().map(|id| id.0).collect::<Vec<_>>(),
+	)
+	.fetch_all(&mut **txn)
+	.await
+	.wrap_internal_err("checking projects already in technical review queue")?
+	.into_iter()
+	.collect::<HashSet<_>>();
+	let (waiting, finished): (Vec<_>, Vec<_>) =
+		project_ids.into_iter().partition(|project_id| {
+			needs_review.contains(project_id)
+				|| (pending.contains(project_id) && queued.contains(project_id))
+		});
 	add_projects(&waiting, txn).await?;
 	remove_projects(&finished, removal_reason, txn).await
 }
@@ -354,7 +538,9 @@ pub async fn reconcile_cleared_projects(pool: &PgPool) -> Result<(), ApiError> {
 		let scans = file_scan_results(&mut txn, &[], project_ids).await?;
 		let awaiting_clearance = scans
 			.values()
-			.filter(|scan| !scan.malware.status.allows_download())
+			.filter(|scan| {
+				!scan.scan_complete || scan.unresolved || scan.malware.failed
+			})
 			.map(|scan| scan.project_id)
 			.collect::<HashSet<_>>();
 		let cleared = project_ids

@@ -14,10 +14,13 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use tracing::{info, warn};
 use uuid::Uuid;
+use xredis::RedisPool;
 
 use crate::{
 	database::{
-		PgPool, PgTransaction, advisory_lock::AdvisoryLock, models::DBFileId,
+		PgPool, PgTransaction,
+		advisory_lock::AdvisoryLock,
+		models::{DBFileId, DBVersionId},
 	},
 	env::ENV,
 	file_hosting::{FileHost, FileHostPublicity},
@@ -145,6 +148,7 @@ pub async fn run(
 	pool: PgPool,
 	kafka_client: web::Data<KafkaClientState>,
 	file_host: web::Data<dyn FileHost>,
+	redis_pool: RedisPool,
 ) -> Result<()> {
 	let client = VirusTotalClient::new()?;
 	let consumer = &kafka_client.virustotal_file_scan_consumer;
@@ -177,7 +181,7 @@ pub async fn run(
 				}
 			}
 			_ = poll_interval.tick() => {
-				if let Err(err) = poll_submitted_analyses(&pool, &client).await {
+				if let Err(err) = poll_submitted_analyses(&pool, &client, &redis_pool).await {
 					warn!("VirusTotal analysis polling failed: {err:#}");
 				}
 			}
@@ -189,6 +193,7 @@ pub async fn run(
 					&message,
 					file_host.get_ref(),
 					&client,
+					&redis_pool,
 				).await {
 					tracing::error!(
 						kafka.topic = message.topic(),
@@ -247,6 +252,7 @@ async fn process_message(
 	message: &BorrowedMessage<'_>,
 	file_host: &dyn FileHost,
 	client: &VirusTotalClient,
+	redis_pool: &RedisPool,
 ) -> Result<()> {
 	let Some(payload) = message.payload() else {
 		return commit_message(consumer, message);
@@ -271,7 +277,9 @@ async fn process_message(
 
 	let file = sqlx::query!(
 		r#"
-		SELECT url, filename, size, version.mod_id AS "project_id!: crate::database::models::DBProjectId"
+		SELECT url, filename, size,
+			version.mod_id AS "project_id!: crate::database::models::DBProjectId",
+			version.id AS "version_id!: DBVersionId"
 		FROM files
 		INNER JOIN versions version ON version.id = files.version_id
 		WHERE files.id = $1
@@ -312,8 +320,10 @@ async fn process_message(
 				pool,
 				file_id,
 				file.project_id,
+				file.version_id,
 				scan_id,
 				&format!("{error:#}"),
+				redis_pool,
 			)
 			.await?;
 			return commit_message(consumer, message);
@@ -333,7 +343,7 @@ async fn process_message(
 		return commit_message(consumer, message);
 	}
 
-	wait_for_active_analysis_slot(pool, client).await?;
+	wait_for_active_analysis_slot(pool, client, redis_pool).await?;
 	let mut last_error = String::new();
 	let mut analysis_id = None;
 	for attempt in 1..=MAX_SUBMISSION_ATTEMPTS {
@@ -417,8 +427,10 @@ async fn process_message(
 			pool,
 			file_id,
 			file.project_id,
+			file.version_id,
 			scan_id,
 			&last_error,
+			redis_pool,
 		)
 		.await?;
 	}
@@ -430,13 +442,20 @@ async fn record_submission_failure(
 	pool: &PgPool,
 	file_id: DBFileId,
 	project_id: crate::database::models::DBProjectId,
+	version_id: DBVersionId,
 	scan_id: Uuid,
 	error: &str,
+	redis_pool: &RedisPool,
 ) -> Result<()> {
 	let mut transaction = pool
 		.begin()
 		.await
 		.wrap_err("beginning failed scan transaction")?;
+	let before = tech_review_queue::version_malware_statuses(
+		&mut transaction,
+		&[version_id],
+	)
+	.await?;
 	let updated = sqlx::query!(
 		"UPDATE virustotal_file_scans SET status = 'failed', error = $2, updated_at = NOW() WHERE file_id = $1 AND event_id = $3",
 		file_id.0,
@@ -451,6 +470,18 @@ async fn record_submission_failure(
 			&[project_id],
 			tech_review_queue::TechReviewRemovalReason::ScanCompleted,
 			&mut transaction,
+		)
+		.await?;
+		let after = tech_review_queue::version_malware_statuses(
+			&mut transaction,
+			&[version_id],
+		)
+		.await?;
+		tech_review_queue::notify_version_malware_status_changes(
+			&before,
+			&after,
+			&mut transaction,
+			redis_pool,
 		)
 		.await?;
 	}
@@ -500,6 +531,7 @@ fn event_storage_key(file_url: &str) -> Result<String> {
 async fn wait_for_active_analysis_slot(
 	pool: &PgPool,
 	client: &VirusTotalClient,
+	redis_pool: &RedisPool,
 ) -> Result<()> {
 	loop {
 		let active_count = sqlx::query_scalar!(
@@ -512,7 +544,7 @@ async fn wait_for_active_analysis_slot(
 		if active_count < ENV.VIRUSTOTAL_MAX_ACTIVE_ANALYSES.max(1) {
 			return Ok(());
 		}
-		poll_submitted_analyses(pool, client).await?;
+		poll_submitted_analyses(pool, client, redis_pool).await?;
 		tokio::time::sleep(Duration::from_secs(
 			ENV.VIRUSTOTAL_POLL_INTERVAL_SECONDS.max(1),
 		))
@@ -605,12 +637,14 @@ async fn reserve_api_request(pool: &PgPool) -> Result<()> {
 async fn poll_submitted_analyses(
 	pool: &PgPool,
 	client: &VirusTotalClient,
+	redis_pool: &RedisPool,
 ) -> Result<()> {
 	let rows = sqlx::query!(
 		r#"
 		SELECT scan.file_id AS "file_id!: DBFileId",
 			scan.analysis_id AS "analysis_id!", scan.event_id, scan.poll_attempts,
-			version.mod_id AS "project_id!: crate::database::models::DBProjectId"
+			version.mod_id AS "project_id!: crate::database::models::DBProjectId",
+			version.id AS "version_id!: DBVersionId"
 		FROM virustotal_file_scans scan
 		INNER JOIN files ON files.id = scan.file_id
 		INNER JOIN versions version ON version.id = files.version_id
@@ -641,6 +675,11 @@ async fn poll_submitted_analyses(
 					.begin()
 					.await
 					.wrap_err("beginning scan result transaction")?;
+				let before = tech_review_queue::version_malware_statuses(
+					&mut transaction,
+					&[row.version_id],
+				)
+				.await?;
 				let updated = sqlx::query!(
 					r#"
 					UPDATE virustotal_file_scans
@@ -675,6 +714,18 @@ async fn poll_submitted_analyses(
 						&mut transaction,
 					)
 					.await?;
+					let after = tech_review_queue::version_malware_statuses(
+						&mut transaction,
+						&[row.version_id],
+					)
+					.await?;
+					tech_review_queue::notify_version_malware_status_changes(
+						&before,
+						&after,
+						&mut transaction,
+						redis_pool,
+					)
+					.await?;
 				}
 				transaction
 					.commit()
@@ -691,6 +742,11 @@ async fn poll_submitted_analyses(
 					.begin()
 					.await
 					.wrap_err("beginning scan polling error transaction")?;
+				let before = tech_review_queue::version_malware_statuses(
+					&mut transaction,
+					&[row.version_id],
+				)
+				.await?;
 				let updated = sqlx::query!(
 					r#"
 					UPDATE virustotal_file_scans
@@ -718,6 +774,18 @@ async fn poll_submitted_analyses(
 						tech_review_queue::TechReviewRemovalReason::ScanCompleted,
 						&mut transaction,
 					).await?;
+					let after = tech_review_queue::version_malware_statuses(
+						&mut transaction,
+						&[row.version_id],
+					)
+					.await?;
+					tech_review_queue::notify_version_malware_status_changes(
+						&before,
+						&after,
+						&mut transaction,
+						redis_pool,
+					)
+					.await?;
 				}
 				transaction
 					.commit()

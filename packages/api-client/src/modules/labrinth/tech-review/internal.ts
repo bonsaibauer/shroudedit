@@ -46,7 +46,7 @@ export class LabrinthTechReviewInternalModule extends AbstractModule {
 
 	public async submitProject(
 		projectId: string,
-		data: Labrinth.TechReview.Internal.SubmitProjectRequest,
+		data: { verdict: 'safe'; message?: string },
 	): Promise<void> {
 		return this.client.request<void>(`/moderation/tech-review/submit/${projectId}`, {
 			api: 'labrinth',
@@ -54,6 +54,21 @@ export class LabrinthTechReviewInternalModule extends AbstractModule {
 			method: 'POST',
 			body: data,
 		})
+	}
+
+	public async requestMoreInformation(
+		projectId: string,
+		data: { version_id: string; message: string },
+	): Promise<void> {
+		return this.client.request<void>(
+			`/moderation/tech-review/request-information/${projectId}`,
+			{
+				api: 'labrinth',
+				version: 'internal',
+				method: 'POST',
+				body: data,
+			},
+		)
 	}
 
 	public async runFileScan(fileId: string): Promise<void> {

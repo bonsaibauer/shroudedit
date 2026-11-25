@@ -72,6 +72,14 @@ const NEWPAT_TOKEN_NAME: &str = "newpat.token_name";
 const PROJECT_ID: &str = "project.id";
 const PROJECT_NAME: &str = "project.name";
 const PROJECT_ICON_URL: &str = "project.icon_url";
+const VERSION_NAME: &str = "version.name";
+
+const VIRUSTOTAL_SUBJECT: &str = "virustotal.subject";
+const VIRUSTOTAL_HEADING: &str = "virustotal.heading";
+const VIRUSTOTAL_MESSAGE: &str = "virustotal.message";
+const VIRUSTOTAL_DETAILS: &str = "virustotal.details";
+const VIRUSTOTAL_ACTION_LABEL: &str = "virustotal.action_label";
+const VIRUSTOTAL_ACTION_URL: &str = "virustotal.action_url";
 
 const REPORT_ID: &str = "report.id";
 const REPORT_TITLE: &str = "report.title";
@@ -424,6 +432,128 @@ async fn collect_template_variables(
 			map.insert(PROJECT_ID, to_base62(project_id.0));
 			map.insert(PROJECT_NAME, result.name);
 			map.insert(PROJECT_ICON_URL, result.icon_url.unwrap_or_default());
+			Ok(EmailTemplate::Static(map))
+		}
+
+		NotificationBody::ModerationInformationRequested {
+			project_id,
+			version_id,
+		} => {
+			let project = DBProject::get_id(
+				DBProjectId(project_id.0 as i64),
+				exec,
+				redis,
+			)
+			.await
+			.wrap_internal_err(
+				"fetching project for information request email",
+			)?
+			.wrap_internal_err("finding project for information request email")?
+			.inner;
+			let version_name = query!(
+				"SELECT version_number FROM versions WHERE id = $1 AND mod_id = $2",
+				version_id.0 as i64,
+				project_id.0 as i64,
+			)
+			.fetch_optional(&mut *exec)
+			.await
+			.wrap_internal_err(
+				"fetching version for information request email",
+			)?
+			.map(|row| row.version_number)
+			.unwrap_or_default();
+
+			map.insert(PROJECT_ID, to_base62(project_id.0));
+			map.insert(PROJECT_NAME, project.name);
+			map.insert(PROJECT_ICON_URL, project.icon_url.unwrap_or_default());
+			map.insert(VERSION_NAME, version_name);
+			Ok(EmailTemplate::Static(map))
+		}
+
+		NotificationBody::VirusTotalStatusUpdated {
+			project_id,
+			version_id,
+			status,
+		} => {
+			let project = DBProject::get_id(
+				DBProjectId(project_id.0 as i64),
+				exec,
+				redis,
+			)
+			.await
+			.wrap_internal_err("fetching VirusTotal email project")?
+			.wrap_internal_err("finding VirusTotal email project")?
+			.inner;
+			let project_id_string = to_base62(project_id.0);
+			let version_name = if let Some(version_id) = version_id {
+				query!(
+					"SELECT version_number FROM versions WHERE id = $1 AND mod_id = $2",
+					version_id.0 as i64,
+					project_id.0 as i64,
+				)
+				.fetch_optional(&mut *exec)
+				.await
+				.wrap_internal_err("fetching VirusTotal email version")?
+				.map(|row| row.version_number)
+			} else {
+				None
+			};
+			let content_name = version_name
+				.as_ref()
+				.map(|version| format!("version {version} of {}", project.name))
+				.unwrap_or_else(|| project.name.clone());
+			let (subject, heading, message, details, action_label, action_url) =
+				match status {
+					crate::models::v3::notifications::VirusTotalEmailStatus::Passed => (
+						"Your file check is complete".to_string(),
+						"The automatic file check is complete",
+						format!("ShroudEdit automatically checks uploaded files for possible security problems. The check for {content_name} is complete, and our team does not need to review it further."),
+						"This completes the automatic file check. It does not approve a newly submitted project by itself. The project still follows its normal publication review.",
+						"View project",
+						format!("https://shroudedit.com/project/{project_id_string}/versions"),
+					),
+					crate::models::v3::notifications::VirusTotalEmailStatus::ReviewRequired => (
+						"We’re reviewing a security alert".to_string(),
+						"We’re reviewing a possible security issue",
+						format!("An automated check reported a possible concern in {content_name}. False alerts can happen, so this does not necessarily mean the file is harmful."),
+						"Our moderation team is reviewing the result. Downloads will remain unavailable until the review is complete. We’ll email you when there is an update.",
+						"View project",
+						format!("https://shroudedit.com/project/{project_id_string}/versions"),
+					),
+					crate::models::v3::notifications::VirusTotalEmailStatus::ManuallyApproved => (
+						"A moderator cleared your file".to_string(),
+						"A moderator reviewed your file",
+						format!("An automated check reported a possible concern in {content_name}. A ShroudEdit moderator reviewed the result and cleared the file for download."),
+						"The blue download button shows that a moderator cleared the file. The project still follows its normal publication review, if that review is not complete yet.",
+						"View project",
+						format!("https://shroudedit.com/project/{project_id_string}/versions"),
+					),
+					crate::models::v3::notifications::VirusTotalEmailStatus::UnsafeConfirmed => (
+						"A file was confirmed unsafe".to_string(),
+						"Our team confirmed a security issue in a file",
+						format!("Our moderation team reviewed the VirusTotal report for {content_name} and confirmed a security issue in that file."),
+						"The affected version cannot be downloaded. This decision applies to that version and does not reject the entire project. Other versions are reviewed separately.",
+						"View project",
+						format!("https://shroudedit.com/project/{project_id_string}/versions"),
+					),
+					crate::models::v3::notifications::VirusTotalEmailStatus::ScanFailed => (
+						"We couldn’t finish checking your file".to_string(),
+						"The automatic security check could not be completed",
+						format!("ShroudEdit could not get a complete result for {content_name}. This does not tell us whether the file is safe or unsafe."),
+						"Downloads will remain unavailable until a complete check is available. Please check your project page for the current status or contact support@shroudedit.com.",
+						"View project",
+						format!("https://shroudedit.com/project/{project_id_string}/versions"),
+					),
+				};
+			map.insert(VIRUSTOTAL_SUBJECT, subject);
+			map.insert(VIRUSTOTAL_HEADING, heading.to_string());
+			map.insert(VIRUSTOTAL_MESSAGE, message);
+			map.insert(VIRUSTOTAL_DETAILS, details.to_string());
+			map.insert(VIRUSTOTAL_ACTION_LABEL, action_label.to_string());
+			map.insert(VIRUSTOTAL_ACTION_URL, action_url);
+			map.insert(PROJECT_ID, project_id_string);
+			map.insert(PROJECT_NAME, project.name);
+			map.insert(PROJECT_ICON_URL, project.icon_url.unwrap_or_default());
 			Ok(EmailTemplate::Static(map))
 		}
 

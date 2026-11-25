@@ -1124,6 +1124,20 @@ pub async fn download_version(
 					"resource not found"
 				)));
 			}
+			let scans = tech_review_queue::file_scan_results(
+				&**pool,
+				&[file.version_id],
+				&[],
+			)
+			.await?;
+			if scans
+				.values()
+				.any(|scan| !scan.malware.status.allows_download())
+			{
+				return Err(ApiError::NotFound(eyre::eyre!(
+					"resource not found"
+				)));
+			}
 
 			Ok(HttpResponse::TemporaryRedirect()
 				.append_header(("Location", &*file.url))

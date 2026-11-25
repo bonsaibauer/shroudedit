@@ -116,6 +116,7 @@ impl BackgroundTask {
 					pool,
 					kafka_client,
 					file_host,
+					redis_pool,
 				)
 				.await
 			}

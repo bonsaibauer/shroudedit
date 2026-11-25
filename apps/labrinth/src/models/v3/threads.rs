@@ -72,11 +72,11 @@ impl MessageBody {
 	pub fn is_private(&self) -> bool {
 		match self {
 			Self::Text { private, .. } | Self::Deleted { private } => *private,
-			Self::TechReview { .. }
+			Self::TechReview { .. } => true,
+			Self::StatusChange { .. }
 			| Self::TechReviewEntered
 			| Self::TechReviewExited
-			| Self::TechReviewExitFileDeleted => true,
-			Self::StatusChange { .. }
+			| Self::TechReviewExitFileDeleted
 			| Self::ThreadClosure
 			| Self::ThreadReopen => false,
 		}

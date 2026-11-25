@@ -3,6 +3,7 @@ import { type Labrinth, ShroudEditApiError } from '@shroudedit/api-client'
 import {
 	Button,
 	ButtonLink,
+	MarkdownEditor,
 	commonMessages,
 	defineMessages,
 	injectNotificationManager,
@@ -18,6 +19,7 @@ import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
 import { canDownloadVersion } from '~/utils/version-malware'
 
 type FileReview = Labrinth.TechReview.Internal.FileReport & {
+	version_id: string
 	version_number: string
 	versionDownloadAllowed: boolean
 }
@@ -53,10 +55,6 @@ const messages = defineMessages({
 	passReview: {
 		id: 'moderation.virusTotal.project.passReview',
 		defaultMessage: 'Close technical review',
-	},
-	rejectUnsafe: {
-		id: 'moderation.virusTotal.project.rejectUnsafe',
-		defaultMessage: 'Reject as unsafe',
 	},
 	filesHeading: {
 		id: 'moderation.virusTotal.project.filesHeading',
@@ -128,13 +126,29 @@ const messages = defineMessages({
 		id: 'moderation.virusTotal.notifications.reviewCompleted',
 		defaultMessage: 'Technical review completed',
 	},
-	rejected: {
-		id: 'moderation.virusTotal.notifications.rejected',
-		defaultMessage: 'The project was rejected.',
-	},
 	submitError: {
 		id: 'moderation.virusTotal.notifications.submitError',
 		defaultMessage: 'Could not submit review',
+	},
+	requestInformation: {
+		id: 'moderation.virusTotal.project.requestInformation',
+		defaultMessage: 'Request more information',
+	},
+	requestInformationVersion: {
+		id: 'moderation.virusTotal.project.requestInformationVersion',
+		defaultMessage: 'Version for this question',
+	},
+	requestInformationHelp: {
+		id: 'moderation.virusTotal.project.requestInformationHelp',
+		defaultMessage: 'This sends your draft publicly in the thread and emails the project team.',
+	},
+	requestInformationSent: {
+		id: 'moderation.virusTotal.notifications.requestInformationSent',
+		defaultMessage: 'Information request sent',
+	},
+	requestInformationError: {
+		id: 'moderation.virusTotal.notifications.requestInformationError',
+		defaultMessage: 'Could not request more information',
 	},
 })
 
@@ -149,6 +163,12 @@ const formatBytes = useFormatBytes()
 const projectId = computed(() => String(route.params.project))
 const pendingFileActions = ref<Set<string>>(new Set())
 const pendingFindingActions = ref<Set<string>>(new Set())
+const requestInformationPending = ref(false)
+const requestInformationVersionId = ref('')
+const threadView = ref<{
+	getReplyContent: () => string
+	setReplyContent: (content: string) => void
+} | null>(null)
 
 function allFilesCleared(report?: Labrinth.TechReview.Internal.ProjectReport | null) {
 	const versions = report?.versions
@@ -184,6 +204,7 @@ const files = computed<FileReview[]>(
 			.flatMap((version) =>
 				version.files.map((file) => ({
 					...file,
+					version_id: version.version_id,
 					version_number: version.version_number,
 					versionDownloadAllowed: canDownloadVersion(version),
 					findings: file.findings.filter(
@@ -197,24 +218,29 @@ const files = computed<FileReview[]>(
 					Number(a.malware?.status === 'blocked' || a.malware?.failed === true),
 			) ?? [],
 )
-const projectVerdict = computed<Labrinth.TechReview.Internal.VirusTotalVerdict | null>(() => {
+const projectVerdict = computed<'safe' | null>(() => {
 	const review = reviewQuery.data.value
 	if (!review?.needs_review) return null
-	if (allFilesCleared(review.project_report)) return 'safe'
-
-	const blockingFindings = files.value
-		.filter((file) => file.malware?.status === 'blocked')
-		.flatMap((file) => file.findings)
-	return blockingFindings.some((finding) => finding.local_verdict === 'unsafe') &&
-		blockingFindings.every((finding) => finding.local_verdict != null)
-		? 'unsafe'
-		: null
+	return allFilesCleared(review.project_report) ? 'safe' : null
 })
 const reportHttpStatus = computed(() => {
 	const error = reviewQuery.error.value
 	return error instanceof ShroudEditApiError ? error.statusCode : undefined
 })
 const thread = computed(() => reviewQuery.data.value?.thread as unknown as Thread | undefined)
+const requestableVersions = computed(
+	() => reviewQuery.data.value?.project_report?.versions ?? [],
+)
+
+watch(
+	requestableVersions,
+	(versions) => {
+		if (!versions.some((version) => version.version_id === requestInformationVersionId.value)) {
+			requestInformationVersionId.value = versions[0]?.version_id ?? ''
+		}
+	},
+	{ immediate: true },
+)
 
 function stats(file: FileReview) {
 	return file.analysis?.stats ?? {}
@@ -286,15 +312,83 @@ async function setFindingVerdict(
 	}
 }
 
+async function setFileVerdict(
+	file: FileReview,
+	verdict: Labrinth.TechReview.Internal.VirusTotalVerdict,
+) {
+	if (!file.sha256 || !file.analysis_id || file.findings.length === 0) return
+
+	const findingKeys = file.findings.map((finding) => findingKey(file, finding))
+	findingKeys.forEach((key) => pendingFindingActions.value.add(key))
+	try {
+		await client.labrinth.tech_review_internal.updateFindingVerdicts(
+			file.findings.map((finding) => ({
+				file_id: file.file_id,
+				analysis_id: file.analysis_id!,
+				sha256: file.sha256!,
+				engine_name: finding.engine_name,
+				category: finding.category,
+				result: finding.result,
+				scope: 'local' as const,
+				verdict,
+			})),
+		)
+		await Promise.all([
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review', projectId.value] }),
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review-queue'] }),
+			queryClient.invalidateQueries({ queryKey: ['project', projectId.value, 'versions'] }),
+		])
+	} catch (error) {
+		addNotification({
+			type: 'error',
+			title: formatMessage(messages.saveFindingError),
+			text: String(error),
+		})
+	} finally {
+		findingKeys.forEach((key) => pendingFindingActions.value.delete(key))
+	}
+}
+
+async function requestMoreInformation() {
+	const message = threadView.value?.getReplyContent().trim()
+	if (!message || !requestInformationVersionId.value) return
+
+	requestInformationPending.value = true
+	try {
+		await client.labrinth.tech_review_internal.requestMoreInformation(projectId.value, {
+			version_id: requestInformationVersionId.value,
+			message,
+		})
+		threadView.value?.setReplyContent('')
+		addNotification({
+			type: 'success',
+			title: formatMessage(messages.requestInformationSent),
+			text: formatMessage(messages.version, {
+				version:
+					requestableVersions.value.find(
+						(version) => version.version_id === requestInformationVersionId.value,
+					)?.version_number ?? '',
+			}),
+		})
+		await Promise.all([
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review', projectId.value] }),
+			queryClient.invalidateQueries({ queryKey: ['virustotal-review-queue'] }),
+		])
+	} catch (error) {
+		addNotification({
+			type: 'error',
+			title: formatMessage(messages.requestInformationError),
+			text: String(error),
+		})
+	} finally {
+		requestInformationPending.value = false
+	}
+}
+
 const submitReview = useMutation({
-	mutationFn: ({
-		projectId,
-		verdict,
-	}: {
-		projectId: string
-		verdict: Labrinth.TechReview.Internal.VirusTotalVerdict
-	}) => client.labrinth.tech_review_internal.submitProject(projectId, { verdict }),
-	onSuccess: async (_data, { projectId, verdict }) => {
+	mutationFn: ({ projectId }: { projectId: string }) =>
+		client.labrinth.tech_review_internal.submitProject(projectId, { verdict: 'safe' }),
+	onSuccess: async (_data, { projectId }) => {
 		await Promise.all([
 			queryClient.invalidateQueries({ queryKey: ['virustotal-review', projectId] }),
 			queryClient.invalidateQueries({ queryKey: ['virustotal-review-queue'] }),
@@ -303,7 +397,6 @@ const submitReview = useMutation({
 		addNotification({
 			type: 'success',
 			title: formatMessage(messages.reviewCompleted),
-			text: verdict === 'unsafe' ? formatMessage(messages.rejected) : '',
 		})
 		await router.push('/moderation/technical-review')
 	},
@@ -334,14 +427,14 @@ const submitReview = useMutation({
 			<div v-if="projectVerdict" class="flex gap-2">
 				<Button
 					type="colored"
-					:color="projectVerdict === 'safe' ? 'blue' : 'red'"
+					color="blue"
 					:disabled="
 						submitReview.isPending.value || pendingFileActions.size > 0 || pendingFindingActions.size > 0
 					"
-					@click="projectVerdict && submitReview.mutate({ projectId, verdict: projectVerdict })"
+					@click="projectVerdict && submitReview.mutate({ projectId })"
 				>
 					{{
-						formatMessage(projectVerdict === 'safe' ? messages.passReview : messages.rejectUnsafe)
+						formatMessage(messages.passReview)
 					}}
 				</Button>
 			</div>
@@ -413,6 +506,37 @@ const submitReview = useMutation({
 											pendingFileActions.has(file.file_id) ? messages.queueing : messages.runScan,
 										)
 									}}
+								</Button>
+							</div>
+						</div>
+
+						<div
+							v-if="
+								file.status === 'completed' &&
+								file.sha256 &&
+								file.analysis_id &&
+								file.findings.length > 0 &&
+								(file.malware?.status === 'blocked' ||
+									file.malware?.status === 'manually_approved')
+							"
+							class="mt-3 rounded-lg border border-surface-5 p-3"
+						>
+							<div class="flex flex-wrap gap-2">
+								<Button
+									type="outlined"
+									color="blue"
+									:disabled="file.findings.some((finding) => pendingFindingActions.has(findingKey(file, finding)))"
+									@click="setFileVerdict(file, 'safe')"
+								>
+									{{ formatMessage(messages.localFalsePositive) }}
+								</Button>
+								<Button
+									type="outlined"
+									color="red"
+									:disabled="file.findings.some((finding) => pendingFindingActions.has(findingKey(file, finding)))"
+									@click="setFileVerdict(file, 'unsafe')"
+								>
+									{{ formatMessage(messages.localUnsafe) }}
 								</Button>
 							</div>
 						</div>
@@ -496,7 +620,38 @@ const submitReview = useMutation({
 			<section v-if="thread" class="rounded-xl bg-surface-2 p-4">
 				<h3 class="mb-3 mt-0 text-lg font-semibold">{{ formatMessage(messages.threadHeading) }}</h3>
 				<!-- @vue-expect-error ThreadView still consumes the legacy thread utility type -->
-				<ThreadView :thread="thread" primary-action="note" />
+				<ThreadView ref="threadView" :thread="thread" primary-action="note">
+					<template #additionalActions="{ hasReply }">
+						<div v-if="reviewQuery.data.value?.needs_review" class="flex flex-col gap-2">
+							<label class="text-sm text-secondary" for="request-information-version">
+								{{ formatMessage(messages.requestInformationVersion) }}
+							</label>
+							<select
+								id="request-information-version"
+								v-model="requestInformationVersionId"
+								class="rounded-lg border border-surface-5 bg-surface-1 px-3 py-2 text-primary"
+							>
+								<option
+									v-for="version in requestableVersions"
+									:key="version.version_id"
+									:value="version.version_id"
+								>
+									{{ formatMessage(messages.version, { version: version.version_number }) }}
+								</option>
+							</select>
+							<p class="m-0 text-xs text-secondary">
+								{{ formatMessage(messages.requestInformationHelp) }}
+							</p>
+							<Button
+								type="outlined"
+								:disabled="!hasReply || requestInformationPending || !requestInformationVersionId"
+								@click="requestMoreInformation()"
+							>
+								{{ formatMessage(messages.requestInformation) }}
+							</Button>
+						</div>
+					</template>
+				</ThreadView>
 			</section>
 		</template>
 	</div>

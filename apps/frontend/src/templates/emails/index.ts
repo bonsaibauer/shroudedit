@@ -23,6 +23,10 @@ export default {
 	'report-status-updated': () => import('./moderation/ReportStatusUpdated.vue'),
 	'moderation-thread-message-received': () =>
 		import('./moderation/ModerationThreadMessageReceived.vue'),
+	'moderation-information-requested': () =>
+		import('./moderation/ModerationInformationRequested.vue'),
+	'virustotal-status-updated': () =>
+		import('./moderation/VirusTotalStatusUpdated.vue'),
 
 	// Project
 	'project-status-updated-neutral': () => import('./project/ProjectStatusUpdatedNeutral.vue'),
