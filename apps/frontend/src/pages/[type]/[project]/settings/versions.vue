@@ -352,18 +352,17 @@ import {
 } from '@shroudedit/ui'
 import { useTemplateRef, watch } from 'vue'
 
+import CreateProjectVersionModal from '~/components/ui/create-project-version/CreateProjectVersionModal.vue'
 import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
+import ValidationMessage from '~/components/ValidationMessage.vue'
+import { getSignInRouteObj } from '~/composables/auth.ts'
+import { useProjectNagMessages } from '~/composables/project-nag-validation'
+import { reportVersion } from '~/utils/report-helpers.ts'
 import {
 	canDownloadVersion,
 	getVersionMalware,
 	malwareDownloadColor,
 } from '~/utils/version-malware'
-
-import CreateProjectVersionModal from '~/components/ui/create-project-version/CreateProjectVersionModal.vue'
-import ValidationMessage from '~/components/ValidationMessage.vue'
-import { getSignInRouteObj } from '~/composables/auth.ts'
-import { useProjectNagMessages } from '~/composables/project-nag-validation'
-import { reportVersion } from '~/utils/report-helpers.ts'
 
 const route = useRoute()
 const config = useRuntimeConfig()

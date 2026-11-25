@@ -56,7 +56,6 @@
 								<ButtonLink
 									v-if="getPrimaryFile(version)"
 									type="quiet"
-									color="brand"
 									class="ml-auto"
 									:href="createDownloadUrl(version) ?? ''"
 									:disabled="!canDownloadVersion(version)"

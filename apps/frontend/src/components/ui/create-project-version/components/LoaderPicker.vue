@@ -43,8 +43,7 @@ const sortedLoaders = computed(() =>
 		const aIndex = loaderOrder.indexOf(a.name.toLowerCase())
 		const bIndex = loaderOrder.indexOf(b.name.toLowerCase())
 		return (
-			(aIndex === -1 ? loaderOrder.length : aIndex) -
-			(bIndex === -1 ? loaderOrder.length : bIndex)
+			(aIndex === -1 ? loaderOrder.length : aIndex) - (bIndex === -1 ? loaderOrder.length : bIndex)
 		)
 	}),
 )

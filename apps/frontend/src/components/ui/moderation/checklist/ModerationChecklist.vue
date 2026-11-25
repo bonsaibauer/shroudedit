@@ -505,9 +505,9 @@ import {
 	isEligibleQueueCandidate,
 	type QueueCandidateCheck,
 } from '~/services/moderation/queue-eligibility.ts'
+import { canDownloadVersion } from '~/utils/version-malware'
 
 import { type LiveNode, STATE_KEY } from './checklist-context'
-import { canDownloadVersion } from '~/utils/version-malware'
 
 const notifications = injectNotificationManager()
 const { addNotification } = notifications

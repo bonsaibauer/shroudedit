@@ -16,7 +16,7 @@ defineProps<{
 			<Container class="max-w-[600px]">
 				<Row>
 					<Column>
-						<VLink href="https://shroudedit.com" class="text-xl font-bold text-mail-brand">
+						<VLink href="https://shroudedit.com" class="text-mail-brand text-xl font-bold">
 							ShroudEdit
 						</VLink>
 					</Column>
@@ -37,7 +37,7 @@ defineProps<{
 						<VLink
 							href="https://shroudedit.com"
 							aria-label="ShroudEdit"
-							class="font-bold text-mail-brand"
+							class="text-mail-brand font-bold"
 						>
 							ShroudEdit
 						</VLink>

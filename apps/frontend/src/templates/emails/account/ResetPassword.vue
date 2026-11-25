@@ -20,7 +20,7 @@ import StyledEmail from '../shared/StyledEmail.vue'
 		<Button
 			href="{resetpassword.url}"
 			target="_blank"
-			class="text-accentContrast inline-block rounded-[12px] bg-mail-brand pb-3 pl-4 pr-4 pt-3 text-[14px] font-bold"
+			class="text-accentContrast bg-mail-brand inline-block rounded-[12px] pb-3 pl-4 pr-4 pt-3 text-[14px] font-bold"
 		>
 			Reset password
 		</Button>

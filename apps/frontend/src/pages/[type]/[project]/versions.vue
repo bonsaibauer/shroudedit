@@ -303,17 +303,16 @@ import {
 import { isStaff } from '@shroudedit/utils'
 import { onMounted, useTemplateRef, watch } from 'vue'
 
+import CreateProjectVersionModal from '~/components/ui/create-project-version/CreateProjectVersionModal.vue'
+import ProjectC2paScanModal from '~/components/ui/moderation/ProjectC2paScanModal.vue'
 import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
+import { getSignInRouteObj } from '~/composables/auth.ts'
+import { reportVersion } from '~/utils/report-helpers.ts'
 import {
 	canDownloadVersion,
 	getVersionMalware,
 	malwareDownloadColor,
 } from '~/utils/version-malware'
-
-import CreateProjectVersionModal from '~/components/ui/create-project-version/CreateProjectVersionModal.vue'
-import ProjectC2paScanModal from '~/components/ui/moderation/ProjectC2paScanModal.vue'
-import { getSignInRouteObj } from '~/composables/auth.ts'
-import { reportVersion } from '~/utils/report-helpers.ts'
 
 const route = useRoute()
 const config = useRuntimeConfig()

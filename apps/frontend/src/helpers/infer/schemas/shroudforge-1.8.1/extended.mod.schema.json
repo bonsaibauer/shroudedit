@@ -4,10 +4,7 @@
 	"title": "ShroudForge mod extension",
 	"type": "object",
 	"additionalProperties": false,
-	"required": [
-		"schemaVersion",
-		"enabled"
-	],
+	"required": ["schemaVersion", "enabled"],
 	"properties": {
 		"$schema": {
 			"type": "string"
@@ -24,18 +21,12 @@
 			"minItems": 1,
 			"uniqueItems": true,
 			"items": {
-				"enum": [
-					"client",
-					"server"
-				]
+				"enum": ["client", "server"]
 			}
 		},
 		"launcher": {
 			"description": "Launcher that originally identified this mod. Omit for ShroudForge mods. Use EML to preserve EML provenance.",
-			"enum": [
-				"EML",
-				"SF"
-			]
+			"enum": ["EML", "SF"]
 		},
 		"links": {
 			"type": "object",
@@ -65,12 +56,7 @@
 			"additionalProperties": {
 				"oneOf": [
 					{
-						"type": [
-							"boolean",
-							"string",
-							"number",
-							"array"
-						]
+						"type": ["boolean", "string", "number", "array"]
 					},
 					{
 						"$ref": "#/$defs/setting"
@@ -102,17 +88,10 @@
 		"setting": {
 			"type": "object",
 			"additionalProperties": false,
-			"required": [
-				"value"
-			],
+			"required": ["value"],
 			"properties": {
 				"value": {
-					"type": [
-						"boolean",
-						"string",
-						"number",
-						"array"
-					]
+					"type": ["boolean", "string", "number", "array"]
 				},
 				"label": {
 					"type": "string",
@@ -140,10 +119,7 @@
 					]
 				},
 				"applyAt": {
-					"enum": [
-						"live",
-						"restart"
-					]
+					"enum": ["live", "restart"]
 				},
 				"restartRequired": {
 					"type": "boolean"
@@ -154,21 +130,14 @@
 				"enabledWhen": {
 					"type": "object",
 					"additionalProperties": false,
-					"required": [
-						"setting",
-						"equals"
-					],
+					"required": ["setting", "equals"],
 					"properties": {
 						"setting": {
 							"type": "string",
 							"pattern": "^[A-Za-z0-9._-]{1,80}$"
 						},
 						"equals": {
-							"type": [
-								"boolean",
-								"string",
-								"number"
-							]
+							"type": ["boolean", "string", "number"]
 						}
 					}
 				},
@@ -203,9 +172,7 @@
 							{
 								"type": "object",
 								"additionalProperties": false,
-								"required": [
-									"label"
-								],
+								"required": ["label"],
 								"properties": {
 									"label": {
 										"type": "string",
@@ -226,9 +193,7 @@
 			"allOf": [
 				{
 					"if": {
-						"required": [
-							"control"
-						],
+						"required": ["control"],
 						"properties": {
 							"control": {
 								"const": "keybind"
@@ -251,10 +216,7 @@
 		"action": {
 			"type": "object",
 			"additionalProperties": false,
-			"required": [
-				"id",
-				"label"
-			],
+			"required": ["id", "label"],
 			"properties": {
 				"id": {
 					"type": "string",
@@ -266,11 +228,7 @@
 					"maxLength": 120
 				},
 				"style": {
-					"enum": [
-						"primary",
-						"secondary",
-						"danger"
-					]
+					"enum": ["primary", "secondary", "danger"]
 				},
 				"confirm": {
 					"type": "string",
@@ -281,9 +239,7 @@
 		"group": {
 			"type": "object",
 			"additionalProperties": false,
-			"required": [
-				"label"
-			],
+			"required": ["label"],
 			"properties": {
 				"label": {
 					"type": "string",
@@ -337,9 +293,7 @@
 					"additionalProperties": {
 						"type": "object",
 						"additionalProperties": false,
-						"required": [
-							"when"
-						],
+						"required": ["when"],
 						"properties": {
 							"when": {
 								"type": "string",
@@ -362,9 +316,7 @@
 					"additionalProperties": {
 						"type": "object",
 						"additionalProperties": false,
-						"required": [
-							"when"
-						],
+						"required": ["when"],
 						"properties": {
 							"when": {
 								"type": "string",
@@ -397,10 +349,7 @@
 		"preset": {
 			"type": "object",
 			"additionalProperties": false,
-			"required": [
-				"settings",
-				"values"
-			],
+			"required": ["settings", "values"],
 			"properties": {
 				"custom": {
 					"description": "Controller value meaning hand-tuned settings. Defaults to custom.",
@@ -426,12 +375,7 @@
 							"pattern": "^[A-Za-z0-9._-]{1,80}$"
 						},
 						"additionalProperties": {
-							"type": [
-								"boolean",
-								"string",
-								"number",
-								"array"
-							]
+							"type": ["boolean", "string", "number", "array"]
 						}
 					}
 				}

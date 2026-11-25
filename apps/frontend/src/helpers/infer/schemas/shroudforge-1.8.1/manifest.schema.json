@@ -4,11 +4,7 @@
 	"title": "EML mod manifest",
 	"type": "object",
 	"additionalProperties": false,
-	"required": [
-		"id",
-		"name",
-		"version"
-	],
+	"required": ["id", "name", "version"],
 	"properties": {
 		"id": {
 			"type": "string",
@@ -38,17 +34,11 @@
 		},
 		"license": {
 			"description": "Optional license identifier (for example, MIT). Use null when no license is declared.",
-			"type": [
-				"string",
-				"null"
-			]
+			"type": ["string", "null"]
 		},
 		"icon": {
 			"description": "Optional mod icon filename in the package root or path under assets/. Use null when the mod has no icon.",
-			"type": [
-				"string",
-				"null"
-			],
+			"type": ["string", "null"],
 			"pattern": "^(?:assets/[A-Za-z0-9._/-]+|[A-Za-z0-9_-][A-Za-z0-9._-]*)$"
 		},
 		"dependencies": {
@@ -58,10 +48,7 @@
 				"type": "object",
 				"additionalProperties": false,
 				"description": "One mod dependency.",
-				"required": [
-					"id",
-					"version"
-				],
+				"required": ["id", "version"],
 				"properties": {
 					"id": {
 						"description": "Exact id from the dependency mod's mod.json.",
@@ -89,12 +76,7 @@
 			"uniqueItems": true,
 			"items": {
 				"type": "string",
-				"enum": [
-					"patch",
-					"export",
-					"runtime",
-					"runtime-register-dll"
-				]
+				"enum": ["patch", "export", "runtime", "runtime-register-dll"]
 			}
 		}
 	}

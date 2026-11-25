@@ -1,8 +1,8 @@
 import type { Labrinth, UploadProgress } from '@shroudedit/api-client'
 import { SaveIcon, SpinnerIcon } from '@shroudedit/assets'
 import {
-	commonMessages,
 	type ComboboxOption,
+	commonMessages,
 	createContext,
 	defineMessage,
 	injectNotificationManager,

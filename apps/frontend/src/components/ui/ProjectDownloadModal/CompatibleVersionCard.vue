@@ -75,12 +75,6 @@
 </template>
 
 <script setup lang="ts">
-import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
-import {
-	canDownloadVersion,
-	getVersionMalware,
-	malwareDownloadColor,
-} from '~/utils/version-malware'
 import type { Labrinth } from '@shroudedit/api-client'
 import { DownloadIcon, RadioButtonCheckedIcon, RadioButtonIcon } from '@shroudedit/assets'
 import { ButtonLink } from '@shroudedit/ui'
@@ -96,6 +90,13 @@ import {
 import VersionChannelTag from '@shroudedit/ui/src/components/version/VersionChannelTag.vue'
 import { capitalizeString, type DisplayProjectType } from '@shroudedit/utils'
 import { computed, ref } from 'vue'
+
+import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
+import {
+	canDownloadVersion,
+	getVersionMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
 
 defineOptions({
 	name: 'CompatibleVersionCard',

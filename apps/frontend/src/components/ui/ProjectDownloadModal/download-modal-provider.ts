@@ -1,8 +1,3 @@
-import {
-	canDownloadVersion,
-	hasPendingMalware,
-	malwareDownloadColor,
-} from '~/utils/version-malware'
 import type { AbstractShroudEditClient, Labrinth } from '@shroudedit/api-client'
 import {
 	type CdnDownloadReason,
@@ -17,6 +12,11 @@ import { useQuery, useQueryClient } from '@tanstack/vue-query'
 import { type Component, computed, type ComputedRef } from 'vue'
 
 import { STALE_TIME } from '~/composables/queries/project'
+import {
+	canDownloadVersion,
+	hasPendingMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
 
 type DownloadModalProject = Omit<Labrinth.Projects.v2.Project, 'project_type'> & {
 	project_type: DisplayProjectType

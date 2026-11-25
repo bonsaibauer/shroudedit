@@ -100,11 +100,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-	canDownloadVersion,
-	hasPendingMalware,
-	malwareDownloadColor,
-} from '~/utils/version-malware'
 import type { Labrinth } from '@shroudedit/api-client'
 import { DownloadIcon, SpinnerIcon } from '@shroudedit/assets'
 import {
@@ -129,6 +124,11 @@ import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 
 import { navigateTo } from '#app'
 import { STALE_TIME, STALE_TIME_LONG } from '~/composables/queries/project'
+import {
+	canDownloadVersion,
+	hasPendingMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
 
 import { provideDownloadModalProvider } from './download-modal-provider'
 import DownloadDependencies from './DownloadDependencies.vue'

@@ -439,13 +439,6 @@
 	</div>
 </template>
 <script setup lang="ts">
-import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
-import {
-	canDownloadVersion,
-	getVersionMalware,
-	hasPendingMalware,
-	malwareDownloadColor,
-} from '~/utils/version-malware'
 import type { Labrinth } from '@shroudedit/api-client'
 import {
 	BoxIcon,
@@ -486,10 +479,17 @@ import { onServerPrefetch } from 'vue'
 
 import CreateProjectVersionModal from '~/components/ui/create-project-version/CreateProjectVersionModal.vue'
 import ProjectDownloadModal from '~/components/ui/ProjectDownloadModal/index.vue'
+import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
 import { getSignInRouteObj } from '~/composables/auth.ts'
 import { projectQueryOptions, STALE_TIME } from '~/composables/queries/project'
 import { versionQueryOptions } from '~/composables/queries/version'
 import { reportVersion } from '~/utils/report-helpers.ts'
+import {
+	canDownloadVersion,
+	getVersionMalware,
+	hasPendingMalware,
+	malwareDownloadColor,
+} from '~/utils/version-malware'
 
 const emit = defineEmits<{
 	onDownload: []
