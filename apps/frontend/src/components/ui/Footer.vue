@@ -14,14 +14,17 @@ import {
 import { commonSettingsMessages } from '@shroudedit/ui/src/utils/common-messages.js'
 
 import TextLogo from '~/components/brand/TextLogo.vue'
+import { useAdConsent } from '~/composables/useAdConsent'
 import { legalMessages } from '~/utils/legal-messages'
 
 const flags = useFeatureFlags()
 const { formatMessage } = useVIntl()
 const { addNotification } = injectNotificationManager()
 const config = useRuntimeConfig()
+const { canManageConsent, manageAdConsent } = useAdConsent()
 
 const messages = defineMessages({
+	adPreferences: { id: 'ads.preferences.label', defaultMessage: 'Advertising preferences' },
 	shroudEditInformation: {
 		id: 'layout.footer.shroudedit-information',
 		defaultMessage: 'ShroudEdit information',
@@ -302,6 +305,18 @@ function developerModeIncrement() {
 								{{ formatMessage(item.label) }}
 							</a>
 						</template>
+						<button
+							v-if="
+								config.public.adsEnabled &&
+								canManageConsent &&
+								group.label.id === legalMessages.heading.id
+							"
+							type="button"
+							class="w-fit cursor-pointer border-0 bg-transparent p-0 text-inherit hover:underline"
+							@click="manageAdConsent"
+						>
+							{{ formatMessage(messages.adPreferences) }}
+						</button>
 					</div>
 				</div>
 			</div>

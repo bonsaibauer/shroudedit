@@ -30,7 +30,7 @@ import { useTimeoutFn } from '@vueuse/core'
 import { computed, ref, watch } from 'vue'
 
 import LogoAnimated from '~/components/brand/LogoAnimated.vue'
-import AdPlaceholder from '~/components/ui/AdPlaceholder.vue'
+import AdPlacement from '~/components/ui/AdPlacement.vue'
 import { projectQueryOptions, warmProjectCheckCaches } from '~/composables/queries/project'
 import { withLabrinthCanaryHeader } from '~/helpers/canary.ts'
 import type { DisplayLocation, DisplayMode } from '~/plugins/cosmetics.ts'
@@ -50,7 +50,6 @@ const route = useRoute()
 const cosmetics = useCosmetics()
 const tags = useGeneratedState()
 const flags = useFeatureFlags()
-const auth = await useAuth()
 
 let prefetchTimeout: ReturnType<typeof useTimeoutFn> | null = null
 const HOVER_DURATION_TO_PREFETCH_MS = 500
@@ -427,6 +426,9 @@ provideBrowseManager({
 					<ImageIcon v-else-if="resultsDisplayMode === 'gallery'" />
 					<ListIcon v-else />
 				</template>
+				<template #after-result="{ index }">
+					<AdPlacement v-if="index === 5" placement="discoverMobile" />
+				</template>
 			</BrowsePageLayout>
 		</section>
 
@@ -437,7 +439,7 @@ provideBrowseManager({
 		>
 			<BrowseSidebar>
 				<template #prepend>
-					<AdPlaceholder v-if="!auth.user" />
+					<AdPlacement placement="discover" />
 				</template>
 			</BrowseSidebar>
 		</aside>

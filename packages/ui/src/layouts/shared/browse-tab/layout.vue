@@ -275,141 +275,146 @@ function getProjectCardTags(result: Labrinth.Search.v3.ResultSearchProject, disp
 
 		<ProjectCardList v-else :layout="ctx.effectiveLayout.value">
 			<template v-if="ctx.isServerType.value">
-				<ProjectCard
-					v-for="result in ctx.serverHits.value"
+				<template
+					v-for="(result, index) in ctx.serverHits.value"
 					:key="`server-card-${result.project_id}`"
-					:title="result.name"
-					:icon-url="result.icon_url || undefined"
-					:summary="result.summary"
-					:tags="result.categories"
-					:link="ctx.getServerProjectLink(result)"
-					:server-online-players="result.enshrouded_server?.ping?.data?.players_online ?? 0"
-					:server-region="result.enshrouded_server?.region ?? undefined"
-					:server-recent-plays="0"
-					:server-modpack-content="ctx.getServerModpackContent?.(result)"
-					:server-ping="ctx.serverPings?.value?.[result.project_id]"
-					:server-status-online="!!result.enshrouded_server?.ping?.data"
-					:hide-online-players-label="ctx.variant === 'app'"
-					:hide-recent-plays-label="ctx.variant === 'app'"
-					:layout="ctx.effectiveLayout.value"
-					:max-tags="2"
-					is-server-project
-					exclude-loaders
-					:color="result.color ?? undefined"
-					:banner="result.featured_gallery ?? undefined"
-					@contextmenu.prevent.stop="(event: MouseEvent) => ctx.onContextMenu?.(event, result)"
-					@mouseenter="ctx.onServerProjectHover?.(result)"
-					@mouseleave="ctx.onProjectHoverEnd?.()"
 				>
-					<template v-if="ctx.getCardActions?.(result, ctx.projectType.value)?.length" #actions>
-						<div class="flex gap-2">
-							<template
-								v-for="action in ctx.getCardActions(result, ctx.projectType.value)"
-								:key="action.key"
-							>
-								<IconButton
-									v-if="action.circular"
-									v-tooltip="action.tooltip"
-									:type="cardActionType(action)"
-									:color="cardActionColor(action)"
-									:class="cardActionClass(action)"
-									:label="action.label || action.tooltip || action.key"
-									:disabled="action.disabled"
-									@click.stop="action.onClick"
+					<ProjectCard
+						:title="result.name"
+						:icon-url="result.icon_url || undefined"
+						:summary="result.summary"
+						:tags="result.categories"
+						:link="ctx.getServerProjectLink(result)"
+						:server-online-players="result.enshrouded_server?.ping?.data?.players_online ?? 0"
+						:server-region="result.enshrouded_server?.region ?? undefined"
+						:server-recent-plays="0"
+						:server-modpack-content="ctx.getServerModpackContent?.(result)"
+						:server-ping="ctx.serverPings?.value?.[result.project_id]"
+						:server-status-online="!!result.enshrouded_server?.ping?.data"
+						:hide-online-players-label="ctx.variant === 'app'"
+						:hide-recent-plays-label="ctx.variant === 'app'"
+						:layout="ctx.effectiveLayout.value"
+						:max-tags="2"
+						is-server-project
+						exclude-loaders
+						:color="result.color ?? undefined"
+						:banner="result.featured_gallery ?? undefined"
+						@contextmenu.prevent.stop="(event: MouseEvent) => ctx.onContextMenu?.(event, result)"
+						@mouseenter="ctx.onServerProjectHover?.(result)"
+						@mouseleave="ctx.onProjectHoverEnd?.()"
+					>
+						<template v-if="ctx.getCardActions?.(result, ctx.projectType.value)?.length" #actions>
+							<div class="flex gap-2">
+								<template
+									v-for="action in ctx.getCardActions(result, ctx.projectType.value)"
+									:key="action.key"
 								>
-									<component :is="action.icon" :class="action.iconClass" />
-								</IconButton>
-								<Button
-									v-else
-									v-tooltip="action.tooltip"
-									:type="cardActionType(action)"
-									:color="cardActionColor(action)"
-									:class="cardActionClass(action)"
-									:disabled="action.disabled"
-									@click.stop="action.onClick"
-								>
-									<component :is="action.icon" :class="action.iconClass" />
-									{{ action.label }}
-								</Button>
-							</template>
-						</div>
-					</template>
-				</ProjectCard>
+									<IconButton
+										v-if="action.circular"
+										v-tooltip="action.tooltip"
+										:type="cardActionType(action)"
+										:color="cardActionColor(action)"
+										:class="cardActionClass(action)"
+										:label="action.label || action.tooltip || action.key"
+										:disabled="action.disabled"
+										@click.stop="action.onClick"
+									>
+										<component :is="action.icon" :class="action.iconClass" />
+									</IconButton>
+									<Button
+										v-else
+										v-tooltip="action.tooltip"
+										:type="cardActionType(action)"
+										:color="cardActionColor(action)"
+										:class="cardActionClass(action)"
+										:disabled="action.disabled"
+										@click.stop="action.onClick"
+									>
+										<component :is="action.icon" :class="action.iconClass" />
+										{{ action.label }}
+									</Button>
+								</template>
+							</div>
+						</template>
+					</ProjectCard>
+					<slot name="after-result" :index="index" />
+				</template>
 			</template>
 			<template v-else>
-				<ProjectCard
-					v-for="result in ctx.projectHits.value"
-					:key="result.project_id"
-					:link="ctx.getProjectLink(result)"
-					:title="result.name"
-					:icon-url="result.icon_url ?? undefined"
-					:author="{
-						name: result.organization == null ? result.author : result.organization,
-						link:
-							result.organization_id == null
-								? `/user/${encodeURIComponent(result.author_id ?? result.author)}`
-								: ctx.variant === 'web'
-									? `/organization/${result.organization_id}`
-									: `https://shroudedit.com/organization/${result.organization_id}`,
-					}"
-					:date-updated="result.date_modified"
-					:date-published="result.date_created"
-					:displayed-date="
-						ctx.effectiveCurrentSortType.value.name === 'newest' ? 'published' : 'updated'
-					"
-					:downloads="result.downloads"
-					:summary="result.summary"
-					:tags="getProjectCardTags(result, true)"
-					:all-tags="getProjectCardTags(result, false)"
-					:deprioritized-tags="ctx.deprioritizedTags.value"
-					:exclude-loaders="ctx.excludeLoaders.value"
-					:followers="result.follows"
-					:banner="result.featured_gallery ?? undefined"
-					:color="result.color ?? undefined"
-					:environment="
-						['mod', 'modpack'].includes(ctx.projectType.value)
-							? result.project_loader_fields?.environment?.[0]
-							: undefined
-					"
-					:layout="ctx.effectiveLayout.value"
-					@contextmenu.prevent.stop="(event: MouseEvent) => ctx.onContextMenu?.(event, result)"
-					@mouseenter="ctx.onProjectHover?.(result)"
-					@mouseleave="ctx.onProjectHoverEnd?.()"
-				>
-					<template v-if="ctx.getCardActions?.(result, ctx.projectType.value)?.length" #actions>
-						<div class="flex gap-2">
-							<template
-								v-for="action in ctx.getCardActions(result, ctx.projectType.value)"
-								:key="action.key"
-							>
-								<IconButton
-									v-if="action.circular"
-									v-tooltip="action.tooltip"
-									:type="cardActionType(action)"
-									:color="cardActionColor(action)"
-									:class="cardActionClass(action)"
-									:label="action.label || action.tooltip || action.key"
-									:disabled="action.disabled"
-									@click.stop="action.onClick"
+				<template v-for="(result, index) in ctx.projectHits.value" :key="result.project_id">
+					<ProjectCard
+						:link="ctx.getProjectLink(result)"
+						:title="result.name"
+						:icon-url="result.icon_url ?? undefined"
+						:author="{
+							name: result.organization == null ? result.author : result.organization,
+							link:
+								result.organization_id == null
+									? `/user/${encodeURIComponent(result.author_id ?? result.author)}`
+									: ctx.variant === 'web'
+										? `/organization/${result.organization_id}`
+										: `https://shroudedit.com/organization/${result.organization_id}`,
+						}"
+						:date-updated="result.date_modified"
+						:date-published="result.date_created"
+						:displayed-date="
+							ctx.effectiveCurrentSortType.value.name === 'newest' ? 'published' : 'updated'
+						"
+						:downloads="result.downloads"
+						:summary="result.summary"
+						:tags="getProjectCardTags(result, true)"
+						:all-tags="getProjectCardTags(result, false)"
+						:deprioritized-tags="ctx.deprioritizedTags.value"
+						:exclude-loaders="ctx.excludeLoaders.value"
+						:followers="result.follows"
+						:banner="result.featured_gallery ?? undefined"
+						:color="result.color ?? undefined"
+						:environment="
+							['mod', 'modpack'].includes(ctx.projectType.value)
+								? result.project_loader_fields?.environment?.[0]
+								: undefined
+						"
+						:layout="ctx.effectiveLayout.value"
+						@contextmenu.prevent.stop="(event: MouseEvent) => ctx.onContextMenu?.(event, result)"
+						@mouseenter="ctx.onProjectHover?.(result)"
+						@mouseleave="ctx.onProjectHoverEnd?.()"
+					>
+						<template v-if="ctx.getCardActions?.(result, ctx.projectType.value)?.length" #actions>
+							<div class="flex gap-2">
+								<template
+									v-for="action in ctx.getCardActions(result, ctx.projectType.value)"
+									:key="action.key"
 								>
-									<component :is="action.icon" :class="action.iconClass" />
-								</IconButton>
-								<Button
-									v-else
-									v-tooltip="action.tooltip"
-									:type="cardActionType(action)"
-									:color="cardActionColor(action)"
-									:class="cardActionClass(action)"
-									:disabled="action.disabled"
-									@click.stop="action.onClick"
-								>
-									<component :is="action.icon" :class="action.iconClass" />
-									{{ action.label }}
-								</Button>
-							</template>
-						</div>
-					</template>
-				</ProjectCard>
+									<IconButton
+										v-if="action.circular"
+										v-tooltip="action.tooltip"
+										:type="cardActionType(action)"
+										:color="cardActionColor(action)"
+										:class="cardActionClass(action)"
+										:label="action.label || action.tooltip || action.key"
+										:disabled="action.disabled"
+										@click.stop="action.onClick"
+									>
+										<component :is="action.icon" :class="action.iconClass" />
+									</IconButton>
+									<Button
+										v-else
+										v-tooltip="action.tooltip"
+										:type="cardActionType(action)"
+										:color="cardActionColor(action)"
+										:class="cardActionClass(action)"
+										:disabled="action.disabled"
+										@click.stop="action.onClick"
+									>
+										<component :is="action.icon" :class="action.iconClass" />
+										{{ action.label }}
+									</Button>
+								</template>
+							</div>
+						</template>
+					</ProjectCard>
+					<slot name="after-result" :index="index" />
+				</template>
 			</template>
 		</ProjectCardList>
 

@@ -194,6 +194,7 @@ export default defineNuxtConfig({
 		rateLimitKey: process.env.RATE_LIMIT_IGNORE_KEY ?? globalThis.RATE_LIMIT_IGNORE_KEY,
 		sharedInstancesBaseUrl: getSharedInstancesApiUrl(),
 		monetizationEnabled: process.env.MONETIZATION_ENABLED === 'true',
+		adsTxt: process.env.ADS_TXT ?? '',
 		intercomIdentitySecret:
 			process.env.INTERCOM_IDENTITY_SECRET ??
 			// @ts-ignore
@@ -218,6 +219,16 @@ export default defineNuxtConfig({
 			version: BUILD_VERSION,
 			preview: process.env.PREVIEW === 'true',
 			monetizationEnabled: process.env.MONETIZATION_ENABLED === 'true',
+			adsEnabled: process.env.ADS_ENABLED === 'true',
+			gamAdUnits: {
+				discover: process.env.GAM_DISCOVER_AD_UNIT_PATH ?? '',
+				project: process.env.GAM_PROJECT_AD_UNIT_PATH ?? '',
+				collection: process.env.GAM_COLLECTION_AD_UNIT_PATH ?? '',
+				user: process.env.GAM_USER_AD_UNIT_PATH ?? '',
+				organization: process.env.GAM_ORGANIZATION_AD_UNIT_PATH ?? '',
+				discoverMobile: process.env.GAM_DISCOVER_MOBILE_AD_UNIT_PATH ?? '',
+				projectMobile: process.env.GAM_PROJECT_MOBILE_AD_UNIT_PATH ?? '',
+			},
 			featureFlagOverrides: getFeatureFlagOverrides(),
 
 			owner: process.env.VERCEL_GIT_REPO_OWNER || 'bonsaibauer',

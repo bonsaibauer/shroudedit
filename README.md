@@ -59,6 +59,26 @@ Read the root [AGENTS.md](AGENTS.md) and the project-level instructions before c
 
 Monetization features are disabled by default. Set `MONETIZATION_ENABLED=true` for both the website and API to enable them again. The switch keeps the implementation and existing project data available while hiding the related routes and stopping their background jobs.
 
+## Website advertising
+
+Website advertising uses Google Ad Manager and is configured separately from player and creator monetization. The website reads these variables at build time. Set the production values in `apps/frontend/wrangler.jsonc` under `vars` and the development values separately under `env.dev.vars`.
+
+| Variable                           | Value                                                                                                                                |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `ADS_ENABLED`                      | `true` to enable website advertising. Defaults to `false`.                                                                           |
+| `GAM_DISCOVER_AD_UNIT_PATH`        | 300×250 unit for the Discover filter sidebar.                                                                                        |
+| `GAM_PROJECT_AD_UNIT_PATH`         | 300×250 unit for the project sidebar.                                                                                                |
+| `GAM_COLLECTION_AD_UNIT_PATH`      | 300×250 unit for the collection sidebar.                                                                                             |
+| `GAM_USER_AD_UNIT_PATH`            | 300×250 unit for the user profile sidebar.                                                                                           |
+| `GAM_ORGANIZATION_AD_UNIT_PATH`    | 300×250 unit for the organization sidebar.                                                                                           |
+| `GAM_DISCOVER_MOBILE_AD_UNIT_PATH` | 320×50 unit after the sixth Discover result.                                                                                         |
+| `GAM_PROJECT_MOBILE_AD_UNIT_PATH`  | 320×50 unit below the project description.                                                                                           |
+| `ADS_TXT`                          | Google and any other confirmed seller entries for `/ads.txt`, separated by literal `\n` when supplied as a single Wrangler variable. |
+
+Create all seven ad units in Google Ad Manager and copy each full path from its generated GPT tag, for example `/123456789/shroudedit_web_project_sidebar`. Enable AdSense for the units in GAM and publish a Google Privacy & Messaging configuration for the website. Publish the verified seller entries before enabling production ads. A slot with a missing path stays disabled. Use test inventory for development and verify all seven placements before enabling the production switch.
+
+GPT does not require API credentials for display. Creator payouts currently use Aditude reports and do not import GAM or AdSense revenue.
+
 ## Contributing
 
 Before opening a pull request, read the applicable project instructions and [contributing guide](https://docs.shroudedit.com/contributing/getting-started/). Report bugs or request features through [GitHub Issues](https://github.com/bonsaibauer/shroudedit/issues).

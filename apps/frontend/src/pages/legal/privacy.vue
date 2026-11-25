@@ -138,17 +138,15 @@
 
 		<h3>Advertising and monetization</h3>
 		<p>
-			If advertising is enabled, pages with advertising placements may load advertising and consent
-			technology from Aditude, Optima, InMobi Choice and Google. The Aditude script is delivered
-			through Amazon CloudFront. Depending on the active advertising setup, participating
-			advertising technology providers shown in the consent interface may also receive data. These
-			providers may process IP address, browser and device information, page and request data,
-			consent signals and information about ad impressions or interactions to deliver ads and
-			measure their performance. Personalised advertising and non-essential access to information on
-			your device are used only where permitted by law and, where required, after consent. You can
-			review or change advertising choices through the consent controls. The applicable legal bases
-			are Article 6(1)(a) and, for strictly necessary security and service operations, Article
-			6(1)(f) GDPR.
+			If advertising is enabled, pages with advertising placements may load Google Ad Manager and
+			Google Privacy &amp; messaging. Participating advertising technology providers shown in the
+			consent interface may also receive data. These providers may process IP address, browser and
+			device information, page and request data, consent signals and information about ad
+			impressions or interactions to deliver ads and measure their performance. Personalised
+			advertising and non-essential access to information on your device are used only where
+			permitted by law and, where required, after consent. You can review or change advertising
+			choices through the consent controls. The applicable legal bases are Article 6(1)(a) and, for
+			strictly necessary security and service operations, Article 6(1)(f) GDPR.
 		</p>
 
 		<h2>3. Cookies and local storage</h2>
@@ -321,15 +319,12 @@
 
 		<h3>Advertising providers</h3>
 		<p>
-			When monetization is enabled, the website can load advertising scripts from Aditude, Optima
-			(through bservr.com), InMobi Choice and Google, as well as the participating advertising
-			technology providers presented in the consent interface. Amazon CloudFront delivers the
-			Aditude script. These providers may receive connection and device data, the page on which an
-			ad is shown, consent signals and ad-interaction data. Depending on the selected settings and
+			When website advertising is enabled, Google Ad Manager can deliver ads, including demand from
+			Google AdSense. Google Privacy &amp; messaging manages advertising choices. Google and
+			participating providers may receive connection and device data, the page on which an ad is
+			shown, consent signals and ad-interaction data. Depending on the selected settings and
 			consent, this data may be used for ad delivery, personalization and performance measurement.
 			See the
-			<a href="https://www.aditude.com/policies/privacy">Aditude Privacy Policy</a>,
-			<a href="https://www.inmobi.com/privacy-policy/">InMobi Privacy Policy</a> and
 			<a href="https://policies.google.com/privacy">Google Privacy Policy</a>. Details for other
 			participating providers are available through the consent interface.
 		</p>

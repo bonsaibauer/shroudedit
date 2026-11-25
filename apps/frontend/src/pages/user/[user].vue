@@ -11,7 +11,7 @@
 		:on-create-collection="openCollectionCreateModal"
 	>
 		<template #sidebar>
-			<AdPlaceholder v-if="!auth.user" />
+			<AdPlacement placement="user" />
 		</template>
 	</UserProfilePageLayout>
 </template>
@@ -21,7 +21,7 @@ import type { Labrinth } from '@shroudedit/api-client'
 import { injectShroudEditClient, provideUserProfile, UserProfilePageLayout } from '@shroudedit/ui'
 import { useQueryClient } from '@tanstack/vue-query'
 
-import AdPlaceholder from '~/components/ui/AdPlaceholder.vue'
+import AdPlacement from '~/components/ui/AdPlacement.vue'
 import CollectionCreateModal from '~/components/ui/create/CollectionCreateModal.vue'
 import ProjectCreateModal from '~/components/ui/create/ProjectCreateModal.vue'
 import { warmProjectCheckCaches } from '~/composables/queries/project'
@@ -42,7 +42,6 @@ const userProfile = provideUserProfile({
 	blockUser: (userId) => client.labrinth.blocked_users_v3.block(userId),
 	unblockUser: (userId) => client.labrinth.blocked_users_v3.unblock(userId),
 })
-const auth = await useAuth()
 const cosmetics = useCosmetics()
 const config = useRuntimeConfig()
 

@@ -10,13 +10,20 @@
 			</NuxtLink>
 			add your description.
 		</p>
+		<AdPlacement
+			v-if="projectV2.body && projectV3.status === 'approved'"
+			placement="projectMobile"
+			class="mt-4"
+		/>
 	</section>
 </template>
 
 <script setup>
 import { injectProjectPageContext, ProjectPageDescription } from '@shroudedit/ui'
 
+import AdPlacement from '~/components/ui/AdPlacement.vue'
+
 const route = useRoute()
 
-const { projectV2 } = injectProjectPageContext()
+const { projectV2, projectV3 } = injectProjectPageContext()
 </script>
