@@ -231,6 +231,7 @@ pub struct EnshroudedServerProjectEdit {
 pub struct EnshroudedServerProjectQuery {
 	pub address: String,
 	pub query_port: u16,
+	pub verified_plays_2w: u64,
 	pub region: Option<String>,
 	pub languages: Vec<String>,
 	pub voice_chat_enabled: bool,
@@ -282,6 +283,7 @@ impl ComponentQuery for EnshroudedServerProjectQuery {
 		requirements: &mut ProjectQueryRequirements,
 	) {
 		requirements.enshrouded_server_pings.insert(project_id);
+		requirements.enshrouded_server_analytics.insert(project_id);
 	}
 
 	fn populate(
@@ -292,6 +294,11 @@ impl ComponentQuery for EnshroudedServerProjectQuery {
 		Ok(Self {
 			address: serial.address,
 			query_port: serial.query_port,
+			verified_plays_2w: context
+				.enshrouded_server_analytics
+				.get(&project_id)
+				.map(|analytics| analytics.verified_plays_2w)
+				.unwrap_or_default(),
 			region: serial.region,
 			languages: serial.languages,
 			voice_chat_enabled: serial.voice_chat_enabled,

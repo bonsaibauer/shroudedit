@@ -1,7 +1,9 @@
 use crate::auth::get_user_from_headers;
+use crate::database::models::DBProject;
 use crate::database::PgPool;
 use crate::env::ENV;
-use crate::models::analytics::{PageView, Playtime};
+use crate::models::analytics::{EnshroudedServerPlay, PageView, Playtime};
+use crate::models::ids::ProjectId;
 use crate::models::pats::Scopes;
 use crate::queue::analytics::AnalyticsQueue;
 use crate::queue::session::AuthQueue;
@@ -9,6 +11,7 @@ use crate::routes::ApiError;
 use crate::util::date::get_current_tenths_of_ms;
 
 use crate::util::error::Context;
+use actix_web::http::header::ORIGIN;
 use actix_web::{HttpRequest, HttpResponse};
 use actix_web::{post, web};
 use serde::Deserialize;
@@ -17,6 +20,7 @@ use std::net::Ipv4Addr;
 use std::sync::Arc;
 use tracing::trace;
 use url::Url;
+use uuid::Uuid;
 use xredis::RedisPool;
 
 pub const FILTERED_HEADERS: &[&str] = &[
@@ -43,7 +47,9 @@ pub const FILTERED_HEADERS: &[&str] = &[
 ];
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-	cfg.service(page_view_ingest).service(playtime_ingest);
+	cfg.service(page_view_ingest)
+		.service(playtime_ingest)
+		.service(enshrouded_server_play_ingest);
 }
 
 #[derive(Deserialize, utoipa::ToSchema)]
@@ -170,6 +176,61 @@ pub async fn page_view_ingest(
 	analytics_queue.add_view(view);
 
 	Ok(HttpResponse::NoContent().body(""))
+}
+
+#[derive(Deserialize)]
+pub struct EnshroudedServerPlayInput {
+	project_id: ProjectId,
+	enshrouded_uuid: Uuid,
+}
+
+#[post("/enshrouded-server-play")]
+pub async fn enshrouded_server_play_ingest(
+	req: HttpRequest,
+	analytics_queue: web::Data<Arc<AnalyticsQueue>>,
+	web::Form(input): web::Form<EnshroudedServerPlayInput>,
+	pool: web::Data<PgPool>,
+	redis: web::Data<RedisPool>,
+) -> Result<(), ApiError> {
+	let origin = req
+		.headers()
+		.get(ORIGIN)
+		.and_then(|header| header.to_str().ok())
+		.unwrap_or_default();
+	if !ENV
+		.ANALYTICS_ALLOWED_ORIGINS
+		.iter()
+		.any(|allowed_origin| allowed_origin == "*" || allowed_origin == origin)
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"invalid server play origin"
+		)));
+	}
+
+	let project = DBProject::get_id(input.project_id.into(), &**pool, &redis)
+		.await
+		.wrap_internal_err("fetching project for server play")?
+		.ok_or_else(|| ApiError::NotFound(eyre::eyre!("project not found")))?;
+	if !project.inner.status.is_approved()
+		|| project.components.enshrouded_server.is_none()
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"project is not an approved Enshrouded server"
+		)));
+	}
+
+	let ip = crate::util::ip::client_ip(&req)
+		.and_then(|ip| crate::util::ip::convert_to_ip_v6(&ip).ok())
+		.unwrap_or_else(|| Ipv4Addr::new(127, 0, 0, 1).to_ipv6_mapped());
+	analytics_queue.add_enshrouded_server_play(EnshroudedServerPlay {
+		recorded: get_current_tenths_of_ms(),
+		user_id: 0,
+		project_id: project.inner.id.0 as u64,
+		enshrouded_uuid: input.enshrouded_uuid,
+		ip,
+	});
+
+	Ok(())
 }
 
 #[derive(Deserialize, Debug, utoipa::ToSchema)]

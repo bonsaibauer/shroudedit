@@ -14,6 +14,7 @@ const tags = {
 const server: Labrinth.Projects.v3.EnshroudedServer = {
 	address: 'play.example.com',
 	query_port: 15637,
+	verified_plays_2w: 12,
 	region: 'europe',
 	languages: ['en', 'de'],
 	voice_chat_enabled: true,

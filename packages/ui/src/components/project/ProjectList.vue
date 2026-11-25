@@ -9,7 +9,7 @@
 				:summary="project.summary"
 				:tags="getProjectCardTags(project)"
 				:server-online-players="project.enshrouded_server?.ping?.data?.players_online ?? 0"
-				:server-recent-plays="0"
+				:server-recent-plays="project.enshrouded_server?.verified_plays_2w ?? 0"
 				:server-region="project.enshrouded_server?.region ?? undefined"
 				:server-status-online="!!project.enshrouded_server?.ping?.data"
 				:server-modpack-content="getServerModpackContent(project, openModpackProject)"

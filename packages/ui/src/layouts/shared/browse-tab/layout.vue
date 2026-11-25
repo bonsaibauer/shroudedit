@@ -287,7 +287,6 @@ function getProjectCardTags(result: Labrinth.Search.v3.ResultSearchProject, disp
 						:link="ctx.getServerProjectLink(result)"
 						:server-online-players="result.enshrouded_server?.ping?.data?.players_online ?? 0"
 						:server-region="result.enshrouded_server?.region ?? undefined"
-						:server-recent-plays="0"
 						:server-modpack-content="ctx.getServerModpackContent?.(result)"
 						:server-ping="ctx.serverPings?.value?.[result.project_id]"
 						:server-status-online="!!result.enshrouded_server?.ping?.data"

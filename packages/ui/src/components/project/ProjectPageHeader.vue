@@ -25,7 +25,7 @@
 						v-if="projectV3?.status !== 'draft'"
 						:online-players="projectV3?.enshrouded_server?.ping?.data?.players_online ?? 0"
 						:status-online="!!projectV3?.enshrouded_server?.ping?.data"
-						:recent-plays="0"
+						:recent-plays="projectV3?.enshrouded_server?.verified_plays_2w ?? 0"
 					/>
 				</template>
 				<template v-else>

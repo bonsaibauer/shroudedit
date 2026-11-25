@@ -610,15 +610,34 @@ const projectEnvironmentModal = useTemplateRef('projectEnvironmentModal')
 
 const baseId = useId()
 
-async function copyServerAddress() {
-	const server = projectV3.value?.enshrouded_server
-	if (!server?.address) return
-	await navigator.clipboard.writeText(`${server.address}:${server.query_port}`)
-	addNotification({
-		title: formatMessage(messages.serverAddressCopiedTitle),
-		text: formatMessage(messages.serverAddressCopiedText),
-		type: 'success',
-	})
+function getServerPlayUuid(projectId) {
+	const storageKey = `shroudedit:enshrouded-server-play:${projectId}`
+	try {
+		const storedUuid = localStorage.getItem(storageKey)
+		if (storedUuid) return storedUuid
+
+		const uuid = crypto.randomUUID()
+		localStorage.setItem(storageKey, uuid)
+		return uuid
+	} catch {
+		return crypto.randomUUID()
+	}
+}
+
+function recordServerPlay(projectId) {
+	try {
+		const body = new URLSearchParams({
+			project_id: projectId,
+			enshrouded_uuid: getServerPlayUuid(projectId),
+		})
+		const apiBaseUrl = config.public.apiBaseUrl.replace('/v2/', '/')
+		const endpoint = new URL('analytics/enshrouded-server-play', apiBaseUrl)
+		if (!navigator.sendBeacon(endpoint, body)) {
+			void fetch(endpoint, { method: 'POST', body, keepalive: true }).catch(() => {})
+		}
+	} catch {
+		return
+	}
 }
 
 const messages = defineMessages({
@@ -776,14 +795,6 @@ const messages = defineMessages({
 	modpackArchiveWarningDescription: {
 		id: 'project.modpack-archive-warning.description',
 		defaultMessage: 'Importing this .mrpack might be broken.',
-	},
-	serverAddressCopiedTitle: {
-		id: 'project.server.address-copied-title',
-		defaultMessage: 'Server address copied',
-	},
-	serverAddressCopiedText: {
-		id: 'project.server.address-copied-text',
-		defaultMessage: 'Paste it into the Enshrouded server browser to connect.',
 	},
 	versionsTab: {
 		id: 'project.versions.title',
@@ -1825,7 +1836,10 @@ const onUserCollectProject = useClientTry(userCollectProject)
 
 function handleProjectHeaderPrimary(event) {
 	if (isServerProject.value) {
-		void copyServerAddress()
+		const server = projectV3.value?.enshrouded_server
+		if (!server?.address) return
+		recordServerPlay(project.value.id)
+		window.location.href = `steam://connect/${encodeURIComponent(server.address)}:${server.query_port}`
 	} else {
 		downloadModal.value?.show(event)
 	}

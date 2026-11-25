@@ -1250,6 +1250,7 @@ export namespace Labrinth {
 			export interface EnshroudedServer {
 				address: string
 				query_port: number
+				verified_plays_2w: number
 				region?: string | null
 				languages: string[]
 				voice_chat_enabled: boolean
@@ -1289,7 +1290,9 @@ export namespace Labrinth {
 				enshrouded_server?: EnshroudedServerEdit & Pick<EnshroudedServer, 'address'>
 			}
 
-			export type EnshroudedServerEdit = Partial<Omit<EnshroudedServer, 'ping' | 'user_groups'>> & {
+			export type EnshroudedServerEdit = Partial<
+				Omit<EnshroudedServer, 'ping' | 'user_groups' | 'verified_plays_2w'>
+			> & {
 				user_groups?: (Omit<EnshroudedUserGroup, 'password_visibility'> &
 					Partial<Pick<EnshroudedUserGroup, 'password_visibility'>>)[]
 			}
