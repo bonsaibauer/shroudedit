@@ -108,7 +108,9 @@
 							:open="group._new || undefined"
 							class="rounded-xl border border-solid border-surface-4 bg-surface-2 p-3"
 						>
-							<summary class="cursor-pointer break-words pr-10 font-semibold leading-6 text-contrast">
+							<summary
+								class="cursor-pointer break-words pr-10 font-semibold leading-6 text-contrast"
+							>
 								{{ group.name || formatMessage(messages.newGroup) }}
 								<span class="ml-2 text-sm font-normal text-secondary">
 									{{ formatGroupSummary(group) }}
@@ -121,29 +123,11 @@
 								</label>
 								<div class="grid gap-2 sm:grid-cols-2">
 									<Checkbox
-										v-model="group.can_kick_ban"
+										v-for="{ field, label } in groupPermissions"
+										:key="field"
+										v-model="group[field]"
 										:disabled="!hasPermission"
-										:label="formatMessage(messages.kickBan)"
-									/>
-									<Checkbox
-										v-model="group.can_access_inventories"
-										:disabled="!hasPermission"
-										:label="formatMessage(messages.inventories)"
-									/>
-									<Checkbox
-										v-model="group.can_edit_world"
-										:disabled="!hasPermission"
-										:label="formatMessage(messages.editWorld)"
-									/>
-									<Checkbox
-										v-model="group.can_edit_base"
-										:disabled="!hasPermission"
-										:label="formatMessage(messages.editBase)"
-									/>
-									<Checkbox
-										v-model="group.can_extend_base"
-										:disabled="!hasPermission"
-										:label="formatMessage(messages.extendBase)"
+										:label="formatMessage(label)"
 									/>
 								</div>
 								<label>
@@ -173,8 +157,11 @@
 										:disabled="!hasPermission"
 										autocomplete="new-password"
 									/>
-									<p v-if="group.role === 'friend'" class="mb-0 mt-1 text-sm text-orange">
-										{{ formatMessage(messages.friendWarning) }}
+									<p
+										v-if="groupPermissions.some(({ field }) => group[field])"
+										class="mb-0 mt-1 text-sm text-orange"
+									>
+										{{ formatPublicPasswordWarning(group) }}
 									</p>
 								</label>
 								<p v-else-if="group.password_visibility === 'none'" class="m-0 text-sm text-orange">
@@ -234,7 +221,7 @@ import {
 	useVIntl,
 } from '@shroudedit/ui'
 import { isAdmin } from '@shroudedit/utils'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
+import { useQuery } from '@tanstack/vue-query'
 
 const DEFAULT_QUERY_PORT = 15637
 const PING_TIMEOUT_MS = 5000
@@ -331,19 +318,13 @@ const messages = defineMessages({
 		id: 'project.settings.server.public-password',
 		defaultMessage: 'Public join password',
 	},
-	friendWarning: {
-		id: 'project.settings.server.friend-password-warning',
-		defaultMessage:
-			'Friend access can modify inventories and bases. Publish this password only if that is intended.',
+	publicPasswordWarning: {
+		id: 'project.settings.server.public-password-permissions-warning',
+		defaultMessage: 'Players who use this password can perform these actions ({permissions}).',
 	},
 	publicPasswordMissing: {
 		id: 'project.settings.server.public-password-missing',
 		defaultMessage: 'Every group configured with a public password needs a password value.',
-	},
-	accessSaveFailed: {
-		id: 'project.settings.server.access-save-failed',
-		defaultMessage:
-			'The server details were saved, but the public access passwords could not be saved.',
 	},
 	noPasswordWarning: {
 		id: 'project.settings.server.no-password-warning',
@@ -355,8 +336,27 @@ const messages = defineMessages({
 	},
 })
 
+const groupPermissions = [
+	{ field: 'can_kick_ban', label: messages.kickBan },
+	{ field: 'can_access_inventories', label: messages.inventories },
+	{ field: 'can_edit_world', label: messages.editWorld },
+	{ field: 'can_edit_base', label: messages.editBase },
+	{ field: 'can_extend_base', label: messages.extendBase },
+]
+const permissionListFormatter = computed(
+	() => new Intl.ListFormat(locale.value, { style: 'long', type: 'conjunction' }),
+)
+
+function formatPublicPasswordWarning(group) {
+	const permissions = groupPermissions
+		.filter(({ field }) => group[field])
+		.map(({ label }) => formatMessage(label))
+	return formatMessage(messages.publicPasswordWarning, {
+		permissions: permissionListFormatter.value.format(permissions),
+	})
+}
+
 const client = injectShroudEditClient()
-const queryClient = useQueryClient()
 const { addNotification } = injectNotificationManager()
 const { projectV3, currentMember, patchProjectV3 } = injectProjectPageContext()
 useProjectSettingsHeadTitle(commonProjectSettingsMessages.server)
@@ -373,9 +373,16 @@ const publicPasswords = ref({})
 const originalState = shallowRef(null)
 const initializedProjectId = ref(null)
 const pingLoading = ref(false)
-const pingResult = ref(null)
+const lastPing = shallowRef(null)
+const pingResult = computed(() => {
+	const result = lastPing.value
+	return result?.address === address.value.trim() && result.queryPort === Number(queryPort.value)
+		? result
+		: null
+})
 const saving = ref(false)
 let pingTimer
+let pingRequest = 0
 let nextGroupKey = 0
 
 const hasPermission = computed(() => {
@@ -387,30 +394,35 @@ const hasPermission = computed(() => {
 })
 
 async function pingServer() {
+	const request = ++pingRequest
+	const hostname = address.value.trim()
 	const port = Number(queryPort.value)
-	if (!address.value.trim() || !Number.isInteger(port) || port < 1 || port > 65535) {
-		pingResult.value = null
+	if (!hostname || !Number.isInteger(port) || port < 1 || port > 65535) {
+		lastPing.value = null
+		pingLoading.value = false
 		return
 	}
 	pingLoading.value = true
-	try {
-		const data = await client.labrinth.server_ping_internal.pingEnshrouded({
-			address: address.value.trim(),
+	const online = await client.labrinth.server_ping_internal
+		.pingEnshrouded({
+			address: hostname,
 			query_port: port,
 			timeout_ms: PING_TIMEOUT_MS,
 		})
-		pingResult.value = { online: true, data }
-	} catch {
-		pingResult.value = { online: false, data: null }
-	} finally {
-		pingLoading.value = false
-	}
+		.then(
+			() => true,
+			() => false,
+		)
+	if (request !== pingRequest) return
+	lastPing.value = { address: hostname, queryPort: port, online }
+	pingLoading.value = false
 }
 
 watch([address, queryPort], () => {
 	clearTimeout(pingTimer)
 	pingTimer = setTimeout(pingServer, 500)
 })
+onBeforeUnmount(() => clearTimeout(pingTimer))
 
 function defaultUserGroups() {
 	return [
@@ -481,7 +493,9 @@ function addGroup() {
 function removeGroup(key) {
 	if (!hasPermission.value) return
 	userGroups.value = userGroups.value.filter((group) => group._key !== key)
-	delete publicPasswords.value[key]
+	publicPasswords.value = Object.fromEntries(
+		Object.entries(publicPasswords.value).filter(([groupKey]) => groupKey !== String(key)),
+	)
 }
 
 function init(v3, entries = []) {
@@ -508,7 +522,6 @@ function init(v3, entries = []) {
 	)
 	originalState.value = structuredClone(currentState())
 	initializedProjectId.value = v3.id
-	if (address.value) pingServer()
 }
 
 const { data: serverAccessEntries, isFetched: serverAccessFetched } = useQuery({
@@ -596,16 +609,14 @@ function resetChanges() {
 	publicPasswords.value = state.publicPasswords
 }
 
-const serverAccessMutation = useMutation({
-	mutationFn: ({ projectId, passwords }) =>
-		client.labrinth.projects_v3.setServerAccess(projectId, passwords),
-	onSuccess: (_data, { projectId, passwords }) => {
-		queryClient.setQueryData(['project', projectId, 'server-access'], passwords)
-	},
-})
-
 async function handleSave() {
-	if (!isAdmin(currentMember.value?.user) && !pingResult.value?.online) {
+	const previous = originalState.value
+	if (saving.value || !hasPermission.value || !previous) return
+	const state = modified.value
+	const addressChanged = state.address !== previous.address
+	const queryPortChanged = state.queryPort !== previous.queryPort
+	const connectionChanged = addressChanged || queryPortChanged
+	if (connectionChanged && !isAdmin(currentMember.value?.user) && !pingResult.value?.online) {
 		addNotification({
 			title: formatMessage(commonProjectSettingsMessages.server),
 			text: formatMessage(messages.cannotSave),
@@ -613,7 +624,7 @@ async function handleSave() {
 		})
 		return
 	}
-	const names = userGroups.value.map((group) => group.name.trim().toLowerCase())
+	const names = state.userGroups.map((group) => group.name.trim().toLowerCase())
 	if (names.some((name) => !name) || new Set(names).size !== names.length) {
 		addNotification({
 			title: formatMessage(commonProjectSettingsMessages.server),
@@ -622,10 +633,13 @@ async function handleSave() {
 		})
 		return
 	}
-	const missingPublicPassword = userGroups.value.some(
-		(group) => group.password_visibility === 'public' && !publicPasswords.value[group._key]?.trim(),
-	)
-	if (missingPublicPassword) {
+	const passwords = state.userGroups
+		.filter((group) => group.password_visibility === 'public')
+		.map((group) => ({
+			group_name: group.name.trim(),
+			password: state.publicPasswords[group._key]?.trim(),
+		}))
+	if (passwords.some(({ password }) => !password)) {
 		addNotification({
 			title: formatMessage(commonProjectSettingsMessages.server),
 			text: formatMessage(messages.publicPasswordMissing),
@@ -635,16 +649,17 @@ async function handleSave() {
 	}
 	saving.value = true
 	try {
+		const creatingServer = !projectV3.value?.enshrouded_server
 		const projectSaved = await patchProjectV3({
 			enshrouded_server: {
-				address: modified.value.address,
-				query_port: modified.value.queryPort,
-				region: modified.value.region,
-				languages: modified.value.languages,
-				voice_chat_enabled: modified.value.voiceChatEnabled,
-				voice_chat_mode: modified.value.voiceChatMode,
-				text_chat_enabled: modified.value.textChatEnabled,
-				user_groups: modified.value.userGroups.map((group) => ({
+				address: addressChanged || creatingServer ? state.address : undefined,
+				query_port: queryPortChanged || creatingServer ? state.queryPort : undefined,
+				region: state.region,
+				languages: state.languages,
+				voice_chat_enabled: state.voiceChatEnabled,
+				voice_chat_mode: state.voiceChatMode,
+				text_chat_enabled: state.textChatEnabled,
+				user_groups: state.userGroups.map((group) => ({
 					name: group.name.trim(),
 					role: group.role,
 					can_kick_ban: group.can_kick_ban,
@@ -656,27 +671,11 @@ async function handleSave() {
 					password_visibility: group.password_visibility,
 				})),
 			},
+			server_access: { passwords },
 		})
-		if (!projectSaved) return
-		try {
-			await serverAccessMutation.mutateAsync({
-				projectId: projectV3.value.id,
-				passwords: modified.value.userGroups
-					.filter((group) => group.password_visibility === 'public')
-					.map((group) => ({
-						group_name: group.name.trim(),
-						password: publicPasswords.value[group._key].trim(),
-					})),
-			})
-		} catch {
-			addNotification({
-				title: formatMessage(commonProjectSettingsMessages.server),
-				text: formatMessage(messages.accessSaveFailed),
-				type: 'error',
-			})
-			return
+		if (projectSaved) {
+			originalState.value = structuredClone(state)
 		}
-		originalState.value = structuredClone(modified.value)
 	} finally {
 		saving.value = false
 	}

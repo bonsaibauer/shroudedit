@@ -66,7 +66,9 @@ pub enum EnshroudedPasswordVisibility {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Validate, utoipa::ToSchema)]
-pub struct EnshroudedUserGroup {
+pub struct EnshroudedUserGroup<
+	Visibility: Default = EnshroudedPasswordVisibility,
+> {
 	#[validate(length(min = 1, max = 64))]
 	pub name: String,
 	pub role: EnshroudedServerRole,
@@ -78,7 +80,33 @@ pub struct EnshroudedUserGroup {
 	#[validate(range(max = 16))]
 	pub reserved_slots: u8,
 	#[serde(default)]
-	pub password_visibility: EnshroudedPasswordVisibility,
+	pub password_visibility: Visibility,
+}
+
+impl EnshroudedUserGroup<Option<EnshroudedPasswordVisibility>> {
+	fn resolve(self, existing: &[EnshroudedUserGroup]) -> EnshroudedUserGroup {
+		let password_visibility =
+			self.password_visibility.unwrap_or_else(|| {
+				let name = self.name.trim().to_lowercase();
+				existing
+					.iter()
+					.find(|group| group.name.trim().to_lowercase() == name)
+					.map_or(EnshroudedPasswordVisibility::Required, |group| {
+						group.password_visibility
+					})
+			});
+		EnshroudedUserGroup {
+			name: self.name,
+			role: self.role,
+			can_kick_ban: self.can_kick_ban,
+			can_access_inventories: self.can_access_inventories,
+			can_edit_world: self.can_edit_world,
+			can_edit_base: self.can_edit_base,
+			can_extend_base: self.can_extend_base,
+			reserved_slots: self.reserved_slots,
+			password_visibility,
+		}
+	}
 }
 
 fn default_user_groups() -> Vec<EnshroudedUserGroup> {
@@ -195,7 +223,8 @@ pub struct EnshroudedServerProjectEdit {
 	pub text_chat_enabled: Option<bool>,
 	#[serde(default)]
 	#[validate(nested)]
-	pub user_groups: Option<Vec<EnshroudedUserGroup>>,
+	pub user_groups:
+		Option<Vec<EnshroudedUserGroup<Option<EnshroudedPasswordVisibility>>>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, utoipa::ToSchema)]
@@ -281,7 +310,10 @@ impl ComponentEdit for EnshroudedServerProjectEdit {
 		let query_port = self.query_port.unwrap_or(15637);
 		eyre::ensure!(query_port != 0, "`query_port` must not be zero");
 
-		let user_groups = self.user_groups.unwrap_or_else(default_user_groups);
+		let user_groups =
+			self.user_groups.map_or_else(default_user_groups, |groups| {
+				groups.into_iter().map(|group| group.resolve(&[])).collect()
+			});
 		validate_user_groups(&user_groups)?;
 
 		Ok(EnshroudedServerProject {
@@ -320,6 +352,10 @@ impl ComponentEdit for EnshroudedServerProjectEdit {
 			component.text_chat_enabled = text_chat_enabled;
 		}
 		if let Some(user_groups) = self.user_groups {
+			let user_groups: Vec<_> = user_groups
+				.into_iter()
+				.map(|group| group.resolve(&component.user_groups))
+				.collect();
 			validate_user_groups(&user_groups)?;
 			component.user_groups = user_groups;
 		}

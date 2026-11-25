@@ -126,11 +126,7 @@
 		<section v-if="server?.user_groups.length" class="flex flex-col gap-2">
 			<h3 class="m-0 text-base text-primary">{{ formatMessage(messages.access) }}</h3>
 			<div class="flex flex-col gap-4">
-				<div
-					v-for="group in server.user_groups"
-					:key="group.name"
-					class="flex flex-col gap-1.5"
-				>
+				<div v-for="group in server.user_groups" :key="group.name" class="flex flex-col gap-1.5">
 					<div class="flex items-center gap-2">
 						<component
 							:is="groupIcon(group.role)"
@@ -179,7 +175,9 @@
 							/>
 							<CopyIcon v-else aria-hidden="true" class="h-4 w-4 shrink-0" />
 							{{
-								formatMessage(copiedPasswordGroup === group.name ? messages.copied : messages.copyPassword)
+								formatMessage(
+									copiedPasswordGroup === group.name ? messages.copied : messages.copyPassword,
+								)
 							}}
 						</button>
 					</div>

@@ -674,6 +674,7 @@ pub async fn project_edit(
 		// None of the below is present in v2
 		loader_fields: HashMap::new(),
 		enshrouded_server: None,
+		server_access: None,
 	};
 
 	// This returns 204 or failure so we don't need to do anything with it

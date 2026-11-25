@@ -15,6 +15,7 @@ pub enum AdvisoryLock {
 	VirusTotalProject(DBProjectId),
 	VirusTotalApiQuota,
 	DiscordRoleEmailCampaign,
+	EnshroudedServer(DBProjectId),
 }
 
 impl AdvisoryLock {
@@ -65,6 +66,9 @@ impl Display for AdvisoryLock {
 			}
 			Self::DiscordRoleEmailCampaign => {
 				formatter.write_str("discord_role_email_campaign")
+			}
+			Self::EnshroudedServer(project_id) => {
+				write!(formatter, "labrinth:enshrouded-server:{}", project_id.0)
 			}
 		}
 	}

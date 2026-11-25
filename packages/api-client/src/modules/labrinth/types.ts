@@ -1286,7 +1286,12 @@ export namespace Labrinth {
 
 			export interface CreateServerProjectRequest {
 				base: CreateProjectBase
-				enshrouded_server?: Omit<EnshroudedServer, 'ping'>
+				enshrouded_server?: EnshroudedServerEdit & Pick<EnshroudedServer, 'address'>
+			}
+
+			export type EnshroudedServerEdit = Partial<Omit<EnshroudedServer, 'ping' | 'user_groups'>> & {
+				user_groups?: (Omit<EnshroudedUserGroup, 'password_visibility'> &
+					Partial<Pick<EnshroudedUserGroup, 'password_visibility'>>)[]
 			}
 
 			export type EditProjectRequest = {
@@ -1307,7 +1312,8 @@ export namespace Labrinth {
 				side_types_migration_review_status?: 'reviewed' | 'pending'
 				environment?: Environment
 
-				enshrouded_server?: Partial<Omit<EnshroudedServer, 'ping'>>
+				enshrouded_server?: EnshroudedServerEdit | null
+				server_access?: { passwords: PublicServerPassword[] }
 				[key: string]: unknown
 			}
 

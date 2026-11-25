@@ -52,6 +52,8 @@ use serde::{Deserialize, Serialize};
 use validator::Validate;
 use xredis::RedisPool;
 
+use super::server_access::{self, SetServerAccess};
+
 pub mod validate;
 
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
@@ -397,6 +399,10 @@ pub struct EditProject {
 	)]
 	pub enshrouded_server:
 		Option<Option<exp::enshrouded::EnshroudedServerProjectEdit>>,
+
+	#[serde(default, skip_serializing_if = "Option::is_none")]
+	#[validate(nested)]
+	pub server_access: Option<SetServerAccess>,
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -485,6 +491,25 @@ pub async fn project_edit_internal(
 		)));
 	};
 
+	if new_project.server_access.is_some()
+		&& !perms.contains(ProjectPermissions::EDIT_DETAILS)
+	{
+		return Err(ApiError::Auth(eyre!(
+			"you do not have permission to edit this project's server access"
+		)));
+	}
+
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting database transaction")?;
+	let update_components = new_project.enshrouded_server.is_some();
+	if update_components || new_project.server_access.is_some() {
+		project_item =
+			server_access::lock_server_project(&mut transaction, id, &redis)
+				.await?;
+	}
+
 	let submit_for_review = new_project.status
 		== Some(ProjectStatus::Processing)
 		&& !user.role.is_mod();
@@ -529,11 +554,6 @@ pub async fn project_edit_internal(
 			)));
 		}
 	}
-
-	let mut transaction = pool
-		.begin()
-		.await
-		.wrap_internal_err("starting database transaction")?;
 
 	if let Some(name) = &new_project.name {
 		if !perms.contains(ProjectPermissions::EDIT_DETAILS) {
@@ -1353,19 +1373,31 @@ pub async fn project_edit_internal(
 	)
 	.wrap_request_err("invalid component kinds")?;
 
-	sqlx::query!(
-		"
+	if update_components {
+		sqlx::query!(
+			"
         UPDATE mods
         SET components = $1
         WHERE id = $2
         ",
-		serde_json::to_value(&components_serial)
-			.expect("serialization shouldn't fail"),
-		id as db_ids::DBProjectId,
-	)
-	.execute(&mut transaction)
-	.await
-	.wrap_internal_err("failed to update components")?;
+			serde_json::to_value(&components_serial)
+				.expect("serialization shouldn't fail"),
+			id as db_ids::DBProjectId,
+		)
+		.execute(&mut transaction)
+		.await
+		.wrap_internal_err("failed to update components")?;
+	}
+	if let Some(server_access) = new_project.server_access {
+		server_access::replace_passwords(
+			&mut transaction,
+			id,
+			components_serial.enshrouded_server.as_ref(),
+			&server_access.passwords,
+			true,
+		)
+		.await?;
+	}
 
 	// check new description and body for links to associated images
 	// if they no longer exist in the description or body, delete them

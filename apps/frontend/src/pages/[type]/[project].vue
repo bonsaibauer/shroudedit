@@ -486,8 +486,6 @@ import {
 	SearchIcon,
 	SettingsIcon,
 } from '@shroudedit/assets'
-import { hasPendingMalware } from '~/utils/version-malware'
-
 import { getMarginTarget, moderationSettings } from '@shroudedit/moderation'
 import {
 	Admonition,
@@ -546,6 +544,7 @@ import { injectCurrentProjectId } from '~/providers/current-project.ts'
 import { loadChecklistState } from '~/services/moderation/checklist-storage.ts'
 import { useModerationQueue } from '~/services/moderation/queue.ts'
 import { getReportPath, reportProject } from '~/utils/report-helpers.ts'
+import { hasPendingMalware } from '~/utils/version-malware'
 
 definePageMeta({
 	key: (route) => `${route.params.project}`,
@@ -1224,6 +1223,8 @@ const patchProjectV3Mutation = useMutation({
 	},
 
 	onMutate: async ({ projectId, data }) => {
+		if (data.server_access !== undefined) return
+
 		await queryClient.cancelQueries({ queryKey: ['project', 'v3', projectId] })
 		await queryClient.cancelQueries({ queryKey: ['project', 'v2', projectId] })
 

@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use actix_web::{
 	HttpRequest, Responder, get, http::header::CACHE_CONTROL, put, web,
@@ -11,9 +11,15 @@ use xredis::RedisPool;
 
 use crate::auth::checks::is_visible_project;
 use crate::auth::get_user_from_headers;
-use crate::database::models::{DBProject, DBTeamMember};
-use crate::database::{PgPool, ReadOnlyPgPool};
-use crate::models::exp::enshrouded::EnshroudedPasswordVisibility;
+use crate::database::advisory_lock::AdvisoryLock;
+use crate::database::models::{
+	DBProject, DBProjectId, DBTeamMember, project_item::ProjectQueryResult,
+};
+use crate::database::{PgPool, PgTransaction, ReadOnlyPgPool};
+use crate::models::exp::enshrouded::{
+	EnshroudedPasswordVisibility, EnshroudedServerProject,
+};
+use crate::models::ids::ProjectId;
 use crate::models::pats::Scopes;
 use crate::models::teams::ProjectPermissions;
 use crate::queue::session::AuthQueue;
@@ -30,7 +36,7 @@ pub struct PublicServerPassword {
 	pub password: String,
 }
 
-#[derive(Debug, Clone, Deserialize, Validate, ToSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, Validate, ToSchema)]
 pub struct SetServerAccess {
 	#[validate(length(max = 32))]
 	#[validate(nested)]
@@ -180,21 +186,65 @@ pub async fn set_server_access(
 		)));
 	}
 
-	let server = project
-		.inner
-		.components
-		.enshrouded_server
-		.as_ref()
-		.wrap_request_err(
-			"project does not have an `enshrouded_server` component",
-		)?;
+	let project_id = project.inner.id;
+	let mut transaction = pool
+		.begin()
+		.await
+		.wrap_internal_err("starting server access transaction")?;
+	let project =
+		lock_server_project(&mut transaction, project_id, &redis).await?;
+	replace_passwords(
+		&mut transaction,
+		project_id,
+		project.inner.components.enshrouded_server.as_ref(),
+		&body.passwords,
+		false,
+	)
+	.await?;
+	transaction
+		.commit()
+		.await
+		.wrap_internal_err("committing server access transaction")?;
+	Ok(())
+}
+
+pub(crate) async fn lock_server_project(
+	transaction: &mut PgTransaction<'_>,
+	project_id: DBProjectId,
+	redis: &RedisPool,
+) -> Result<ProjectQueryResult, ApiError> {
+	AdvisoryLock::EnshroudedServer(project_id)
+		.acquire(transaction)
+		.await
+		.wrap_internal_err("locking enshrouded server project")?;
+	DBProject::get_many_uncached(
+		&[ProjectId::from(project_id)],
+		&mut *transaction,
+		redis,
+	)
+	.await
+	.wrap_internal_err("reloading enshrouded server project")?
+	.pop()
+	.wrap_not_found_err("resource not found")
+}
+
+pub(crate) async fn replace_passwords(
+	transaction: &mut PgTransaction<'_>,
+	project_id: DBProjectId,
+	server: Option<&EnshroudedServerProject>,
+	passwords: &[PublicServerPasswordInput],
+	require_all_public_groups: bool,
+) -> Result<(), ApiError> {
+	let server = server.wrap_request_err(
+		"project does not have an `enshrouded_server` component",
+	)?;
 	let groups = server
 		.user_groups
 		.iter()
 		.map(|group| (group.name.trim().to_lowercase(), group))
 		.collect::<HashMap<_, _>>();
-	let mut names = std::collections::HashSet::new();
-	for entry in &body.passwords {
+	let mut names = HashSet::new();
+	for entry in passwords {
 		if entry.group_name.trim().is_empty()
 			|| entry.password.trim().is_empty()
 		{
@@ -218,19 +268,31 @@ pub async fn set_server_access(
 		}
 	}
 
-	let project_id = project.inner.id.0;
-	let mut transaction = pool
-		.begin()
-		.await
-		.wrap_internal_err("starting server access transaction")?;
+	if require_all_public_groups
+		&& passwords.len()
+			!= server
+				.user_groups
+				.iter()
+				.filter(|group| {
+					group.password_visibility
+						== EnshroudedPasswordVisibility::Public
+				})
+				.count()
+	{
+		return Err(ApiError::Request(eyre!(
+			"every public server group requires a password"
+		)));
+	}
+
+	let project_id = project_id.0;
 	sqlx::query!(
 		"DELETE FROM enshrouded_server_public_passwords WHERE project_id = $1",
 		project_id,
 	)
-	.execute(&mut transaction)
+	.execute(&mut *transaction)
 	.await
 	.wrap_internal_err("clearing public enshrouded server passwords")?;
-	for entry in &body.passwords {
+	for entry in passwords {
 		sqlx::query!(
             r#"
             INSERT INTO enshrouded_server_public_passwords (project_id, group_name, password)
@@ -240,13 +302,9 @@ pub async fn set_server_access(
             entry.group_name.trim(),
             entry.password.trim(),
         )
-		.execute(&mut transaction)
+		.execute(&mut *transaction)
         .await
         .wrap_internal_err("saving public enshrouded server password")?;
 	}
-	transaction
-		.commit()
-		.await
-		.wrap_internal_err("committing server access transaction")?;
 	Ok(())
 }
