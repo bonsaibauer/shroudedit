@@ -1,7 +1,14 @@
 use crate::database::Executor;
+use actix_web::{dev::ServiceResponse, test, web};
 use eyre::{Context, Result};
+use serde::Deserialize;
+use serde_json::json;
 
-use crate::database::{PgPool, models::DBUserId};
+use crate::database::{
+	PgPool,
+	models::{DBProjectId, DBUserId},
+};
+use crate::models::ids::ProjectId;
 
 /// Static personal access token for use in [`AppendPat`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -50,6 +57,45 @@ pub async fn mark_email_verified(db: &PgPool, user_id: DBUserId) -> Result<()> {
 	eyre::ensure!(result.rows_affected() == 1, "user does not exist");
 
 	Ok(())
+}
+
+/// Record a successful scan for the files uploaded to create a public test fixture.
+pub(super) async fn mark_fixture_project_scanned(response: ServiceResponse) {
+	#[derive(Deserialize)]
+	struct CreatedProject {
+		id: ProjectId,
+	}
+
+	let pool = response
+		.request()
+		.app_data::<web::Data<PgPool>>()
+		.expect("missing test database pool")
+		.clone();
+	let project: CreatedProject = test::read_body_json(response).await;
+	let project_id = DBProjectId::from(project.id);
+
+	sqlx::query!(
+		r#"
+		UPDATE virustotal_file_scans AS scan
+		SET status = 'completed',
+			analysis_id = 'test-fixture-' || scan.file_id::text,
+			analysis = $2,
+			submitted_at = NOW(),
+			checked_at = NOW(),
+			updated_at = NOW()
+		FROM files
+		JOIN versions ON versions.id = files.version_id
+		WHERE scan.file_id = files.id AND versions.mod_id = $1
+		"#,
+		project_id.0,
+		json!({
+			"stats": { "malicious": 0, "suspicious": 0 },
+			"results": { "test-fixture": { "category": "undetected" } },
+		}),
+	)
+	.execute(pool.get_ref())
+	.await
+	.expect("failed to record successful malware scans for test fixture");
 }
 
 /// Dummy [`DBUserId`]s.

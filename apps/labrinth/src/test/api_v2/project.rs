@@ -94,6 +94,7 @@ impl ApiProject for ApiV2 {
 		let slug = creation_data.slug.clone();
 		let resp = self.create_project(creation_data, pat).await;
 		assert_status!(&resp, StatusCode::OK);
+		crate::test::db::mark_fixture_project_scanned(resp).await;
 
 		// Approve as admin so fixture setup is not affected by moderation-lock contention.
 		let req = TestRequest::patch()

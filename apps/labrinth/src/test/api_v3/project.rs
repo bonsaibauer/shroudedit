@@ -23,6 +23,7 @@ use crate::test::{
 		request_data::{ImageData, ProjectCreationRequestData},
 	},
 	database::ADMIN_USER_PAT,
+	db::mark_fixture_project_scanned,
 	dummy_data::TestFile,
 };
 
@@ -47,6 +48,7 @@ impl ApiProject for ApiV3 {
 		let slug = creation_data.slug.clone();
 		let resp = self.create_project(creation_data, pat).await;
 		assert_status!(&resp, StatusCode::OK);
+		mark_fixture_project_scanned(resp).await;
 
 		// Approve as admin so fixture setup is not affected by moderation-lock contention.
 		let req = TestRequest::patch()
