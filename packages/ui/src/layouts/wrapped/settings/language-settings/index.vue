@@ -39,7 +39,7 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
 
 import { Admonition, AutoLink, IntlFormatted } from '#ui/components/base'
-import { LOCALES, useVIntl } from '#ui/composables'
+import { DEFAULT_LOCALE, LOCALES, useVIntl } from '#ui/composables'
 import { injectI18n, injectUserPreferences } from '#ui/providers'
 import { commonSettingsMessages, languageSelectorMessages, useSavable } from '#ui/utils'
 
@@ -102,7 +102,9 @@ watch(
 	preferences,
 	(value) => {
 		if (!value || hasChanges.value) return
-		persistedLocale.value = value.localization.locale
+		const accountLocale = value.localization.locale
+		if (props.product === 'website' && accountLocale === DEFAULT_LOCALE) return
+		persistedLocale.value = accountLocale
 	},
 	{ immediate: true, flush: 'sync' },
 )

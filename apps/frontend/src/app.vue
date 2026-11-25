@@ -15,6 +15,7 @@
 <script setup lang="ts">
 import {
 	AccountSwitchOverlay,
+	DEFAULT_LOCALE,
 	I18nDebugPanel,
 	injectI18n,
 	LoadingBar,
@@ -66,8 +67,9 @@ watch(
 			rememberStoredAccountAppearance(userId, preferences.appearance)
 		}
 
-		if (locale.value !== preferences.localization.locale) {
-			void setLocale(preferences.localization.locale)
+		const accountLocale = preferences.localization.locale
+		if (accountLocale !== DEFAULT_LOCALE && locale.value !== accountLocale) {
+			void setLocale(accountLocale)
 		}
 
 		cosmetics.value.searchDisplayMode.mod = preferences.layouts.mods === 'rows' ? 'list' : 'grid'

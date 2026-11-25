@@ -35,6 +35,8 @@ export interface LocaleDefinition {
 	serverLanguageCode?: string
 }
 
+export const DEFAULT_LOCALE = 'en-US'
+
 export const LOCALES: LocaleDefinition[] = [
 	// Commented out as it's RTL - will enable when we have better RTL support
 	// {

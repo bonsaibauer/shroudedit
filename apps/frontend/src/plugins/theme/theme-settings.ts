@@ -27,24 +27,26 @@ export function useThemeSettings(getDefaultTheme?: () => Theme) {
 		$settings.value && typeof $settings.value === 'object' ? $settings.value : null
 	if (!readSettings()) $settings.value = defaults()
 
-	function updateSettings(patch: Partial<ThemeSettings>) {
-		$settings.value = { ...(readSettings() ?? defaults()), ...patch }
+	function updateSetting<K extends keyof ThemeSettings>(key: K, value: ThemeSettings[K]) {
+		const settings = readSettings()
+		if (settings?.[key] === value) return
+		$settings.value = { ...(settings ?? defaults()), [key]: value }
 	}
 
 	return reactive({
 		preferred: computed({
 			get: () => readSettings()?.preference ?? 'system',
-			set: (value) => updateSettings({ preference: value }),
+			set: (value) => updateSetting('preference', value),
 		}),
 
 		active: computed({
 			get: () => readSettings()?.value ?? getDefaultTheme(),
-			set: (value) => updateSettings({ value }),
+			set: (value) => updateSetting('value', value),
 		}),
 
 		syncAcrossDevices: computed({
 			get: () => readSettings()?.syncAcrossDevices ?? true,
-			set: (value) => updateSettings({ syncAcrossDevices: value }),
+			set: (value) => updateSetting('syncAcrossDevices', value),
 		}),
 	})
 }

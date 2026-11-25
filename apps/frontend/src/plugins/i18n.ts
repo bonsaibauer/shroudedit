@@ -1,5 +1,6 @@
 import { moderationLocaleModules } from '@shroudedit/moderation'
 import {
+	DEFAULT_LOCALE,
 	I18N_INJECTION_KEY,
 	type I18nContext,
 	type LocaleMessages,
@@ -11,7 +12,6 @@ import IntlMessageFormat from 'intl-messageformat'
 import { LRUCache } from 'lru-cache'
 
 const debug = useDebugLogger('i18n')
-const DEFAULT_LOCALE = 'en-US'
 
 const frontendLocaleModules = import.meta.glob<{ default: LocaleMessages }>(
 	'../locales/*/index.json',
@@ -206,9 +206,9 @@ export default defineNuxtPlugin({
 			}
 		}
 
-		// Detect initial locale (cookie > Accept-Language > default)
+		// Keep the server-rendered locale on the client when there is no valid cookie.
 		const cookieLocale = useCookie('locale').value
-		let detectedLocale = DEFAULT_LOCALE
+		let detectedLocale = locale.value
 		if (cookieLocale && LOCALES.some((l) => l.code === cookieLocale)) {
 			detectedLocale = cookieLocale
 			debug('init: locale from cookie', detectedLocale)
