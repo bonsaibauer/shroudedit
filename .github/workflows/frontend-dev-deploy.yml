@@ -1,6 +1,7 @@
 name: 'Deploy: Frontend Dev'
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - '*.*.*'

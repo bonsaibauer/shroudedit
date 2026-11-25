@@ -54,7 +54,7 @@ jobs:
             exit 1
           fi
           if [[ "$GITHUB_EVENT_NAME" == 'workflow_dispatch' && "$GITHUB_REF_TYPE" != 'branch' ]]; then
-            echo "Run the stable deployment from a branch, not a tag." >&2
+            echo "Select a branch for the deployment." >&2
             exit 1
           fi
 
