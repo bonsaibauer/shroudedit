@@ -6,9 +6,9 @@ use eyre::Result;
 use serde::{Deserialize, Serialize};
 use xredis::RedisPool;
 
-const TEMPLATES_NAMESPACE: &str = "notifications_templates:v4";
+const TEMPLATES_NAMESPACE: &str = "notifications_templates:v5";
 const TEMPLATES_HTML_DATA_NAMESPACE: &str =
-	"notifications_templates_html_data:v4";
+	"notifications_templates_html_data:v5";
 const TEMPLATES_DYNAMIC_HTML_NAMESPACE: &str =
 	"notifications_templates_dynamic_html:v4";
 
