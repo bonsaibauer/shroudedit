@@ -737,7 +737,7 @@
   "layout.banner.build-fail.description": "Diese Deployment von ShroudEdit's Frontend konnte keinen Status von der API generieren. Dies könnte aufgrund eines Ausfalls oder eines Konfigurationsfehlers sein. Erstelle neu wenn die API verfügbar ist. Fehlercodes: {errors}; Aktuelle API URL ist: {url}",
   "layout.banner.build-fail.ignore": "Ignorieren",
   "layout.banner.build-fail.title": "Fehler beim generieren des Status von der API beim erstellen.",
-  "layout.banner.dev.title": "Du verwendisch d ShroudEdit-Dev-Umgebung",
+  "layout.banner.dev.title": "Du verwendest die ShroudEdit-Dev-Umgebung",
   "layout.banner.preview.description": "Falls du die offizielle ShroudEdit-Website aufrufen wolltest, besuche {url}. Diese Preview-Bereitstellung wird von ShroudEdit-Mitarbeitern zu Testzwecken verwendet. Sie wurde mit {ref} erstellt.",
   "layout.banner.preview.title": "Dies ist eine Vorschauversion der ShroudEdit-Webseite.",
   "layout.banner.subscription-payment-failed.button": "Zahlungsinformationen aktualisieren",

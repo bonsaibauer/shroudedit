@@ -132,7 +132,9 @@ function parseAcceptLanguage(header: string): string | null {
 			.filter(Boolean)) {
 			const exact = LOCALES.find((loc) => loc.code === lang)
 			if (exact) return exact.code
-			const prefix = LOCALES.find((loc) => loc.code.startsWith(lang.split('-')[0] + '-'))
+			const language = lang.split('-')[0]
+			if (language === 'de') return 'de-DE'
+			const prefix = LOCALES.find((loc) => loc.code.startsWith(`${language}-`))
 			if (prefix) return prefix.code
 		}
 	} catch {
