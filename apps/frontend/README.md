@@ -35,3 +35,5 @@ The `stable` channel uses the default Worker configuration for `https://shrouded
 Both frontend channels use the production services: the Labrinth API at `https://api.shroudedit.com/v2/` and Shared Instances at `https://shared-instances.shroudedit.com`. The Labrinth API URL applies to both server and browser requests.
 
 Repository Actions secrets `CF_API_TOKEN` and `CF_ACCOUNT_ID` authenticate the deployment. `SENTRY_AUTH_TOKEN` is used to upload source maps and create the Sentry release. Both Worker configurations remain in `apps/frontend/wrangler.jsonc`.
+
+Stable and dev deployments require the GitHub Actions repository secret `LABRINTH_ADMIN_KEY`, with the same value as Labrinth's admin key. The workflow publishes it to the selected frontend Worker as an encrypted secret before deploying. On the dev site, download links use `dev.shroudedit.com/data/...`, where the dev Worker proxies the file from the R2 CDN and reports the download to the configured API.

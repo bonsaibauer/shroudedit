@@ -1,4 +1,5 @@
 use crate::database::PgPool;
+use crate::database::models::{DBProject, DBProjectId, DBVersion, DBVersionId};
 use crate::models::analytics::{
 	AffiliateCodeClick, Download, EnshroudedServerPlay, PageView, Playtime,
 };
@@ -7,7 +8,7 @@ use crate::routes::analytics::ENSHROUDED_SERVER_PLAYS;
 use crate::util::error::Context as _;
 use dashmap::{DashMap, DashSet};
 use std::collections::HashMap;
-use tracing::trace;
+use tracing::{trace, warn};
 use xredis::RedisPool;
 
 pub mod cache;
@@ -400,6 +401,33 @@ impl AnalyticsQueue {
 				.commit()
 				.await
 				.wrap_internal_err("committing database transaction")?;
+
+			let version_ids = version_downloads
+				.keys()
+				.map(|id| DBVersionId(*id))
+				.collect::<Vec<_>>();
+			if !version_ids.is_empty()
+				&& let Err(error) =
+					DBVersion::clear_cache_ids(&version_ids, redis).await
+			{
+				warn!(
+					"failed to clear cached version download counts: {error:#}"
+				);
+			}
+
+			let project_ids = project_downloads
+				.keys()
+				.map(|id| DBProjectId(*id))
+				.collect::<Vec<_>>();
+			if !project_ids.is_empty()
+				&& let Err(error) =
+					DBProject::clear_cache_ids(&project_ids, redis).await
+			{
+				warn!(
+					"failed to clear cached project download counts: {error:#}"
+				);
+			}
+
 			downloads
 				.end()
 				.await

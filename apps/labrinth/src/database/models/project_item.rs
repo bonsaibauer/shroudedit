@@ -1121,6 +1121,26 @@ impl DBProject {
 			.wrap_err("clearing project cache")?;
 		Ok(())
 	}
+
+	pub async fn clear_cache_ids(
+		project_ids: &[DBProjectId],
+		redis: &RedisPool,
+	) -> Result<()> {
+		let mut redis_connection = redis
+			.connect()
+			.await
+			.wrap_err("connecting to redis to clear project caches")?;
+		let keys = project_ids
+			.iter()
+			.map(|id| redis_connection.key().entity(PROJECTS_NAMESPACE, id.0))
+			.collect::<Vec<_>>();
+
+		redis_connection
+			.delete_many(&keys)
+			.await
+			.wrap_err("clearing project caches")?;
+		Ok(())
+	}
 }
 
 #[serde_binhum]

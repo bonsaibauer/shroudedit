@@ -158,6 +158,24 @@ jobs:
           wranglerVersion: '4.112.0'
           command: --version
 
+      - name: Sync Labrinth admin key to the selected Worker
+        if: steps.current.outputs.deploy == 'true'
+        working-directory: ./apps/frontend
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+          LABRINTH_ADMIN_KEY: ${{ secrets.LABRINTH_ADMIN_KEY }}
+        run: |
+          if [[ -z "$LABRINTH_ADMIN_KEY" ]]; then
+            echo "::error::GitHub Actions secret LABRINTH_ADMIN_KEY is required for frontend deployments."
+            exit 1
+          fi
+          if [[ "$DEPLOYMENT_CHANNEL" == 'dev' ]]; then
+            printf '%s' "$LABRINTH_ADMIN_KEY" | pnpm exec wrangler secret put LABRINTH_ADMIN_KEY --env dev
+          else
+            printf '%s' "$LABRINTH_ADMIN_KEY" | pnpm exec wrangler secret put LABRINTH_ADMIN_KEY
+          fi
+
       - name: Deploy Cloudflare Worker
         if: steps.current.outputs.deploy == 'true'
         uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0

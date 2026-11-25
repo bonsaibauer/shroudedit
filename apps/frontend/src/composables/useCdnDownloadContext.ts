@@ -2,6 +2,8 @@ import type { FilterValue } from '@shroudedit/ui'
 import { LOADER_FILTER_TYPES } from '@shroudedit/ui'
 
 const TEN_MINUTES = 600
+const CDN_HOST = 'cdn.shroudedit.com'
+const DEV_DOWNLOAD_HOST = 'dev.shroudedit.com'
 
 export type DownloadContext = {
 	gameVersion?: string
@@ -68,11 +70,7 @@ export function useCdnDownloadContext() {
 	})
 
 	function createProjectDownloadUrl(originalUrl: string, context?: DownloadContext): string {
-		if (
-			typeof originalUrl !== 'string' ||
-			!originalUrl ||
-			!originalUrl.startsWith('https://cdn.shroudedit.com')
-		) {
+		if (typeof originalUrl !== 'string' || !originalUrl) {
 			return originalUrl
 		}
 
@@ -82,6 +80,13 @@ export function useCdnDownloadContext() {
 
 		try {
 			const url = new URL(originalUrl)
+			if (url.hostname !== CDN_HOST) {
+				return originalUrl
+			}
+
+			if (config.public.buildEnv === 'dev') {
+				url.hostname = DEV_DOWNLOAD_HOST
+			}
 
 			if (reason) {
 				url.searchParams.set('mr_download_reason', reason)
