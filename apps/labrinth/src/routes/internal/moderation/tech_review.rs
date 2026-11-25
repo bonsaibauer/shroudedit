@@ -46,6 +46,29 @@ pub struct SearchProjects {
 	pub filter: SearchProjectsFilter,
 	#[serde(default = "default_sort_by")]
 	pub sort_by: SearchProjectsSort,
+	#[serde(default)]
+	pub scope: SearchProjectsScope,
+	#[serde(default)]
+	pub query: Option<String>,
+}
+
+#[derive(
+	Debug, Clone, Copy, Default, Serialize, Deserialize, utoipa::ToSchema,
+)]
+#[serde(rename_all = "snake_case")]
+pub enum SearchProjectsScope {
+	#[default]
+	NeedsReview,
+	All,
+}
+
+impl SearchProjectsScope {
+	fn as_str(self) -> &'static str {
+		match self {
+			Self::NeedsReview => "needs_review",
+			Self::All => "all",
+		}
+	}
 }
 
 fn default_limit() -> u64 {
@@ -211,6 +234,7 @@ pub struct VersionReport {
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct ProjectReportResponse {
 	pub project_report: Option<ProjectReport>,
+	pub needs_review: bool,
 	pub thread: Thread,
 }
 
@@ -223,10 +247,12 @@ pub struct ProjectModerationInfo {
 	#[serde(default)]
 	pub project_types: Vec<String>,
 	pub icon_url: Option<String>,
+	pub needs_review: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize, utoipa::ToSchema)]
 pub struct SearchResponse {
+	pub total_count: u64,
 	pub project_reports: Vec<ProjectReport>,
 	pub projects: HashMap<ProjectId, ProjectModerationInfo>,
 	pub threads: HashMap<ThreadId, Thread>,
@@ -278,7 +304,7 @@ pub async fn search_projects(
 
 	let search_req = search_req.into_inner();
 	let sort_by = search_req.sort_by.to_string();
-	let limit = i64::try_from(search_req.limit.clamp(1, 100))
+	let limit = i64::try_from(search_req.limit.clamp(1, 200))
 		.wrap_request_err("limit cannot fit into `i64`")?;
 	let offset = i64::try_from(limit as u64 * search_req.page)
 		.wrap_request_err("offset cannot fit into `i64`")?;
@@ -292,37 +318,93 @@ pub async fn search_projects(
 		.iter()
 		.map(ToString::to_string)
 		.collect::<Vec<_>>();
+	let query = search_req
+		.query
+		.as_deref()
+		.map(str::trim)
+		.filter(|query| !query.is_empty());
+	let scope = search_req.scope.as_str();
 
 	let rows = sqlx::query!(
 		r#"
-		SELECT
-			project.id AS "project_id!: DBProjectId",
-			MIN(thread.id) AS "thread_id!: DBThreadId"
-		FROM technical_review_queue queue
-		INNER JOIN mods project ON project.id = queue.project_id
-		INNER JOIN threads thread ON thread.mod_id = project.id
-		LEFT JOIN versions version ON version.mod_id = project.id
-		LEFT JOIN files file ON file.version_id = version.id
-		LEFT JOIN virustotal_file_scans scan ON scan.file_id = file.id
-		LEFT JOIN LATERAL (
-			SELECT message.id, message_author.role
-			FROM threads_messages message
-			LEFT JOIN users message_author ON message_author.id = message.author_id
-			WHERE message.thread_id = thread.id
-			ORDER BY message.created DESC
-			LIMIT 1
-		) last_message ON TRUE
-		WHERE project.status NOT IN ('draft', 'rejected', 'withheld')
+		WITH filtered AS (
+			SELECT
+				project.id,
+				thread.id AS thread_id,
+				queue.project_id IS NOT NULL AS needs_review,
+				COALESCE(project.queued, project.published) AS review_date,
+				detections.count AS detection_count
+			FROM mods project
+			INNER JOIN LATERAL (
+				SELECT id FROM threads WHERE mod_id = project.id ORDER BY id LIMIT 1
+			) thread ON TRUE
+			LEFT JOIN technical_review_queue queue ON queue.project_id = project.id
+			LEFT JOIN LATERAL (
+				SELECT MAX(
+					COALESCE((scan.analysis->'stats'->>'malicious')::integer, 0)
+					+ COALESCE((scan.analysis->'stats'->>'suspicious')::integer, 0)
+				) AS count
+				FROM versions version
+				INNER JOIN files file ON file.version_id = version.id
+				INNER JOIN virustotal_file_scans scan ON scan.file_id = file.id
+				WHERE version.mod_id = project.id
+			) detections ON TRUE
+			LEFT JOIN LATERAL (
+				SELECT message.id, message_author.role
+				FROM threads_messages message
+				LEFT JOIN users message_author ON message_author.id = message.author_id
+				WHERE message.thread_id = thread.id
+				ORDER BY message.created DESC
+				LIMIT 1
+			) last_message ON $4::text IS NOT NULL
+			LEFT JOIN organizations owner_org ON owner_org.id = project.organization_id AND $8::text IS NOT NULL
+			LEFT JOIN LATERAL (
+				SELECT owner.username
+				FROM team_members member
+				INNER JOIN users owner ON owner.id = member.user_id
+				WHERE member.team_id = project.team_id AND member.is_owner
+				LIMIT 1
+			) owner_user ON $8::text IS NOT NULL AND project.organization_id IS NULL
+			WHERE (
+				($7 = 'needs_review' AND queue.project_id IS NOT NULL
+					AND project.status NOT IN ('draft', 'rejected', 'withheld'))
+				OR ($7 = 'all' AND (
+					queue.project_id IS NOT NULL
+					OR EXISTS (
+						SELECT 1 FROM versions version
+						INNER JOIN files file ON file.version_id = version.id
+						INNER JOIN virustotal_file_scans scan ON scan.file_id = file.id
+						WHERE version.mod_id = project.id
+					)
+					OR EXISTS (
+						SELECT 1 FROM threads_messages message
+						WHERE message.thread_id = thread.id
+							AND message.body->>'type' IN (
+								'tech_review', 'tech_review_entered', 'tech_review_exited',
+								'tech_review_exit_file_deleted'
+							)
+					)
+				))
+			)
 			AND (cardinality($5::text[]) = 0 OR project.status = ANY($5::text[]))
 			AND (
 				cardinality($3::text[]) = 0
+				OR ('enshrouded_server' = ANY($3::text[])
+					AND jsonb_typeof(project.components->'enshrouded_server') = 'object')
+				OR ('schematic' = ANY($3::text[])
+					AND jsonb_typeof(project.components->'schematic') = 'object')
 				OR EXISTS (
 					SELECT 1
 					FROM versions typed_version
 					INNER JOIN loaders_versions loader_version ON loader_version.version_id = typed_version.id
 					INNER JOIN loaders_project_types loader_type ON loader_type.joining_loader_id = loader_version.loader_id
 					INNER JOIN project_types project_type ON project_type.id = loader_type.joining_project_type_id
-					WHERE typed_version.mod_id = project.id AND project_type.name = ANY($3::text[])
+					WHERE typed_version.mod_id = project.id
+						AND project_type.name = ANY($3::text[])
+						AND (project_type.name <> 'modpack'
+							OR jsonb_typeof(project.components->'enshrouded_server') IS DISTINCT FROM 'object')
+						AND (project_type.name <> 'mod'
+							OR jsonb_typeof(project.components->'schematic') IS DISTINCT FROM 'object')
 				)
 			)
 			AND (
@@ -330,14 +412,35 @@ pub async fn search_projects(
 				OR ($4 = 'unreplied' AND (last_message.id IS NULL OR last_message.role IS NULL OR last_message.role NOT IN ('moderator', 'admin')))
 				OR ($4 = 'replied' AND last_message.role IN ('moderator', 'admin'))
 			)
-		GROUP BY project.id
-		ORDER BY
-			CASE WHEN $2 = 'created_asc' THEN MIN(project.queued) END ASC,
-			CASE WHEN $2 = 'created_desc' THEN MIN(project.queued) END DESC,
-			CASE WHEN $2 = 'detection_count_asc' THEN MAX(COALESCE((scan.analysis->'stats'->>'malicious')::integer, 0) + COALESCE((scan.analysis->'stats'->>'suspicious')::integer, 0)) END ASC,
-			CASE WHEN $2 = 'detection_count_desc' THEN MAX(COALESCE((scan.analysis->'stats'->>'malicious')::integer, 0) + COALESCE((scan.analysis->'stats'->>'suspicious')::integer, 0)) END DESC,
-			MIN(project.queued) ASC
-		LIMIT $1 OFFSET $6
+			AND (
+				$8::text IS NULL
+				OR project.name ILIKE '%' || $8 || '%'
+				OR project.slug ILIKE '%' || $8 || '%'
+				OR owner_org.name ILIKE '%' || $8 || '%'
+				OR owner_user.username ILIKE '%' || $8 || '%'
+				OR EXISTS (
+					SELECT 1 FROM versions version
+					INNER JOIN files file ON file.version_id = version.id
+					WHERE version.mod_id = project.id AND file.filename ILIKE '%' || $8 || '%'
+				)
+			)
+		), total AS (
+			SELECT COUNT(*) AS count FROM filtered
+		), page AS (
+			SELECT * FROM filtered
+			ORDER BY
+				CASE WHEN $2 = 'created_asc' THEN review_date END ASC,
+				CASE WHEN $2 = 'created_desc' THEN review_date END DESC,
+				CASE WHEN $2 = 'detection_count_asc' THEN detection_count END ASC NULLS LAST,
+				CASE WHEN $2 = 'detection_count_desc' THEN detection_count END DESC NULLS LAST,
+				review_date ASC,
+				id ASC
+			LIMIT $1 OFFSET $6
+		)
+		SELECT total.count AS "total_count!", page.id AS "project_id: DBProjectId",
+			page.thread_id AS "thread_id: DBThreadId",
+			page.needs_review AS "needs_review?"
+		FROM total LEFT JOIN page ON TRUE
 		"#,
 		limit,
 		&sort_by,
@@ -345,13 +448,27 @@ pub async fn search_projects(
 		replied_to.as_deref(),
 		&project_status,
 		offset,
+		scope,
+		query,
 	)
 	.fetch_all(&**pool)
 	.await
 	.wrap_internal_err("fetching VirusTotal technical review projects")?;
 
-	let project_ids = rows.iter().map(|row| row.project_id).collect::<Vec<_>>();
-	let thread_ids = rows.iter().map(|row| row.thread_id).collect::<Vec<_>>();
+	let total_count =
+		rows.first().map(|row| row.total_count as u64).unwrap_or(0);
+	let project_ids = rows
+		.iter()
+		.filter_map(|row| row.project_id)
+		.collect::<Vec<_>>();
+	let thread_ids = rows
+		.iter()
+		.filter_map(|row| row.thread_id)
+		.collect::<Vec<_>>();
+	let needs_review = rows
+		.iter()
+		.filter_map(|row| row.project_id.zip(row.needs_review))
+		.collect::<HashMap<_, _>>();
 	let project_reports = fetch_project_reports(&project_ids, &pool)
 		.await
 		.wrap_api_err("fetching project VirusTotal reports")?;
@@ -410,12 +527,17 @@ pub async fn search_projects(
 					status: project.status,
 					project_types: project.project_types,
 					icon_url: project.icon_url,
+					needs_review: needs_review
+						.get(&DBProjectId::from(id))
+						.copied()
+						.unwrap_or(false),
 				},
 			)
 		})
 		.collect();
 
 	Ok(web::Json(SearchResponse {
+		total_count,
 		project_reports,
 		projects,
 		threads,
@@ -448,7 +570,7 @@ pub async fn get_project_report(
 	.wrap_auth_err("authenticating API request")?;
 	let project_id = DBProjectId::from(path.into_inner().0);
 	let row = sqlx::query!(
-		"SELECT id AS \"thread_id!: DBThreadId\" FROM threads WHERE mod_id = $1 ORDER BY id LIMIT 1",
+		"SELECT id AS \"thread_id!: DBThreadId\", EXISTS(SELECT 1 FROM technical_review_queue WHERE project_id = $1) AS \"needs_review!\" FROM threads WHERE mod_id = $1 ORDER BY id LIMIT 1",
 		project_id.0,
 	)
 	.fetch_optional(&**pool)
@@ -484,6 +606,7 @@ pub async fn get_project_report(
 		.wrap_not_found_err("project moderation thread not found")?;
 	Ok(web::Json(ProjectReportResponse {
 		project_report,
+		needs_review: row.needs_review,
 		thread,
 	}))
 }

@@ -13,8 +13,8 @@ import {
 import type { Thread } from '@shroudedit/utils'
 import { useQuery, useQueryClient } from '@tanstack/vue-query'
 
-import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
 import ThreadView from '~/components/ui/thread/ThreadView.vue'
+import VersionMalwareStatus from '~/components/ui/VersionMalwareStatus.vue'
 import { canDownloadVersion } from '~/utils/version-malware'
 
 type FileReview = Labrinth.TechReview.Internal.FileReport & {
@@ -297,7 +297,7 @@ async function rejectProject() {
 					{{ formatMessage(messages.reviewDescription) }}
 				</p>
 			</div>
-			<div class="flex gap-2">
+			<div v-if="reviewQuery.data.value?.needs_review" class="flex gap-2">
 				<Button
 					type="colored"
 					color="red"

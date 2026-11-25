@@ -226,6 +226,7 @@ import {
 	type ComboboxOption,
 	commonMessages,
 	formatReportType,
+	getProjectTypeCategoryMessage,
 	injectShroudEditClient,
 	MultiSelect,
 	type MultiSelectItem,
@@ -241,7 +242,7 @@ import ModerationFilterCount from '~/components/ui/moderation/ModerationFilterCo
 import ModerationQueueSkeleton from '~/components/ui/moderation/ModerationQueueSkeleton.vue'
 import ModerationQueueToolbar from '~/components/ui/moderation/ModerationQueueToolbar.vue'
 import ReportCard from '~/components/ui/moderation/ModerationReportCard.vue'
-import { enrichReportBatch } from '~/helpers/moderation.ts'
+import { enrichReportBatch, MODERATION_PROJECT_TYPES } from '~/helpers/moderation.ts'
 
 useHead({ title: 'Reports queue - ShroudEdit' })
 
@@ -323,14 +324,10 @@ const MESSAGE_FILTER_VALUES = MESSAGE_FILTERS.map((filter) => filter.value)
 
 const PROJECT_TYPE_FILTERS = [
 	{ value: 'all', name: 'All project types' },
-	{ value: 'modpack', name: 'Modpacks' },
-	{ value: 'mod', name: 'Mods' },
-	{ value: 'resourcepack', name: 'Resource Packs' },
-	{ value: 'datapack', name: 'Data Packs' },
-	{ value: 'plugin', name: 'Plugins' },
-	{ value: 'shader', name: 'Shaders' },
-	{ value: 'server', name: 'Servers' },
-	{ value: 'shared-instance', name: 'Shared instance' },
+	...MODERATION_PROJECT_TYPES.map((type) => ({
+		value: type,
+		name: formatMessage(getProjectTypeCategoryMessage(type)),
+	})),
 ] as const
 const PROJECT_TYPE_VALUES = PROJECT_TYPE_FILTERS.map((filter) => filter.value)
 
@@ -682,7 +679,6 @@ function matchesProjectTypeFilter(
 	projectTypeFilter: (typeof PROJECT_TYPE_FILTERS)[number]['value'] | string,
 ): boolean {
 	if (projectTypeFilter === 'all') return true
-	if (projectTypeFilter === 'shared-instance') return report.item_type === 'shared-instance'
 	return report.project?.project_type === projectTypeFilter
 }
 

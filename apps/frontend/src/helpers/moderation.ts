@@ -2,6 +2,8 @@ import type { AbstractShroudEditClient, Labrinth, SharedInstances } from '@shrou
 import type { ExtendedReport, OwnershipTarget } from '@shroudedit/moderation'
 import type { Organization, Project, TeamMember, Thread, User, Version } from '@shroudedit/utils'
 
+export const MODERATION_PROJECT_TYPES = ['mod', 'schematic', 'modpack', 'server'] as const
+
 export const useModerationCache = () => ({
 	threads: useState<Map<string, Thread>>('moderation-report-cache-threads', () => new Map()),
 	users: useState<Map<string, User>>('moderation-report-cache-users', () => new Map()),

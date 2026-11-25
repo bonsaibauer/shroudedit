@@ -2495,6 +2495,8 @@ export namespace Labrinth {
 				page?: number
 				filter?: SearchProjectsFilter
 				sort_by?: SearchProjectsSort
+				scope?: 'needs_review' | 'all'
+				query?: string
 			}
 
 			export type SearchProjectsFilter = {
@@ -2566,6 +2568,7 @@ export namespace Labrinth {
 
 			export type ProjectReportResponse = {
 				project_report: ProjectReport | null
+				needs_review: boolean
 				thread: Thread
 			}
 
@@ -2576,9 +2579,11 @@ export namespace Labrinth {
 				status: Projects.v2.ProjectStatus
 				project_types: string[]
 				icon_url: string | null
+				needs_review: boolean
 			}
 
 			export type SearchResponse = {
+				total_count: number
 				project_reports: ProjectReport[]
 				projects: Record<string, ProjectModerationInfo>
 				threads: Record<string, Thread>

@@ -352,6 +352,14 @@ pub async fn get_projects_internal(
                                 ),
                                 'enshrouded_server'
                             )
+                        WHEN jsonb_typeof(mp.components -> 'schematic') = 'object'
+                            THEN ARRAY_APPEND(
+                                ARRAY_REMOVE(
+                                    COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
+                                    'mod'
+                                ),
+                                'schematic'
+                            )
                         ELSE COALESCE(vpt.project_types::text[], ARRAY[]::text[])
                     END AS project_types,
                     COALESCE(ed.external_dependencies_count, 0) AS external_dependencies_count
@@ -400,7 +408,8 @@ pub async fn get_projects_internal(
                         $4::text IS NULL
                         OR ($4 = 'none' AND CARDINALITY(project_types) = 0)
                         OR ($4 = 'enshrouded_server' AND project_types @> ARRAY['enshrouded_server']::text[])
-                        OR ($4 <> 'none' AND $4 <> 'enshrouded_server' AND
+                        OR ($4 = 'schematic' AND project_types @> ARRAY['schematic']::text[])
+                        OR ($4 <> 'none' AND $4 <> 'enshrouded_server' AND $4 <> 'schematic' AND
                             project_types[1] = $4
                         )
                     )
@@ -623,6 +632,14 @@ pub async fn get_projects_internal(
                                 ),
                                 'enshrouded_server'
                             )
+                        WHEN jsonb_typeof(m.components -> 'schematic') = 'object'
+                            THEN ARRAY_APPEND(
+                                ARRAY_REMOVE(
+                                    COALESCE(ppt.project_types::text[], ARRAY[]::text[]),
+                                    'mod'
+                                ),
+                                'schematic'
+                            )
                         ELSE COALESCE(ppt.project_types::text[], ARRAY[]::text[])
                     END AS project_types,
                     COALESCE(ped.external_dependencies_count, 0) AS external_dependencies_count
@@ -830,6 +847,14 @@ pub async fn get_project_ids(
                                 ),
                                 'enshrouded_server'
                             )
+                        WHEN jsonb_typeof(mp.components -> 'schematic') = 'object'
+                            THEN ARRAY_APPEND(
+                                ARRAY_REMOVE(
+                                    COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
+                                    'mod'
+                                ),
+                                'schematic'
+                            )
                         ELSE COALESCE(vpt.project_types::text[], ARRAY[]::text[])
                     END AS project_types,
                     COALESCE(ed.external_dependencies_count, 0) AS external_dependencies_count
@@ -872,7 +897,8 @@ pub async fn get_project_ids(
                     $4::text IS NULL
                     OR ($4 = 'none' AND CARDINALITY(project_types) = 0)
                     OR ($4 = 'enshrouded_server' AND project_types @> ARRAY['enshrouded_server']::text[])
-                    OR ($4 <> 'none' AND $4 <> 'enshrouded_server' AND project_types[1] = $4)
+                    OR ($4 = 'schematic' AND project_types @> ARRAY['schematic']::text[])
+                    OR ($4 <> 'none' AND $4 <> 'enshrouded_server' AND $4 <> 'schematic' AND project_types[1] = $4)
                 )
                 AND ($5::boolean IS NULL OR (external_dependencies_count > 0) = $5)
             ORDER BY

@@ -153,6 +153,7 @@ import {
 	commonMessages,
 	defineMessages,
 	EmptyState,
+	getProjectTypeCategoryMessage,
 	injectNotificationManager,
 	injectShroudEditClient,
 	Pagination,
@@ -170,7 +171,11 @@ import ModerationQueueCard from '~/components/ui/moderation/ModerationQueueCard.
 import ModerationQueueSkeleton from '~/components/ui/moderation/ModerationQueueSkeleton.vue'
 import ModerationQueueToolbar from '~/components/ui/moderation/ModerationQueueToolbar.vue'
 import QueueSummaryModal from '~/components/ui/moderation/QueueSummaryModal.vue'
-import { type ModerationProject, toModerationProjects } from '~/helpers/moderation.ts'
+import {
+	MODERATION_PROJECT_TYPES,
+	type ModerationProject,
+	toModerationProjects,
+} from '~/helpers/moderation.ts'
 import { getProjectTypeForUrlShorthand } from '~/helpers/projects.js'
 import { useModerationQueue } from '~/services/moderation/queue.ts'
 import { findNextEligibleQueueProject } from '~/services/moderation/queue-eligibility.ts'
@@ -253,14 +258,10 @@ watch(
 
 const filterTypes: ComboboxOption<string>[] = [
 	{ value: 'All projects', label: 'All projects' },
-	{ value: 'Modpacks', label: 'Modpacks' },
-	{ value: 'Mods', label: 'Mods' },
-	{ value: 'Resource Packs', label: 'Resource Packs' },
-	{ value: 'Data Packs', label: 'Data Packs' },
-	{ value: 'Plugins', label: 'Plugins' },
-	{ value: 'Shaders', label: 'Shaders' },
-	{ value: 'Servers', label: 'Servers' },
-	{ value: 'Fucked up', label: 'Fucked up' },
+	...MODERATION_PROJECT_TYPES.map((type) => {
+		const label = formatMessage(getProjectTypeCategoryMessage(type))
+		return { value: label, label }
+	}),
 ]
 const filterTypeValues = filterTypes.map((option) => option.value)
 const DEFAULT_FILTER_TYPE = filterTypeValues[0]
@@ -399,26 +400,10 @@ const itemsPerPage = computed({
 const currentPage = ref(1)
 
 function toApiProjectType(label: string): string | undefined {
-	switch (label) {
-		case 'Modpacks':
-			return 'modpack'
-		case 'Mods':
-			return 'mod'
-		case 'Resource Packs':
-			return 'resourcepack'
-		case 'Data Packs':
-			return 'datapack'
-		case 'Plugins':
-			return 'plugin'
-		case 'Shaders':
-			return 'shader'
-		case 'Servers':
-			return 'enshrouded_server'
-		case 'Fucked up':
-			return 'none'
-		default:
-			return undefined
-	}
+	const type = MODERATION_PROJECT_TYPES.find(
+		(projectType) => formatMessage(getProjectTypeCategoryMessage(projectType)) === label,
+	)
+	return type === 'server' ? 'enshrouded_server' : type
 }
 
 function toApiSort(label: string): Labrinth.Moderation.Internal.ProjectsSort {
