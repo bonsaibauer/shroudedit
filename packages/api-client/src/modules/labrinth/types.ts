@@ -4,10 +4,7 @@ import type { ISO3166 } from '../iso3166/types'
 export namespace Labrinth {
 	export namespace Content {
 		export namespace v3 {
-			export type ContentType =
-				| 'mod'
-				| 'modpack'
-				| 'schematic'
+			export type ContentType = 'mod' | 'modpack' | 'schematic'
 
 			export type ResolutionPreferences = {
 				game_versions?: string[]
@@ -899,12 +896,7 @@ export namespace Labrinth {
 
 			export type MonetizationStatus = 'monetized' | 'demonetized' | 'force-demonetized'
 
-			export type ProjectType =
-				| 'mod'
-				| 'modpack'
-				| 'schematic'
-				| 'server'
-				| 'project'
+			export type ProjectType = 'mod' | 'modpack' | 'schematic' | 'server' | 'project'
 
 			export type GalleryImage = {
 				url: string
@@ -1052,10 +1044,7 @@ export namespace Labrinth {
 		}
 
 		export namespace v3 {
-			export type ProjectType =
-				| 'mod'
-				| 'modpack'
-				| 'schematic'
+			export type ProjectType = 'mod' | 'modpack' | 'schematic'
 
 			export type Environment =
 				| 'client_and_server'
@@ -1602,12 +1591,7 @@ export namespace Labrinth {
 
 			export type VersionChannel = 'release' | 'beta' | 'alpha'
 
-			export type FileType =
-				| 'sources-jar'
-				| 'dev-jar'
-				| 'javadoc-jar'
-				| 'signature'
-				| 'unknown'
+			export type FileType = 'sources-jar' | 'dev-jar' | 'javadoc-jar' | 'signature' | 'unknown'
 
 			export type FileHashType = 'sha512' | 'sha1'
 			export type VersionFileHash = {

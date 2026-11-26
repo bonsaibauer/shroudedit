@@ -4,8 +4,6 @@ import {
 	BoxIcon,
 	ExternalIcon,
 	FileIcon,
-	GlassesIcon,
-	PaintbrushIcon,
 	SearchIcon,
 	SpinnerIcon,
 } from '@shroudedit/assets'

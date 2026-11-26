@@ -1,8 +1,8 @@
-export const getProjectTypeForUrl = (type, _categories) => {
+export const getProjectTypeForUrl = (type) => {
 	return getProjectTypeForUrlShorthand(type)
 }
 
-export const getProjectTypeForUrlShorthand = (type, _categories, _overrideTags) => {
+export const getProjectTypeForUrlShorthand = (type) => {
 	return type
 }
 

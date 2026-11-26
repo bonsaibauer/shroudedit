@@ -24,12 +24,23 @@ let validateExtended: ReturnType<Ajv2020['compile']> | undefined
 
 export class InvalidSfpackError extends Error {}
 
-function isBundled(mod: SfpackManifest['mods'][number]): mod is { path: string; optional?: boolean } {
+function hasControlCharacters(value: string): boolean {
+	return [...value].some((character) => {
+		const codePoint = character.codePointAt(0)!
+		return codePoint <= 0x1f || (codePoint >= 0x7f && codePoint <= 0x9f)
+	})
+}
+
+function isBundled(
+	mod: SfpackManifest['mods'][number],
+): mod is { path: string; optional?: boolean } {
 	return 'path' in mod
 }
 
 export async function inferSfpackVersion(entries: Entry[]): Promise<InferredVersionInfo> {
-	const manifestEntries = entries.filter((entry) => entry.filename === 'modpack.json' && !entry.directory)
+	const manifestEntries = entries.filter(
+		(entry) => entry.filename === 'modpack.json' && !entry.directory,
+	)
 	if (manifestEntries.length !== 1) {
 		throw new InvalidSfpackError('A .sfpack archive needs one root modpack.json.')
 	}
@@ -48,9 +59,8 @@ export async function inferSfpackVersion(entries: Entry[]): Promise<InferredVers
 		throw new InvalidSfpackError('modpack.json does not match the Modloader 1.8.2 schema.')
 	}
 	const pack = value as SfpackManifest
-	const roots = pack.mods.filter(isBundled)
-		.map((mod) => mod.path)
-	const ids = pack.mods.map((mod) => 'path' in mod ? mod.path.split('/').at(-1)! : mod.id)
+	const roots = pack.mods.filter(isBundled).map((mod) => mod.path)
+	const ids = pack.mods.map((mod) => ('path' in mod ? mod.path.split('/').at(-1)! : mod.id))
 	if (new Set(ids.map((id) => id.toLowerCase())).size !== ids.length) {
 		throw new InvalidSfpackError('modpack.json contains duplicate mod IDs.')
 	}
@@ -76,14 +86,29 @@ export async function inferSfpackVersion(entries: Entry[]): Promise<InferredVers
 		const name = entry.filename
 		const path = name.replace(/\/$/, '')
 		const owner = roots.find((root) => path === root || path.startsWith(`${root}/`))
-		if (name.startsWith('/') || name.length > 4096 || name.includes('\\') || /[\x00-\x1f\x7f:<>"?*|]/.test(name) ||
-			path.split('/').some((part) => !part || part === '.' || part === '..' || /[ .]$/.test(part) ||
-				/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9]|conin\$|conout\$)(?:\.|$)/i.test(part)) ||
+		if (
+			name.startsWith('/') ||
+			name.length > 4096 ||
+			name.includes('\\') ||
+			hasControlCharacters(name) ||
+			/[:<>"?*|]/.test(name) ||
+			path
+				.split('/')
+				.some(
+					(part) =>
+						!part ||
+						part === '.' ||
+						part === '..' ||
+						/[ .]$/.test(part) ||
+						/^(?:con|prn|aux|nul|com[1-9]|lpt[1-9]|conin\$|conout\$)(?:\.|$)/i.test(part),
+				) ||
 			names.has(path.toLowerCase()) ||
-			entry.encrypted || ![0, 8].includes(entry.compressionMethod) ||
+			entry.encrypted ||
+			![0, 8].includes(entry.compressionMethod) ||
 			(entry.unixMode !== undefined && (entry.unixMode & 0o170000) === 0o120000) ||
 			(owner === path && !entry.directory) ||
-			(name !== 'modpack.json' && !owner && !(entry.directory && path === 'mods'))) {
+			(name !== 'modpack.json' && !owner && !(entry.directory && path === 'mods'))
+		) {
 			throw new InvalidSfpackError(`Invalid or undeclared .sfpack entry: ${name}`)
 		}
 		names.add(path.toLowerCase())
@@ -99,9 +124,14 @@ export async function inferSfpackVersion(entries: Entry[]): Promise<InferredVers
 		throw new InvalidSfpackError('A bundled mod folder is empty or missing.')
 	}
 	for (const root of roots) {
-		for (const [name, isMod] of [['mod.json', true], ['extended.mod.json', false]] as const) {
+		for (const [name, isMod] of [
+			['mod.json', true],
+			['extended.mod.json', false],
+		] as const) {
 			const path = `${root}/${name}`
-			const entry = entries.find((candidate) => candidate.filename === path && !candidate.directory) as FileEntry | undefined
+			const entry = entries.find(
+				(candidate) => candidate.filename === path && !candidate.directory,
+			) as FileEntry | undefined
 			if (!entry) continue
 			if (entry.uncompressedSize > 1024 * 1024) {
 				throw new InvalidSfpackError(`${path} exceeds 1 MiB.`)

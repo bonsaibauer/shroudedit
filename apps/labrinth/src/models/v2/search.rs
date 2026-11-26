@@ -58,7 +58,7 @@ impl LegacyResultSearchProject {
 				.project_loader_fields
 				.get("modpack_loaders")
 		{
-			display_categories.extend(
+			categories.extend(
 				modpack_loaders
 					.iter()
 					.filter_map(|c| c.as_str())
@@ -73,7 +73,7 @@ impl LegacyResultSearchProject {
 				.project_loader_fields
 				.get("modpack_loaders")
 		{
-			categories.extend(
+			display_categories.extend(
 				modpack_loaders
 					.iter()
 					.filter_map(|c| c.as_str())

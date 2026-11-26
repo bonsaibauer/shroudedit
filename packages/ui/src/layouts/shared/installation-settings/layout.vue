@@ -38,8 +38,6 @@ import ContentDiffModal from './components/ContentDiffModal.vue'
 import IncompatibleContentModal from './components/IncompatibleContentModal.vue'
 import { useInstallationForm } from './composables'
 import { injectInstallationSettings } from './providers/installation-settings'
-import type { LoaderVersionEntry } from './types'
-
 const { formatMessage } = useVIntl()
 const ctx = injectInstallationSettings()
 const debug = useDebugLogger('InstallationSettingsLayout')

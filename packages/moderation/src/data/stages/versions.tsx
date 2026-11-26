@@ -53,7 +53,7 @@ export default function () {
 								option('server-additional', 'Server Files (Additional Files)')
 									.shown(computed(() => project.value.project_types.includes('modpack')))
 									.message(),
-				option('sfpack', '.sfpack')
+								option('sfpack', '.sfpack')
 									.shown(computed(() => project.value.project_types.includes('modpack')))
 									.message(),
 							),

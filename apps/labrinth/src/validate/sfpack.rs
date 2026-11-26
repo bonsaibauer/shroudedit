@@ -202,7 +202,7 @@ pub fn validate_package(
 			return Err(format!("invalid .sfpack entry {name}"));
 		}
 		let owner = bundled.iter().find(|root| {
-			path == *root
+			path == **root
 				|| path
 					.strip_prefix(*root)
 					.is_some_and(|rest| rest.starts_with('/'))

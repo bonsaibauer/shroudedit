@@ -4,6 +4,7 @@ use bytes::Bytes;
 use thiserror::Error;
 use xredis::RedisPool;
 
+pub mod project;
 mod schematic;
 mod schematic_v8;
 pub mod sfpack;

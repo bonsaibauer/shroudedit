@@ -50,12 +50,7 @@ export type GameVersionTag = {
 	major: boolean
 }
 
-export type DisplayProjectType =
-	| 'mod'
-	| 'modpack'
-	| 'schematic'
-	| 'server'
-	| 'project'
+export type DisplayProjectType = 'mod' | 'modpack' | 'schematic' | 'server' | 'project'
 
 export type PlatformTag = {
 	icon: string
@@ -267,13 +262,7 @@ function formatEnshroudedMinorVersion(major: string, minor: number): string {
 	return minor === 0 ? major : `${major}.${minor}`
 }
 
-export const PROJECT_TYPE_PRECEDENCE = [
-	'server',
-	'schematic',
-	'modpack',
-	'mod',
-	'project',
-] as const
+export const PROJECT_TYPE_PRECEDENCE = ['server', 'schematic', 'modpack', 'mod', 'project'] as const
 
 export function getPrimaryProjectType(project: Labrinth.Projects.v3.Project): DisplayProjectType {
 	if (project.enshrouded_server != null) {

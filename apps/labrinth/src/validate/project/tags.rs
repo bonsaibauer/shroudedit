@@ -1,8 +1,7 @@
 use std::collections::BTreeSet;
 
 use crate::{
-	database::models::categories::Category,
-	models::projects::Project,
+	database::models::categories::Category, models::projects::Project,
 };
 
 use super::{ProjectNag, ProjectNagKind, ProjectNagSeverity};
@@ -61,7 +60,9 @@ pub(super) fn validate(
 				.map(String::as_str),
 			available_categories
 				.iter()
-				.filter(|category| project.project_types.contains(&category.project_type))
+				.filter(|category| {
+					project.project_types.contains(&category.project_type)
+				})
 				.map(|category| category.category.as_str()),
 		) {
 		nags.push(

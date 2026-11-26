@@ -208,19 +208,17 @@ pub fn convert_v3_environment_to_v2_side_types(
 ) -> (LegacySideType, LegacySideType) {
 	use LegacySideType::{Optional, Required, Unknown, Unsupported};
 
-	match project_type {
-		_ => match environment {
-			"client_and_server" => (Required, Required),
-			"client_only" => (Required, Unsupported),
-			"client_only_server_optional" => (Required, Optional),
-			"singleplayer_only" => (Required, Required),
-			"server_only" => (Unsupported, Required),
-			"server_only_client_optional" => (Optional, Required),
-			"dedicated_server_only" => (Unsupported, Required),
-			"client_or_server" => (Optional, Optional),
-			"client_or_server_prefers_both" => (Optional, Optional),
-			_ => (Unknown, Unknown), // "unknown"
-		},
+	match environment {
+		"client_and_server" => (Required, Required),
+		"client_only" => (Required, Unsupported),
+		"client_only_server_optional" => (Required, Optional),
+		"singleplayer_only" => (Required, Required),
+		"server_only" => (Unsupported, Required),
+		"server_only_client_optional" => (Optional, Required),
+		"dedicated_server_only" => (Unsupported, Required),
+		"client_or_server" => (Optional, Optional),
+		"client_or_server_prefers_both" => (Optional, Optional),
+		_ => (Unknown, Unknown), // "unknown"
 	}
 }
 

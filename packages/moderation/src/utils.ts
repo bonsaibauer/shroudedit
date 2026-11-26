@@ -93,9 +93,7 @@ export function arrayOrNone(arr: string[]): string {
 export function formatProjectTypes(type: string, lower: boolean = false) {
 	let value = type
 	try {
-		value = value
-			.replaceAll('mod', 'Mod')
-			.replaceAll('enshrouded_server', 'Server')
+		value = value.replaceAll('mod', 'Mod').replaceAll('enshrouded_server', 'Server')
 	} catch {
 		return 'No project type'
 	}

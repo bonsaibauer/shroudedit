@@ -223,7 +223,7 @@ import {
 	SearchIcon,
 	UploadIcon,
 } from '@shroudedit/assets'
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import { Button, IconButton, TeleportOverflowMenu } from '#ui/components/base/buttons'
 import Input from '#ui/components/base/inputs/Input.vue'

@@ -128,7 +128,7 @@ pub fn get_public_creation_data_multipart(
 		let file_segment = MultipartSegment {
 			name: jar.filename(),
 			filename: Some(jar.filename()),
-			content_type: version_jar.content_type(),
+			content_type: jar.content_type(),
 			data: MultipartSegmentData::Binary(jar.bytes()),
 		};
 

@@ -18,11 +18,7 @@ export type DonationPlatform =
 	| { short: 'ko-fi'; name: 'Ko-fi' }
 	| { short: 'other'; name: 'Other' }
 
-export type ProjectType =
-	| 'mod'
-	| 'modpack'
-	| 'schematic'
-	| 'project'
+export type ProjectType = 'mod' | 'modpack' | 'schematic' | 'project'
 export type MonetizationStatus = 'monetized' | 'demonetized' | 'force-demonetized'
 
 export type GameVersion = string
@@ -284,12 +280,7 @@ export interface FileDependency {
 export type Dependency = VersionDependency | ProjectDependency | FileDependency
 export type VersionChannel = 'release' | 'beta' | 'alpha'
 export type VersionStatus = 'listed' | 'archived' | 'draft' | 'unlisted' | 'scheduled' | 'unknown'
-export type FileType =
-	| 'sources-jar'
-	| 'dev-jar'
-	| 'javadoc-jar'
-	| 'signature'
-	| 'unknown'
+export type FileType = 'sources-jar' | 'dev-jar' | 'javadoc-jar' | 'signature' | 'unknown'
 
 export interface VersionFileHash {
 	sha512: string
