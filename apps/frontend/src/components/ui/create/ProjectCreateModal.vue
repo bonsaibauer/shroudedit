@@ -445,9 +445,7 @@ async function createProject() {
 	const projectData: Labrinth.Projects.v2.CreateProjectBase = {
 		title: name.value.trim(),
 		project_type:
-			projectType.value === 'project' || projectType.value === 'server'
-				? 'mod'
-				: projectType.value,
+			projectType.value === 'project' || projectType.value === 'server' ? 'mod' : projectType.value,
 		slug: slug.value,
 		description: description.value.trim(),
 		body: '',

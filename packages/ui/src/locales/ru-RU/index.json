@@ -929,7 +929,6 @@
   "profile.label.organizations": "Организации",
   "profile.label.project-count": "{count, plural, one {проект} few {проекта} other {проектов}}",
   "profile.official-account": "Официальный аккаунт ShroudEdit",
-  "profile.official-account.bio": "Официальный аккаунт ShroudEdit. Связь с поддержкой: <support-link></support-link> или по почте <email></email>",
   "profile.unblock-user.error-description": "Произошла ошибка при разблокировке пользователя. Попробуйте снова.",
   "profile.unblock-user.error-title": "Не удалось разблокировать",
   "profile.unblock-user.success-description": "{username} разблокирован.",

@@ -952,7 +952,6 @@
   "profile.label.organizations": "Organisaties",
   "profile.label.project-count": "{count, plural, one {project} other {projecten}}",
   "profile.official-account": "Officieel ShroudEdit-account",
-  "profile.official-account.bio": "Het officiële gebruikersaccount van ShroudEdit. Neem contact op met het Helpcentrum via <support-link></support-link> of per e-mail via <email></email>",
   "profile.unblock-user.error-description": "Er is een fout opgetreden bij het deblokkeren van deze gebruiker. Probeer het nog eens.",
   "profile.unblock-user.error-title": "Kan gebruiker niet deblokkeren",
   "profile.unblock-user.success-description": "{username} is gedeblokkeerd.",

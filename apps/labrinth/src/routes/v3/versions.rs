@@ -501,27 +501,37 @@ pub async fn version_edit_helper(
 			.loaders
 			.iter()
 			.any(|loader| matches!(loader.as_str(), "shroudforge" | "eml"))
-			&& version_item
-			.files
+			&& version_item.files.iter().any(|file| {
+				file.primary
+					&& file.filename.to_ascii_lowercase().ends_with(".zip")
+			});
+		let managed_sfpack = version_item
+			.loaders
 			.iter()
-				.any(|file| file.primary && file.filename.to_ascii_lowercase().ends_with(".zip"));
-		let managed_sfpack = version_item.loaders.iter().any(|loader| loader == "sfpack")
-			&& version_item.files.iter().any(|file| file.primary && file.filename.to_ascii_lowercase().ends_with(".sfpack"));
+			.any(|loader| loader == "sfpack")
+			&& version_item.files.iter().any(|file| {
+				file.primary
+					&& file.filename.to_ascii_lowercase().ends_with(".sfpack")
+			});
 		if (managed_mod_package || managed_sfpack)
 			&& new_version.version_number.as_ref().is_some_and(|number| {
 				number != &version_item.inner.version_number
-			})
-		{
+			}) {
 			return Err(ApiError::Request(eyre::eyre!(
 				"ShroudForge versions must keep the version declared by their package. Publish a new version with a matching package."
 			)));
 		}
-		if (managed_mod_package || managed_sfpack) && new_version.dependencies.is_some() {
+		if (managed_mod_package || managed_sfpack)
+			&& new_version.dependencies.is_some()
+		{
 			return Err(ApiError::Request(eyre::eyre!(
 				"ShroudForge dependencies are taken from the package. Publish a new package to change them."
 			)));
 		}
-		if managed_sfpack && (new_version.fields.contains_key("game_versions") || new_version.loaders.is_some()) {
+		if managed_sfpack
+			&& (new_version.fields.contains_key("game_versions")
+				|| new_version.loaders.is_some())
+		{
 			return Err(ApiError::Request(eyre::eyre!(
 				"The .sfpack game versions and loader are defined by the package. Publish a new package to change them."
 			)));
@@ -584,15 +594,31 @@ pub async fn version_edit_helper(
 				.await
 				.wrap_internal_err("fetching project")?
 				.wrap_request_err("project does not exist")?;
-				let available_loaders = database::models::loader_fields::Loader::list(&mut transaction, &redis)
+				let available_loaders =
+					database::models::loader_fields::Loader::list(
+						&mut transaction,
+						&redis,
+					)
 					.await
 					.wrap_internal_err("fetching loaders")?;
 				let mut loader_ids = Vec::with_capacity(loaders.len());
 				for loader in loaders {
-					let selected = available_loaders.iter().find(|available| available.loader == loader.0)
-						.wrap_request_err_with(|| format!("no database entry for loader `{}`", loader.0))?;
-					if !selected.can_publish_project_type(&project.inner.project_type) {
-						return Err(ApiError::Request(eyre::eyre!("loader `{}` does not support this project's type", loader.0)));
+					let selected = available_loaders
+						.iter()
+						.find(|available| available.loader == loader.0)
+						.wrap_request_err_with(|| {
+							format!(
+								"no database entry for loader `{}`",
+								loader.0
+							)
+						})?;
+					if !selected
+						.can_publish_project_type(&project.inner.project_type)
+					{
+						return Err(ApiError::Request(eyre::eyre!(
+							"loader `{}` does not support this project's type",
+							loader.0
+						)));
 					}
 					loader_ids.push(selected.id);
 				}

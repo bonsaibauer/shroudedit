@@ -2,7 +2,6 @@ import type { Labrinth } from '@shroudedit/api-client'
 
 import { inferSfbpMetadata } from './sfbp'
 import { inferSfpackVersion, InvalidSfpackError } from './sfpack'
-
 import { inferShroudForgeVersion } from './shroudforge'
 
 export type InferredVersionInfo = Partial<

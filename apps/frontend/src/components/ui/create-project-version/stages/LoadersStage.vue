@@ -69,10 +69,10 @@ const availableLoaders = computed(() =>
 	projectType.value === 'modpack'
 		? generatedState.value.loaders.filter((loader) => loader.name === 'sfpack')
 		: projectType.value === 'schematic'
-		? generatedState.value.loaders.filter((loader) =>
-				['shroudtopia', 'shroudforge', 'eml'].includes(loader.name),
-			)
-		: generatedState.value.loaders,
+			? generatedState.value.loaders.filter((loader) =>
+					['shroudtopia', 'shroudforge', 'eml'].includes(loader.name),
+				)
+			: generatedState.value.loaders,
 )
 
 const toggleLoader = (loader: string) => {

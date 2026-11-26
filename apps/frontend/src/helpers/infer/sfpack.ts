@@ -26,7 +26,8 @@ export async function inferSfpackVersion(entries: FileEntry[]): Promise<Inferred
 		throw new InvalidSfpackError('The .sfpack manifest is not valid JSON.')
 	}
 	validate ??= new Ajv2020({ strict: false }).compile<SfpackManifest>(schema)
-	if (!validate(value)) throw new InvalidSfpackError('The .sfpack manifest does not match schema 1.')
+	if (!validate(value))
+		throw new InvalidSfpackError('The .sfpack manifest does not match schema 1.')
 	const pack = value as SfpackManifest
 	if (new Set(pack.mods.map((mod) => mod.projectId)).size !== pack.mods.length) {
 		throw new InvalidSfpackError('The .sfpack manifest contains duplicate projects.')

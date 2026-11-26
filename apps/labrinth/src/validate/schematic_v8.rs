@@ -56,12 +56,13 @@ pub fn validate(bytes: &[u8]) -> Result<BlueprintMetadata, String> {
 	});
 	let value: serde_json::Value =
 		serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
-	VALIDATOR
-		.validate(&value)
-		.map_err(|error| format!("invalid SFBP 8 at {}: {error}", error.instance_path))?;
+	VALIDATOR.validate(&value).map_err(|error| {
+		format!("invalid SFBP 8 at {}: {error}", error.instance_path)
+	})?;
 	drop(value);
 	// Typed deserialization additionally rejects duplicate keys at every object level.
-	let blueprint: Blueprint = serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
+	let blueprint: Blueprint =
+		serde_json::from_slice(bytes).map_err(|error| error.to_string())?;
 	if blueprint.format_version != 8.0
 		|| !matches!(blueprint.rotation_axis.as_str(), "x" | "y" | "z")
 	{
@@ -75,7 +76,10 @@ pub fn validate(bytes: &[u8]) -> Result<BlueprintMetadata, String> {
 			.filter(|count| *count <= 65_536)
 			.ok_or("blueprint exceeds the voxel cell limit")?;
 		if voxels.cells.len() != count || voxels.coverage.len() != count {
-			return Err("blueprint cell and coverage counts must match dimensions".into());
+			return Err(
+				"blueprint cell and coverage counts must match dimensions"
+					.into(),
+			);
 		}
 		if voxels
 			.offset
@@ -91,7 +95,9 @@ pub fn validate(bytes: &[u8]) -> Result<BlueprintMetadata, String> {
 			.zip(&voxels.coverage)
 			.any(|(cell, coverage)| *coverage == 2.0 && *cell == 0.0)
 		{
-			return Err("occupied blueprint cells must have a nonzero value".into());
+			return Err(
+				"occupied blueprint cells must have a nonzero value".into()
+			);
 		}
 		Some(dimensions)
 	} else {
@@ -127,10 +133,15 @@ mod tests {
 	use super::*;
 
 	#[test]
-	fn blueprint_contract_preserves_dimensions_and_rejects_semantic_mismatches() {
+	fn blueprint_contract_preserves_dimensions_and_rejects_semantic_mismatches()
+	{
 		let example = include_bytes!("schemas/sfbp/8/manifest.example.json");
-		assert_eq!(validate(example).unwrap().voxel_dimensions, Some([2, 1, 3]));
-		let source: serde_json::Value = serde_json::from_slice(example).unwrap();
+		assert_eq!(
+			validate(example).unwrap().voxel_dimensions,
+			Some([2, 1, 3])
+		);
+		let source: serde_json::Value =
+			serde_json::from_slice(example).unwrap();
 		for (pointer, replacement) in [
 			("/voxels/dimensions/0", serde_json::json!(3)),
 			("/voxels/cells/0", serde_json::json!(0)),

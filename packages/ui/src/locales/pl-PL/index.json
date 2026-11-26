@@ -952,7 +952,6 @@
   "profile.label.organizations": "Organizacje",
   "profile.label.project-count": "{count, plural, one {projekt} few {projekty} other {projektów}}",
   "profile.official-account": "Oficjalne konto ShroudEdit",
-  "profile.official-account.bio": "Oficjalne konto ShroudEdit. Otrzymaj wsparcie na stronie <support-link></support-link> lub poprzez e-mail <email></email>",
   "profile.unblock-user.error-description": "Wystąpił błąd podczas odblokowywania tego użytkownika. Spróbuj ponownie później.",
   "profile.unblock-user.error-title": "Nie udało się odblokować użytkownika",
   "profile.unblock-user.success-description": "Użytkownik {username} został odblokowany.",

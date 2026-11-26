@@ -39,7 +39,9 @@ fn game_versions(fields: &[VersionField]) -> Option<&[LoaderFieldEnumValue]> {
 		(field.field_name == "game_versions")
 			.then_some(&field.value)
 			.and_then(|value| match value {
-				VersionFieldValue::ArrayEnum(_, values) => Some(values.as_slice()),
+				VersionFieldValue::ArrayEnum(_, values) => {
+					Some(values.as_slice())
+				}
 				_ => None,
 			})
 	})
@@ -67,19 +69,23 @@ pub async fn validate_file(
 	if integer_field(&fields, "schematic_format_version") != Some(8) {
 		return Err(invalid("new SFBP uploads must use JSON format 8"));
 	}
-	if text_field(&fields, "world_editor_version").is_none_or(|value| value.trim().is_empty()) {
+	if text_field(&fields, "world_editor_version")
+		.is_none_or(|value| value.trim().is_empty())
+	{
 		return Err(invalid("world editor version cannot be empty"));
 	}
-	let metadata = actix_web::web::block(move || super::schematic_v8::validate(&data))
-		.await?
-		.map_err(invalid)?;
+	let metadata =
+		actix_web::web::block(move || super::schematic_v8::validate(&data))
+			.await?
+			.map_err(invalid)?;
 	let dimensions = metadata
 		.voxel_dimensions
 		.map(|values| values.map(f64::from))
 		.unwrap_or_else(|| metadata.extent.map(f64::ceil));
-	for (index, name) in ["schematic_width", "schematic_height", "schematic_depth"]
-		.iter()
-		.enumerate()
+	for (index, name) in
+		["schematic_width", "schematic_height", "schematic_depth"]
+			.iter()
+			.enumerate()
 	{
 		let actual = dimensions[index];
 		if !(1.0..=65536.0).contains(&actual)

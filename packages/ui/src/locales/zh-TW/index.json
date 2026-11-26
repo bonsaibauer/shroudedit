@@ -955,7 +955,6 @@
   "profile.label.organizations": "組織",
   "profile.label.project-count": "{count, plural, other {個專案}}",
   "profile.official-account": "ShroudEdit 官方帳號",
-  "profile.official-account.bio": "ShroudEdit 的官方使用者帳號。請至 <support-link></support-link> 取得支援，或透過電子郵件 <email></email> 聯絡客服團隊",
   "profile.unblock-user.error-description": "解除封鎖使用者時發生錯誤，請再試一次。",
   "profile.unblock-user.error-title": "無法解除封鎖使用者",
   "profile.unblock-user.success-description": "{username} 已解除封鎖。",

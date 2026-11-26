@@ -955,7 +955,6 @@
   "profile.label.organizations": "组织",
   "profile.label.project-count": "{count, plural, other {项目}}",
   "profile.official-account": "官方 ShroudEdit 账户",
-  "profile.official-account.bio": "ShroudEdit 的官方用户账号。可通过 <support-link></support-link> 或电子邮件 <email></email> 获取支持",
   "profile.unblock-user.error-description": "解除屏蔽该用户时发生了错误。请重试。",
   "profile.unblock-user.error-title": "解除屏蔽用户失败",
   "profile.unblock-user.success-description": "{username} 已被解除屏蔽。",

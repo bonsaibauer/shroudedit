@@ -954,7 +954,6 @@
   "profile.label.organizations": "Organizaciones",
   "profile.label.project-count": "{count, plural, one {proyecto} other {proyectos}}",
   "profile.official-account": "Cuenta oficial de ShroudEdit",
-  "profile.official-account.bio": "Cuenta oficial de ShroudEdit. Obtén soporte en <support-link></support-link> o vía correo a <email></email>",
   "profile.unblock-user.error-description": "Ocurrió un error al desbloquear este usuario. Por favor intenta de nuevo.",
   "profile.unblock-user.error-title": "No se pudo desbloquear el usuario",
   "profile.unblock-user.success-description": "{username} fue desbloqueado.",

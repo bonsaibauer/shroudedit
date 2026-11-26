@@ -904,7 +904,6 @@
   "profile.label.organizations": "Organisationer",
   "profile.label.project-count": "{count} projekt",
   "profile.official-account": "Officiellt ShroudEdit-konto",
-  "profile.official-account.bio": "ShroudEdits officiella användarkonto. Få hjälp på <support-link></support-link> eller via e-post hos <email></email>",
   "profile.unblock-user.error-description": "Ett fel inträffade under avblockeringen av den här användaren. Vänligen försök igen.",
   "profile.unblock-user.error-title": "Kunde inte avblockera användare",
   "profile.unblock-user.success-description": "{username} har avblockerats.",

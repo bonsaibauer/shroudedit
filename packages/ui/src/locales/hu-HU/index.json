@@ -948,7 +948,6 @@
   "profile.label.organizations": "Szervezetek",
   "profile.label.project-count": "projekt",
   "profile.official-account": "Hivatalos ShroudEdit-fiók",
-  "profile.official-account.bio": "A ShroudEdit hivatalos felhasználói fiókja. Támogatás a <support-link></support-link> oldalon kaphatsz vagy e-mailben a <email></email> címen.",
   "profile.unblock-user.error-description": "Hiba történt a felhasználó letiltásának feloldása közben. Kérlek próbáld meg újra.",
   "profile.unblock-user.error-title": "A felhasználó letiltásának feloldása nem sikerült",
   "profile.unblock-user.success-description": "{username} letiltása fel lett oldva",

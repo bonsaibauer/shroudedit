@@ -48,11 +48,17 @@ async function readJson(entry?: FileEntry): Promise<Record<string, unknown> | un
 	}
 }
 
-export async function inferShroudForgeVersion(
-	entries: FileEntry[],
-): Promise<InferredVersionInfo> {
-	const { validateManifest, validateExtension, validateLauncher, validateTargets, validateReleaseChannel, validateGameVersions, validateChangelog, validateLocale } =
-		(validators ??= createValidators())
+export async function inferShroudForgeVersion(entries: FileEntry[]): Promise<InferredVersionInfo> {
+	const {
+		validateManifest,
+		validateExtension,
+		validateLauncher,
+		validateTargets,
+		validateReleaseChannel,
+		validateGameVersions,
+		validateChangelog,
+		validateLocale,
+	} = (validators ??= createValidators())
 	const packagePaths = new Set<string>()
 	const manifests = new Map<string, ModManifest>()
 	for (const entry of entries) {
@@ -101,10 +107,12 @@ export async function inferShroudForgeVersion(
 			loader = launcher === 'EML' ? 'eml' : 'shroudforge'
 		}
 	} else if (manifest && !extensionFile) {
-		loader = entries.some(({ filename }) =>
-			filename === `${packagePath}src/mod.lua` ||
-			filename === `${packagePath}native-plugin.ini`,
-		) ? 'shroudforge' : 'eml'
+		loader = entries.some(
+			({ filename }) =>
+				filename === `${packagePath}src/mod.lua` || filename === `${packagePath}native-plugin.ini`,
+		)
+			? 'shroudforge'
+			: 'eml'
 	}
 
 	const targets = extension?.targets

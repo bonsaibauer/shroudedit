@@ -906,7 +906,6 @@
   "profile.label.organizations": "Organizacije",
   "profile.label.project-count": "{count, plural,one {projekat} other {projekta}}",
   "profile.official-account": "Zvanični ShroudEdit nalog",
-  "profile.official-account.bio": "Zvanični nalog ShroudEdit-a. Dobiji pomoć putem <support-link></support-link> ili preko E-Mail-a na <email></email>",
   "profile.unblock-user.error-description": "Desila se greška tokom odblokiranja ovog korisnika. Molimo pokušajte ponovo.",
   "profile.unblock-user.error-title": "Neuspešno odblokiranje korisnika",
   "profile.unblock-user.success-description": "{username} je odblokiran.",

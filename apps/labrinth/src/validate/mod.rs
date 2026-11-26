@@ -37,8 +37,8 @@ mod rift;
 mod schematic;
 mod schematic_v8;
 pub mod sfpack;
-pub mod shroudforge;
 mod shader;
+pub mod shroudforge;
 
 #[derive(Error, Debug)]
 pub enum ValidationError {
@@ -180,9 +180,12 @@ pub async fn validate_file(
 	}
 	if file_extension == "sfpack" {
 		if !loaders.iter().any(|loader| loader.0 == "sfpack") {
-			return Err(ValidationError::InvalidInput(".sfpack requires the sfpack loader".into()));
+			return Err(ValidationError::InvalidInput(
+				".sfpack requires the sfpack loader".into(),
+			));
 		}
-		sfpack::validate_package(data, None).map_err(|error| ValidationError::InvalidInput(error.into()))?;
+		sfpack::validate_package(data, None)
+			.map_err(|error| ValidationError::InvalidInput(error.into()))?;
 		return Ok(ValidationResult::Pass);
 	}
 

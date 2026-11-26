@@ -13,15 +13,21 @@
 		>
 			<div class="font-semibold text-contrast">{{ formatMessage(messages.packageMismatch) }}</div>
 			<p v-if="packageIdMismatch" class="mt-2 text-sm text-secondary">
-				{{ formatMessage(messages.packageIdMismatch, {
-					packageId: inferredVersionData?.mod_id,
-					projectSlug: projectV2.slug,
-				}) }}
+				{{
+					formatMessage(messages.packageIdMismatch, {
+						packageId: inferredVersionData?.mod_id,
+						projectSlug: projectV2.slug,
+					})
+				}}
 			</p>
 			<div v-for="difference in packageDifferences" :key="difference.key" class="mt-3 text-sm">
 				<div class="font-semibold text-contrast">{{ difference.label }}</div>
-				<div class="text-secondary">{{ formatMessage(messages.packageValue) }}: {{ difference.packageValue }}</div>
-				<div class="text-secondary">{{ formatMessage(messages.catalogValue) }}: {{ difference.catalogValue }}</div>
+				<div class="text-secondary">
+					{{ formatMessage(messages.packageValue) }}: {{ difference.packageValue }}
+				</div>
+				<div class="text-secondary">
+					{{ formatMessage(messages.catalogValue) }}: {{ difference.catalogValue }}
+				</div>
 				<Button type="quiet" class="mt-1" @click="usePackageValue(difference.key)">
 					{{ formatMessage(messages.usePackageValue) }}
 				</Button>
@@ -151,8 +157,8 @@ import {
 	Button,
 	Chips,
 	defineMessages,
-	Input,
 	injectProjectPageContext,
+	Input,
 	MarkdownEditor,
 	Tabs,
 	type TabsTab,
@@ -175,7 +181,8 @@ const messages = defineMessages({
 	},
 	packageIdMismatch: {
 		id: 'create-project-version.package-id-mismatch',
-		defaultMessage: 'Package mod ID: {packageId}. Project slug: {projectSlug}. Update mod.json or the project slug before uploading.',
+		defaultMessage:
+			'Package mod ID: {packageId}. Project slug: {projectSlug}. Update mod.json or the project slug before uploading.',
 	},
 	packageValue: {
 		id: 'create-project-version.package-value',
@@ -191,7 +198,8 @@ const messages = defineMessages({
 	},
 	updatePackageHint: {
 		id: 'create-project-version.update-package-hint',
-		defaultMessage: 'To keep the publication value, update the JSON in the ZIP and select the package again. The archive is not modified automatically.',
+		defaultMessage:
+			'To keep the publication value, update the JSON in the ZIP and select the package again. The archive is not modified automatically.',
 	},
 	versionType: {
 		id: 'create-project-version.create-modal.stage.details.version-type',
@@ -280,7 +288,14 @@ const messages = defineMessages({
 	},
 })
 
-type ComparableField = 'name' | 'version_number' | 'version_type' | 'game_versions' | 'environment' | 'changelog' | 'loaders'
+type ComparableField =
+	| 'name'
+	| 'version_number'
+	| 'version_type'
+	| 'game_versions'
+	| 'environment'
+	| 'changelog'
+	| 'loaders'
 const comparableFields: { key: ComparableField; label: string }[] = [
 	{ key: 'name', label: 'Version subtitle' },
 	{ key: 'version_number', label: 'Version number' },
@@ -296,19 +311,30 @@ function displayValue(value: unknown): string {
 	return value == null || value === '' ? '—' : String(value)
 }
 
-const packageIdMismatch = computed(() => Boolean(
-	inferredVersionData.value?.mod_id &&
-	projectV2.value.slug &&
-	inferredVersionData.value.mod_id !== projectV2.value.slug.toLowerCase(),
-))
+const packageIdMismatch = computed(() =>
+	Boolean(
+		inferredVersionData.value?.mod_id &&
+		projectV2.value.slug &&
+		inferredVersionData.value.mod_id !== projectV2.value.slug.toLowerCase(),
+	),
+)
 
-const packageDifferences = computed(() => comparableFields.flatMap(({ key, label }) => {
-	if (!inferredVersionData.value?.package_fields?.includes(key)) return []
-	const packageValue = inferredVersionData.value[key]
-	const catalogValue = draftVersion.value[key]
-	if (JSON.stringify(packageValue) === JSON.stringify(catalogValue)) return []
-	return [{ key, label, packageValue: displayValue(packageValue), catalogValue: displayValue(catalogValue) }]
-}))
+const packageDifferences = computed(() =>
+	comparableFields.flatMap(({ key, label }) => {
+		if (!inferredVersionData.value?.package_fields?.includes(key)) return []
+		const packageValue = inferredVersionData.value[key]
+		const catalogValue = draftVersion.value[key]
+		if (JSON.stringify(packageValue) === JSON.stringify(catalogValue)) return []
+		return [
+			{
+				key,
+				label,
+				packageValue: displayValue(packageValue),
+				catalogValue: displayValue(catalogValue),
+			},
+		]
+	}),
+)
 
 function usePackageValue(key: ComparableField) {
 	const value = inferredVersionData.value?.[key]

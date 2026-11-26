@@ -231,7 +231,10 @@ export function createManageVersionContext(
 		) {
 			return 'schematic'
 		}
-		if (projectV2.value.project_type === 'modpack' || projectV2.value.actualProjectType === 'modpack') {
+		if (
+			projectV2.value.project_type === 'modpack' ||
+			projectV2.value.actualProjectType === 'modpack'
+		) {
 			return 'modpack'
 		}
 
@@ -288,8 +291,7 @@ export function createManageVersionContext(
 		draftVersion.value = structuredClone(version ?? EMPTY_DRAFT_VERSION)
 		if (
 			!version &&
-			(projectV2.value.project_type === 'mod' ||
-				projectV2.value.actualProjectType === 'mod')
+			(projectV2.value.project_type === 'mod' || projectV2.value.actualProjectType === 'mod')
 		) {
 			draftVersion.value.loaders = ['shroudforge']
 		} else if (
@@ -393,8 +395,9 @@ export function createManageVersionContext(
 		project: Labrinth.Projects.v2.Project,
 	): Promise<InferredVersionInfo> {
 		const inferred = await inferVersionInfo(file, project)
-		inferred.loaders = inferred.loaders?.filter((loader) =>
-			PROJECT_TYPE_LOADERS.mod.includes(loader) || PROJECT_TYPE_LOADERS.modpack.includes(loader),
+		inferred.loaders = inferred.loaders?.filter(
+			(loader) =>
+				PROJECT_TYPE_LOADERS.mod.includes(loader) || PROJECT_TYPE_LOADERS.modpack.includes(loader),
 		)
 		if (inferred.loaders?.length) {
 			inferred.environment ??= await inferEnvironmentFromVersions(project.id, inferred.loaders)
@@ -412,11 +415,12 @@ export function createManageVersionContext(
 		)
 		return !hasModLoaders && projectType.value !== 'modpack'
 	})
-	const noDependenciesProject = computed(() =>
-		projectType.value === 'modpack' ||
-		Boolean(inferredVersionData.value?.mod_id) ||
-		(draftVersion.value.loaders.some((loader) => loader === 'shroudforge' || loader === 'eml') &&
-			Boolean(draftVersion.value.existing_files?.[0]?.filename.toLowerCase().endsWith('.zip'))),
+	const noDependenciesProject = computed(
+		() =>
+			projectType.value === 'modpack' ||
+			Boolean(inferredVersionData.value?.mod_id) ||
+			(draftVersion.value.loaders.some((loader) => loader === 'shroudforge' || loader === 'eml') &&
+				Boolean(draftVersion.value.existing_files?.[0]?.filename.toLowerCase().endsWith('.zip'))),
 	)
 
 	const getProject = async (projectId: string) => {
@@ -547,16 +551,22 @@ export function createManageVersionContext(
 			const inferredData = await setInferredVersionData(primaryFileData, projectV2.value)
 			const draftFields = draftVersion.value as unknown as Record<string, unknown>
 			const previousFields = previousInferred as Record<string, unknown> | undefined
-			const detectedFields = Object.fromEntries(Object.entries(inferredData).filter(([key, value]) => {
-				if (key === 'mod_id' || key === 'package_fields' || value === undefined) return false
-				const current = draftFields[key]
-				if (previousFields && previousFields[key] !== undefined) {
-					return JSON.stringify(current) === JSON.stringify(previousFields[key])
-				}
-				return current === undefined || current === null || current === '' ||
-					(Array.isArray(current) && current.length === 0) ||
-					(key === 'version_type' && current === 'release')
-			}))
+			const detectedFields = Object.fromEntries(
+				Object.entries(inferredData).filter(([key, value]) => {
+					if (key === 'mod_id' || key === 'package_fields' || value === undefined) return false
+					const current = draftFields[key]
+					if (previousFields && previousFields[key] !== undefined) {
+						return JSON.stringify(current) === JSON.stringify(previousFields[key])
+					}
+					return (
+						current === undefined ||
+						current === null ||
+						current === '' ||
+						(Array.isArray(current) && current.length === 0) ||
+						(key === 'version_type' && current === 'release')
+					)
+				}),
+			)
 
 			draftVersion.value = {
 				...draftVersion.value,
