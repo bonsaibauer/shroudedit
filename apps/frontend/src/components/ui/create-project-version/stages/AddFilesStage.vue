@@ -14,7 +14,7 @@
 				:aria-label="formatMessage(messages.uploadFileAriaLabel)"
 				:multiple="projectV2.project_type !== 'modpack'"
 				:accept="acceptFileFromProjectType(projectV2.project_type)"
-				:max-size="projectV2.project_type === 'modpack' ? 95 * 1024 * 1024 : 524288000"
+				:max-size="MAX_VERSION_FILE_SIZE_BYTES"
 				:primary-prompt="formatMessage(projectV2.project_type === 'modpack' ? messages.uploadModpackPrompt : messages.uploadPrimaryPrompt)"
 				:secondary-prompt="formatMessage(messages.uploadSecondaryPrompt)"
 				@change="handleNewFiles"
@@ -56,7 +56,7 @@
 						:aria-label="formatMessage(messages.uploadAdditionalFileAriaLabel)"
 						multiple
 						:accept="acceptFileFromProjectType(projectV2.project_type)"
-						:max-size="524288000"
+						:max-size="MAX_VERSION_FILE_SIZE_BYTES"
 						size="small"
 						:primary-prompt="null"
 						:secondary-prompt="formatMessage(messages.uploadSecondaryPrompt)"
@@ -113,6 +113,7 @@ import VersionFileRow from '../components/VersionFileRow.vue'
 
 const { projectV2 } = injectProjectPageContext()
 const { formatMessage } = useVIntl()
+const MAX_VERSION_FILE_SIZE_BYTES = 95 * 1024 * 1024
 
 const {
 	draftVersion,
