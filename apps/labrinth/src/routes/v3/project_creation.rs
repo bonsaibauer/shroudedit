@@ -1001,6 +1001,8 @@ async fn project_create_inner(
 				MonetizationStatus::Demonetized
 			},
 			components: exp::ProjectSerial {
+				enshrouded_mod: (project_create_data.project_type == "mod")
+					.then_some(exp::enshrouded::ModProject {}),
 				schematic: (project_create_data.project_type == "schematic")
 					.then_some(exp::enshrouded::SchematicProject {}),
 				..exp::ProjectSerial::default()

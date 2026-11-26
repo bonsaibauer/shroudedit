@@ -3,6 +3,7 @@
 use crate::models::exp::ProjectSerial;
 
 const MODPACK: &str = "modpack";
+const MOD: &str = "mod";
 const SCHEMATIC: &str = "schematic";
 const ENSHROUDED_SERVER: &str = "server";
 
@@ -16,40 +17,70 @@ pub fn correct_project_types(
 	components: &ProjectSerial,
 	project_types: &mut Vec<String>,
 ) {
-	if components.schematic.is_some() {
-		project_types.retain(|project_type| project_type != "mod");
-		if !project_types.iter().any(|project_type| project_type == SCHEMATIC) {
-			project_types.push(SCHEMATIC.into());
-		}
+	if components.enshrouded_server.is_some() {
+		project_types.retain(|project_type| {
+			!matches!(project_type.as_str(), MOD | MODPACK | SCHEMATIC | ENSHROUDED_SERVER)
+		});
+		project_types.push(ENSHROUDED_SERVER.into());
+	} else if components.schematic.is_some() {
+		project_types.retain(|project_type| {
+			!matches!(project_type.as_str(), MOD | MODPACK | SCHEMATIC)
+		});
+		project_types.push(SCHEMATIC.into());
+	} else if components.enshrouded_mod.is_some() {
+		project_types.retain(|project_type| {
+			!matches!(project_type.as_str(), MOD | MODPACK | SCHEMATIC)
+		});
+		project_types.push(MOD.into());
+	} else if project_types.iter().any(|project_type| project_type == MODPACK) {
+		project_types.retain(|project_type| !matches!(project_type.as_str(), MOD | SCHEMATIC));
 	} else {
 		project_types.retain(|project_type| project_type != SCHEMATIC);
-	}
-
-	if components.enshrouded_server.is_some() {
-		project_types.retain(|project_type| project_type != MODPACK);
-		project_types.push(ENSHROUDED_SERVER.into());
 	}
 }
 
 #[cfg(test)]
 mod tests {
-	use super::{ENSHROUDED_SERVER, MODPACK, correct_project_types};
+	use super::{ENSHROUDED_SERVER, MOD, MODPACK, SCHEMATIC, correct_project_types};
 	use crate::models::exp::{
 		ProjectSerial,
 		enshrouded::{
-			EnshroudedServerProject, EnshroudedVoiceChatMode, SchematicProject,
+			EnshroudedServerProject, EnshroudedVoiceChatMode, ModProject,
+			SchematicProject,
 		},
 	};
 
 	#[test]
-	fn leaves_project_types_unchanged_without_server_component() {
+	fn removes_schematic_type_from_mod_projects() {
 		let components = ProjectSerial::default();
-		let mut project_types = vec!["mod".to_string(), MODPACK.to_string()];
-		let expected = project_types.clone();
+		let mut project_types = vec![MOD.to_string(), SCHEMATIC.to_string()];
 
 		correct_project_types(&components, &mut project_types);
 
-		assert_eq!(project_types, expected);
+		assert_eq!(project_types, vec![MOD.to_string()]);
+	}
+
+	#[test]
+	fn keeps_modpack_projects_separate_from_mods_and_schematics() {
+		let components = ProjectSerial::default();
+		let mut project_types = vec![MOD.to_string(), MODPACK.to_string(), SCHEMATIC.to_string()];
+
+		correct_project_types(&components, &mut project_types);
+
+		assert_eq!(project_types, vec![MODPACK.to_string()]);
+	}
+
+	#[test]
+	fn keeps_explicit_mod_projects_separate_from_modpacks_and_schematics() {
+		let components = ProjectSerial {
+			enshrouded_mod: Some(ModProject {}),
+			..ProjectSerial::default()
+		};
+		let mut project_types = vec![MODPACK.to_string(), SCHEMATIC.to_string()];
+
+		correct_project_types(&components, &mut project_types);
+
+		assert_eq!(project_types, vec![MOD.to_string()]);
 	}
 
 	#[test]
@@ -58,11 +89,11 @@ mod tests {
 			schematic: Some(SchematicProject {}),
 			..ProjectSerial::default()
 		};
-		let mut project_types = vec!["mod".to_string()];
+		let mut project_types = vec![MOD.to_string(), MODPACK.to_string()];
 
 		correct_project_types(&components, &mut project_types);
 
-		assert_eq!(project_types, vec!["schematic".to_string()]);
+		assert_eq!(project_types, vec![SCHEMATIC.to_string()]);
 	}
 
 	#[test]
@@ -80,7 +111,7 @@ mod tests {
 			}),
 			..ProjectSerial::default()
 		};
-		let mut project_types = vec![MODPACK.to_string()];
+		let mut project_types = vec![MOD.to_string(), MODPACK.to_string(), SCHEMATIC.to_string()];
 
 		correct_project_types(&components, &mut project_types);
 
