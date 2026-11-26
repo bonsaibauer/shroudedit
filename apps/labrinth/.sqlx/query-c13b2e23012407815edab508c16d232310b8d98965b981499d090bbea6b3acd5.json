@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                    SELECT v.id id, v.mod_id mod_id, v.author_id author_id, v.name version_name, v.version_number version_number,\n                    v.changelog changelog, v.date_published date_published, v.downloads downloads,\n                    v.version_type version_type, v.featured featured, v.status status, v.requested_status requested_status, v.ordering ordering,\n                    v.components AS \"components: sqlx::types::Json<exp::VersionSerial>\"\n                    FROM versions v\n                    WHERE v.id = ANY($1);\n                    ",
+  "query": "\n                    SELECT v.id id, v.mod_id mod_id, v.author_id author_id, v.name version_name, v.version_number version_number,\n                    v.changelog changelog, v.date_published date_published, v.downloads downloads,\n                    v.version_type version_type, v.featured featured, v.status status, v.requested_status requested_status, v.ordering ordering,\n                    v.components AS \"components: sqlx::types::Json<exp::VersionSerial>\", m.project_type\n                    FROM versions v\n                    INNER JOIN mods m ON m.id = v.mod_id\n                    WHERE v.id = ANY($1);\n                    ",
   "describe": {
     "columns": [
       {
@@ -72,6 +72,11 @@
         "ordinal": 13,
         "name": "components: sqlx::types::Json<exp::VersionSerial>",
         "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 14,
+        "name": "project_type",
+        "type_info": "Varchar"
       }
     ],
     "parameters": {
@@ -93,8 +98,9 @@
       false,
       true,
       true,
+      false,
       false
     ]
   },
-  "hash": "760df5118dcd1f9d28db991caabb3c1ce6fb8ac08829345445b027e5a46c4860"
+  "hash": "c13b2e23012407815edab508c16d232310b8d98965b981499d090bbea6b3acd5"
 }

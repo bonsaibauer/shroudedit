@@ -422,8 +422,9 @@ mod tests {
 			},
 			components: exp::ProjectEdit {
 				enshrouded_mod: None,
-				enshrouded_server: None,
 				schematic: None,
+				modpack: None,
+				enshrouded_server: None,
 			},
 		}
 	}

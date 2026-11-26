@@ -1358,13 +1358,13 @@ pub async fn project_edit_internal(
 			|| new_project
 				.status
 				.is_some_and(|status| !status.is_searchable()));
-	if let Some(server_edit) = &new_project.enshrouded_server {
-		if project_item.inner.project_type != "server" || server_edit.is_none()
-		{
-			return Err(ApiError::Request(eyre::eyre!(
-				"project type cannot be changed through components"
-			)));
-		}
+	if let Some(server_edit) = &new_project.enshrouded_server
+		&& (project_item.inner.project_type != "server"
+			|| server_edit.is_none())
+	{
+		return Err(ApiError::Request(eyre::eyre!(
+			"project type cannot be changed through components"
+		)));
 	}
 
 	reindex_versions |= update(

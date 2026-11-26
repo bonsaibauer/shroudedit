@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT m.id id, m.name name, m.summary summary, m.downloads downloads, m.follows follows,\n        m.icon_url icon_url, m.updated updated, m.approved approved, m.published, m.license license, m.slug slug, m.color,\n        m.components AS \"components: sqlx::types::Json<exp::ProjectSerial>\"\n        FROM mods m\n        WHERE m.status = ANY($1) AND m.id > $3\n        GROUP BY m.id\n        ORDER BY m.id ASC\n        LIMIT $2;\n        ",
+  "query": "\n\t\tSELECT m.id id, m.name name, m.summary summary, m.downloads downloads, m.follows follows,\n\t\tm.icon_url icon_url, m.updated updated, m.approved approved, m.published, m.license license, m.slug slug, m.color,\n\t\tm.components AS \"components: sqlx::types::Json<exp::ProjectSerial>\", m.project_type\n\t\tFROM mods m\n\t\tWHERE m.status = ANY($1) AND m.id = ANY($2)\n\t\tGROUP BY m.id\n\t\tORDER BY m.id ASC;\n\t\t",
   "describe": {
     "columns": [
       {
@@ -67,13 +67,17 @@
         "ordinal": 12,
         "name": "components: sqlx::types::Json<exp::ProjectSerial>",
         "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 13,
+        "name": "project_type",
+        "type_info": "Varchar"
       }
     ],
     "parameters": {
       "Left": [
         "TextArray",
-        "Int8",
-        "Int8"
+        "Int8Array"
       ]
     },
     "nullable": [
@@ -89,8 +93,9 @@
       false,
       true,
       true,
+      false,
       false
     ]
   },
-  "hash": "b760951120c1885530f3fb8208a5874fc472ec160a673abeeee10c778b9cf23f"
+  "hash": "416a313957b5e52c49ff6d1bc8707164223c17b673bf77616a2890a3a53d5bfe"
 }
