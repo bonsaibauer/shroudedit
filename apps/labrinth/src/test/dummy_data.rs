@@ -430,7 +430,9 @@ pub async fn add_project_beta(api: &ApiV3) -> (Project, Version) {
 		Some(jar),
 		Some(modify_json),
 	);
-	api.create_project(creation_data, USER_USER_PAT).await;
+	let resp = api.create_project(creation_data, USER_USER_PAT).await;
+	assert_status!(&resp, StatusCode::OK);
+	crate::test::db::mark_fixture_project_scanned(resp).await;
 
 	get_project_beta(api).await
 }
