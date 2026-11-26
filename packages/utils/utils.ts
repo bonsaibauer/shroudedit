@@ -258,12 +258,12 @@ export const acceptFileFromProjectType = (projectType) => {
 		case 'datapack':
 			return `.jar,.zip,.litemod,application/java-archive,application/x-java-archive,application/zip,${commonTypes}`
 		case 'modpack':
-			return `.mrpack,application/x-modrinth-modpack+zip,application/zip,${commonTypes}`
+			return `.sfpack,application/x-shroudforge-modpack+zip,${commonTypes}`
 		case 'schematic':
 			return `.sfbp,application/octet-stream,${commonTypes}`
 		default:
 			// all of the above
-			return `.jar,.zip,.litemod,.mrpack,application/java-archive,application/x-java-archive,application/zip,application/x-modrinth-modpack+zip,${commonTypes}`
+			return `.jar,.zip,.litemod,.sfpack,application/java-archive,application/x-java-archive,application/zip,application/x-shroudforge-modpack+zip,${commonTypes}`
 	}
 }
 

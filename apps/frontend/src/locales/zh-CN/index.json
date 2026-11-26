@@ -339,6 +339,7 @@
   "create-project-version.create-modal.stage.details.version-subtitle": "版本副标题",
   "create-project-version.create-modal.stage.details.version-subtitle-placeholder": "输入副标题……",
   "create-project-version.create-modal.stage.details.version-type": "版本类型",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "EML 模组也能与 Shroudforge 配合使用。选择 Shroudforge 后，此版本也会显示给 Shroudforge 用户。",
   "create-project-version.create-modal.stage.metadata.add-dependency": "添加依赖项",
   "create-project-version.create-modal.stage.metadata.dependencies": "依赖项",
   "create-project-version.create-modal.stage.metadata.details-tab": "详细信息",

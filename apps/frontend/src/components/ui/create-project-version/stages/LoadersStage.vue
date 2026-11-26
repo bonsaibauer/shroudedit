@@ -35,12 +35,15 @@
 				</div>
 			</div>
 		</div>
+		<Admonition v-if="draftVersion.loaders.includes('eml')" type="warning">
+			{{ formatMessage(messages.emlCompatibilityWarning) }}
+		</Admonition>
 	</div>
 </template>
 
 <script lang="ts" setup>
 import { getLoaderIcon, XIcon } from '@shroudedit/assets'
-import { Button, FormattedTag, TagItem } from '@shroudedit/ui'
+import { Admonition, Button, defineMessages, FormattedTag, TagItem, useVIntl } from '@shroudedit/ui'
 
 import { injectManageVersionContext } from '~/providers/version/manage-version-modal'
 
@@ -48,12 +51,24 @@ import LoaderPicker from '../components/LoaderPicker.vue'
 
 const generatedState = useGeneratedState()
 
+const { formatMessage } = useVIntl()
+
+const messages = defineMessages({
+	emlCompatibilityWarning: {
+		id: 'create-project-version.create-modal.stage.loaders.eml-compatibility-warning',
+		defaultMessage:
+			'EML mods also work with Shroudforge. Select Shroudforge too if you want this version listed for Shroudforge users.',
+	},
+})
+
 const loaders = computed(() => generatedState.value.loaders)
 
 const { draftVersion, projectType } = injectManageVersionContext()
 
 const availableLoaders = computed(() =>
-	projectType.value === 'schematic'
+	projectType.value === 'modpack'
+		? generatedState.value.loaders.filter((loader) => loader.name === 'sfpack')
+		: projectType.value === 'schematic'
 		? generatedState.value.loaders.filter((loader) =>
 				['shroudtopia', 'shroudforge', 'eml'].includes(loader.name),
 			)

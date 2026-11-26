@@ -128,6 +128,7 @@
   "collection.return-link.dashboard-collections": "Colectiile tale",
   "collection.return-link.user": "Profilul {user}",
   "collection.title": "{name} - Colecție",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "Modurile EML funcționează și cu Shroudforge. Selectează și Shroudforge pentru ca această versiune să fie afișată utilizatorilor Shroudforge.",
   "create.collection.collection-info": "Noua ta colecție va fi creată ca o colecție publică cu {count, plural, =0 {niciun proiect} one {# proiect} other {# proiecte}}.",
   "create.collection.create-collection": "Creează o colecție",
   "create.collection.name-label": "Nume",

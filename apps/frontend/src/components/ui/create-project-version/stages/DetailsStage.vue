@@ -7,6 +7,27 @@
 		@change="setEditTab"
 	/>
 	<div class="flex w-full flex-col gap-6">
+		<div
+			v-if="packageIdMismatch || packageDifferences.length"
+			class="rounded-xl border border-solid border-surface-5 bg-surface-2 p-4"
+		>
+			<div class="font-semibold text-contrast">{{ formatMessage(messages.packageMismatch) }}</div>
+			<p v-if="packageIdMismatch" class="mt-2 text-sm text-secondary">
+				{{ formatMessage(messages.packageIdMismatch, {
+					packageId: inferredVersionData?.mod_id,
+					projectSlug: projectV2.slug,
+				}) }}
+			</p>
+			<div v-for="difference in packageDifferences" :key="difference.key" class="mt-3 text-sm">
+				<div class="font-semibold text-contrast">{{ difference.label }}</div>
+				<div class="text-secondary">{{ formatMessage(messages.packageValue) }}: {{ difference.packageValue }}</div>
+				<div class="text-secondary">{{ formatMessage(messages.catalogValue) }}: {{ difference.catalogValue }}</div>
+				<Button type="quiet" class="mt-1" @click="usePackageValue(difference.key)">
+					{{ formatMessage(messages.usePackageValue) }}
+				</Button>
+			</div>
+			<p class="mt-2 text-sm text-secondary">{{ formatMessage(messages.updatePackageHint) }}</p>
+		</div>
 		<div class="flex flex-col gap-2">
 			<span class="font-semibold text-contrast">
 				{{ formatMessage(messages.versionType) }} <span class="text-red">*</span>
@@ -41,7 +62,7 @@
 				v-model="draftVersion.name"
 				:placeholder="formatMessage(messages.versionSubtitlePlaceholder)"
 				autocomplete="off"
-				:maxlength="256"
+				:maxlength="120"
 				:disabled="isUploading"
 			/>
 		</div>
@@ -63,8 +84,8 @@
 						id="schematic-format-version"
 						v-model="draftVersion.schematic_format_version"
 						type="number"
-						:min="7"
-						:max="7"
+						:min="8"
+						:max="8"
 						:disabled="true"
 					/>
 				</div>
@@ -127,9 +148,11 @@
 
 <script lang="ts" setup>
 import {
+	Button,
 	Chips,
 	defineMessages,
 	Input,
+	injectProjectPageContext,
 	MarkdownEditor,
 	Tabs,
 	type TabsTab,
@@ -140,11 +163,36 @@ import {
 import { useImageUpload } from '~/composables/image-upload.ts'
 import { injectManageVersionContext } from '~/providers/version/manage-version-modal'
 
-const { draftVersion, isUploading, editingVersion, modal, projectType } =
+const { draftVersion, inferredVersionData, isUploading, editingVersion, modal, projectType } =
 	injectManageVersionContext()
+const { projectV2 } = injectProjectPageContext()
 const { formatMessage } = useVIntl()
 
 const messages = defineMessages({
+	packageMismatch: {
+		id: 'create-project-version.package-mismatch',
+		defaultMessage: 'Package and publication differ',
+	},
+	packageIdMismatch: {
+		id: 'create-project-version.package-id-mismatch',
+		defaultMessage: 'Package mod ID: {packageId}. Project slug: {projectSlug}. Update mod.json or the project slug before uploading.',
+	},
+	packageValue: {
+		id: 'create-project-version.package-value',
+		defaultMessage: 'Package',
+	},
+	catalogValue: {
+		id: 'create-project-version.catalog-value',
+		defaultMessage: 'Publication',
+	},
+	usePackageValue: {
+		id: 'create-project-version.use-package-value',
+		defaultMessage: 'Use package value',
+	},
+	updatePackageHint: {
+		id: 'create-project-version.update-package-hint',
+		defaultMessage: 'To keep the publication value, update the JSON in the ZIP and select the package again. The archive is not modified automatically.',
+	},
 	versionType: {
 		id: 'create-project-version.create-modal.stage.details.version-type',
 		defaultMessage: 'Version type',
@@ -232,6 +280,42 @@ const messages = defineMessages({
 	},
 })
 
+type ComparableField = 'name' | 'version_number' | 'version_type' | 'game_versions' | 'environment' | 'changelog' | 'loaders'
+const comparableFields: { key: ComparableField; label: string }[] = [
+	{ key: 'name', label: 'Version subtitle' },
+	{ key: 'version_number', label: 'Version number' },
+	{ key: 'version_type', label: 'Release channel' },
+	{ key: 'game_versions', label: 'Game versions' },
+	{ key: 'environment', label: 'Environment' },
+	{ key: 'changelog', label: 'Changelog' },
+	{ key: 'loaders', label: 'Loaders' },
+]
+
+function displayValue(value: unknown): string {
+	if (Array.isArray(value)) return value.join(', ')
+	return value == null || value === '' ? '—' : String(value)
+}
+
+const packageIdMismatch = computed(() => Boolean(
+	inferredVersionData.value?.mod_id &&
+	projectV2.value.slug &&
+	inferredVersionData.value.mod_id !== projectV2.value.slug.toLowerCase(),
+))
+
+const packageDifferences = computed(() => comparableFields.flatMap(({ key, label }) => {
+	if (!inferredVersionData.value?.package_fields?.includes(key)) return []
+	const packageValue = inferredVersionData.value[key]
+	const catalogValue = draftVersion.value[key]
+	if (JSON.stringify(packageValue) === JSON.stringify(catalogValue)) return []
+	return [{ key, label, packageValue: displayValue(packageValue), catalogValue: displayValue(catalogValue) }]
+}))
+
+function usePackageValue(key: ComparableField) {
+	const value = inferredVersionData.value?.[key]
+	if (value === undefined) return
+	;(draftVersion.value as unknown as Record<string, unknown>)[key] = structuredClone(value)
+}
+
 const dimensions = [
 	{ key: 'schematic_width' as const, label: messages.schematicWidth },
 	{ key: 'schematic_height' as const, label: messages.schematicHeight },
@@ -241,7 +325,7 @@ const dimensions = [
 watch(
 	projectType,
 	(type) => {
-		if (type === 'schematic') draftVersion.value.schematic_format_version = 7
+		if (type === 'schematic') draftVersion.value.schematic_format_version ??= 8
 	},
 	{ immediate: true },
 )

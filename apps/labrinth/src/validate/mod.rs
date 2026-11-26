@@ -1,13 +1,11 @@
 use crate::database::PgTransaction;
 use crate::database::models::legacy_loader_fields::EnshroudedGameVersion;
 use crate::database::models::loader_fields::VersionField;
-use crate::models::pack::PackFormat;
 use crate::models::projects::{FileType, Loader};
 use crate::validate::datapack::DataPackValidator;
 use crate::validate::fabric::FabricValidator;
 use crate::validate::forge::{ForgeValidator, LegacyForgeValidator};
 use crate::validate::liteloader::LiteLoaderValidator;
-use crate::validate::modpack::ModpackValidator;
 use crate::validate::neoforge::NeoForgeValidator;
 use crate::validate::plugin::*;
 use crate::validate::quilt::QuiltValidator;
@@ -30,7 +28,6 @@ mod datapack;
 mod fabric;
 mod forge;
 mod liteloader;
-mod modpack;
 mod neoforge;
 pub mod plugin;
 pub mod project;
@@ -38,6 +35,9 @@ mod quilt;
 mod resourcepack;
 mod rift;
 mod schematic;
+mod schematic_v8;
+pub mod sfpack;
+pub mod shroudforge;
 mod shader;
 
 #[derive(Error, Debug)]
@@ -58,11 +58,6 @@ pub enum ValidationError {
 
 #[derive(Eq, PartialEq, Debug)]
 pub enum ValidationResult {
-	/// File should be marked as primary with pack file data
-	PassWithPackDataAndFiles {
-		format: PackFormat,
-		files: Vec<String>,
-	},
 	/// File should be marked as primary
 	Pass,
 	/// File should not be marked primary, the reason for which is inside the String
@@ -72,7 +67,6 @@ pub enum ValidationResult {
 impl ValidationResult {
 	pub fn is_passed(&self) -> bool {
 		match self {
-			ValidationResult::PassWithPackDataAndFiles { .. } => true,
 			ValidationResult::Pass => true,
 			ValidationResult::Warning(_) => false,
 		}
@@ -128,7 +122,6 @@ pub trait Validator: Sync {
 static ALWAYS_ALLOWED_EXT: &[&str] = &["zip", "txt"];
 
 static VALIDATORS: &[&dyn Validator] = &[
-	&ModpackValidator,
 	&FabricValidator,
 	&ForgeValidator,
 	&LegacyForgeValidator,
@@ -184,6 +177,13 @@ pub async fn validate_file(
 ) -> Result<ValidationResult, ValidationError> {
 	if file_extension == "sfbp" {
 		return schematic::validate_file(data, loaders, version_fields).await;
+	}
+	if file_extension == "sfpack" {
+		if !loaders.iter().any(|loader| loader.0 == "sfpack") {
+			return Err(ValidationError::InvalidInput(".sfpack requires the sfpack loader".into()));
+		}
+		sfpack::validate_package(data, None).map_err(|error| ValidationError::InvalidInput(error.into()))?;
+		return Ok(ValidationResult::Pass);
 	}
 
 	let game_versions = version_fields
@@ -266,11 +266,6 @@ async fn validate_enshrouded_file(
 					let result =
 						validator.validate_maybe_protected_zip(&mut zip)?;
 					match result {
-						ValidationResult::PassWithPackDataAndFiles {
-							..
-						} => {
-							saved_result = Some(result);
-						}
 						ValidationResult::Pass => {
 							if saved_result.is_none() {
 								saved_result = Some(result);
@@ -348,17 +343,9 @@ fn game_version_supported(
 pub fn validate_pack_formats(
 	archive: &mut ZipArchive<Cursor<Bytes>>,
 ) -> ValidationResult {
-	if (archive.by_name("modlist.html").is_ok()
-		&& archive.by_name("manifest.json").is_ok())
-		|| archive
-			.file_names()
-			.any(|x| x.starts_with("mods/") && x.ends_with(".jar"))
-		|| archive
-			.file_names()
-			.any(|x| x.starts_with("override/mods/") && x.ends_with(".jar"))
-	{
+	if archive.by_name("shroudforge.index.json").is_ok() {
 		return ValidationResult::Warning(
-			"Invalid modpack file. Modpacks must be uploaded in the .mrpack format, not as a ZIP file.",
+			"ShroudForge modpacks must be uploaded with the .sfpack extension.",
 		);
 	}
 

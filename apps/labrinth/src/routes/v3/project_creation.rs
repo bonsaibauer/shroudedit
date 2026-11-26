@@ -787,6 +787,8 @@ async fn project_create_inner(
 				version_data.primary_file.as_deref() == Some(name),
 				None,
 				existing_file_names,
+				Some(&project_create_data.slug),
+				&created_version.version_number,
 				transaction,
 				redis,
 			)
@@ -1066,7 +1068,7 @@ async fn project_create_inner(
 			.flat_map(|v| v.loaders.clone())
 			.unique()
 			.collect::<Vec<_>>();
-		let (project_types, games) = Loader::list(&mut *transaction, redis)
+		let (mut project_types, games) = Loader::list(&mut *transaction, redis)
 			.await?
 			.into_iter()
 			.fold(
@@ -1079,6 +1081,12 @@ async fn project_create_inner(
 					(project_types, games)
 				},
 			);
+		project_types.sort();
+		project_types.dedup();
+		exp::compat::correct_project_types(
+			&project_builder.components,
+			&mut project_types,
+		);
 
 		let response = crate::models::projects::Project {
 			id: project_id,

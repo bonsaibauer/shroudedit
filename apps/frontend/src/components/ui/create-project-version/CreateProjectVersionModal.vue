@@ -63,7 +63,6 @@ async function openEditVersionModal(versionId: string, projectId: string, stageI
 			dependencies: versionData.dependencies ?? [],
 			existing_files: versionData.files ?? [],
 			environment: versionData.environment,
-			mrpack_loaders: versionData.mrpack_loaders,
 			schematic_format_version: versionData.schematic_format_version,
 			world_editor_version: versionData.world_editor_version,
 			schematic_width: versionData.schematic_width,

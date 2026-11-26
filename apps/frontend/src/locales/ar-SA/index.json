@@ -325,6 +325,7 @@
   "create-project-version.create-modal.stage.details.version-subtitle": "العنوان الفرعي للإصدار",
   "create-project-version.create-modal.stage.details.version-subtitle-placeholder": "أدخل العنوان الفرعي...",
   "create-project-version.create-modal.stage.details.version-type": "نوع الإصدار",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "تعمل تعديلات EML أيضًا مع Shroudforge. اختر Shroudforge أيضًا لعرض هذا الإصدار لمستخدمي Shroudforge.",
   "create-project-version.create-modal.stage.metadata.add-dependency": "إضافة تبعية",
   "create-project-version.create-modal.stage.metadata.dependencies": "التبعيات",
   "create-project-version.create-modal.stage.metadata.details-tab": "التفاصيل",

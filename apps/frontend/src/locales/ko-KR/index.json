@@ -336,6 +336,7 @@
   "create-project-version.create-modal.stage.details.version-subtitle": "버전 부제목",
   "create-project-version.create-modal.stage.details.version-subtitle-placeholder": "부제목을 입력하세요...",
   "create-project-version.create-modal.stage.details.version-type": "버전 타입",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "EML 모드도 Shroudforge에서 작동합니다. Shroudforge 사용자에게 이 버전을 표시하려면 Shroudforge도 선택하세요.",
   "create-project-version.create-modal.stage.metadata.add-dependency": "의존성 추가",
   "create-project-version.create-modal.stage.metadata.dependencies": "의존성",
   "create-project-version.create-modal.stage.metadata.details-tab": "상세 내용",

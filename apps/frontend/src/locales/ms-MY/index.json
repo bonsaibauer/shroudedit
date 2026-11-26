@@ -242,6 +242,7 @@
   "create-project-version.create-modal.stage.details.details-tab": "Butiran",
   "create-project-version.create-modal.stage.details.files-tab": "Fail",
   "create-project-version.create-modal.stage.details.metadata-tab": "Metadata",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "Mod EML juga berfungsi dengan Shroudforge. Pilih Shroudforge juga supaya versi ini dipaparkan kepada pengguna Shroudforge.",
   "create-project-version.create-modal.stage.metadata.details-tab": "Butiran",
   "create-project-version.create-modal.stage.metadata.edit-button": "Sunting",
   "create-project-version.create-modal.stage.metadata.environment": "Persekitaran",

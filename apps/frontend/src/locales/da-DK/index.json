@@ -220,6 +220,7 @@
   "create-project-version.create-modal.stage.details.version-changelog": "Version ændringslog",
   "create-project-version.create-modal.stage.details.version-number": "Versionsnummer",
   "create-project-version.create-modal.stage.details.version-type": "Version type",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "EML-mods fungerer også med Shroudforge. Vælg også Shroudforge for at vise denne version til Shroudforge-brugere.",
   "create-project-version.create-modal.stage.metadata.details-tab": "Detaljer",
   "create-project-version.create-modal.stage.metadata.edit-button": "Rediger",
   "create-project-version.create-modal.stage.metadata.environment": "Miljø",

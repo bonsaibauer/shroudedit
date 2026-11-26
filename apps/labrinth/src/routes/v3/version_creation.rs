@@ -16,13 +16,12 @@ use crate::models::exp;
 use crate::models::ids::{ImageId, ProjectId, VersionId};
 use crate::models::images::{Image, ImageContext};
 use crate::models::notifications::NotificationBody;
-use crate::models::pack::PackFileHash;
 use crate::models::pats::Scopes;
 use crate::models::projects::{
 	Dependency, FileType, Loader, Version, VersionFile, VersionStatus,
 	VersionType,
 };
-use crate::models::projects::{DependencyType, skip_nulls};
+use crate::models::projects::skip_nulls;
 use crate::models::teams::ProjectPermissions;
 use crate::models::v3::user_limits::UserLimits;
 use crate::queue::session::AuthQueue;
@@ -69,7 +68,7 @@ pub struct InitialVersionData {
     )]
 	pub version_number: String,
 	#[validate(
-		length(min = 1, max = 64),
+		length(min = 1, max = 120),
 		custom(function = "crate::util::validate::validate_name")
 	)]
 	#[serde(alias = "name")]
@@ -226,6 +225,7 @@ async fn version_create_inner(
 	let mut initial_version_data = None;
 	let mut version_builder = None;
 	let mut selected_loaders = None;
+	let mut project_slug: Option<String> = None;
 
 	let user = get_user_from_headers(
 		&req,
@@ -287,6 +287,7 @@ async fn version_create_inner(
 						)
 					})?;
 				let is_schematic_project = project.components.schematic.is_some();
+                project_slug = project.inner.slug.clone();
 
                 // Check that the user creating this version is a team member
                 // of the project the version is being added to.
@@ -451,6 +452,8 @@ async fn version_create_inner(
                 version_data.primary_file.as_deref() == Some(name),
                 version_data.file_types.get(name).copied().flatten(),
                 existing_file_names,
+				project_slug.as_deref(),
+				&version.version_number,
                 transaction,
                 redis,
             )
@@ -775,18 +778,13 @@ async fn upload_file_to_version_inner(
 		})
 		.collect::<Result<Vec<_>, _>>()?;
 
-	if models::DBProject::get_id(
+	let project = models::DBProject::get_id(
 		version.inner.project_id,
 		&mut *transaction,
 		&redis,
 	)
 	.await?
-	.is_none()
-	{
-		return Err(CreateError::InvalidInput(
-			"An invalid project id was supplied".to_string(),
-		));
-	}
+	.ok_or_else(|| CreateError::InvalidInput("An invalid project id was supplied".to_string()))?;
 
 	if !user.role.is_admin() {
 		let team_member = models::DBTeamMember::get_from_user_id_project(
@@ -899,6 +897,8 @@ async fn upload_file_to_version_inner(
 				false,
 				file_data.file_types.get(name).copied().flatten(),
 				version.files.iter().map(|x| x.filename.clone()).collect(),
+			project.inner.slug.as_deref(),
+				&version.inner.version_number,
 				transaction,
 				&redis,
 			)
@@ -959,6 +959,8 @@ pub async fn upload_file(
 	force_primary: bool,
 	file_type: Option<FileType>,
 	other_file_names: Vec<String>,
+	expected_project_slug: Option<&str>,
+	expected_version_number: &str,
 	transaction: &mut PgTransaction<'_>,
 	redis: &RedisPool,
 ) -> Result<(), CreateError> {
@@ -1016,6 +1018,152 @@ pub async fn upload_file(
 	}
 
 	let data = data.freeze();
+	if file_extension == "sfpack" {
+		if !(force_primary || total_files_len == 1
+			|| (!ignore_primary && version_files.iter().all(|file| !file.primary)))
+		{
+			return Err(CreateError::InvalidInput(".sfpack must be the primary version file".into()));
+		}
+		let pack = crate::validate::sfpack::validate_package(
+			data.clone(), Some(expected_version_number),
+		).map_err(CreateError::InvalidInput)?;
+		let mut selected_games = version_fields.iter()
+			.find_map(|field| crate::database::models::legacy_loader_fields::EnshroudedGameVersion::try_from_version_field(field).ok())
+			.unwrap_or_default()
+			.into_iter().map(|game| game.version).collect::<Vec<_>>();
+		selected_games.sort();
+		let mut pack_games = pack.game_versions.clone();
+		pack_games.sort();
+		if selected_games != pack_games {
+			return Err(CreateError::InvalidInput(".sfpack gameVersions must match the selected game versions".into()));
+		}
+		let version_ids = pack.mods.iter().map(|item| {
+			serde_json::from_value::<VersionId>(serde_json::json!(item.version_id))
+				.map(models::DBVersionId::from)
+				.map_err(|error| CreateError::InvalidInput(format!("Invalid .sfpack version ID: {error}")))
+		}).collect::<Result<Vec<_>, _>>()?;
+		let versions = models::DBVersion::get_many(&version_ids, &mut *transaction, redis).await?;
+		let version_project_ids = versions
+			.iter()
+			.map(|version| version.inner.project_id)
+			.unique()
+			.collect::<Vec<_>>();
+		let schematic_project_ids = models::DBProject::get_many_ids(
+			&version_project_ids,
+			&mut *transaction,
+			redis,
+		)
+		.await?
+		.into_iter()
+		.filter(|project| project.inner.components.schematic.is_some())
+		.map(|project| project.inner.id)
+		.collect::<HashSet<_>>();
+		dependencies.clear();
+		for (item, version_id) in pack.mods.iter().zip(&version_ids) {
+			let project_id = serde_json::from_value::<ProjectId>(serde_json::json!(item.project_id))
+				.map(models::DBProjectId::from)
+				.map_err(|error| CreateError::InvalidInput(format!("Invalid .sfpack project ID: {error}")))?;
+			let version = versions.iter().find(|version| version.inner.id == *version_id)
+				.ok_or_else(|| CreateError::InvalidInput(format!(".sfpack version '{}' is unavailable", item.version_id)))?;
+			if version.inner.project_id != project_id
+				|| schematic_project_ids.contains(&project_id)
+				|| !matches!(version.inner.status, VersionStatus::Listed | VersionStatus::Unlisted | VersionStatus::Archived)
+				|| !version.project_types.iter().any(|kind| kind == "mod")
+				|| !version.loaders.iter().any(|loader| matches!(loader.as_str(), "shroudforge" | "eml"))
+			{
+				return Err(CreateError::InvalidInput(format!(".sfpack version '{}' is not a published ShroudForge mod of project '{}'", item.version_id, item.project_id)));
+			}
+			let file = version.files.iter().find(|file| file.primary).or_else(|| version.files.first())
+				.ok_or_else(|| CreateError::InvalidInput(format!(".sfpack version '{}' has no package", item.version_id)))?;
+			if !file.filename.to_ascii_lowercase().ends_with(".zip")
+				|| !file.hashes.get("sha512").is_some_and(|hash| hash.eq_ignore_ascii_case(&item.sha512))
+			{
+				return Err(CreateError::InvalidInput(format!(".sfpack checksum does not match primary ZIP of version '{}'", item.version_id)));
+			}
+			let games = version.version_fields.iter()
+				.find_map(|field| crate::database::models::legacy_loader_fields::EnshroudedGameVersion::try_from_version_field(field).ok())
+				.unwrap_or_default();
+			if !pack.game_versions.iter().all(|game| games.iter().any(|supported| &supported.version == game)) {
+				return Err(CreateError::InvalidInput(format!(".sfpack mod '{}' does not support every declared game version", item.project_id)));
+			}
+			for dependency in version.dependencies.iter().filter(|dependency| dependency.dependency_type == "required") {
+				if (dependency.project_id.is_some() || dependency.version_id.is_some())
+					&& !pack.mods.iter().any(|candidate| {
+						let candidate_project = serde_json::from_value::<ProjectId>(serde_json::json!(candidate.project_id))
+							.map(models::DBProjectId::from).ok();
+						let candidate_version = serde_json::from_value::<VersionId>(serde_json::json!(candidate.version_id))
+							.map(models::DBVersionId::from).ok();
+						dependency.project_id.is_none_or(|id| candidate_project == Some(id))
+							&& dependency.version_id.is_none_or(|id| candidate_version == Some(id))
+					})
+				{
+					return Err(CreateError::InvalidInput(format!(".sfpack omits a required catalog dependency of version '{}'", item.version_id)));
+				}
+			}
+			dependencies.push(DependencyBuilder {
+				project_id: Some(project_id), version_id: Some(*version_id),
+				file_name: None, dependency_type: "required".into(),
+			});
+		}
+	}
+	if file_extension == "zip"
+		&& loaders
+			.iter()
+			.any(|loader| matches!(loader.0.as_str(), "shroudforge" | "eml"))
+	{
+		let primary_candidate = force_primary || total_files_len == 1
+			|| (!ignore_primary && file_type.is_none() && version_files.iter().all(|file| !file.primary));
+		let package = crate::validate::shroudforge::validate_package(
+			data.clone(),
+			expected_project_slug,
+			expected_version_number,
+		)
+		.map_err(CreateError::InvalidInput)?;
+		if primary_candidate && let Some(package) = package {
+			// mod.json is the author's dependency list. The catalog links are derived from it.
+			dependencies.clear();
+			for dependency in package.dependencies {
+				if dependency.id == "shroudforge-api" {
+					continue;
+				}
+				let Some(project) = models::DBProject::get(
+					&dependency.id,
+					&mut *transaction,
+					redis,
+				)
+				.await?
+				else {
+					continue;
+				};
+				if project.inner.slug.as_deref() != Some(dependency.id.as_str()) {
+					continue;
+				}
+				let requirement = semver::VersionReq::parse(&dependency.version)
+					.map_err(|error| CreateError::InvalidInput(error.to_string()))?;
+				let mut versions = models::DBVersion::get_many(
+					&project.versions,
+					&mut *transaction,
+					redis,
+				)
+				.await?;
+				versions.sort_by(|left, right| right.inner.date_published.cmp(&left.inner.date_published));
+				let matching = versions.into_iter().find(|version| {
+					version.inner.status == VersionStatus::Listed
+						&& version.loaders.iter().any(|loader| matches!(loader.as_str(), "shroudforge" | "eml"))
+						&& semver::Version::parse(&version.inner.version_number)
+							.is_ok_and(|number| requirement.matches(&number))
+				});
+				if let Some(version) = matching {
+					dependencies.push(DependencyBuilder {
+						project_id: Some(project.inner.id),
+						version_id: Some(version.inner.id),
+						file_name: None,
+						dependency_type: if dependency.optional { "optional" } else { "required" }.into(),
+					});
+				}
+			}
+		}
+	}
 
 	let validation_result = validate_file(
 		data.clone(),
@@ -1027,73 +1175,6 @@ pub async fn upload_file(
 		redis,
 	)
 	.await?;
-
-	if let ValidationResult::PassWithPackDataAndFiles {
-		ref format,
-		ref files,
-	} = validation_result
-		&& dependencies.is_empty()
-	{
-		let hashes: Vec<Vec<u8>> = format
-			.files
-			.iter()
-			.filter_map(|x| x.hashes.get(&PackFileHash::Sha1))
-			.map(|x| x.as_bytes().to_vec())
-			.collect();
-
-		let res = sqlx::query!(
-                "
-                    SELECT v.id version_id, v.mod_id project_id, h.hash hash FROM hashes h
-                    INNER JOIN files f on h.file_id = f.id
-                    INNER JOIN versions v on f.version_id = v.id
-                    WHERE h.algorithm = 'sha1' AND h.hash = ANY($1)
-                    ",
-                &*hashes
-            )
-            .fetch_all(&mut *transaction)
-            .await?;
-
-		for file in &format.files {
-			if let Some(dep) = res.iter().find(|x| {
-				Some(&*x.hash)
-					== file
-						.hashes
-						.get(&PackFileHash::Sha1)
-						.map(|x| x.as_bytes())
-			}) {
-				dependencies.push(DependencyBuilder {
-					project_id: Some(models::DBProjectId(dep.project_id)),
-					version_id: Some(models::DBVersionId(dep.version_id)),
-					file_name: None,
-					dependency_type: DependencyType::Embedded.to_string(),
-				});
-			} else if let Some(first_download) = file.downloads.first() {
-				dependencies.push(DependencyBuilder {
-					project_id: None,
-					version_id: None,
-					file_name: Some(
-						first_download
-							.rsplit('/')
-							.next()
-							.unwrap_or(first_download)
-							.to_string(),
-					),
-					dependency_type: DependencyType::Embedded.to_string(),
-				});
-			}
-		}
-
-		for file in files {
-			if !file.is_empty() {
-				dependencies.push(DependencyBuilder {
-					project_id: None,
-					version_id: None,
-					file_name: Some(file.to_string()),
-					dependency_type: DependencyType::Embedded.to_string(),
-				});
-			}
-		}
-	}
 
 	let primary = (validation_result.is_passed()
 		&& version_files.iter().all(|x| !x.primary)

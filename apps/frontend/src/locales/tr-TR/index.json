@@ -339,6 +339,7 @@
   "create-project-version.create-modal.stage.details.version-subtitle": "Sürüm altyazısı",
   "create-project-version.create-modal.stage.details.version-subtitle-placeholder": "Altyazı girin...",
   "create-project-version.create-modal.stage.details.version-type": "Sürüm tipi",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "EML modları Shroudforge ile de çalışır. Bu sürümü Shroudforge kullanıcılarına göstermek için Shroudforge'u da seçin.",
   "create-project-version.create-modal.stage.metadata.add-dependency": "Bağımlılık ekle",
   "create-project-version.create-modal.stage.metadata.dependencies": "Bağımlılıklar",
   "create-project-version.create-modal.stage.metadata.details-tab": "Detaylar",

@@ -169,6 +169,8 @@ pub async fn random_projects_get(
                 INNER JOIN loaders_project_types lpt ON lpt.joining_loader_id = lv.loader_id
                 INNER JOIN project_types pt ON pt.id = lpt.joining_project_type_id
                 WHERE v.mod_id = mods.id AND pt.name = $3
+                AND ($3 <> 'schematic' OR jsonb_typeof(mods.components -> 'schematic') = 'object')
+                AND ($3 <> 'mod' OR jsonb_typeof(mods.components -> 'schematic') IS DISTINCT FROM 'object')
                 -- prevents decorrelation, so this stops at the first match instead
                 -- of scanning all versions before the outer sort/limit applies
                 OFFSET 0
@@ -988,6 +990,18 @@ pub async fn project_edit_internal(
 		if !perms.contains(ProjectPermissions::EDIT_DETAILS) {
 			return Err(ApiError::Auth(eyre::eyre!(
 				"You do not have the permissions to edit the slug of this project!",
+			)));
+		}
+		if !slug.eq_ignore_ascii_case(
+			project_item.inner.slug.as_deref().unwrap_or_default(),
+		) && project_item
+			.inner
+			.loaders
+			.iter()
+			.any(|loader| matches!(loader.as_str(), "shroudforge" | "eml"))
+		{
+			return Err(ApiError::Request(eyre::eyre!(
+				"A published ShroudForge mod keeps its mod.json ID as its project slug. Create a new project to change the ID."
 			)));
 		}
 

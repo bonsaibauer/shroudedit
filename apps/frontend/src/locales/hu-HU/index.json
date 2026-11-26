@@ -339,6 +339,7 @@
   "create-project-version.create-modal.stage.details.version-subtitle": "A verzió alcíme",
   "create-project-version.create-modal.stage.details.version-subtitle-placeholder": "Add meg az alcímet...",
   "create-project-version.create-modal.stage.details.version-type": "Verzió típusa",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "Az EML-modok Shroudforge-dzsal is működnek. Válaszd ki a Shroudforge-ot is, hogy ez a verzió megjelenjen a Shroudforge-felhasználók számára.",
   "create-project-version.create-modal.stage.metadata.add-dependency": "Függőség hozzáadása",
   "create-project-version.create-modal.stage.metadata.dependencies": "Függőségek",
   "create-project-version.create-modal.stage.metadata.details-tab": "Részletek",

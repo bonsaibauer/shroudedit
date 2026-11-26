@@ -2,9 +2,9 @@ import { type FileEntry, TextWriter } from '@zip.js/zip.js'
 import Ajv2020 from 'ajv/dist/2020.js'
 
 import type { InferredVersionInfo } from './infer'
-import extensionSchema from './schemas/shroudforge-1.8.1/extended.mod.schema.json'
-import manifestSchema from './schemas/shroudforge-1.8.1/manifest.schema.json'
-import localeSchema from './schemas/shroudforge-1.8.1/mod-locale.schema.json'
+import extensionSchema from './schemas/shroudforge-1.8.2/extended.mod.schema.json'
+import manifestSchema from './schemas/shroudforge-1.8.2/manifest.schema.json'
+import localeSchema from './schemas/shroudforge-1.8.2/mod-locale.schema.json'
 
 interface ModManifest {
 	id: string
@@ -17,17 +17,14 @@ let validators: ReturnType<typeof createValidators> | undefined
 function createValidators() {
 	const ajv = new Ajv2020({ ownProperties: true, strict: false })
 	return {
-		validateManifest: ajv.compile<ModManifest>({
-			type: manifestSchema.type,
-			required: manifestSchema.required,
-			properties: Object.fromEntries(
-				Object.entries(manifestSchema.properties).filter(([key]) =>
-					manifestSchema.required.includes(key),
-				),
-			),
-		}),
+		validateManifest: ajv.compile<ModManifest>(manifestSchema),
+		validateExtension: ajv.compile(extensionSchema),
 		validateLauncher: ajv.compile<'EML' | 'SF'>(extensionSchema.properties.launcher),
-		validateTargets: ajv.compile<('client' | 'server')[]>(extensionSchema.properties.targets),
+		validateTargets: ajv.compile<string[]>(extensionSchema.properties.targets),
+		validateReleaseChannel: ajv.compile<'release' | 'beta' | 'alpha'>(
+			extensionSchema.properties.releaseChannel,
+		),
+		validateGameVersions: ajv.compile<string[]>(extensionSchema.properties.gameVersions),
 		validateChangelog: ajv.compile<string[]>(extensionSchema.properties.changelog),
 		validateLocale: ajv.compile(localeSchema),
 	}
@@ -53,9 +50,8 @@ async function readJson(entry?: FileEntry): Promise<Record<string, unknown> | un
 
 export async function inferShroudForgeVersion(
 	entries: FileEntry[],
-	requireManifest: boolean,
 ): Promise<InferredVersionInfo> {
-	const { validateManifest, validateLauncher, validateTargets, validateChangelog, validateLocale } =
+	const { validateManifest, validateExtension, validateLauncher, validateTargets, validateReleaseChannel, validateGameVersions, validateChangelog, validateLocale } =
 		(validators ??= createValidators())
 	const packagePaths = new Set<string>()
 	const manifests = new Map<string, ModManifest>()
@@ -73,8 +69,6 @@ export async function inferShroudForgeVersion(
 			manifests.set(packagePath, manifest)
 		}
 	}
-	if (requireManifest && manifests.size === 0) throw new InvalidModManifestError()
-
 	const packagePath = packagePaths.has('') ? '' : [...packagePaths][0]
 	if (packagePath === undefined || (packagePath !== '' && packagePaths.size > 1)) return {}
 
@@ -83,6 +77,9 @@ export async function inferShroudForgeVersion(
 		({ filename }) => filename === `${packagePath}extended.mod.json`,
 	)
 	const extension = await readJson(extensionFile)
+	if (extensionFile && !validateExtension(extension)) {
+		throw new InvalidModManifestError(extensionFile.filename)
+	}
 
 	const localePath = `${packagePath}locales/`
 	for (const entry of entries) {
@@ -104,28 +101,40 @@ export async function inferShroudForgeVersion(
 			loader = launcher === 'EML' ? 'eml' : 'shroudforge'
 		}
 	} else if (manifest && !extensionFile) {
-		loader = 'eml'
+		loader = entries.some(({ filename }) =>
+			filename === `${packagePath}src/mod.lua` ||
+			filename === `${packagePath}native-plugin.ini`,
+		) ? 'shroudforge' : 'eml'
 	}
 
 	const targets = extension?.targets
 	let environment: InferredVersionInfo['environment']
 	if (validateTargets(targets)) {
-		environment =
-			targets.length === 2
-				? 'client_or_server'
-				: targets[0] === 'server'
-					? 'server_only'
-					: 'client_only'
+		if (targets.length === 1 && targets[0] === 'client') environment = 'client_only'
+		if (targets.length === 1 && targets[0]?.includes('_')) {
+			environment = targets[0] as InferredVersionInfo['environment']
+		}
 	} else if (targets === undefined) {
-		if (loader === 'eml') environment = 'client_or_server'
 		if (loader === 'shroudforge') environment = 'client_only'
 	}
 
 	const changelog = extension?.changelog
+	const releaseChannel = extension?.releaseChannel
+	const gameVersions = extension?.gameVersions
+	const packageFields = manifest ? ['name', 'version_number'] : []
+	if (validateReleaseChannel(releaseChannel)) packageFields.push('version_type')
+	if (validateGameVersions(gameVersions)) packageFields.push('game_versions')
+	if (validateTargets(targets)) packageFields.push('environment')
+	if (validateChangelog(changelog)) packageFields.push('changelog')
+	if (loader) packageFields.push('loaders')
 	return {
+		mod_id: manifest?.id,
+		package_fields: packageFields,
 		name: manifest?.name,
 		version_number: manifest?.version,
 		loaders: loader ? [loader] : undefined,
+		version_type: validateReleaseChannel(releaseChannel) ? releaseChannel : undefined,
+		game_versions: validateGameVersions(gameVersions) ? gameVersions : undefined,
 		environment,
 		changelog: validateChangelog(changelog) ? changelog.join('\n\n') : undefined,
 	}

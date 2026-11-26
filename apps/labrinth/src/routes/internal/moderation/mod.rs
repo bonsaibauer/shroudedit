@@ -347,20 +347,29 @@ pub async fn get_projects_internal(
                         WHEN jsonb_typeof(mp.components -> 'enshrouded_server') = 'object'
                             THEN ARRAY_APPEND(
                                 ARRAY_REMOVE(
-                                    COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                                    'modpack'
+                                    ARRAY_REMOVE(
+                                        COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
+                                        'modpack'
+                                    ),
+                                    'schematic'
                                 ),
                                 'enshrouded_server'
                             )
                         WHEN jsonb_typeof(mp.components -> 'schematic') = 'object'
                             THEN ARRAY_APPEND(
                                 ARRAY_REMOVE(
-                                    COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                                    'mod'
+                                    ARRAY_REMOVE(
+                                        COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
+                                        'mod'
+                                    ),
+                                    'schematic'
                                 ),
                                 'schematic'
                             )
-                        ELSE COALESCE(vpt.project_types::text[], ARRAY[]::text[])
+                        ELSE ARRAY_REMOVE(
+                            COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
+                            'schematic'
+                        )
                     END AS project_types,
                     COALESCE(ed.external_dependencies_count, 0) AS external_dependencies_count
                 FROM moderation_projects mp
@@ -627,20 +636,29 @@ pub async fn get_projects_internal(
                         WHEN jsonb_typeof(m.components -> 'enshrouded_server') = 'object'
                             THEN ARRAY_APPEND(
                                 ARRAY_REMOVE(
-                                    COALESCE(ppt.project_types::text[], ARRAY[]::text[]),
-                                    'modpack'
+                                    ARRAY_REMOVE(
+                                        COALESCE(ppt.project_types::text[], ARRAY[]::text[]),
+                                        'modpack'
+                                    ),
+                                    'schematic'
                                 ),
                                 'enshrouded_server'
                             )
                         WHEN jsonb_typeof(m.components -> 'schematic') = 'object'
                             THEN ARRAY_APPEND(
                                 ARRAY_REMOVE(
-                                    COALESCE(ppt.project_types::text[], ARRAY[]::text[]),
-                                    'mod'
+                                    ARRAY_REMOVE(
+                                        COALESCE(ppt.project_types::text[], ARRAY[]::text[]),
+                                        'mod'
+                                    ),
+                                    'schematic'
                                 ),
                                 'schematic'
                             )
-                        ELSE COALESCE(ppt.project_types::text[], ARRAY[]::text[])
+                        ELSE ARRAY_REMOVE(
+                            COALESCE(ppt.project_types::text[], ARRAY[]::text[]),
+                            'schematic'
+                        )
                     END AS project_types,
                     COALESCE(ped.external_dependencies_count, 0) AS external_dependencies_count
                 FROM page_ids page
@@ -842,20 +860,29 @@ pub async fn get_project_ids(
                         WHEN jsonb_typeof(mp.components -> 'enshrouded_server') = 'object'
                             THEN ARRAY_APPEND(
                                 ARRAY_REMOVE(
-                                    COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                                    'modpack'
+                                    ARRAY_REMOVE(
+                                        COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
+                                        'modpack'
+                                    ),
+                                    'schematic'
                                 ),
                                 'enshrouded_server'
                             )
                         WHEN jsonb_typeof(mp.components -> 'schematic') = 'object'
                             THEN ARRAY_APPEND(
                                 ARRAY_REMOVE(
-                                    COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                                    'mod'
+                                    ARRAY_REMOVE(
+                                        COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
+                                        'mod'
+                                    ),
+                                    'schematic'
                                 ),
                                 'schematic'
                             )
-                        ELSE COALESCE(vpt.project_types::text[], ARRAY[]::text[])
+                        ELSE ARRAY_REMOVE(
+                            COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
+                            'schematic'
+                        )
                     END AS project_types,
                     COALESCE(ed.external_dependencies_count, 0) AS external_dependencies_count
                 FROM moderation_projects mp

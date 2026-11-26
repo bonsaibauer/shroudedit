@@ -339,6 +339,7 @@
   "create-project-version.create-modal.stage.details.version-subtitle": "Untertitel der Version",
   "create-project-version.create-modal.stage.details.version-subtitle-placeholder": "Untertitel eingeben...",
   "create-project-version.create-modal.stage.details.version-type": "Versionstyp",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "EML-Mods funktionieren auch mit Shroudforge. Wähle Shroudforge zusätzlich aus, damit diese Version Shroudforge-Nutzern angezeigt wird.",
   "create-project-version.create-modal.stage.metadata.add-dependency": "Abhängigkeit hinzufügen",
   "create-project-version.create-modal.stage.metadata.dependencies": "Abhängigkeiten",
   "create-project-version.create-modal.stage.metadata.details-tab": "Details",

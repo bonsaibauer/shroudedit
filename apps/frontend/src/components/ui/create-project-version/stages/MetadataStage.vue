@@ -261,11 +261,7 @@ const isResourcePack = computed(
 			projectV2.value?.project_type === 'project'),
 )
 
-const draftVersionLoaders = computed(() =>
-	[
-		...new Set([...draftVersion.value.loaders, ...(draftVersion.value.mrpack_loaders ?? [])]),
-	].filter((loader) => loader !== 'mrpack'),
-)
+const draftVersionLoaders = computed(() => draftVersion.value.loaders)
 
 const editLoaders = () => {
 	modal.value?.setStage('from-details-loaders')

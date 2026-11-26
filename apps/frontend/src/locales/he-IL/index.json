@@ -72,6 +72,7 @@
   "collection.return-link.user": "פרופיל {user}",
   "collection.title": "{name} - אוסף",
   "create-project-version.create-modal.stage.add-files.admonition": "קבצים נלווים נועדו למשאבי תמיכה כמו קוד מקור, ולא עבור גרסאות חלופיות או וריאציות.",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "גם מודי EML פועלים עם Shroudforge. בחרו גם ב־Shroudforge כדי שהגרסה הזו תופיע למשתמשי Shroudforge.",
   "create.collection.collection-info": "האוסף החדש שלך ייווצר כאוסף ציבורי עם {count, plural, =0 {אפס פרויקטים} one {# פרויקט} other {# פרויקטים}}.",
   "create.collection.create-collection": "צור אוסף",
   "create.collection.name-label": "שם",

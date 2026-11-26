@@ -356,7 +356,7 @@ pub async fn version_get_helper(
 #[derive(Serialize, Deserialize, Validate, Default, Debug)]
 pub struct EditVersion {
 	#[validate(
-		length(min = 1, max = 64),
+		length(min = 1, max = 120),
 		custom(function = "crate::util::validate::validate_name")
 	)]
 	pub name: Option<String>,
@@ -497,6 +497,35 @@ pub async fn version_edit_helper(
 		.wrap_internal_err("fetching version from database")?;
 
 	if let Some(version_item) = result {
+		let managed_mod_package = version_item
+			.loaders
+			.iter()
+			.any(|loader| matches!(loader.as_str(), "shroudforge" | "eml"))
+			&& version_item
+			.files
+			.iter()
+				.any(|file| file.primary && file.filename.to_ascii_lowercase().ends_with(".zip"));
+		let managed_sfpack = version_item.loaders.iter().any(|loader| loader == "sfpack")
+			&& version_item.files.iter().any(|file| file.primary && file.filename.to_ascii_lowercase().ends_with(".sfpack"));
+		if (managed_mod_package || managed_sfpack)
+			&& new_version.version_number.as_ref().is_some_and(|number| {
+				number != &version_item.inner.version_number
+			})
+		{
+			return Err(ApiError::Request(eyre::eyre!(
+				"ShroudForge versions must keep the version declared by their package. Publish a new version with a matching package."
+			)));
+		}
+		if (managed_mod_package || managed_sfpack) && new_version.dependencies.is_some() {
+			return Err(ApiError::Request(eyre::eyre!(
+				"ShroudForge dependencies are taken from the package. Publish a new package to change them."
+			)));
+		}
+		if managed_sfpack && (new_version.fields.contains_key("game_versions") || new_version.loaders.is_some()) {
+			return Err(ApiError::Request(eyre::eyre!(
+				"The .sfpack game versions and loader are defined by the package. Publish a new package to change them."
+			)));
+		}
 		let team_member =
 			database::models::DBTeamMember::get_from_user_id_project(
 				version_item.inner.project_id,

@@ -338,6 +338,7 @@
   "create-project-version.create-modal.stage.details.version-subtitle": "Підзаголовок версії",
   "create-project-version.create-modal.stage.details.version-subtitle-placeholder": "Уведіть підзаголовок…",
   "create-project-version.create-modal.stage.details.version-type": "Тип версії",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "Моди EML також працюють із Shroudforge. Виберіть також Shroudforge, щоб ця версія відображалася користувачам Shroudforge.",
   "create-project-version.create-modal.stage.metadata.add-dependency": "Додати залежність",
   "create-project-version.create-modal.stage.metadata.dependencies": "Залежності",
   "create-project-version.create-modal.stage.metadata.details-tab": "Деталі",

@@ -18,12 +18,12 @@ import {
 import type { ComputedRef, Ref, ShallowRef } from 'vue'
 import type { ComponentExposed } from 'vue-component-type-helpers'
 
-import { useGeneratedState } from '~/composables/generated'
 import {
 	type InferredVersionInfo,
 	inferVersionInfo,
 	InvalidModManifestError,
 } from '~/helpers/infer'
+import { InvalidSfpackError } from '~/helpers/infer/sfpack'
 
 import { stageConfigs } from './stages'
 
@@ -116,7 +116,7 @@ export interface ManageVersionContextValue {
 
 const PROJECT_TYPE_LOADERS: Record<string, readonly string[]> = {
 	mod: ['shroudtopia', 'shroudforge', 'eml'],
-	modpack: ['mrpack'],
+	modpack: ['sfpack'],
 } as const
 
 export const fileTypeLabels: Record<Labrinth.Versions.v3.FileType | 'primary', string> = {
@@ -170,7 +170,7 @@ export const fileTypeMessages: Record<
 
 const invalidModManifestMessage = defineMessage({
 	id: 'create-project-version.invalid-mod-manifest',
-	defaultMessage: '{filename} must contain a valid id, name, and version.',
+	defaultMessage: '{filename} does not match ShroudForge schema 1.8.2.',
 })
 
 const missingModManifestMessage = defineMessage({
@@ -231,12 +231,12 @@ export function createManageVersionContext(
 		) {
 			return 'schematic'
 		}
+		if (projectV2.value.project_type === 'modpack' || projectV2.value.actualProjectType === 'modpack') {
+			return 'modpack'
+		}
 
 		const primaryFile = filesToAdd.value[0]?.file
-		if (
-			(primaryFile && primaryFile.name.toLowerCase().endsWith('.mrpack')) ||
-			(primaryFile && primaryFile.name.toLowerCase().endsWith('.mrpack-primary'))
-		) {
+		if (primaryFile && primaryFile.name.toLowerCase().endsWith('.sfpack')) {
 			return 'modpack'
 		}
 
@@ -286,6 +286,13 @@ export function createManageVersionContext(
 		version: Labrinth.Versions.v3.DraftVersion | null = null,
 	) {
 		draftVersion.value = structuredClone(version ?? EMPTY_DRAFT_VERSION)
+		if (
+			!version &&
+			(projectV2.value.project_type === 'mod' ||
+				projectV2.value.actualProjectType === 'mod')
+		) {
+			draftVersion.value.loaders = ['shroudforge']
+		}
 		draftVersion.value.project_id = projectId
 		filesToAdd.value = []
 		existingFilesToDelete.value = []
@@ -309,8 +316,8 @@ export function createManageVersionContext(
 		}
 
 		const primaryFileIndex = primaryFile.value ? null : detectPrimaryFileIndex(newFiles)
-		if (hasSupplementaryMrpackFile(newFiles, primaryFileIndex)) {
-			notifyInvalidSupplementaryMrpack()
+		if (hasSupplementarySfpackFile(newFiles, primaryFileIndex)) {
+			notifyInvalidSupplementarySfpack()
 			return
 		}
 
@@ -355,8 +362,6 @@ export function createManageVersionContext(
 		;[files[0], files[index]] = [files[index], files[0]]
 	}
 
-	const tags = useGeneratedState()
-
 	async function inferEnvironmentFromVersions(
 		projectId: string,
 		loaders: string[],
@@ -381,9 +386,9 @@ export function createManageVersionContext(
 		file: File,
 		project: Labrinth.Projects.v2.Project,
 	): Promise<InferredVersionInfo> {
-		const inferred = await inferVersionInfo(file, project, tags.value.gameVersions)
+		const inferred = await inferVersionInfo(file, project)
 		inferred.loaders = inferred.loaders?.filter((loader) =>
-			PROJECT_TYPE_LOADERS.mod.includes(loader),
+			PROJECT_TYPE_LOADERS.mod.includes(loader) || PROJECT_TYPE_LOADERS.modpack.includes(loader),
 		)
 		if (inferred.loaders?.length) {
 			inferred.environment ??= await inferEnvironmentFromVersions(project.id, inferred.loaders)
@@ -401,7 +406,12 @@ export function createManageVersionContext(
 		)
 		return !hasModLoaders && projectType.value !== 'modpack'
 	})
-	const noDependenciesProject = computed(() => projectType.value === 'modpack')
+	const noDependenciesProject = computed(() =>
+		projectType.value === 'modpack' ||
+		Boolean(inferredVersionData.value?.mod_id) ||
+		(draftVersion.value.loaders.some((loader) => loader === 'shroudforge' || loader === 'eml') &&
+			Boolean(draftVersion.value.existing_files?.[0]?.filename.toLowerCase().endsWith('.zip'))),
+	)
 
 	const getProject = async (projectId: string) => {
 		if (dependencyProjects.value[projectId]) {
@@ -483,31 +493,31 @@ export function createManageVersionContext(
 	})
 
 	// File handling helpers
-	function isMrpackFile(file: File): boolean {
+	function isSfpackFile(file: File): boolean {
 		const name = file.name.toLowerCase()
-		return name.endsWith('.mrpack') || name.endsWith('.mrpack-primary')
+		return name.endsWith('.sfpack')
 	}
 
-	function hasSupplementaryMrpackFile(
+	function hasSupplementarySfpackFile(
 		files: File[] | Labrinth.Versions.v3.DraftVersionFile[],
 		primaryFileIndex: number | null = 0,
 	): boolean {
 		return files.some((file, index) => {
 			const rawFile = 'file' in file ? file.file : file
-			return index !== primaryFileIndex && isMrpackFile(rawFile)
+			return index !== primaryFileIndex && isSfpackFile(rawFile)
 		})
 	}
 
-	function notifyInvalidSupplementaryMrpack() {
+	function notifyInvalidSupplementarySfpack() {
 		addNotification({
 			title: 'Invalid supplementary file',
-			text: 'mrpacks cannot be uploaded as supplementary files, only as the primary file',
+			text: '.sfpack archives must be uploaded as the primary file',
 			type: 'error',
 		})
 	}
 
 	function detectPrimaryFileIndex(files: File[]): number {
-		const extensionPriority = ['.sfbp', '.zip', '.mrpack', '.mrpack-primary']
+		const extensionPriority = ['.sfbp', '.sfpack', '.zip']
 
 		for (const ext of extensionPriority) {
 			const matches = files.filter((file) => file.name.toLowerCase().endsWith(ext))
@@ -527,10 +537,20 @@ export function createManageVersionContext(
 		if (!primaryFileData) return false
 
 		try {
+			const previousInferred = inferredVersionData.value
 			const inferredData = await setInferredVersionData(primaryFileData, projectV2.value)
-			const detectedFields = Object.fromEntries(
-				Object.entries(inferredData).filter(([, value]) => value !== undefined),
-			)
+			const draftFields = draftVersion.value as unknown as Record<string, unknown>
+			const previousFields = previousInferred as Record<string, unknown> | undefined
+			const detectedFields = Object.fromEntries(Object.entries(inferredData).filter(([key, value]) => {
+				if (key === 'mod_id' || key === 'package_fields' || value === undefined) return false
+				const current = draftFields[key]
+				if (previousFields && previousFields[key] !== undefined) {
+					return JSON.stringify(current) === JSON.stringify(previousFields[key])
+				}
+				return current === undefined || current === null || current === '' ||
+					(Array.isArray(current) && current.length === 0) ||
+					(key === 'version_type' && current === 'release')
+			}))
 
 			draftVersion.value = {
 				...draftVersion.value,
@@ -538,6 +558,14 @@ export function createManageVersionContext(
 			}
 			return true
 		} catch (err) {
+			if (err instanceof InvalidSfpackError) {
+				addNotification({
+					title: 'Invalid ShroudForge modpack',
+					text: err.message,
+					type: 'error',
+				})
+				return false
+			}
 			if (err instanceof InvalidModManifestError) {
 				addNotification({
 					title: formatMessage(commonMessages.errorNotificationTitle),
@@ -700,8 +728,8 @@ export function createManageVersionContext(
 		const version = toRaw(draftVersion.value)
 		const files = toRaw(filesToAdd.value)
 
-		if (hasSupplementaryMrpackFile(files)) {
-			notifyInvalidSupplementaryMrpack()
+		if (hasSupplementarySfpackFile(files)) {
+			notifyInvalidSupplementarySfpack()
 			return
 		}
 

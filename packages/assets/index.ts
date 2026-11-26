@@ -86,6 +86,10 @@ import _NoMessagesIllustration from './illustrations/no-messages.svg?component'
 import _NoSearchResultIllustration from './illustrations/no-search-result.svg?component'
 import _NoTasksIllustration from './illustrations/no-tasks.svg?component'
 
+const CATEGORY_ICON_ALIASES: Record<string, string> = {
+	home: 'house',
+}
+
 export const ShroudEditIcon = _ShroudEditIcon
 export const ShroudEditLogoUrl = _ShroudEditLogoUrl
 export const QuestionMarkIcon = _QuestionMarkIcon
@@ -168,7 +172,8 @@ export function getCategoryIcon(categoryName: string): IconComponent | undefined
 	if (!categoryName) {
 		return undefined
 	}
-	return categoryIconMap[categoryName.toLowerCase()]
+	const normalizedName = categoryName.toLowerCase()
+	return categoryIconMap[CATEGORY_ICON_ALIASES[normalizedName] ?? normalizedName]
 }
 
 export function getLoaderIcon(loaderName: string): IconComponent | undefined {

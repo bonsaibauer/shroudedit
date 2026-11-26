@@ -284,6 +284,7 @@
   "create-project-version.create-modal.stage.details.metadata-tab": "Metadata",
   "create-project-version.create-modal.stage.details.version-number": "Číslo verze",
   "create-project-version.create-modal.stage.details.version-type": "Typ verze",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "Mody EML fungují také se Shroudforge. Vyberte také Shroudforge, aby se tato verze zobrazila uživatelům Shroudforge.",
   "create-project-version.create-modal.stage.metadata.details-tab": "Podrobnosti",
   "create-project-version.create-modal.stage.metadata.edit-button": "Upravit",
   "create-project-version.create-modal.stage.metadata.files-tab": "Soubory",

@@ -10,7 +10,6 @@ pub mod moderation_notes;
 pub mod notifications;
 pub mod oauth_clients;
 pub mod organizations;
-pub mod pack;
 pub mod pats;
 pub mod payouts;
 pub mod preferences;

@@ -229,6 +229,7 @@
   "collection.label.updated-at": "Ažurirano pre {ago}",
   "collection.title": "{name} - Kolekcija",
   "create-project-version.create-modal.stage.add-files.admonition": "Dodatne datoteke su namenjene pratećim resursima, kao što je izvorni kod, a ne alternativnim verzijama ili varijantama.",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "EML modovi rade i sa Shroudforgeom. Izaberite i Shroudforge da bi ova verzija bila prikazana korisnicima Shroudforge-a.",
   "create.project.server-project-title": "Kreiranje projekat servera",
   "create.project.type-server": "Server",
   "dashboard.analytics.total-downloads": "Ukupan broj preuzimanja",

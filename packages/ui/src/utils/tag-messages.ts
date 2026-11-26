@@ -214,6 +214,10 @@ export const categoryMessages = defineMessages({
 		id: 'tag.category.cartoon',
 		defaultMessage: 'Cartoon',
 	},
+	castle: {
+		id: 'tag.category.castle',
+		defaultMessage: 'Castle',
+	},
 	challenging: {
 		id: 'tag.category.challenging',
 		defaultMessage: 'Challenging',
@@ -321,6 +325,10 @@ export const categoryMessages = defineMessages({
 	high: {
 		id: 'tag.category.high',
 		defaultMessage: 'High',
+	},
+	home: {
+		id: 'tag.category.home',
+		defaultMessage: 'Home',
 	},
 	items: {
 		id: 'tag.category.items',

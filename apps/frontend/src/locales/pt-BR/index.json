@@ -339,6 +339,7 @@
   "create-project-version.create-modal.stage.details.version-subtitle": "Legenda da versão",
   "create-project-version.create-modal.stage.details.version-subtitle-placeholder": "Digite a legenda...",
   "create-project-version.create-modal.stage.details.version-type": "Tipo de versão",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "Mods EML também funcionam com Shroudforge. Selecione Shroudforge também para que esta versão apareça para usuários do Shroudforge.",
   "create-project-version.create-modal.stage.metadata.add-dependency": "Adicionar dependência",
   "create-project-version.create-modal.stage.metadata.dependencies": "Dependências",
   "create-project-version.create-modal.stage.metadata.details-tab": "Detalhes",

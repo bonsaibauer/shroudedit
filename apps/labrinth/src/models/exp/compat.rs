@@ -18,7 +18,11 @@ pub fn correct_project_types(
 ) {
 	if components.schematic.is_some() {
 		project_types.retain(|project_type| project_type != "mod");
-		project_types.push(SCHEMATIC.into());
+		if !project_types.iter().any(|project_type| project_type == SCHEMATIC) {
+			project_types.push(SCHEMATIC.into());
+		}
+	} else {
+		project_types.retain(|project_type| project_type != SCHEMATIC);
 	}
 
 	if components.enshrouded_server.is_some() {

@@ -134,6 +134,7 @@
   "collection.return-link.dashboard-collections": "คอลเลกชันของคุณ",
   "collection.return-link.user": "โปรไฟล์ของ {user}",
   "collection.title": "{name} คอลเลกชัน",
+  "create-project-version.create-modal.stage.loaders.eml-compatibility-warning": "ม็อด EML ใช้งานกับ Shroudforge ได้เช่นกัน เลือก Shroudforge ด้วยเพื่อแสดงเวอร์ชันนี้ให้ผู้ใช้ Shroudforge เห็น",
   "create.collection.create-collection": "สร้างคอลเลกชัน",
   "create.collection.name-label": "ชื่อคอลเลกชัน",
   "create.collection.name-placeholder": "โปรดกรอกชื่อคอลเลกชัน",

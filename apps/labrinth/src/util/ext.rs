@@ -1,4 +1,4 @@
-pub const MRPACK_MIME_TYPE: &str = "application/x-modrinth-modpack+zip";
+pub const SFPACK_MIME_TYPE: &str = "application/x-shroudforge-modpack+zip";
 
 pub fn get_image_content_type(extension: &str) -> Option<&'static str> {
 	match extension {
@@ -27,7 +27,7 @@ pub fn project_file_type(ext: &str) -> Option<&str> {
 	match ext {
 		"jar" => Some("application/java-archive"),
 		"zip" | "litemod" => Some("application/zip"),
-		"mrpack" => Some(MRPACK_MIME_TYPE),
+		"sfpack" => Some(SFPACK_MIME_TYPE),
 		"sfbp" => Some("application/octet-stream"),
 		"asc" | "gpg" | "sig" => Some("application/pgp-signature"),
 		_ => None,
