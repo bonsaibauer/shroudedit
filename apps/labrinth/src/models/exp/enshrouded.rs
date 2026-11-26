@@ -231,6 +231,7 @@ pub struct EnshroudedServerProjectEdit {
 pub struct EnshroudedServerProjectQuery {
 	pub address: String,
 	pub query_port: u16,
+	#[serde(default)]
 	pub verified_plays_2w: u64,
 	pub region: Option<String>,
 	pub languages: Vec<String>,
