@@ -296,6 +296,7 @@ pub async fn get_projects_internal(
                     m.published,
                     m.organization_id,
                     m.team_id,
+                    m.project_type,
                     m.components
                 FROM mods m
                 WHERE
@@ -343,34 +344,7 @@ pub async fn get_projects_internal(
                     mp.published,
                     search_organization.name AS organization_name,
                     search_owner.username AS owner_name,
-                    CASE
-                        WHEN jsonb_typeof(mp.components -> 'enshrouded_server') = 'object'
-                            THEN ARRAY_APPEND(
-                                ARRAY_REMOVE(
-                                    ARRAY_REMOVE(
-                                        COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                                        'modpack'
-                                    ),
-                                    'schematic'
-                                ),
-                                'enshrouded_server'
-                            )
-                        WHEN jsonb_typeof(mp.components -> 'schematic') = 'object'
-                            THEN ARRAY_APPEND(
-                                ARRAY_REMOVE(
-                                    ARRAY_REMOVE(
-                                        COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                                        'mod'
-                                    ),
-                                    'schematic'
-                                ),
-                                'schematic'
-                            )
-                        ELSE ARRAY_REMOVE(
-                            COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                            'schematic'
-                        )
-                    END AS project_types,
+                    ARRAY[mp.project_type::text] AS project_types,
                     COALESCE(ed.external_dependencies_count, 0) AS external_dependencies_count
                 FROM moderation_projects mp
                 LEFT JOIN organizations search_organization
@@ -416,7 +390,7 @@ pub async fn get_projects_internal(
                     AND (
                         $4::text IS NULL
                         OR ($4 = 'none' AND CARDINALITY(project_types) = 0)
-                        OR ($4 = 'enshrouded_server' AND project_types @> ARRAY['enshrouded_server']::text[])
+                        OR ($4 = 'enshrouded_server' AND project_types @> ARRAY['server']::text[])
                         OR ($4 = 'schematic' AND project_types @> ARRAY['schematic']::text[])
                         OR ($4 <> 'none' AND $4 <> 'enshrouded_server' AND $4 <> 'schematic' AND
                             project_types[1] = $4
@@ -632,34 +606,7 @@ pub async fn get_projects_internal(
                     owner.user_id AS owner_id,
                     owner.username AS owner_name,
                     owner.avatar_url AS owner_icon_url,
-                    CASE
-                        WHEN jsonb_typeof(m.components -> 'enshrouded_server') = 'object'
-                            THEN ARRAY_APPEND(
-                                ARRAY_REMOVE(
-                                    ARRAY_REMOVE(
-                                        COALESCE(ppt.project_types::text[], ARRAY[]::text[]),
-                                        'modpack'
-                                    ),
-                                    'schematic'
-                                ),
-                                'enshrouded_server'
-                            )
-                        WHEN jsonb_typeof(m.components -> 'schematic') = 'object'
-                            THEN ARRAY_APPEND(
-                                ARRAY_REMOVE(
-                                    ARRAY_REMOVE(
-                                        COALESCE(ppt.project_types::text[], ARRAY[]::text[]),
-                                        'mod'
-                                    ),
-                                    'schematic'
-                                ),
-                                'schematic'
-                            )
-                        ELSE ARRAY_REMOVE(
-                            COALESCE(ppt.project_types::text[], ARRAY[]::text[]),
-                            'schematic'
-                        )
-                    END AS project_types,
+                    ARRAY[m.project_type::text] AS project_types,
                     COALESCE(ped.external_dependencies_count, 0) AS external_dependencies_count
                 FROM page_ids page
                 INNER JOIN mods m ON m.id = page.id
@@ -809,6 +756,7 @@ pub async fn get_project_ids(
                     m.published,
                     m.organization_id,
                     m.team_id,
+                    m.project_type,
                     m.components
                 FROM mods m
                 WHERE
@@ -856,34 +804,7 @@ pub async fn get_project_ids(
                     mp.published,
                     search_organization.name AS organization_name,
                     search_owner.username AS owner_name,
-                    CASE
-                        WHEN jsonb_typeof(mp.components -> 'enshrouded_server') = 'object'
-                            THEN ARRAY_APPEND(
-                                ARRAY_REMOVE(
-                                    ARRAY_REMOVE(
-                                        COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                                        'modpack'
-                                    ),
-                                    'schematic'
-                                ),
-                                'enshrouded_server'
-                            )
-                        WHEN jsonb_typeof(mp.components -> 'schematic') = 'object'
-                            THEN ARRAY_APPEND(
-                                ARRAY_REMOVE(
-                                    ARRAY_REMOVE(
-                                        COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                                        'mod'
-                                    ),
-                                    'schematic'
-                                ),
-                                'schematic'
-                            )
-                        ELSE ARRAY_REMOVE(
-                            COALESCE(vpt.project_types::text[], ARRAY[]::text[]),
-                            'schematic'
-                        )
-                    END AS project_types,
+                    ARRAY[mp.project_type::text] AS project_types,
                     COALESCE(ed.external_dependencies_count, 0) AS external_dependencies_count
                 FROM moderation_projects mp
                 LEFT JOIN organizations search_organization
@@ -923,7 +844,7 @@ pub async fn get_project_ids(
                 AND (
                     $4::text IS NULL
                     OR ($4 = 'none' AND CARDINALITY(project_types) = 0)
-                    OR ($4 = 'enshrouded_server' AND project_types @> ARRAY['enshrouded_server']::text[])
+                        OR ($4 = 'enshrouded_server' AND project_types @> ARRAY['server']::text[])
                     OR ($4 = 'schematic' AND project_types @> ARRAY['schematic']::text[])
                     OR ($4 <> 'none' AND $4 <> 'enshrouded_server' AND $4 <> 'schematic' AND project_types[1] = $4)
                 )

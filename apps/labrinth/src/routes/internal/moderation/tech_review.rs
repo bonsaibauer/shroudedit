@@ -496,23 +496,8 @@ pub async fn search_projects(
 			AND (cardinality($5::text[]) = 0 OR project.status = ANY($5::text[]))
 			AND (
 				cardinality($3::text[]) = 0
-				OR ('enshrouded_server' = ANY($3::text[])
-					AND jsonb_typeof(project.components->'enshrouded_server') = 'object')
-				OR ('schematic' = ANY($3::text[])
-					AND jsonb_typeof(project.components->'schematic') = 'object')
-				OR EXISTS (
-					SELECT 1
-					FROM versions typed_version
-					INNER JOIN loaders_versions loader_version ON loader_version.version_id = typed_version.id
-					INNER JOIN loaders_project_types loader_type ON loader_type.joining_loader_id = loader_version.loader_id
-					INNER JOIN project_types project_type ON project_type.id = loader_type.joining_project_type_id
-					WHERE typed_version.mod_id = project.id
-						AND project_type.name = ANY($3::text[])
-						AND (project_type.name <> 'modpack'
-							OR jsonb_typeof(project.components->'enshrouded_server') IS DISTINCT FROM 'object')
-						AND (project_type.name <> 'mod'
-							OR jsonb_typeof(project.components->'schematic') IS DISTINCT FROM 'object')
-				)
+				OR ('enshrouded_server' = ANY($3::text[]) AND project.project_type = 'server')
+				OR project.project_type = ANY($3::text[])
 			)
 			AND (
 				$4::text IS NULL

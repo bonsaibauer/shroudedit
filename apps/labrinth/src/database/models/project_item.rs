@@ -24,8 +24,8 @@ use std::fmt::{Debug, Display};
 use std::hash::Hash;
 use xredis::RedisPool;
 
-pub const PROJECTS_NAMESPACE: &str = "projects:v4";
-pub const PROJECTS_SLUGS_NAMESPACE: &str = "projects_slugs:v4";
+pub const PROJECTS_NAMESPACE: &str = "projects:v5";
+pub const PROJECTS_SLUGS_NAMESPACE: &str = "projects_slugs:v5";
 const PROJECTS_DEPENDENCIES_NAMESPACE: &str = "projects_dependencies:v4";
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -166,6 +166,7 @@ impl DBModCategory {
 #[derive(Clone)]
 pub struct ProjectBuilder {
 	pub project_id: DBProjectId,
+	pub project_type: String,
 	pub team_id: DBTeamId,
 	pub organization_id: Option<DBOrganizationId>,
 	pub name: String,
@@ -198,6 +199,7 @@ impl ProjectBuilder {
 	) -> Result<DBProjectId> {
 		let project_struct = DBProject {
 			id: self.project_id,
+			project_type: self.project_type,
 			team_id: self.team_id,
 			organization_id: self.organization_id,
 			name: self.name,
@@ -293,6 +295,7 @@ impl ProjectBuilder {
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DBProject {
 	pub id: DBProjectId,
+	pub project_type: String,
 	pub team_id: DBTeamId,
 	pub organization_id: Option<DBOrganizationId>,
 	pub name: String,
@@ -334,7 +337,7 @@ impl DBProject {
                 license_url, license,
                 slug, color, monetization_status, organization_id,
                 side_types_migration_review_status,
-                components
+                components, project_type
             )
             VALUES (
                 $1, $2, $3, $4, $5, $6,
@@ -342,7 +345,7 @@ impl DBProject {
                 $12, $13,
                 LOWER($14), $15, $16, $17,
                 $18,
-                $19
+                $19, $20
             )
             ",
             self.id as DBProjectId,
@@ -364,6 +367,7 @@ impl DBProject {
             self.organization_id.map(|x| x.0 as i64),
             self.side_types_migration_review_status.as_str(),
             serde_json::to_value(&self.components).expect("serialization shouldn't fail"),
+			&self.project_type,
         )
         .execute(&mut *transaction)
         .await
@@ -797,7 +801,6 @@ impl DBProject {
                 #[derive(Default)]
                 struct VersionLoaderData {
                     loaders: Vec<String>,
-                    project_types: Vec<String>,
                     games: Vec<String>,
                     loader_loader_field_ids: Vec<LoaderFieldId>,
                 }
@@ -807,7 +810,6 @@ impl DBProject {
                     "
                     SELECT DISTINCT mod_id,
                         ARRAY_AGG(DISTINCT l.loader) filter (where l.loader is not null) loaders,
-                        ARRAY_AGG(DISTINCT pt.name) filter (where pt.name is not null) project_types,
                         ARRAY_AGG(DISTINCT g.slug) filter (where g.slug is not null) games,
                         ARRAY_AGG(DISTINCT lfl.loader_field_id) filter (where lfl.loader_field_id is not null) loader_fields
                     FROM versions v
@@ -835,7 +837,6 @@ impl DBProject {
                         // Add loader + loader associated data to the map
                         let version_loader_data = VersionLoaderData {
                             loaders: m.loaders.unwrap_or_default(),
-                            project_types: m.project_types.unwrap_or_default(),
                             games: m.games.unwrap_or_default(),
                             loader_loader_field_ids,
                         };
@@ -882,7 +883,8 @@ impl DBProject {
                     m.side_types_migration_review_status side_types_migration_review_status,
                     ARRAY_AGG(DISTINCT c.category) filter (where c.category is not null and mc.is_additional is false) categories,
                     ARRAY_AGG(DISTINCT c.category) filter (where c.category is not null and mc.is_additional is true) additional_categories,
-                    m.components AS "components: sqlx::types::Json<exp::ProjectSerial>"
+                    m.components AS "components: sqlx::types::Json<exp::ProjectSerial>",
+                    m.project_type
 
                     FROM mods m
                     INNER JOIN threads t ON t.mod_id = m.id
@@ -923,7 +925,6 @@ impl DBProject {
                         let project_id = DBProjectId(id);
                         let VersionLoaderData {
                             loaders,
-                            mut project_types,
                             games,
                             loader_loader_field_ids,
                         } = loaders_ptypes_games.remove(&project_id).map(|x|x.1).unwrap_or_default();
@@ -939,10 +940,7 @@ impl DBProject {
                             .collect::<Vec<_>>();
 
                         let components_serial = m.components.0;
-                        exp::compat::correct_project_types(
-                            &components_serial,
-                            &mut project_types,
-                        );
+                        let project_types = vec![m.project_type.clone()];
                         let components = components_serial.clone().into_query(
                             ProjectId::from(project_id),
                             &project_query_context,
@@ -952,6 +950,7 @@ impl DBProject {
                         let project = ProjectQueryResult {
                             inner: DBProject {
                                 id: DBProjectId(id),
+								project_type: m.project_type,
                                 team_id: DBTeamId(m.team_id),
                                 organization_id: m.organization_id.map(DBOrganizationId),
                                 name: m.name.clone(),

@@ -28,7 +28,3 @@ DELETE FROM loaders_project_types_games
 WHERE loader_id = (SELECT id FROM loaders WHERE loader = 'mrpack')
 	AND project_type_id = (SELECT id FROM project_types WHERE name = 'modpack')
 	AND game_id = (SELECT id FROM games WHERE name = 'enshrouded');
-
-DELETE FROM loaders_project_types
-WHERE joining_loader_id = (SELECT id FROM loaders WHERE loader = 'mrpack')
-	AND joining_project_type_id = (SELECT id FROM project_types WHERE name = 'modpack');

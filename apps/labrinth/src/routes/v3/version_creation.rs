@@ -225,6 +225,7 @@ async fn version_create_inner(
 	let mut initial_version_data = None;
 	let mut version_builder = None;
 	let mut selected_loaders = None;
+	let mut project_type = None::<String>;
 	let mut project_slug: Option<String> = None;
 
 	let user = get_user_from_headers(
@@ -286,7 +287,8 @@ async fn version_create_inner(
 							"An invalid project id was supplied".to_string(),
 						)
 					})?;
-				let is_schematic_project = project.components.schematic.is_some();
+				let is_schematic_project = project.inner.project_type == "schematic";
+				project_type = Some(project.inner.project_type.clone());
                 project_slug = project.inner.slug.clone();
 
                 // Check that the user creating this version is a team member
@@ -367,6 +369,9 @@ async fn version_create_inner(
                             .ok_or_else(|| CreateError::InvalidLoader(x.0.clone()))
                     })
                     .collect::<Result<Vec<_>, _>>()?;
+				if loaders.iter().any(|loader| !loader.can_publish_project_type(&project.inner.project_type)) {
+					return Err(CreateError::InvalidInput("A loader does not support this project's type".to_string()));
+				}
                 selected_loaders = Some(loaders.clone());
                 let loader_ids: Vec<models::LoaderId> = loaders.iter().map(|y| y.id).collect_vec();
 
@@ -513,12 +518,10 @@ async fn version_create_inner(
 	.await?;
 
 	let loader_structs = selected_loaders.unwrap_or_default();
-	let (all_project_types, all_games): (Vec<String>, Vec<String>) =
-		loader_structs.iter().fold((vec![], vec![]), |mut acc, x| {
-			acc.0.extend_from_slice(&x.supported_project_types);
-			acc.1.extend(x.supported_games.clone());
-			acc
-		});
+	let all_games = loader_structs
+		.iter()
+		.flat_map(|loader| loader.supported_games.clone())
+		.collect::<Vec<_>>();
 
 	let response = Version {
 		id: builder.version_id.into(),
@@ -527,7 +530,7 @@ async fn version_create_inner(
 		featured: builder.featured,
 		name: builder.name.clone(),
 		version_number: builder.version_number.clone(),
-		project_types: all_project_types,
+		project_types: vec![project_type.expect("project type set during version creation")],
 		games: all_games,
 		changelog: Some(builder.changelog.clone()),
 		date_published: Utc::now(),
@@ -785,6 +788,9 @@ async fn upload_file_to_version_inner(
 	)
 	.await?
 	.ok_or_else(|| CreateError::InvalidInput("An invalid project id was supplied".to_string()))?;
+	if selected_loaders.iter().any(|loader| !loader.can_publish_project_type(&project.inner.project_type)) {
+		return Err(CreateError::InvalidInput("A loader does not support this project's type".to_string()));
+	}
 
 	if !user.role.is_admin() {
 		let team_member = models::DBTeamMember::get_from_user_id_project(

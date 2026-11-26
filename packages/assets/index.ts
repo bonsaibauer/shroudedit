@@ -180,7 +180,8 @@ export function getLoaderIcon(loaderName: string): IconComponent | undefined {
 	if (!loaderName) {
 		return undefined
 	}
-	return loaderIconMap[loaderName.toLowerCase()]
+	const normalizedName = loaderName.toLowerCase()
+	return loaderIconMap[normalizedName === 'sfpack' ? 'shroudforge' : normalizedName]
 }
 
 // will try loader first, then category

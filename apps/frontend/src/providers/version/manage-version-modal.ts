@@ -292,6 +292,12 @@ export function createManageVersionContext(
 				projectV2.value.actualProjectType === 'mod')
 		) {
 			draftVersion.value.loaders = ['shroudforge']
+		} else if (
+			!version &&
+			(projectV2.value.project_type === 'modpack' ||
+				projectV2.value.actualProjectType === 'modpack')
+		) {
+			draftVersion.value.loaders = ['sfpack']
 		}
 		draftVersion.value.project_id = projectId
 		filesToAdd.value = []

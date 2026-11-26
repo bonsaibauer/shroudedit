@@ -321,8 +321,22 @@ pub async fn create(
 		});
 	}
 
+	let project_type = if components.enshrouded_server.is_some() {
+		"server"
+	} else if components.schematic.is_some() {
+		"schematic"
+	} else if components.enshrouded_mod.is_some() {
+		"mod"
+	} else if components.modpack.is_some() {
+		"modpack"
+	} else {
+		return Err(CreateError::Validation(
+			"a project type component is required".to_string(),
+		));
+	};
 	let project_builder = ProjectBuilder {
 		project_id: project_id.into(),
+		project_type: project_type.to_string(),
 		team_id,
 		organization_id: organization_id.map(From::from),
 		name: name.clone(),

@@ -115,6 +115,10 @@ export const loaderMessages = defineMessages({
 		id: 'tag.loader.shroudforge',
 		defaultMessage: 'Shroudforge',
 	},
+	sfpack: {
+		id: 'tag.loader.sfpack',
+		defaultMessage: 'ShroudForge Pack',
+	},
 	shroudtopia: {
 		id: 'tag.loader.shroudtopia',
 		defaultMessage: 'Shroudtopia',

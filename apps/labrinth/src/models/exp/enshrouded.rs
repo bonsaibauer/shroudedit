@@ -166,6 +166,10 @@ component::define! {
 	/// A World Editor export containing a reusable part of an Enshrouded world.
 	#[derive(Debug, Clone, Serialize, Deserialize, Validate, utoipa::ToSchema)]
 	pub struct SchematicProject {}
+
+	/// A modpack project.
+	#[derive(Debug, Clone, Serialize, Deserialize, Validate, utoipa::ToSchema)]
+	pub struct ModpackProject {}
 }
 
 impl ProjectComponent for ModProject {
@@ -177,6 +181,12 @@ impl ProjectComponent for ModProject {
 impl ProjectComponent for SchematicProject {
 	fn kind() -> ProjectComponentKind {
 		ProjectComponentKind::Schematic
+	}
+}
+
+impl ProjectComponent for ModpackProject {
+	fn kind() -> ProjectComponentKind {
+		ProjectComponentKind::Modpack
 	}
 }
 

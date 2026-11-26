@@ -552,6 +552,18 @@ async fn project_create_inner(
 		create_data.validate().map_err(|err| {
 			CreateError::InvalidInput(validation_errors_to_string(err, None))
 		})?;
+		let project_type_exists = sqlx::query_scalar!(
+			"SELECT EXISTS(SELECT 1 FROM project_types WHERE name = $1)",
+			&create_data.project_type
+		)
+		.fetch_one(&mut *transaction)
+		.await?
+		.unwrap_or(false);
+		if !project_type_exists {
+			return Err(CreateError::InvalidInput(
+				"unknown project type".to_string(),
+			));
+		}
 
 		let versions_to_create = create_data.initial_versions.len() as u64;
 		if versions_to_create > 0 {
@@ -646,7 +658,7 @@ async fn project_create_inner(
 					data,
 					project_id,
 					current_user.id,
-					create_data.project_type == "schematic",
+					&create_data.project_type,
 					&all_loaders,
 					transaction,
 					redis,
@@ -963,6 +975,7 @@ async fn project_create_inner(
 
 		let project_builder_actual = models::project_item::ProjectBuilder {
 			project_id: project_id.into(),
+			project_type: project_create_data.project_type.clone(),
 			team_id,
 			organization_id: project_create_data
 				.organization_id
@@ -1005,6 +1018,8 @@ async fn project_create_inner(
 					.then_some(exp::enshrouded::ModProject {}),
 				schematic: (project_create_data.project_type == "schematic")
 					.then_some(exp::enshrouded::SchematicProject {}),
+				modpack: (project_create_data.project_type == "modpack")
+					.then_some(exp::enshrouded::ModpackProject {}),
 				..exp::ProjectSerial::default()
 			},
 		};
@@ -1070,25 +1085,14 @@ async fn project_create_inner(
 			.flat_map(|v| v.loaders.clone())
 			.unique()
 			.collect::<Vec<_>>();
-		let (mut project_types, games) = Loader::list(&mut *transaction, redis)
+		let games = Loader::list(&mut *transaction, redis)
 			.await?
 			.into_iter()
-			.fold(
-				(Vec::new(), Vec::new()),
-				|(mut project_types, mut games), loader| {
-					if loaders.contains(&loader.id) {
-						project_types.extend(loader.supported_project_types);
-						games.extend(loader.supported_games);
-					}
-					(project_types, games)
-				},
-			);
-		project_types.sort();
-		project_types.dedup();
-		exp::compat::correct_project_types(
-			&project_builder.components,
-			&mut project_types,
-		);
+			.filter(|loader| loaders.contains(&loader.id))
+			.flat_map(|loader| loader.supported_games)
+			.unique()
+			.collect::<Vec<_>>();
+		let project_types = vec![project_builder.project_type.clone()];
 
 		let response = crate::models::projects::Project {
 			id: project_id,
@@ -1153,7 +1157,7 @@ async fn create_initial_version(
 	version_data: &InitialVersionData,
 	project_id: ProjectId,
 	author: UserId,
-	is_schematic_project: bool,
+	project_type: &str,
 	all_loaders: &[models::loader_fields::Loader],
 	transaction: &mut PgTransaction<'_>,
 	redis: &RedisPool,
@@ -1180,7 +1184,13 @@ async fn create_initial_version(
 				.iter()
 				.find(|y| y.loader == x.0)
 				.ok_or_else(|| CreateError::InvalidLoader(x.0.clone()))
-				.map(|y| y.id)
+				.and_then(|loader| {
+					if loader.can_publish_project_type(project_type) {
+						Ok(loader.id)
+					} else {
+						Err(CreateError::InvalidLoader(x.0.clone()))
+					}
+				})
 		})
 		.collect::<Result<Vec<models::LoaderId>, CreateError>>()?;
 
@@ -1199,7 +1209,7 @@ async fn create_initial_version(
 		&version_data.fields,
 		&loader_fields,
 		&mut loader_field_enum_values,
-		is_schematic_project,
+		project_type == "schematic",
 	)?;
 
 	let dependencies = version_data

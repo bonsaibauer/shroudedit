@@ -201,8 +201,7 @@ export class LabrinthVersionsV3Module extends AbstractModule {
 		}
 
 		if (projectType === 'modpack') {
-			data.mrpack_loaders = draftVersion.loaders
-			data.loaders = ['mrpack']
+			data.loaders = ['sfpack']
 		}
 
 		formData.append('data', JSON.stringify(data))

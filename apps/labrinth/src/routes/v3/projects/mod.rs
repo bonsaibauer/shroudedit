@@ -163,18 +163,7 @@ pub async fn random_projects_get(
             )
             SELECT id FROM mods
             WHERE status = ANY($1)
-            AND EXISTS (
-                SELECT 1 FROM versions v
-                INNER JOIN loaders_versions lv ON v.id = lv.version_id
-                INNER JOIN loaders_project_types lpt ON lpt.joining_loader_id = lv.loader_id
-                INNER JOIN project_types pt ON pt.id = lpt.joining_project_type_id
-                WHERE v.mod_id = mods.id AND pt.name = $3
-                AND ($3 <> 'schematic' OR jsonb_typeof(mods.components -> 'schematic') = 'object')
-                AND ($3 <> 'mod' OR jsonb_typeof(mods.components -> 'schematic') IS DISTINCT FROM 'object')
-                -- prevents decorrelation, so this stops at the first match instead
-                -- of scanning all versions before the outer sort/limit applies
-                OFFSET 0
-            )
+            AND project_type = $3
             ORDER BY POINT(id, 0) <-> (SELECT point FROM random_id_point)
             LIMIT $2",
             &statuses,
@@ -1369,6 +1358,13 @@ pub async fn project_edit_internal(
 			|| new_project
 				.status
 				.is_some_and(|status| !status.is_searchable()));
+	if let Some(server_edit) = &new_project.enshrouded_server {
+		if project_item.inner.project_type != "server" || server_edit.is_none() {
+			return Err(ApiError::Request(eyre::eyre!(
+				"project type cannot be changed through components"
+			)));
+		}
+	}
 
 	reindex_versions |= update(
 		&mut transaction,

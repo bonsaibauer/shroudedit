@@ -576,23 +576,25 @@ pub async fn version_edit_helper(
 				.wrap_internal_err("starting database transaction")?;
 
 			let new_loader_ids = if let Some(loaders) = &new_version.loaders {
+				let project = database::models::DBProject::get_id(
+					version_item.inner.project_id,
+					&mut transaction,
+					&redis,
+				)
+				.await
+				.wrap_internal_err("fetching project")?
+				.wrap_request_err("project does not exist")?;
+				let available_loaders = database::models::loader_fields::Loader::list(&mut transaction, &redis)
+					.await
+					.wrap_internal_err("fetching loaders")?;
 				let mut loader_ids = Vec::with_capacity(loaders.len());
 				for loader in loaders {
-					let loader_id =
-						database::models::loader_fields::Loader::get_id(
-							&loader.0,
-							&mut transaction,
-							&redis,
-						)
-						.await
-						.wrap_internal_err("fetching loader from Redis")?
-						.wrap_request_err_with(|| {
-							format!(
-								"no database entry for loader `{}`",
-								loader.0
-							)
-						})?;
-					loader_ids.push(loader_id);
+					let selected = available_loaders.iter().find(|available| available.loader == loader.0)
+						.wrap_request_err_with(|| format!("no database entry for loader `{}`", loader.0))?;
+					if !selected.can_publish_project_type(&project.inner.project_type) {
+						return Err(ApiError::Request(eyre::eyre!("loader `{}` does not support this project's type", loader.0)));
+					}
+					loader_ids.push(selected.id);
 				}
 				Some(loader_ids)
 			} else {

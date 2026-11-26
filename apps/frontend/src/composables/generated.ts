@@ -47,6 +47,12 @@ const ENSHROUDED_GAME_VERSIONS = new Set([
 	'1.0.1.2',
 ])
 
+const SFPACK_LOADER: Labrinth.Tags.v2.Loader = {
+	name: 'sfpack',
+	icon: '',
+	supported_project_types: ['modpack'],
+}
+
 const ENSHROUDED_LOADERS: Labrinth.Tags.v2.Loader[] = [
 	{
 		name: 'shroudtopia',
@@ -63,10 +69,14 @@ const ENSHROUDED_LOADERS: Labrinth.Tags.v2.Loader[] = [
 		icon: '',
 		supported_project_types: ['mod', 'schematic'],
 	},
+	SFPACK_LOADER,
 ]
 
-const getEnshroudedLoaders = (generatedLoaders: Labrinth.Tags.v2.Loader[]) =>
-	generatedLoaders.length > 0 ? generatedLoaders : ENSHROUDED_LOADERS
+const getEnshroudedLoaders = (generatedLoaders: Labrinth.Tags.v2.Loader[]) => {
+	if (generatedLoaders.length === 0) return ENSHROUDED_LOADERS
+	if (generatedLoaders.some((loader) => loader.name === 'sfpack')) return generatedLoaders
+	return [...generatedLoaders, SFPACK_LOADER]
+}
 
 const filterEnshroudedGameVersions = (versions: Labrinth.Tags.v2.GameVersion[]) =>
 	versions.filter((version) => ENSHROUDED_GAME_VERSIONS.has(version.version))

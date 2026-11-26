@@ -98,7 +98,6 @@
 				@download="triggerDownloadAnimation"
 			/>
 			<CollectionCreateModal ref="modal_collection" :project-ids="[project.id]" />
-			<ModpackScanModal ref="scanModal" :project_id="project.id" />
 
 			<div
 				class="new-page sidebar"
@@ -323,36 +322,6 @@
 					/>
 					<Admonition
 						v-if="
-							auth.user &&
-							tags.staffRoles.includes(auth.user.role) &&
-							project.actualProjectType === 'modpack' &&
-							hasModpackArchiveInWarningWindow
-						"
-						type="warning"
-						:header="formatMessage(messages.modpackArchiveWarningTitle)"
-						class="mt-3"
-					>
-						{{ formatMessage(messages.modpackArchiveWarningDescription) }}
-						<template #actions>
-							<Button
-								type="colored"
-								color="orange"
-								:loading="isCheckingModpackArchives"
-								@click="checkModpackArchives"
-							>
-								<FileArchiveIcon />
-								{{
-									formatMessage(
-										isCheckingModpackArchives
-											? messages.checkingModpackArchives
-											: messages.checkModpackArchives,
-									)
-								}}
-							</Button>
-						</template>
-					</Admonition>
-					<Admonition
-						v-if="
 							currentMember &&
 							projectV3?.side_types_migration_review_status === 'pending' &&
 							projectV3?.environment?.length === 1 &&
@@ -475,8 +444,6 @@ import {
 	ClipboardCopyIcon,
 	CompassIcon,
 	DownloadIcon,
-	FileArchiveIcon,
-	FolderSearchIcon,
 	HeartIcon,
 	LeftArrowIcon,
 	MoreVerticalIcon,
@@ -535,7 +502,6 @@ import AdPlacement from '~/components/ui/AdPlacement.vue'
 import CollectionCreateModal from '~/components/ui/create/CollectionCreateModal.vue'
 import ModerationChecklist from '~/components/ui/moderation/checklist/ModerationChecklist.vue'
 import ModerationProjectNags from '~/components/ui/moderation/ModerationProjectNags.vue'
-import ModpackScanModal from '~/components/ui/moderation/ModpackScanModal.vue'
 import ProjectCollectionSaveButton from '~/components/ui/ProjectCollectionSaveButton.vue'
 import ProjectDownloadModal from '~/components/ui/ProjectDownloadModal/index.vue'
 import ProjectMemberHeader from '~/components/ui/ProjectMemberHeader.vue'
@@ -600,8 +566,6 @@ const debug = useDebugLogger('DownloadModal')
 
 const downloadModal = ref()
 const overTheTopDownloadAnimation = ref()
-const scanModal = ref()
-const isCheckingModpackArchives = ref(false)
 
 const projectV3Loaded = computed(() => !projectV3Pending.value || projectV3.value != null)
 const isServerProject = computed(() => projectV3.value?.enshrouded_server != null)
@@ -762,39 +726,6 @@ const messages = defineMessages({
 	viewModpacks: {
 		id: 'project.actions.view-modpacks',
 		defaultMessage: 'View modpacks',
-	},
-	rescanModpack: {
-		id: 'project.actions.rescan-modpack',
-		defaultMessage: 'Rescan modpack',
-	},
-	checkModpackArchives: {
-		id: 'project.actions.check-modpack-archives',
-		defaultMessage: 'Check modpack unzip',
-	},
-	checkingModpackArchives: {
-		id: 'project.actions.checking-modpack-archives',
-		defaultMessage: 'Checking...',
-	},
-	checkModpackArchivesSuccess: {
-		id: 'project.notification.check-modpack-archives.success',
-		defaultMessage:
-			'{count, plural, one {The modpack file can be unzipped.} other {All # modpack files can be unzipped.}}',
-	},
-	checkModpackArchivesFailed: {
-		id: 'project.notification.check-modpack-archives.failed',
-		defaultMessage: 'Some modpack files could not be unzipped',
-	},
-	checkModpackArchivesNoFiles: {
-		id: 'project.notification.check-modpack-archives.no-files',
-		defaultMessage: 'No .mrpack files were found for this project.',
-	},
-	modpackArchiveWarningTitle: {
-		id: 'project.modpack-archive-warning.title',
-		defaultMessage: 'This modpack was published during export bug',
-	},
-	modpackArchiveWarningDescription: {
-		id: 'project.modpack-archive-warning.description',
-		defaultMessage: 'Importing this .mrpack might be broken.',
 	},
 	versionsTab: {
 		id: 'project.versions.title',
@@ -1597,89 +1528,6 @@ const settingsBackDestination = computed(() => {
 const projectHeaderPrimaryColor = computed(() =>
 	currentMember.value || route.name === 'type-project-version-version' ? 'standard' : 'brand',
 )
-const MRPACK_ARCHIVE_WARNING_START = new Date('2026-08-10T17:00:00.000Z').getTime()
-const MRPACK_ARCHIVE_WARNING_END = new Date('2026-08-13T20:00:00.000Z').getTime()
-const hasModpackArchiveInWarningWindow = computed(() =>
-	(versionsV3.value ?? []).some((version) => {
-		const publishedAt = new Date(version.date_published).getTime()
-		return (
-			version.files.some((file) => file.filename.toLowerCase().endsWith('.mrpack')) &&
-			publishedAt >= MRPACK_ARCHIVE_WARNING_START &&
-			publishedAt <= MRPACK_ARCHIVE_WARNING_END
-		)
-	}),
-)
-
-async function checkModpackArchives() {
-	if (!project.value || isCheckingModpackArchives.value) return
-
-	isCheckingModpackArchives.value = true
-	startLoading()
-
-	try {
-		const versions = await client.labrinth.versions_v2.getProjectVersions(project.value.id)
-		const filesByUrl = new Map(
-			versions
-				.flatMap((version) => version.files)
-				.filter((file) => file.filename.toLowerCase().endsWith('.mrpack'))
-				.map((file) => [file.url, file]),
-		)
-		const files = [...filesByUrl.values()]
-
-		if (files.length === 0) {
-			addNotification({
-				title: formatMessage(commonMessages.errorNotificationTitle),
-				text: formatMessage(messages.checkModpackArchivesNoFiles),
-				type: 'error',
-			})
-			return
-		}
-
-		const { default: JSZip } = await import('jszip')
-		const failures = []
-
-		for (const file of files) {
-			try {
-				const response = await fetch(file.url)
-				if (!response.ok) {
-					throw new Error(`Download failed (${response.status} ${response.statusText})`)
-				}
-
-				await JSZip.loadAsync(await response.blob(), { checkCRC32: true })
-			} catch (error) {
-				failures.push({
-					filename: file.filename,
-					error: error?.message ?? String(error),
-				})
-			}
-		}
-
-		if (failures.length > 0) {
-			addNotification({
-				title: formatMessage(messages.checkModpackArchivesFailed),
-				text: failures.map((failure) => `${failure.filename}: ${failure.error}`).join('\n'),
-				type: 'error',
-			})
-			return
-		}
-
-		addNotification({
-			title: formatMessage(commonMessages.successLabel),
-			text: formatMessage(messages.checkModpackArchivesSuccess, { count: files.length }),
-			type: 'success',
-		})
-	} catch (error) {
-		addNotification({
-			title: formatMessage(commonMessages.errorNotificationTitle),
-			text: error?.data?.description ?? error?.message ?? String(error),
-			type: 'error',
-		})
-	} finally {
-		isCheckingModpackArchives.value = false
-		stopLoading()
-	}
-}
-
 const projectHeaderMoreActions = computed(() => {
 	const isStaff = !!(auth.value.user && tags.value.staffRoles.includes(auth.value.user.role))
 	const projectId = project.value?.id
@@ -1747,27 +1595,6 @@ const projectHeaderMoreActions = computed(() => {
 			to: `/moderation/technical-review/${project.value?.id}`,
 			tone: 'orange',
 			shown: !!auth.value.user && isStaff,
-		},
-		{
-			id: 'moderation-modpack-rescan',
-			label: formatMessage(messages.rescanModpack),
-			icon: FolderSearchIcon,
-			action: () => scanModal.value?.show(),
-			tone: 'orange',
-			shown: !!auth.value.user && isStaff && project.value?.actualProjectType === 'modpack',
-		},
-		{
-			id: 'moderation-modpack-check-archives',
-			label: formatMessage(
-				isCheckingModpackArchives.value
-					? messages.checkingModpackArchives
-					: messages.checkModpackArchives,
-			),
-			icon: FileArchiveIcon,
-			action: checkModpackArchives,
-			tone: 'orange',
-			disabled: isCheckingModpackArchives.value,
-			shown: !!auth.value.user && isStaff && project.value?.actualProjectType === 'modpack',
 		},
 		{ type: 'divider', shown: !!auth.value.user && isStaff },
 		{

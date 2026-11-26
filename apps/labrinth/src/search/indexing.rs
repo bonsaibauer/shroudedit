@@ -33,6 +33,7 @@ use xredis::RedisPool;
 
 struct PartialProject {
 	id: DBProjectId,
+	project_type: String,
 	name: String,
 	summary: String,
 	downloads: i32,
@@ -81,7 +82,7 @@ pub async fn index_local(
 		r#"
         SELECT m.id id, m.name name, m.summary summary, m.downloads downloads, m.follows follows,
         m.icon_url icon_url, m.updated updated, m.approved approved, m.published, m.license license, m.slug slug, m.color,
-        m.components AS "components: sqlx::types::Json<exp::ProjectSerial>"
+        m.components AS "components: sqlx::types::Json<exp::ProjectSerial>", m.project_type
         FROM mods m
         WHERE m.status = ANY($1) AND m.id > $3
         GROUP BY m.id
@@ -96,6 +97,7 @@ pub async fn index_local(
         .map_ok(|m| {
             PartialProject {
                 id: DBProjectId(m.id),
+				project_type: m.project_type,
                 name: m.name,
                 summary: m.summary,
                 downloads: m.downloads,
@@ -178,7 +180,7 @@ async fn build_search_document_batch(
         r#"
 		SELECT m.id id, m.name name, m.summary summary, m.downloads downloads, m.follows follows,
 		m.icon_url icon_url, m.updated updated, m.approved approved, m.published, m.license license, m.slug slug, m.color,
-		m.components AS "components: sqlx::types::Json<exp::ProjectSerial>"
+		m.components AS "components: sqlx::types::Json<exp::ProjectSerial>", m.project_type
 		FROM mods m
 		WHERE m.status = ANY($1) AND m.id = ANY($2)
 		GROUP BY m.id
@@ -190,6 +192,7 @@ async fn build_search_document_batch(
     .fetch(pool)
     .map_ok(|m| PartialProject {
         id: DBProjectId(m.id),
+		project_type: m.project_type,
         name: m.name,
         summary: m.summary,
         downloads: m.downloads,
@@ -663,16 +666,7 @@ async fn build_search_documents(
 		project_loaders.sort();
 		project_loaders.dedup();
 
-		let mut project_types = versions
-			.iter()
-			.flat_map(|x| x.project_types.clone())
-			.collect::<Vec<_>>();
-		project_types.sort();
-		project_types.dedup();
-		exp::compat::correct_project_types(
-			&project.components,
-			&mut project_types,
-		);
+		let project_types = vec![project.project_type.clone()];
 
 		let project_id = ProjectId::from(project.id).to_string();
 		version_uploads.extend(versions.iter().filter_map(|version| {
@@ -695,11 +689,7 @@ async fn build_search_documents(
 				})
 				.collect();
 			let mut fields = from_duplicate_version_fields(version_fields);
-			let mut version_project_types = version.project_types.clone();
-			exp::compat::correct_project_types(
-				&project.components,
-				&mut version_project_types,
-			);
+			let version_project_types = project_types.clone();
 
 			// SPECIAL BEHAVIOUR
 			// Todo: revisit.
@@ -852,7 +842,6 @@ async fn build_search_documents(
 struct PartialVersion {
 	id: DBVersionId,
 	loaders: Vec<String>,
-	project_types: Vec<String>,
 	version_fields: Vec<QueryVersionField>,
 	date_published: DateTime<Utc>,
 }
@@ -891,7 +880,6 @@ async fn load_project_versions(
 	#[derive(Default)]
 	struct VersionLoaderData {
 		loaders: Vec<String>,
-		project_types: Vec<String>,
 	}
 
 	let all_version_ids = versions
@@ -903,13 +891,10 @@ async fn load_project_versions(
 	let loaders_ptypes: DashMap<DBVersionId, VersionLoaderData> = sqlx::query!(
         "
         SELECT DISTINCT version_id,
-            ARRAY_AGG(DISTINCT l.loader) filter (where l.loader is not null) loaders,
-            ARRAY_AGG(DISTINCT pt.name) filter (where pt.name is not null) project_types
+            ARRAY_AGG(DISTINCT l.loader) filter (where l.loader is not null) loaders
         FROM versions v
         INNER JOIN loaders_versions lv ON v.id = lv.version_id
         INNER JOIN loaders l ON lv.loader_id = l.id
-        INNER JOIN loaders_project_types lpt ON lpt.joining_loader_id = l.id
-        INNER JOIN project_types pt ON pt.id = lpt.joining_project_type_id
         WHERE v.id = ANY($1)
         GROUP BY version_id
         ",
@@ -921,13 +906,12 @@ async fn load_project_versions(
 
         let version_loader_data = VersionLoaderData {
             loaders: m.loaders.unwrap_or_default(),
-            project_types: m.project_types.unwrap_or_default(),
         };
         (version_id, version_loader_data)
     })
     .try_collect()
     .await
-    .wrap_err("failed to fetch loaders and project types")?;
+    .wrap_err("failed to fetch version loaders")?;
 
 	// Get version fields
 	let version_fields: DashMap<DBVersionId, Vec<QueryVersionField>> =
@@ -987,7 +971,6 @@ async fn load_project_versions(
 				.push(PartialVersion {
 					id: *version_id,
 					loaders: version_loader_data.loaders,
-					project_types: version_loader_data.project_types,
 					version_fields,
 					date_published: *date_published,
 				});

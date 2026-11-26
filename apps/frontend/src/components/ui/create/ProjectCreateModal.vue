@@ -167,7 +167,7 @@ import {
 
 import CreateLimitAlert from './CreateLimitAlert.vue'
 
-type ProjectTypes = 'server' | 'project' | 'schematic'
+type ProjectTypes = 'server' | 'project' | 'schematic' | 'modpack'
 interface VisibilityOption {
 	actual: Labrinth.Projects.v2.ProjectStatus
 	display: string
@@ -212,6 +212,10 @@ const messages = defineMessages({
 	typeSchematic: {
 		id: 'create.project.type-schematic',
 		defaultMessage: 'Schematic',
+	},
+	typeModpack: {
+		id: 'create.project.type-modpack',
+		defaultMessage: 'Modpack',
 	},
 	ownerLabel: {
 		id: 'create.project.owner-label',
@@ -317,6 +321,10 @@ const projectTypeOptions = computed<ComboboxOption<ProjectTypes>[]>(() => [
 	{
 		value: 'schematic',
 		label: formatMessage(messages.typeSchematic),
+	},
+	{
+		value: 'modpack',
+		label: formatMessage(messages.typeModpack),
 	},
 ])
 const ownerOptions = ref<ComboboxOption<string>[]>([])
@@ -436,7 +444,10 @@ async function createProject() {
 
 	const projectData: Labrinth.Projects.v2.CreateProjectBase = {
 		title: name.value.trim(),
-		project_type: projectType.value === 'schematic' ? 'schematic' : 'mod',
+		project_type:
+			projectType.value === 'project' || projectType.value === 'server'
+				? 'mod'
+				: projectType.value,
 		slug: slug.value,
 		description: description.value.trim(),
 		body: '',

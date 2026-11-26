@@ -161,6 +161,7 @@ type Query<T> = <T as Component>::Query;
 define_project_components![
 	(enshrouded_mod, EnshroudedMod): enshrouded::ModProject,
 	(schematic, Schematic): enshrouded::SchematicProject,
+	(modpack, Modpack): enshrouded::ModpackProject,
 	(enshrouded_server, EnshroudedServer): enshrouded::EnshroudedServerProject,
 ];
 
@@ -169,6 +170,7 @@ component::relations! {
 		[
 			[ProjectComponentKind::EnshroudedMod].only(),
 			[ProjectComponentKind::Schematic].only(),
+			[ProjectComponentKind::Modpack].only(),
 			[ProjectComponentKind::EnshroudedServer].only(),
 		]
 	}

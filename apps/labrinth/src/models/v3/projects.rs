@@ -23,7 +23,7 @@ pub struct Project {
 	pub id: ProjectId,
 	/// The slug of a project, used for vanity URLs
 	pub slug: Option<String>,
-	/// The aggregated project typos of the versions of this project
+	/// The stored project type.
 	pub project_types: Vec<String>,
 	/// The aggregated games of the versions of this project
 	pub games: Vec<String>,
@@ -768,7 +768,7 @@ pub struct Version {
 	pub name: String,
 	/// The version number. Ideally will follow semantic versioning
 	pub version_number: String,
-	/// Project types for which this version is compatible with, extracted from Loader
+	/// The stored type of the parent project.
 	pub project_types: Vec<String>,
 	/// Games for which this version is compatible with, extracted from Loader/Project types
 	pub games: Vec<String>,

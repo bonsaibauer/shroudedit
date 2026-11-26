@@ -932,7 +932,7 @@ export namespace Labrinth {
 
 			export interface CreateProjectBase {
 				title: string
-				project_type: 'mod' | 'schematic'
+				project_type: 'mod' | 'modpack' | 'schematic'
 				slug: string
 				description: string
 				body: string
@@ -1217,6 +1217,8 @@ export namespace Labrinth {
 				environment?: Environment[]
 
 				enshrouded_mod?: unknown | null
+				schematic?: unknown | null
+				modpack?: unknown | null
 				enshrouded_server?: EnshroudedServer | null
 
 				/**
@@ -2078,6 +2080,8 @@ export namespace Labrinth {
 					environment?: Projects.v3.Environment[]
 				}
 				enshrouded_mod?: unknown | null
+				schematic?: unknown | null
+				modpack?: unknown | null
 				enshrouded_server?: Projects.v3.EnshroudedServer | null
 				disclosure_types: string[]
 			}

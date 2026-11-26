@@ -113,6 +113,13 @@ pub struct Loader {
 }
 
 impl Loader {
+	pub fn can_publish_project_type(&self, project_type: &str) -> bool {
+		self.supported_project_types
+			.iter()
+			.any(|supported| supported == project_type)
+			&& (project_type != "modpack" || self.loader == "sfpack")
+	}
+
 	pub async fn get_id<'a, E>(
 		name: &str,
 		exec: E,

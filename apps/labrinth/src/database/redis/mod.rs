@@ -118,6 +118,7 @@ mod tests {
 
 		DBProject {
 			id: DBProjectId(1),
+			project_type: "mod".to_string(),
 			team_id: DBTeamId(2),
 			organization_id: None,
 			name: "project".to_string(),

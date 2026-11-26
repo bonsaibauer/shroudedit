@@ -7,13 +7,12 @@
 //!
 //! Projects and versions work in an ECS-like architecture, where each project
 //! is an entity (project ID), and components can be attached to that project to
-//! determine the project's type, like a Enshrouded mod, data pack, etc. Project
+//! store type-specific data. The project type is stored on the project. Project
 //! components *may* store extra data (like a server listing which stores the
 //! server address), but typically, the version will store this data in *version
 //! components*.
 
 pub mod base;
-pub mod compat;
 pub mod component;
 pub mod enshrouded;
 pub mod project;

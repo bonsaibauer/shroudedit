@@ -24,7 +24,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use tracing::error;
 
-pub const VERSIONS_NAMESPACE: &str = "versions:v4";
+pub const VERSIONS_NAMESPACE: &str = "versions:v5";
 const VERSION_FILES_NAMESPACE: &str = "versions_files:v4";
 
 pub async fn cleanup_unused_attribution_files_and_groups(
@@ -706,7 +706,6 @@ impl DBVersion {
                 #[derive(Default)]
                 struct VersionLoaderData {
                     loaders: Vec<String>,
-                    project_types: Vec<String>,
                     games: Vec<String>,
                     loader_loader_field_ids: Vec<LoaderFieldId>,
                 }
@@ -716,7 +715,6 @@ impl DBVersion {
                     "
                     SELECT DISTINCT version_id,
                         ARRAY_AGG(DISTINCT l.loader) filter (where l.loader is not null) loaders,
-                        ARRAY_AGG(DISTINCT pt.name) filter (where pt.name is not null) project_types,
                         ARRAY_AGG(DISTINCT g.slug) filter (where g.slug is not null) games,
                         ARRAY_AGG(DISTINCT lfl.loader_field_id) filter (where lfl.loader_field_id is not null) loader_fields
                     FROM versions v
@@ -744,7 +742,6 @@ impl DBVersion {
                         // Add loader + loader associated data to the map
                         let version_loader_data = VersionLoaderData {
                             loaders: m.loaders.unwrap_or_default(),
-                            project_types: m.project_types.unwrap_or_default(),
                             games: m.games.unwrap_or_default(),
                             loader_loader_field_ids,
                         };
@@ -929,8 +926,9 @@ impl DBVersion {
                     SELECT v.id id, v.mod_id mod_id, v.author_id author_id, v.name version_name, v.version_number version_number,
                     v.changelog changelog, v.date_published date_published, v.downloads downloads,
                     v.version_type version_type, v.featured featured, v.status status, v.requested_status requested_status, v.ordering ordering,
-                    v.components AS "components: sqlx::types::Json<exp::VersionSerial>"
+                    v.components AS "components: sqlx::types::Json<exp::VersionSerial>", m.project_type
                     FROM versions v
+                    INNER JOIN mods m ON m.id = v.mod_id
                     WHERE v.id = ANY($1);
                     "#,
                     &version_ids
@@ -941,7 +939,6 @@ impl DBVersion {
                         let version_id = DBVersionId(v.id);
                         let VersionLoaderData {
                             loaders,
-                            project_types,
                             games,
                             loader_loader_field_ids,
                         } = loaders_ptypes_games.remove(&version_id).map(|x|x.1).unwrap_or_default();
@@ -1024,7 +1021,7 @@ impl DBVersion {
                             },
                             version_fields: VersionField::from_query_json(version_fields, &loader_fields, &loader_field_enum_values, false),
                             loaders,
-                            project_types,
+                            project_types: vec![v.project_type],
                             games,
                             dependencies,
                             // TODO populate
