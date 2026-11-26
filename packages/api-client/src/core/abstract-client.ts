@@ -28,10 +28,6 @@ export abstract class AbstractShroudEditClient extends AbstractUploadClient {
 	public readonly labrinth!: InferredClientModules['labrinth']
 	public readonly kyros!: InferredClientModules['kyros']
 	public readonly iso3166!: InferredClientModules['iso3166']
-	public readonly mclogs!: InferredClientModules['mclogs']
-	public readonly launchermeta!: InferredClientModules['launchermeta']
-	public readonly paper!: InferredClientModules['paper']
-	public readonly purpur!: InferredClientModules['purpur']
 	public readonly sharedinstances!: InferredClientModules['sharedinstances']
 
 	constructor(config: ClientConfig) {

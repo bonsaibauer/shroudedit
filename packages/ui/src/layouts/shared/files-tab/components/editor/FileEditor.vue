@@ -46,7 +46,6 @@ import type { Ace } from 'ace-builds'
 import { type Component, computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 
 import { defineMessages, useVIntl } from '#ui/composables/i18n'
-import { injectShroudEditClient } from '#ui/providers'
 import { injectNotificationManager } from '#ui/providers/web-notifications'
 import { getEditorLanguage, getFileExtension, isImageFile } from '#ui/utils/file-extensions'
 
@@ -67,7 +66,6 @@ const emit = defineEmits<{
 const { formatMessage } = useVIntl()
 const { addNotification } = injectNotificationManager()
 const ctx = injectFileManager()
-const client = injectShroudEditClient()
 
 const messages = defineMessages({
 	failedToOpenTitle: {
@@ -93,22 +91,6 @@ const messages = defineMessages({
 	saveFailedText: {
 		id: 'files.editor.save-failed-text',
 		defaultMessage: 'Could not save the file.',
-	},
-	logUrlCopiedTitle: {
-		id: 'files.editor.log-url-copied-title',
-		defaultMessage: 'Log URL copied',
-	},
-	logUrlCopiedText: {
-		id: 'files.editor.log-url-copied-text',
-		defaultMessage: 'Your log file URL has been copied to your clipboard.',
-	},
-	failedToShareTitle: {
-		id: 'files.editor.failed-to-share-title',
-		defaultMessage: 'Failed to share file',
-	},
-	failedToShareText: {
-		id: 'files.editor.failed-to-share-text',
-		defaultMessage: 'Could not upload to mclo.gs.',
 	},
 })
 
@@ -269,35 +251,6 @@ async function saveFileContent(exit: boolean = false) {
 	}
 }
 
-async function shareToMclogs() {
-	if (ctx.shareToMclogs) {
-		await ctx.shareToMclogs(fileContent.value)
-		return
-	}
-
-	try {
-		const data = await client.mclogs.logs_v1.create(fileContent.value)
-
-		if (data.success && data.url) {
-			await navigator.clipboard.writeText(data.url)
-			addNotification({
-				title: formatMessage(messages.logUrlCopiedTitle),
-				text: formatMessage(messages.logUrlCopiedText),
-				type: 'success',
-			})
-		} else {
-			throw new Error('mclo.gs upload failed')
-		}
-	} catch (error) {
-		console.error('Error sharing file:', error)
-		addNotification({
-			title: formatMessage(messages.failedToShareTitle),
-			text: formatMessage(messages.failedToShareText),
-			type: 'error',
-		})
-	}
-}
-
 function countOccurrences(content: string, query: string): number {
 	if (!query) return 0
 	const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -398,7 +351,6 @@ onUnmounted(() => {
 
 defineExpose({
 	saveFileContent,
-	shareToMclogs,
 	close,
 	isEditingImage,
 	isFindOpen,

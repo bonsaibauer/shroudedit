@@ -88,10 +88,6 @@ export interface ProjectType {
 }
 
 export interface LoaderData {
-	pluginLoaders: string[]
-	pluginPlatformLoaders: string[]
-	allPluginLoaders: string[]
-	dataPackLoaders: string[]
 	modLoaders: string[]
 	hiddenModLoaders: string[]
 }
@@ -177,10 +173,6 @@ const generatedState = shallowRef<GeneratedState>(
 			},
 		],
 		loaderData: {
-			pluginLoaders: [],
-			pluginPlatformLoaders: [],
-			allPluginLoaders: [],
-			dataPackLoaders: [],
 			modLoaders: ['shroudtopia', 'shroudforge', 'eml'],
 			hiddenModLoaders: [],
 		},

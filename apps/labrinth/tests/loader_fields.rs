@@ -51,7 +51,7 @@ async fn creating_loader_fields() {
 			.add_public_version(
 				*alpha_project_id_parsed,
 				"1.0.0",
-				TestFile::build_random_jar(),
+				TestFile::build_random_mod_zip(),
 				None,
 				Some(
 					serde_json::from_value(json!([{
@@ -84,13 +84,13 @@ async fn creating_loader_fields() {
 			.add_public_version(
 				*alpha_project_id_parsed,
 				"1.0.0",
-				TestFile::build_random_jar(),
+				TestFile::build_random_mod_zip(),
 				None,
 				Some(
 					serde_json::from_value(json!([{
 						"op": "add",
-						"path": "/mrpack_loaders",
-						"value": ["fabric"]
+						"path": "/modpack_loaders",
+						"value": ["shroudforge"]
 					}]))
 					.unwrap(),
 				),
@@ -103,7 +103,7 @@ async fn creating_loader_fields() {
 			.edit_version(
 				alpha_version_id,
 				json!({
-					"mrpack_loaders": ["fabric"]
+					"modpack_loaders": ["shroudforge"]
 				}),
 				USER_USER_PAT,
 			)
@@ -117,7 +117,7 @@ async fn creating_loader_fields() {
 			.add_public_version(
 				*alpha_project_id_parsed,
 				"1.0.0",
-				TestFile::build_random_jar(),
+				TestFile::build_random_mod_zip(),
 				None,
 				Some(
 					serde_json::from_value(json!([{
@@ -139,7 +139,7 @@ async fn creating_loader_fields() {
 			.add_public_version(
 				*alpha_project_id_parsed,
 				"1.0.0",
-				TestFile::build_random_jar(),
+				TestFile::build_random_mod_zip(),
 				None,
 				Some(
 					serde_json::from_value(json!([{
@@ -161,7 +161,7 @@ async fn creating_loader_fields() {
 			.add_public_version(
 				*alpha_project_id_parsed,
 				"1.0.0",
-				TestFile::build_random_jar(),
+				TestFile::build_random_mod_zip(),
 				None,
 				Some(
 					serde_json::from_value(json!([{
@@ -192,7 +192,7 @@ async fn creating_loader_fields() {
 		for bad_type_game_versions in [
 			json!(1),
 			json!([1]),
-			json!("1.20.1"),
+			json!("0.1.0"),
 			json!(["singleplayer"]),
 		] {
 			// TODO: - Create project
@@ -201,7 +201,7 @@ async fn creating_loader_fields() {
 				.add_public_version(
 					*alpha_project_id_parsed,
 					"1.0.0",
-					TestFile::build_random_jar(),
+					TestFile::build_random_mod_zip(),
 					None,
 					Some(
 						serde_json::from_value(json!([{
@@ -236,12 +236,12 @@ async fn creating_loader_fields() {
 			.add_public_version_deserialized(
 				*alpha_project_id_parsed,
 				"1.0.0",
-				TestFile::build_random_jar(),
+				TestFile::build_random_mod_zip(),
 				None,
 				Some(
 					serde_json::from_value(json!([{
 						"op": "add",
-						"path": "/test_fabric_optional",
+						"path": "/test_shroudforge_optional",
 						"value": 555
 					}]))
 					.unwrap(),
@@ -249,13 +249,13 @@ async fn creating_loader_fields() {
 				USER_USER_PAT,
 			)
 			.await;
-		assert_eq!(&v.fields["test_fabric_optional"], &json!(555));
+		assert_eq!(&v.fields["test_shroudforge_optional"], &json!(555));
 		// - Patch
 		let resp = api
 			.edit_version(
 				alpha_version_id,
 				json!({
-					"test_fabric_optional": 555
+					"test_shroudforge_optional": 555
 				}),
 				USER_USER_PAT,
 			)
@@ -264,7 +264,7 @@ async fn creating_loader_fields() {
 		let v = api
 			.get_version_deserialized(alpha_version_id, USER_USER_PAT)
 			.await;
-		assert_eq!(&v.fields["test_fabric_optional"], &json!(555));
+		assert_eq!(&v.fields["test_shroudforge_optional"], &json!(555));
 
 		// Simply setting them as expected works
 		// - Create
@@ -272,13 +272,13 @@ async fn creating_loader_fields() {
 			.add_public_version_deserialized(
 				*alpha_project_id_parsed,
 				"1.0.0",
-				TestFile::build_random_jar(),
+				TestFile::build_random_mod_zip(),
 				None,
 				Some(
 					serde_json::from_value(json!([{
 						"op": "add",
 						"path": "/game_versions",
-						"value": ["1.20.1", "1.20.2"]
+						"value": ["0.1.0", "0.2.0"]
 					}, {
 						"op": "add",
 						"path": "/environment",
@@ -289,7 +289,7 @@ async fn creating_loader_fields() {
 				USER_USER_PAT,
 			)
 			.await;
-		assert_eq!(&v.fields["game_versions"], &json!(["1.20.1", "1.20.2"]));
+		assert_eq!(&v.fields["game_versions"], &json!(["0.1.0", "0.2.0"]));
 		assert_eq!(
 			&v.fields["environment"],
 			&json!("client_or_server_prefers_both")
@@ -299,7 +299,7 @@ async fn creating_loader_fields() {
 			.edit_version(
 				alpha_version_id,
 				json!({
-					"game_versions": ["1.20.1", "1.20.2"],
+					"game_versions": ["0.1.0", "0.2.0"],
 					"environment": "client_or_server_prefers_both"
 				}),
 				USER_USER_PAT,
@@ -309,20 +309,20 @@ async fn creating_loader_fields() {
 		let v = api
 			.get_version_deserialized(alpha_version_id, USER_USER_PAT)
 			.await;
-		assert_eq!(&v.fields["game_versions"], &json!(["1.20.1", "1.20.2"]));
+		assert_eq!(&v.fields["game_versions"], &json!(["0.1.0", "0.2.0"]));
 
 		// Now that we've created a version, we need to make sure that the Project's loader fields are updated (aggregate)
 		// First, add a new version
 		api.add_public_version_deserialized(
 			*alpha_project_id_parsed,
 			"1.0.1",
-			TestFile::build_random_jar(),
+			TestFile::build_random_mod_zip(),
 			None,
 			Some(
 				serde_json::from_value(json!([{
 					"op": "add",
 					"path": "/game_versions",
-					"value": ["1.20.5"]
+					"value": ["0.5.0"]
 				}, {
 					"op": "add",
 					"path": "/environment",
@@ -338,13 +338,13 @@ async fn creating_loader_fields() {
 		api.add_public_version_deserialized(
 			*beta_project_id_parsed,
 			"1.0.1",
-			TestFile::build_random_jar(),
+			TestFile::build_random_mod_zip(),
 			None,
 			Some(
 				serde_json::from_value(json!([{
 					"op": "add",
 					"path": "/game_versions",
-					"value": ["1.20.4"]
+					"value": ["0.4.0"]
 				}]))
 				.unwrap(),
 			),
@@ -360,7 +360,7 @@ async fn creating_loader_fields() {
 			.await;
 		assert_eq!(
 			&project.fields["game_versions"],
-			&[json!("1.20.1"), json!("1.20.2"), json!("1.20.5")]
+			&[json!("0.1.0"), json!("0.2.0"), json!("0.5.0")]
 		);
 		assert!(
 			project.fields["environment"].contains(&json!("client_or_server"))
@@ -385,7 +385,7 @@ async fn version_edit_uses_submitted_loaders_for_field_validation() {
 				.edit_version(
 					version_id,
 					json!({
-						"loaders": ["bukkit"]
+						"loaders": ["eml"]
 					}),
 					USER_USER_PAT,
 				)
@@ -396,10 +396,10 @@ async fn version_edit_uses_submitted_loaders_for_field_validation() {
 				.edit_version(
 					version_id,
 					json!({
-						"loaders": ["fabric"],
-						"game_versions": ["1.20.1"],
+						"loaders": ["shroudforge"],
+						"game_versions": ["0.1.0"],
 						"environment": "client_only",
-						"test_fabric_optional": 42
+						"test_shroudforge_optional": 42
 					}),
 					USER_USER_PAT,
 				)
@@ -410,10 +410,10 @@ async fn version_edit_uses_submitted_loaders_for_field_validation() {
 				.get_version_deserialized(version_id, USER_USER_PAT)
 				.await;
 			assert_eq!(version.loaders.len(), 1);
-			assert_eq!(version.loaders[0].0, "fabric");
-			assert_eq!(version.fields["game_versions"], json!(["1.20.1"]));
+			assert_eq!(version.loaders[0].0, "shroudforge");
+			assert_eq!(version.fields["game_versions"], json!(["0.1.0"]));
 			assert_eq!(version.fields["environment"], json!("client_only"));
-			assert_eq!(version.fields["test_fabric_optional"], json!(42));
+			assert_eq!(version.fields["test_shroudforge_optional"], json!(42));
 		},
 	)
 	.await;
@@ -439,7 +439,7 @@ async fn version_edit_uses_authoritative_loaders_for_field_validation() {
 				String,
 			> = redis.get_deserialized(&version_key).await.unwrap().unwrap();
 			let mut stale_version = cached_version.value().clone();
-			stale_version.loaders = vec!["bukkit".to_string()];
+			stale_version.loaders = vec!["eml".to_string()];
 			redis
 				.set_serialized(
 					&version_key,
@@ -459,7 +459,7 @@ async fn version_edit_uses_authoritative_loaders_for_field_validation() {
 				.edit_version(
 					version_id,
 					json!({
-						"test_fabric_optional": 73
+						"test_shroudforge_optional": 73
 					}),
 					USER_USER_PAT,
 				)
@@ -469,7 +469,7 @@ async fn version_edit_uses_authoritative_loaders_for_field_validation() {
 			let version = api
 				.get_version_deserialized(version_id, USER_USER_PAT)
 				.await;
-			assert_eq!(version.fields["test_fabric_optional"], json!(73));
+			assert_eq!(version.fields["test_shroudforge_optional"], json!(73));
 		},
 	)
 	.await;
@@ -485,7 +485,7 @@ async fn version_edit_lists_all_incompatible_loader_fields() {
             .edit_version(
                 version_id,
                 json!({
-                    "loaders": ["bukkit"]
+					"loaders": ["eml"]
                 }),
                 USER_USER_PAT,
             )
@@ -496,8 +496,8 @@ async fn version_edit_lists_all_incompatible_loader_fields() {
             .edit_version(
                 version_id,
                 json!({
-                    "test_fabric_optional": 42,
-                    "mrpack_loaders": ["fabric"],
+                    "test_shroudforge_optional": 42,
+                    "modpack_loaders": ["shroudforge"],
                     "environment": "client_only"
                 }),
                 USER_USER_PAT,
@@ -508,7 +508,7 @@ async fn version_edit_lists_all_incompatible_loader_fields() {
         assert_eq!(body["error"], "request_error");
         assert_eq!(
             body["description"],
-            "loader fields `mrpack_loaders`, `test_fabric_optional` do not exist for any loaders supplied"
+            "loader fields `modpack_loaders`, `test_shroudforge_optional` do not exist for any loaders supplied"
         );
     })
     .await;
@@ -529,7 +529,7 @@ async fn get_loader_fields_variants() {
 		// - ordering ties settled by date added to database
 		// - We also expect presentation of NEWEST to OLDEST
 		// - All null orderings are treated as older than any non-null ordering
-		// (for this test, the 1.20.1, etc, versions are all null ordering)
+		// (for this test, the 0.1.0, etc, versions are all null ordering)
 		let game_version_versions = game_versions
 			.into_iter()
 			.map(|x| x.value)
@@ -542,11 +542,11 @@ async fn get_loader_fields_variants() {
 			[
 				"Ordering_Negative1",
 				"Ordering_Positive100",
-				"1.20.5",
-				"1.20.4",
-				"1.20.3",
-				"1.20.2",
-				"1.20.1"
+				"0.5.0",
+				"0.4.0",
+				"0.3.0",
+				"0.2.0",
+				"0.1.0"
 			]
 		);
 	})
@@ -556,7 +556,7 @@ async fn get_loader_fields_variants() {
 #[actix_rt::test]
 async fn get_available_loader_fields() {
 	// Get available loader fields for a given loader
-	// (ie: which fields are relevant for 'fabric', etc)
+	// (ie: which fields are relevant for 'shroudforge', etc)
 	with_test_environment(
 		None,
 		|test_env: TestEnvironment<ApiV3>| async move {
@@ -565,7 +565,7 @@ async fn get_available_loader_fields() {
 
 			let fabric_loader_fields = loaders
 				.iter()
-				.find(|x| x.name == "fabric")
+				.find(|x| x.name == "shroudforge")
 				.unwrap()
 				.supported_fields
 				.clone()
@@ -576,28 +576,28 @@ async fn get_available_loader_fields() {
 				[
 					"game_versions",
 					"environment",
-					"test_fabric_optional" // exists for testing
+					"test_shroudforge_optional" // exists for testing
 				]
 				.iter()
 				.map(|s| s.to_string())
 				.collect()
 			);
 
-			let mrpack_loader_fields = loaders
+			let sfpack_loader_fields = loaders
 				.iter()
-				.find(|x| x.name == "mrpack")
+				.find(|x| x.name == "sfpack")
 				.unwrap()
 				.supported_fields
 				.clone()
 				.into_iter()
 				.collect::<HashSet<_>>();
 			assert_eq!(
-				mrpack_loader_fields,
+				sfpack_loader_fields,
 				[
 					"game_versions",
 					"environment",
-					// mrpack has all the general fields as well as this
-					"mrpack_loaders"
+					// sfpack has all the general fields as well as this
+					"modpack_loaders"
 				]
 				.iter()
 				.map(|s| s.to_string())
@@ -634,7 +634,7 @@ async fn test_multi_get_redis_cache() {
 
 				let creation_data = get_public_project_creation_data(
 					&slug,
-					Some(TestFile::build_random_mrpack()),
+					Some(TestFile::build_random_sfpack(&slug, "1.2.3")),
 					None,
 				);
 				let resp =
@@ -650,7 +650,7 @@ async fn test_multi_get_redis_cache() {
 
 				let creation_data = get_public_project_creation_data(
 					&slug,
-					Some(TestFile::build_random_jar()),
+					Some(TestFile::build_random_mod_zip()),
 					None,
 				);
 				let resp =
@@ -671,12 +671,12 @@ async fn test_multi_get_redis_cache() {
 				test::read_body_json(resp).await;
 			assert_eq!(projects.len(), 10);
 
-			// Ensure all 5 modpacks have 'mrpack_loaders', and all 5 mods do not
+			// Ensure all 5 modpacks have 'modpack_loaders', and all 5 mods do not
 			for project in &projects {
 				if modpacks.contains(project.slug.as_ref().unwrap()) {
-					assert!(project.fields.contains_key("mrpack_loaders"));
+					assert!(project.fields.contains_key("modpack_loaders"));
 				} else if mods.contains(project.slug.as_ref().unwrap()) {
-					assert!(!project.fields.contains_key("mrpack_loaders"));
+					assert!(!project.fields.contains_key("modpack_loaders"));
 				} else {
 					panic!("Unexpected project slug: {:?}", project.slug);
 				}
@@ -704,12 +704,12 @@ async fn test_multi_get_redis_cache() {
 				test::read_body_json(resp).await;
 			assert_eq!(versions.len(), 10);
 
-			// Ensure all 5 versions from modpacks have 'mrpack_loaders', and all 5 versions from mods do not
+			// Ensure all 5 versions from modpacks have 'modpack_loaders', and all 5 versions from mods do not
 			for version in &versions {
 				if version_ids_modpacks.contains(&version.id) {
-					assert!(version.fields.contains_key("mrpack_loaders"));
+					assert!(version.fields.contains_key("modpack_loaders"));
 				} else if version_ids_mods.contains(&version.id) {
-					assert!(!version.fields.contains_key("mrpack_loaders"));
+					assert!(!version.fields.contains_key("modpack_loaders"));
 				} else {
 					panic!("Unexpected version id: {:?}", version.id);
 				}
@@ -733,7 +733,7 @@ async fn enshrouded_game_version_update() {
 			.get_loader_field_variants_deserialized("game_versions")
 			.await;
 
-		// The fixture versions are all major=false except 1.20.5.
+		// The fixture versions are all major=false except 0.5.0.
 		let name_to_major = game_versions
 			.iter()
 			.filter(|x| {
@@ -742,7 +742,7 @@ async fn enshrouded_game_version_update() {
 			.map(|x| (x.value.clone(), x.major.unwrap()))
 			.collect::<std::collections::HashMap<_, _>>();
 		for (name, major) in name_to_major {
-			if name == "1.20.5" {
+			if name == "0.5.0" {
 				assert!(major);
 			} else {
 				assert!(!major);
@@ -781,7 +781,7 @@ async fn enshrouded_game_version_update() {
 		assert!(name_to_major.contains_key("1.20.6"));
 		// Confirm metadata is unaltered
 		for (name, major) in name_to_major {
-			if name == "1.20.5" {
+			if name == "0.5.0" {
 				assert!(major);
 			} else {
 				assert!(!major);

@@ -107,30 +107,18 @@ export const formatWallet = (name) => {
 
 export const formatProjectType = (name, short = false) => {
 	if (short) {
-		if (name === 'resourcepack') {
-			return 'RPK'
-		} else if (name === 'mod') {
+		if (name === 'mod') {
 			return 'MOD'
 		} else if (name === 'modpack') {
 			return 'MPK'
 		} else if (name === 'schematic') {
 			return 'SCH'
-		} else if (name === 'shader') {
-			return 'SHD'
-		} else if (name === 'plugin') {
-			return 'PLG'
-		} else if (name === 'datapack') {
-			return 'DPK'
 		} else if (name === 'server') {
 			return 'SRV'
 		}
 	}
 
-	if (name === 'resourcepack') {
-		return 'Resource Pack'
-	} else if (name === 'datapack') {
-		return 'Data Pack'
-	} else if (name === 'modpack') {
+	if (name === 'modpack') {
 		return 'Modpack'
 	} else if (name === 'schematic') {
 		return 'Schematic'
@@ -248,22 +236,14 @@ export const acceptFileFromProjectType = (projectType) => {
 	const commonTypes = '.sig,.asc,.gpg,application/pgp-signature,application/pgp-keys'
 	switch (projectType) {
 		case 'mod':
-			return `.jar,.zip,.litemod,application/java-archive,application/x-java-archive,application/zip,${commonTypes}`
-		case 'plugin':
-			return `.jar,.zip,application/java-archive,application/x-java-archive,application/zip,${commonTypes}`
-		case 'resourcepack':
 			return `.zip,application/zip,${commonTypes}`
-		case 'shader':
-			return `.zip,application/zip,${commonTypes}`
-		case 'datapack':
-			return `.jar,.zip,.litemod,application/java-archive,application/x-java-archive,application/zip,${commonTypes}`
 		case 'modpack':
 			return `.sfpack,application/x-shroudforge-modpack+zip,${commonTypes}`
 		case 'schematic':
 			return `.sfbp,application/octet-stream,${commonTypes}`
 		default:
 			// all of the above
-			return `.jar,.zip,.litemod,.sfpack,application/java-archive,application/x-java-archive,application/zip,application/x-shroudforge-modpack+zip,${commonTypes}`
+			return `.zip,.sfpack,.sfbp,application/zip,application/x-shroudforge-modpack+zip,application/octet-stream,${commonTypes}`
 	}
 }
 

@@ -421,7 +421,7 @@ const props = withDefaults(
 		currentLoader: string
 		currentVersionId: string
 		isApp: boolean
-		/** The project type (e.g. mod, shader, resourcepack, datapack, modpack). */
+		/** The project type, such as mod or modpack. */
 		projectType?: string
 		projectIconUrl?: string
 		projectName?: string

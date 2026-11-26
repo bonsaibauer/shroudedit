@@ -68,8 +68,6 @@ export interface FileManagerContext {
 
 	canRestart?: boolean
 	restartServer?: () => Promise<void>
-	canShareToMclogs?: boolean
-	shareToMclogs?: (content: string) => Promise<void>
 }
 
 export const [injectFileManager, provideFileManager] = createContext<FileManagerContext>(

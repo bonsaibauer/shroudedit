@@ -71,14 +71,6 @@ watch(
 		}
 
 		cosmetics.value.searchDisplayMode.mod = preferences.layouts.mods === 'rows' ? 'list' : 'grid'
-		cosmetics.value.searchDisplayMode.plugin =
-			preferences.layouts.plugins === 'rows' ? 'list' : 'grid'
-		cosmetics.value.searchDisplayMode.datapack =
-			preferences.layouts.datapacks === 'rows' ? 'list' : 'grid'
-		cosmetics.value.searchDisplayMode.shader =
-			preferences.layouts.shaders === 'rows' ? 'list' : 'grid'
-		cosmetics.value.searchDisplayMode.resourcepack =
-			preferences.layouts.resourcepacks === 'rows' ? 'list' : 'grid'
 		cosmetics.value.searchDisplayMode.modpack =
 			preferences.layouts.modpacks === 'rows' ? 'list' : 'grid'
 		cosmetics.value.searchDisplayMode.server =

@@ -1,43 +1,12 @@
 use crate::database::PgTransaction;
-use crate::database::models::legacy_loader_fields::EnshroudedGameVersion;
-use crate::database::models::loader_fields::VersionField;
 use crate::models::projects::{FileType, Loader};
-use crate::validate::datapack::DataPackValidator;
-use crate::validate::fabric::FabricValidator;
-use crate::validate::forge::{ForgeValidator, LegacyForgeValidator};
-use crate::validate::liteloader::LiteLoaderValidator;
-use crate::validate::neoforge::NeoForgeValidator;
-use crate::validate::plugin::*;
-use crate::validate::quilt::QuiltValidator;
-use crate::validate::resourcepack::{PackValidator, TexturePackValidator};
-use crate::validate::rift::RiftValidator;
-use crate::validate::shader::{
-	CanvasShaderValidator, CoreShaderValidator, ShaderValidator,
-};
 use bytes::Bytes;
-use chrono::{DateTime, Utc};
-use std::io::{self, Cursor};
-use std::mem;
-use std::sync::LazyLock;
 use thiserror::Error;
 use xredis::RedisPool;
-use zip::ZipArchive;
-use zip::result::ZipError;
 
-mod datapack;
-mod fabric;
-mod forge;
-mod liteloader;
-mod neoforge;
-pub mod plugin;
-pub mod project;
-mod quilt;
-mod resourcepack;
-mod rift;
 mod schematic;
 mod schematic_v8;
 pub mod sfpack;
-mod shader;
 pub mod shroudforge;
 
 #[derive(Error, Debug)]
@@ -58,122 +27,24 @@ pub enum ValidationError {
 
 #[derive(Eq, PartialEq, Debug)]
 pub enum ValidationResult {
-	/// File should be marked as primary
 	Pass,
-	/// File should not be marked primary, the reason for which is inside the String
 	Warning(&'static str),
 }
 
 impl ValidationResult {
 	pub fn is_passed(&self) -> bool {
-		match self {
-			ValidationResult::Pass => true,
-			ValidationResult::Warning(_) => false,
-		}
+		matches!(self, Self::Pass)
 	}
 }
 
-pub enum SupportedGameVersions {
-	All,
-	PastDate(DateTime<Utc>),
-	Range(DateTime<Utc>, DateTime<Utc>),
-	Custom(Vec<EnshroudedGameVersion>),
-}
-
-pub enum MaybeProtectedZipFile {
-	Unprotected(ZipArchive<Cursor<Bytes>>),
-	MaybeProtected { read_error: ZipError, data: Bytes },
-}
-
-pub trait Validator: Sync {
-	fn get_file_extensions(&self) -> &[&str];
-	fn get_supported_loaders(&self) -> &[&str];
-	fn get_supported_game_versions(&self) -> SupportedGameVersions;
-
-	fn validate(
-		&self,
-		archive: &mut ZipArchive<Cursor<bytes::Bytes>>,
-	) -> Result<ValidationResult, ValidationError> {
-		// By default, any non-protected ZIP archive is valid
-		let _ = archive;
-		Ok(ValidationResult::Pass)
-	}
-
-	fn validate_maybe_protected_zip(
-		&self,
-		file: &mut MaybeProtectedZipFile,
-	) -> Result<ValidationResult, ValidationError> {
-		// By default, validate that the ZIP file is not protected, and if so,
-		// delegate to the inner validate method with a known good archive
-		match file {
-			MaybeProtectedZipFile::Unprotected(archive) => {
-				self.validate(archive)
-			}
-			MaybeProtectedZipFile::MaybeProtected { read_error, .. } => {
-				Err(ValidationError::Zip(mem::replace(
-					read_error,
-					ZipError::Io(io::Error::other("ZIP archive reading error")),
-				)))
-			}
-		}
-	}
-}
-
-static ALWAYS_ALLOWED_EXT: &[&str] = &["zip", "txt"];
-
-static VALIDATORS: &[&dyn Validator] = &[
-	&FabricValidator,
-	&ForgeValidator,
-	&LegacyForgeValidator,
-	&QuiltValidator,
-	&LiteLoaderValidator,
-	&PackValidator,
-	&TexturePackValidator,
-	&PluginYmlValidator,
-	&BungeeCordValidator,
-	&VelocityValidator,
-	&SpongeValidator,
-	&CanvasShaderValidator,
-	&ShaderValidator,
-	&CoreShaderValidator,
-	&DataPackValidator,
-	&RiftValidator,
-	&NeoForgeValidator,
-];
-
-/// A regex that matches a potentially protected ZIP archive containing
-/// a vanilla Enshrouded pack, with a requisite `pack.mcmeta` file.
-///
-/// Please note that this regex avoids false negatives at the cost of false
-/// positives being possible, i.e. it may match files that are not actually
-/// Enshrouded packs, but it will not miss packs that the game can load.
-static PLAUSIBLE_PACK_REGEX: LazyLock<regex::bytes::Regex> =
-	LazyLock::new(|| {
-		regex::bytes::RegexBuilder::new(concat!(
-			r"\x50\x4b\x01\x02", // CEN signature
-			r".{24}",            // CEN fields
-			r"[\x0B\x0C]\x00",   // CEN file name length
-			r".{16}",            // More CEN fields
-			r"pack\.mcmeta/?",   // CEN file name
-			r".*",               // Rest of CEN entries and records
-			r"\x50\x4b\x05\x06", // EOCD signature
-		))
-		.unicode(false)
-		.dot_matches_new_line(true)
-		.build()
-		.unwrap()
-	});
-
-/// The return value is whether this file should be marked as primary or not, based on the analysis of the file
-#[allow(clippy::too_many_arguments)]
 pub async fn validate_file(
-	data: bytes::Bytes,
+	data: Bytes,
 	file_extension: String,
 	loaders: Vec<Loader>,
 	file_type: Option<FileType>,
-	version_fields: Vec<VersionField>,
-	transaction: &mut PgTransaction<'_>,
-	redis: &RedisPool,
+	version_fields: Vec<crate::database::models::loader_fields::VersionField>,
+	_transaction: &mut PgTransaction<'_>,
+	_redis: &RedisPool,
 ) -> Result<ValidationResult, ValidationError> {
 	if file_extension == "sfbp" {
 		return schematic::validate_file(data, loaders, version_fields).await;
@@ -184,173 +55,19 @@ pub async fn validate_file(
 				".sfpack requires the sfpack loader".into(),
 			));
 		}
-		sfpack::validate_package(data, None)
+		sfpack::validate_package(data, None, None)
 			.map_err(|error| ValidationError::InvalidInput(error.into()))?;
 		return Ok(ValidationResult::Pass);
 	}
-
-	let game_versions = version_fields
-		.into_iter()
-		.find_map(|v| EnshroudedGameVersion::try_from_version_field(&v).ok())
-		.unwrap_or_default();
-	let all_game_versions =
-		EnshroudedGameVersion::list(None, None, &mut *transaction, redis)
-			.await?;
-
-	validate_enshrouded_file(
-		data,
-		file_extension,
-		loaders,
-		game_versions,
-		all_game_versions,
-		file_type,
-	)
-	.await
-}
-
-async fn validate_enshrouded_file(
-	data: Bytes,
-	file_extension: String,
-	loaders: Vec<Loader>,
-	game_versions: Vec<EnshroudedGameVersion>,
-	all_game_versions: Vec<EnshroudedGameVersion>,
-	file_type: Option<FileType>,
-) -> Result<ValidationResult, ValidationError> {
-	actix_web::web::block(move || {
-		let mut zip = match ZipArchive::new(Cursor::new(Bytes::clone(&data))) {
-			Ok(zip) => MaybeProtectedZipFile::Unprotected(zip),
-			Err(read_error) => {
-				MaybeProtectedZipFile::MaybeProtected { read_error, data }
-			}
-		};
-
-		if let Some(file_type) = file_type {
-			match file_type {
-				FileType::RequiredResourcePack
-				| FileType::OptionalResourcePack => {
-					return PackValidator
-						.validate_maybe_protected_zip(&mut zip);
-				}
-				FileType::Signature => {
-					// Not sure if we have a better way to detect if a file is a signature
-					// should look into this?
-					return if ["asc", "gpg", "sig"]
-						.contains(&file_extension.as_str())
-					{
-						Ok(ValidationResult::Pass)
-					} else {
-						Err(ValidationError::InvalidInput(
-							format!(
-								"File extension {file_extension} is invalid for input file"
-							)
-							.into(),
-						))
-					};
-				}
-				FileType::DevJar
-				| FileType::SourcesJar
-				| FileType::JavadocJar => {}
-				FileType::Unknown => {}
-			}
-		}
-
-		let mut visited = false;
-		let mut saved_result = None;
-		for validator in VALIDATORS {
-			if loaders
-				.iter()
-				.any(|x| validator.get_supported_loaders().contains(&&*x.0))
-				&& game_version_supported(
-					&game_versions,
-					&all_game_versions,
-					validator.get_supported_game_versions(),
-				) {
-				if validator.get_file_extensions().contains(&&*file_extension) {
-					let result =
-						validator.validate_maybe_protected_zip(&mut zip)?;
-					match result {
-						ValidationResult::Pass => {
-							if saved_result.is_none() {
-								saved_result = Some(result);
-							}
-						}
-						ValidationResult::Warning(_) => {
-							return Ok(result);
-						}
-					}
-				} else {
-					visited = true;
-				}
-			}
-		}
-
-		if let Some(result) = saved_result {
-			return Ok(result);
-		}
-
-		if visited {
-			if ALWAYS_ALLOWED_EXT.contains(&&*file_extension) {
-				Ok(ValidationResult::Warning(
-					"File extension is invalid for input file",
-				))
-			} else {
-				Err(ValidationError::InvalidInput(
-					format!(
-						"File extension {file_extension} is invalid for input file"
-					)
-					.into(),
-				))
-			}
-		} else {
-			Ok(ValidationResult::Pass)
-		}
-	})
-	.await?
-}
-
-// Write tests for this
-fn game_version_supported(
-	game_versions: &[EnshroudedGameVersion],
-	all_game_versions: &[EnshroudedGameVersion],
-	supported_game_versions: SupportedGameVersions,
-) -> bool {
-	match supported_game_versions {
-		SupportedGameVersions::All => true,
-		SupportedGameVersions::PastDate(date) => {
-			game_versions.iter().any(|x| {
-				all_game_versions
-					.iter()
-					.find(|y| y.version == x.version)
-					.is_some_and(|x| x.created > date)
-			})
-		}
-		SupportedGameVersions::Range(before, after) => {
-			game_versions.iter().any(|x| {
-				all_game_versions
-					.iter()
-					.find(|y| y.version == x.version)
-					.is_some_and(|x| x.created > before && x.created < after)
-			})
-		}
-		SupportedGameVersions::Custom(versions) => {
-			let version_ids =
-				versions.iter().map(|gv| gv.id).collect::<Vec<_>>();
-			let game_version_ids: Vec<_> =
-				game_versions.iter().map(|gv| gv.id).collect::<Vec<_>>();
-			version_ids.iter().any(|x| game_version_ids.contains(x))
-		}
+	if matches!(file_type, Some(FileType::Signature))
+		&& !["asc", "gpg", "sig"].contains(&file_extension.as_str())
+	{
+		return Err(ValidationError::InvalidInput(
+			format!(
+				"File extension {file_extension} is invalid for input file"
+			)
+			.into(),
+		));
 	}
-}
-
-#[must_use]
-pub fn validate_pack_formats(
-	archive: &mut ZipArchive<Cursor<Bytes>>,
-) -> ValidationResult {
-	if archive.by_name("shroudforge.index.json").is_ok() {
-		return ValidationResult::Warning(
-			"ShroudForge modpacks must be uploaded with the .sfpack extension.",
-		);
-	}
-
-	ValidationResult::Pass
+	Ok(ValidationResult::Pass)
 }

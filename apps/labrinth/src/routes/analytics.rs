@@ -143,14 +143,8 @@ pub async fn page_view_ingest(
 		let segments_vec = segments.collect::<Vec<_>>();
 
 		if segments_vec.len() >= 2 {
-			const PROJECT_TYPES: &[&str] = &[
-				"mod",
-				"modpack",
-				"plugin",
-				"resourcepack",
-				"shader",
-				"datapack",
-			];
+			const PROJECT_TYPES: &[&str] =
+				&["mod", "modpack", "schematic", "server"];
 
 			if PROJECT_TYPES.contains(&segments_vec[0]) {
 				let project = crate::database::models::DBProject::get(

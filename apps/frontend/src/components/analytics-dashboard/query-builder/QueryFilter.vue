@@ -325,10 +325,8 @@ const gameVersionTypeTabs = computed<TabsTab[]>(() => [
 const dependentProjectSearchProjectTypes: readonly ProjectType[] = [
 	'mod',
 	'modpack',
-	'resourcepack',
-	'shader',
-	'datapack',
-	'plugin',
+	'schematic',
+	'server',
 ]
 const dependentProjectInitialSearchLimit = 100
 const dependentProjectQuerySearchLimit = 500

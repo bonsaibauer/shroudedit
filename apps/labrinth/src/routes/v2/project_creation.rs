@@ -197,17 +197,17 @@ pub async fn project_create(
 						json!(v.game_versions),
 					);
 
-					// Modpacks now use the "mrpack" loader, and loaders are converted to loader fields.
+					// Modpacks now use the "sfpack" loader, and loaders are converted to loader fields.
 					// Setting of 'project_type' directly is removed, it's loader-based now.
 					if project_type == "modpack" {
 						fields.insert(
-							"mrpack_loaders".to_string(),
+							"modpack_loaders".to_string(),
 							json!(v.loaders),
 						);
 					}
 
 					let loaders = if project_type == "modpack" {
-						vec![Loader("mrpack".to_string())]
+						vec![Loader("sfpack".to_string())]
 					} else {
 						v.loaders
 					};

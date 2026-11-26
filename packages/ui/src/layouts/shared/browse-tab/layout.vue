@@ -111,13 +111,13 @@ function getProjectCardTags(result: Labrinth.Search.v3.ResultSearchProject, disp
 	const tags = new Set(displayOnly ? result.display_categories : result.categories)
 
 	for (const loader of result.loaders) {
-		if (loader !== 'mrpack') {
+		if (loader !== 'sfpack') {
 			tags.add(loader)
 		}
 	}
 
-	if (result.loaders.includes('mrpack')) {
-		for (const loader of getLoaderFieldValues(result, 'mrpack_loaders')) {
+	if (result.loaders.includes('sfpack')) {
+		for (const loader of getLoaderFieldValues(result, 'modpack_loaders')) {
 			tags.add(loader)
 		}
 	}

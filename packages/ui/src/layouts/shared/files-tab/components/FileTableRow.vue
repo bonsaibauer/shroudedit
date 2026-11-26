@@ -72,18 +72,15 @@
 <script setup lang="ts">
 import {
 	BoxIcon,
-	BracesIcon,
 	ClipboardCopyIcon,
 	DownloadIcon,
 	EditIcon,
 	FolderArchiveIcon,
 	FolderCogIcon,
 	FolderOpenIcon,
-	GlassesIcon,
 	GlobeIcon,
 	MoreHorizontalIcon,
 	PackageOpenIcon,
-	PaintbrushIcon,
 	RightArrowIcon,
 	TrashIcon,
 } from '@shroudedit/assets'
@@ -291,9 +288,6 @@ const iconComponent = computed(() => {
 		if (props.name === 'config') return FolderCogIcon
 		if (props.name === 'world' || props.name === 'saves') return GlobeIcon
 		if (props.name === 'mods') return BoxIcon
-		if (props.name === 'resourcepacks') return PaintbrushIcon
-		if (props.name === 'shaderpacks') return GlassesIcon
-		if (props.name === 'datapacks') return BracesIcon
 		return FolderOpenIcon
 	}
 

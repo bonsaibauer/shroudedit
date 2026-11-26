@@ -220,7 +220,7 @@ pub async fn max_versions_per_project() {
 				.add_public_version(
 					project_id,
 					"project-limit-allowed",
-					TestFile::build_random_jar(),
+					TestFile::build_random_mod_zip(),
 					None,
 					None,
 					USER_USER_PAT,
@@ -232,7 +232,7 @@ pub async fn max_versions_per_project() {
 				.add_public_version(
 					project_id,
 					"project-limit-blocked",
-					TestFile::build_random_jar(),
+					TestFile::build_random_mod_zip(),
 					None,
 					None,
 					USER_USER_PAT,
@@ -278,7 +278,7 @@ pub async fn max_versions_uploaded_per_day() {
 				.add_public_version(
 					project_id,
 					"daily-limit-allowed",
-					TestFile::build_random_jar(),
+					TestFile::build_random_mod_zip(),
 					None,
 					None,
 					USER_USER_PAT,
@@ -290,7 +290,7 @@ pub async fn max_versions_uploaded_per_day() {
 				.add_public_version(
 					project_id,
 					"daily-limit-blocked",
-					TestFile::build_random_jar(),
+					TestFile::build_random_mod_zip(),
 					None,
 					None,
 					USER_USER_PAT,
@@ -338,7 +338,7 @@ pub async fn max_versions_uploaded_per_day() {
 				.add_public_version(
 					project_id,
 					"daily-limit-next-day",
-					TestFile::build_random_jar(),
+					TestFile::build_random_mod_zip(),
 					None,
 					None,
 					USER_USER_PAT,

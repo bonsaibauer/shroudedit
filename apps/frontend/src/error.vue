@@ -261,11 +261,9 @@ const messages = {
 
 const PROJECT_PATH_PREFIXES = [
 	'/mod/',
-	'/datapack/',
-	'/resourcepack/',
-	'/plugin/',
-	'/shader/',
 	'/modpack/',
+	'/schematic/',
+	'/server/',
 	'/project/',
 ]
 

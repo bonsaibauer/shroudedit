@@ -45,11 +45,6 @@ import { LabrinthTechReviewInternalModule } from './labrinth/tech-review/interna
 import { LabrinthThreadsV3Module } from './labrinth/threads/v3'
 import { LabrinthUsersV2Module } from './labrinth/users/v2'
 import { LabrinthUsersV3Module } from './labrinth/users/v3'
-import { LauncherMetaManifestV0Module } from './launcher-meta/v0'
-import { MclogsInsightsV1Module } from './mclogs/insights/v1'
-import { MclogsLogsV1Module } from './mclogs/logs/v1'
-import { PaperVersionsV3Module } from './paper/v3'
-import { PurpurVersionsV2Module } from './purpur/v2'
 import { SharedInstancesInstancesV1Module } from './shared-instances/instances/v1'
 import { SharedInstancesInvitesV1Module } from './shared-instances/invites/v1'
 import { SharedInstancesModerationV1Module } from './shared-instances/moderation/v1'
@@ -68,9 +63,6 @@ type ModuleConstructor = new (client: AbstractShroudEditClient) => AbstractModul
  */
 export const MODULE_REGISTRY = {
 	iso3166_data: ISO3166Module,
-	mclogs_insights_v1: MclogsInsightsV1Module,
-	mclogs_logs_v1: MclogsLogsV1Module,
-	launchermeta_manifest_v0: LauncherMetaManifestV0Module,
 	kyros_content_v1: KyrosContentV1Module,
 	kyros_files_v0: KyrosFilesV0Module,
 	kyros_files_v1: KyrosFilesV1Module,
@@ -116,8 +108,6 @@ export const MODULE_REGISTRY = {
 	labrinth_users_v3: LabrinthUsersV3Module,
 	labrinth_versions_v2: LabrinthVersionsV2Module,
 	labrinth_versions_v3: LabrinthVersionsV3Module,
-	paper_versions_v3: PaperVersionsV3Module,
-	purpur_versions_v2: PurpurVersionsV2Module,
 	sharedinstances_invites_v1: SharedInstancesInvitesV1Module,
 	sharedinstances_instances_v1: SharedInstancesInstancesV1Module,
 	sharedinstances_moderation_v1: SharedInstancesModerationV1Module,

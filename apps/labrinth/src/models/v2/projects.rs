@@ -74,8 +74,7 @@ pub struct LegacyProject {
 
 impl LegacyProject {
 	// Returns visible v2 project_type and also 'og' selected project type
-	// These are often identical, but we want to display 'mod' for datapacks and plugins
-	// The latter can be used for further processing, such as determining side types of plugins
+	// These are often identical, but modpacks use a compatibility project type in V2.
 	pub fn get_project_type(project_types: &[String]) -> (String, String) {
 		// V2 versions only have one project type- v3 versions can rarely have multiple.
 		// We'll prioritize 'modpack' first, and if neither are found, use the first one.
@@ -90,13 +89,7 @@ impl LegacyProject {
 			.cloned()
 			.unwrap_or("project".to_string()); // Default to 'project' if none are found
 
-		let project_type =
-			if og_project_type == "datapack" || og_project_type == "plugin" {
-				// These are not supported in V2, so we'll just use 'mod' instead
-				"mod".to_string()
-			} else {
-				og_project_type.clone()
-			};
+		let project_type = og_project_type.clone();
 
 		(project_type, og_project_type)
 	}
@@ -116,7 +109,11 @@ impl LegacyProject {
 		// V2 versions only have one project type- v3 versions can rarely have multiple.
 		// We'll prioritize 'modpack' first, and if neither are found, use the first one.
 		// If there are no project types, default to 'project'
-		let project_types = data.project_types;
+		let project_types = if versions_item.is_some() {
+			data.project_types
+		} else {
+			Vec::new()
+		};
 		let (mut project_type, og_project_type) =
 			Self::get_project_type(&project_types);
 
@@ -154,26 +151,26 @@ impl LegacyProject {
 					Some(&*og_project_type),
 				);
 
-			// - if loader is mrpack, this is a modpack
+			// - if loader is sfpack, this is a modpack
 			// the loaders are whatever the corresponding loader fields are
-			if loaders.contains(&"mrpack".to_string()) {
+			if loaders.contains(&"sfpack".to_string()) {
 				project_type = "modpack".to_string();
-				if let Some(mrpack_loaders) =
-					data.fields.iter().find(|f| f.0 == "mrpack_loaders")
+				if let Some(modpack_loaders) =
+					data.fields.iter().find(|f| f.0 == "modpack_loaders")
 				{
-					let values = mrpack_loaders
+					let values = modpack_loaders
 						.1
 						.iter()
 						.filter_map(|v| v.as_str())
 						.map(|v| v.to_string())
 						.collect::<Vec<_>>();
 
-					// drop mrpack from loaders
+					// drop sfpack from loaders
 					loaders = loaders
 						.into_iter()
-						.filter(|l| l != "mrpack")
+						.filter(|l| l != "sfpack")
 						.collect::<Vec<_>>();
-					// and replace with mrpack_loaders
+					// and replace with modpack_loaders
 					loaders.extend(values);
 					// remove duplicate loaders
 					loaders = loaders.into_iter().unique().collect::<Vec<_>>();
@@ -373,18 +370,18 @@ impl From<Version> for LegacyVersion {
 			.unwrap_or("unknown")
 			.to_string();
 
-		// - if loader is mrpack, this is a modpack
+		// - if loader is sfpack, this is a modpack
 		// the v2 loaders are whatever the corresponding loader fields are
 		let mut loaders =
 			data.loaders.into_iter().map(|l| l.0).collect::<Vec<_>>();
-		if loaders.contains(&"mrpack".to_string())
-			&& let Some((_, mrpack_loaders)) = data
+		if loaders.contains(&"sfpack".to_string())
+			&& let Some((_, modpack_loaders)) = data
 				.fields
 				.into_iter()
-				.find(|(key, _)| key == "mrpack_loaders")
-			&& let Ok(mrpack_loaders) = serde_json::from_value(mrpack_loaders)
+				.find(|(key, _)| key == "modpack_loaders")
+			&& let Ok(modpack_loaders) = serde_json::from_value(modpack_loaders)
 		{
-			loaders = mrpack_loaders;
+			loaders = modpack_loaders;
 		}
 		let loaders = loaders.into_iter().map(Loader).collect::<Vec<_>>();
 

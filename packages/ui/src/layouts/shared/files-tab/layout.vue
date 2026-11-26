@@ -49,7 +49,6 @@
 					@upload-zip="() => {}"
 					@unzip-from-url="showUnzipFromUrlModal"
 					@refresh="ctx.refresh"
-					@share="() => fileEditorRef?.shareToMclogs()"
 					@find="() => fileEditorRef?.toggleFind()"
 				/>
 

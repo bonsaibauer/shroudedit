@@ -11,11 +11,8 @@ import { useServerShroudEditClient } from '~/server/utils/api-client'
 const PROJECT_TYPES = [
 	'project',
 	'mod',
-	'plugin',
-	'datapack',
-	'shader',
-	'resourcepack',
 	'modpack',
+	'schematic',
 	'server',
 ]
 

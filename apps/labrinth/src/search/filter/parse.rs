@@ -214,7 +214,7 @@ mod tests {
 	#[test]
 	fn parses_quoted_and_list_values() {
 		let expression = parse_expression(
-			r#"name = "value with spaces" AND categories IN [fabric, "forge"]"#,
+			r#"name = "value with spaces" AND categories IN [shroudforge, "eml"]"#,
 		)
 		.unwrap();
 

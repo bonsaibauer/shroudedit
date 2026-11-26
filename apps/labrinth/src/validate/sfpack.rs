@@ -7,9 +7,12 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use zip::ZipArchive;
 
-const SCHEMA: &str = include_str!("schemas/shroudforge-1.8.2/modpack.schema.json");
-const MOD_SCHEMA: &str = include_str!("schemas/shroudforge-1.8.2/manifest.schema.json");
-const EXTENSION_SCHEMA: &str = include_str!("schemas/shroudforge-1.8.2/extended.mod.schema.json");
+const SCHEMA: &str =
+	include_str!("schemas/shroudforge-1.8.2/modpack.schema.json");
+const MOD_SCHEMA: &str =
+	include_str!("schemas/shroudforge-1.8.2/manifest.schema.json");
+const EXTENSION_SCHEMA: &str =
+	include_str!("schemas/shroudforge-1.8.2/extended.mod.schema.json");
 const MAX_ARCHIVE_BYTES: usize = 95 * 1024 * 1024;
 const MAX_MANIFEST_BYTES: u64 = 1024 * 1024;
 const MAX_EXPANDED_BYTES: u64 = 512 * 1024 * 1024;
@@ -22,7 +25,8 @@ fn make_validator(schema: &str) -> jsonschema::Validator {
 	.expect("bundled schema is valid")
 }
 
-static VALIDATOR: LazyLock<jsonschema::Validator> = LazyLock::new(|| make_validator(SCHEMA));
+static VALIDATOR: LazyLock<jsonschema::Validator> =
+	LazyLock::new(|| make_validator(SCHEMA));
 static MOD_VALIDATOR: LazyLock<jsonschema::Validator> =
 	LazyLock::new(|| make_validator(MOD_SCHEMA));
 static EXTENSION_VALIDATOR: LazyLock<jsonschema::Validator> =
@@ -65,7 +69,9 @@ pub enum PackMod {
 impl PackMod {
 	pub fn id(&self) -> &str {
 		match self {
-			Self::Bundled { path, .. } => path.rsplit('/').next().unwrap_or(path),
+			Self::Bundled { path, .. } => {
+				path.rsplit('/').next().unwrap_or(path)
+			}
 			Self::External { id, .. } | Self::Catalog { id, .. } => id,
 		}
 	}
@@ -79,8 +85,13 @@ impl PackMod {
 	}
 }
 
-fn read_json(archive: &mut ZipArchive<Cursor<Bytes>>, path: &str) -> Result<Value, String> {
-	let entry = archive.by_name(path).map_err(|_| format!("missing {path}"))?;
+fn read_json(
+	archive: &mut ZipArchive<Cursor<Bytes>>,
+	path: &str,
+) -> Result<Value, String> {
+	let entry = archive
+		.by_name(path)
+		.map_err(|_| format!("missing {path}"))?;
 	if entry.size() > MAX_MANIFEST_BYTES {
 		return Err(format!("{path} exceeds 1 MiB"));
 	}
@@ -92,7 +103,8 @@ fn read_json(archive: &mut ZipArchive<Cursor<Bytes>>, path: &str) -> Result<Valu
 	if contents.len() as u64 > MAX_MANIFEST_BYTES {
 		return Err(format!("{path} exceeds 1 MiB"));
 	}
-	serde_json::from_slice(&contents).map_err(|error| format!("invalid {path} JSON: {error}"))
+	serde_json::from_slice(&contents)
+		.map_err(|error| format!("invalid {path} JSON: {error}"))
 }
 
 pub fn validate_package(
@@ -118,7 +130,9 @@ pub fn validate_package(
 		return Err("modpack.json id must match the project slug".into());
 	}
 	if expected_version.is_some_and(|version| pack.version != version) {
-		return Err("modpack.json version must match the published version".into());
+		return Err(
+			"modpack.json version must match the published version".into()
+		);
 	}
 	let mut ids = HashSet::new();
 	let bundled = pack
@@ -134,14 +148,18 @@ pub fn validate_package(
 			return Err(format!("duplicate mod {} in modpack.json", item.id()));
 		}
 		if let PackMod::External { url, .. } = item {
-			let parsed = url::Url::parse(url)
-				.map_err(|error| format!("invalid external mod URL: {error}"))?;
+			let parsed = url::Url::parse(url).map_err(|error| {
+				format!("invalid external mod URL: {error}")
+			})?;
 			if parsed.scheme() != "https"
 				|| parsed.host_str().is_none()
 				|| !parsed.username().is_empty()
 				|| parsed.password().is_some()
 			{
-				return Err(format!("external mod {} needs an HTTPS URL without credentials", item.id()));
+				return Err(format!(
+					"external mod {} needs an HTTPS URL without credentials",
+					item.id()
+				));
 			}
 		}
 	}
@@ -150,27 +168,49 @@ pub fn validate_package(
 	let mut payloads = HashSet::new();
 	let mut expanded = 0_u64;
 	for index in 0..archive.len() {
-		let mut entry = archive.by_index(index)
+		let mut entry = archive
+			.by_index(index)
 			.map_err(|error| format!("invalid ZIP entry: {error}"))?;
 		let name = entry.name().to_owned();
 		let path = name.trim_end_matches('/');
 		if name.starts_with('/')
 			|| name.len() > 4096
 			|| name.contains('\\')
-			|| name.chars().any(|character| character.is_control() || matches!(character, ':' | '<' | '>' | '"' | '?' | '*' | '|'))
-			|| path.split('/').any(|part| part.is_empty() || matches!(part, "." | ".."))
-			|| path.split('/').any(|part| part.ends_with(' ') || part.ends_with('.'))
-			|| path_util::SafeRelativeUtf8UnixPathBuf::try_from(path.to_owned()).is_err()
+			|| name.chars().any(|character| {
+				character.is_control()
+					|| matches!(
+						character,
+						':' | '<' | '>' | '"' | '?' | '*' | '|'
+					)
+			}) || path
+			.split('/')
+			.any(|part| part.is_empty() || matches!(part, "." | ".."))
+			|| path
+				.split('/')
+				.any(|part| part.ends_with(' ') || part.ends_with('.'))
+			|| path_util::SafeRelativeUtf8UnixPathBuf::try_from(path.to_owned())
+				.is_err()
 			|| !names.insert(path.to_ascii_lowercase())
-			|| entry.unix_mode().is_some_and(|mode| mode & 0o170000 == 0o120000)
-			|| !matches!(entry.compression(), zip::CompressionMethod::Stored | zip::CompressionMethod::Deflated)
-		{
+			|| entry
+				.unix_mode()
+				.is_some_and(|mode| mode & 0o170000 == 0o120000)
+			|| !matches!(
+				entry.compression(),
+				zip::CompressionMethod::Stored
+					| zip::CompressionMethod::Deflated
+			) {
 			return Err(format!("invalid .sfpack entry {name}"));
 		}
 		let owner = bundled.iter().find(|root| {
-			path == *root || path.strip_prefix(*root).is_some_and(|rest| rest.starts_with('/'))
+			path == *root
+				|| path
+					.strip_prefix(*root)
+					.is_some_and(|rest| rest.starts_with('/'))
 		});
-		if name != "modpack.json" && owner.is_none() && !(entry.is_dir() && path == "mods") {
+		if name != "modpack.json"
+			&& owner.is_none()
+			&& !(entry.is_dir() && path == "mods")
+		{
 			return Err(format!("undeclared .sfpack entry {name}"));
 		}
 		if owner.is_some_and(|root| path == *root) && !entry.is_dir() {
@@ -185,13 +225,17 @@ pub fn validate_package(
 		if let Some(root) = owner {
 			payloads.insert(*root);
 		}
-		expanded = expanded.checked_add(entry.size())
+		expanded = expanded
+			.checked_add(entry.size())
 			.ok_or("expanded .sfpack size overflow")?;
 		if expanded > MAX_EXPANDED_BYTES {
 			return Err("expanded .sfpack contents exceed 512 MiB".into());
 		}
-		let read = std::io::copy(&mut entry.take(MAX_EXPANDED_BYTES + 1), &mut std::io::sink())
-			.map_err(|error| format!("could not read {name}: {error}"))?;
+		let read = std::io::copy(
+			&mut entry.take(MAX_EXPANDED_BYTES + 1),
+			&mut std::io::sink(),
+		)
+		.map_err(|error| format!("could not read {name}: {error}"))?;
 		if read > MAX_EXPANDED_BYTES {
 			return Err(format!(".sfpack entry {name} exceeds 512 MiB"));
 		}
@@ -199,13 +243,18 @@ pub fn validate_package(
 
 	for root in bundled {
 		if !payloads.contains(root) {
-			return Err(format!("bundled mod folder {root} is empty or missing"));
+			return Err(format!(
+				"bundled mod folder {root} is empty or missing"
+			));
 		}
 		let mod_path = format!("{root}/mod.json");
 		if archive.file_names().any(|name| name == mod_path) {
 			let value = read_json(&mut archive, &mod_path)?;
 			MOD_VALIDATOR.validate(&value).map_err(|error| {
-				format!("invalid {mod_path} at {}: {error}", error.instance_path)
+				format!(
+					"invalid {mod_path} at {}: {error}",
+					error.instance_path
+				)
 			})?;
 			if value["id"].as_str() != root.rsplit('/').next() {
 				return Err(format!("{mod_path} id must match its folder"));
@@ -215,7 +264,10 @@ pub fn validate_package(
 		if archive.file_names().any(|name| name == extension_path) {
 			let value = read_json(&mut archive, &extension_path)?;
 			EXTENSION_VALIDATOR.validate(&value).map_err(|error| {
-				format!("invalid {extension_path} at {}: {error}", error.instance_path)
+				format!(
+					"invalid {extension_path} at {}: {error}",
+					error.instance_path
+				)
 			})?;
 		}
 	}

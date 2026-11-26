@@ -10,8 +10,6 @@ mod tests {
 		Version, resolve_content,
 	};
 
-	const QUILT_FABRIC_API_EXCEPTION_PROJECT_ID: &str = "P7dR8mSH";
-
 	#[derive(Default)]
 	struct MemoryProvider {
 		versions: HashMap<String, Version>,
@@ -119,8 +117,8 @@ mod tests {
 			content_type: ContentType::Mod,
 			selected: ResolutionPreferences::default(),
 			target: ResolutionPreferences {
-				game_versions: vec!["1.20.1".to_string()],
-				loaders: vec!["fabric".to_string()],
+				game_versions: vec!["0.1.0".to_string()],
+				loaders: vec!["shroudforge".to_string()],
 			},
 			existing_project_ids: Vec::new(),
 		}
@@ -132,8 +130,8 @@ mod tests {
 			"v1",
 			"p1",
 			"2024-01-01T00:00:00Z",
-			&["1.20.1"],
-			&["fabric"],
+			&["0.1.0"],
+			&["shroudforge"],
 			vec![],
 		)]);
 		let mut request = request("p1");
@@ -151,16 +149,16 @@ mod tests {
 				"old",
 				"p1",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 			version(
 				"new",
 				"p1",
 				"2024-02-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 		]);
@@ -177,16 +175,16 @@ mod tests {
 				"p1v1",
 				"p1",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![required_project_dependency("dep")],
 			),
 			version(
 				"depv1",
 				"dep",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 		]);
@@ -207,8 +205,8 @@ mod tests {
 				"p1v1",
 				"p1",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![required_version_dependency("depv1")],
 			),
 			version(
@@ -233,16 +231,16 @@ mod tests {
 				"p1v1",
 				"p1",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![required_project_dependency("dep")],
 			),
 			version(
 				"depv1",
 				"dep",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 		]);
@@ -262,8 +260,8 @@ mod tests {
 				"p1v1",
 				"p1",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![
 					required_project_dependency("dep"),
 					required_project_dependency("dep"),
@@ -273,8 +271,8 @@ mod tests {
 				"depv1",
 				"dep",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 		]);
@@ -292,8 +290,8 @@ mod tests {
 				"p1v1",
 				"p1",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![
 					dependency(
 						Some("dep"),
@@ -311,16 +309,16 @@ mod tests {
 				"depv1",
 				"dep",
 				"2024-01-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 			version(
 				"depv2",
 				"dep",
 				"2024-02-01T00:00:00Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 		]);
@@ -335,73 +333,17 @@ mod tests {
 	}
 
 	#[tokio::test]
-	async fn quilt_instances_skip_fabric_api_dependency() {
+	async fn loader_names_match_without_case_sensitivity() {
 		let provider = MemoryProvider::default().with_versions(vec![version(
 			"p1v1",
 			"p1",
 			"2024-01-01T00:00:00Z",
-			&["1.20.1"],
-			&["quilt"],
-			vec![required_project_dependency(
-				QUILT_FABRIC_API_EXCEPTION_PROJECT_ID,
-			)],
-		)]);
-		let mut request = request("p1");
-		request.target.loaders = vec!["quilt".to_string()];
-
-		let plan = resolve_content(provider, request).await.unwrap();
-
-		assert!(plan.dependencies.is_empty());
-		assert_eq!(plan.skipped[0].reason, SkippedReason::QuiltFabricApi);
-	}
-
-	#[tokio::test]
-	async fn mods_can_fall_back_to_datapack_versions() {
-		let provider = MemoryProvider::default().with_versions(vec![version(
-			"p1v1",
-			"p1",
-			"2024-01-01T00:00:00Z",
-			&["1.20.1"],
-			&["datapack"],
-			vec![],
-		)]);
-
-		let plan = resolve_content(provider, request("p1")).await.unwrap();
-
-		assert_eq!(plan.primary.version_id, "p1v1");
-	}
-
-	#[tokio::test]
-	async fn neoforge_matches_neo_loader_alias() {
-		let provider = MemoryProvider::default().with_versions(vec![version(
-			"p1v1",
-			"p1",
-			"2024-01-01T00:00:00Z",
-			&["1.20.1"],
-			&["neo"],
+			&["0.1.0"],
+			&["ShroudForge"],
 			vec![],
 		)]);
 		let mut request = request("p1");
-		request.target.loaders = vec!["neoforge".to_string()];
-
-		let plan = resolve_content(provider, request).await.unwrap();
-
-		assert_eq!(plan.primary.version_id, "p1v1");
-	}
-
-	#[tokio::test]
-	async fn paper_matches_bukkit_loader_alias() {
-		let provider = MemoryProvider::default().with_versions(vec![version(
-			"p1v1",
-			"p1",
-			"2024-01-01T00:00:00Z",
-			&["1.20.1"],
-			&["bukkit"],
-			vec![],
-		)]);
-		let mut request = request("p1");
-		request.content_type = ContentType::Plugin;
-		request.target.loaders = vec!["paper".to_string()];
+		request.target.loaders = vec!["shroudforge".to_string()];
 
 		let plan = resolve_content(provider, request).await.unwrap();
 
@@ -415,8 +357,8 @@ mod tests {
 				"Ur9uoHH5",
 				"shFhR8Vx",
 				"2025-01-19T06:39:41.349487Z",
-				&["1.20.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![
 					dependency(
 						Some("embedded-a"),
@@ -435,12 +377,12 @@ mod tests {
 					),
 				],
 			)])
-			.with_project_versions("better-mc-fabric-bmc2", &["Ur9uoHH5"]);
+			.with_project_versions("test-sfpack-project", &["Ur9uoHH5"]);
 
 		let plan = resolve_content(
 			provider,
 			ResolveContentRequest {
-				project_id: "better-mc-fabric-bmc2".to_string(),
+				project_id: "test-sfpack-project".to_string(),
 				version_id: None,
 				content_type: ContentType::ModPack,
 				selected: ResolutionPreferences::default(),
@@ -464,8 +406,8 @@ mod tests {
 				"pKFEfjEB",
 				"DdAlVT8M",
 				"2026-06-07T21:21:24.772638Z",
-				&["1.21.1", "1.21.2"],
-				&["neoforge"],
+				&["0.1.0", "0.2.0"],
+				&["shroudforge"],
 				vec![
 					dependency(
 						Some("LNytGWDc"),
@@ -483,16 +425,16 @@ mod tests {
 				"UjX6dr61",
 				"LNytGWDc",
 				"2026-04-21T22:20:03.579201Z",
-				&["1.21.1"],
-				&["neoforge"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 			version(
 				"YhZLrAFC",
 				"oWaK0Q19",
 				"2026-05-21T22:20:03.579201Z",
-				&["1.21.1"],
-				&["neoforge"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![
 					dependency(
 						Some("T9PomCSv"),
@@ -510,16 +452,16 @@ mod tests {
 				"hyQUls27",
 				"T9PomCSv",
 				"2026-06-17T04:32:50.469591Z",
-				&["1.21.1"],
-				&["fabric"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 			version(
 				"1L6XJqnY",
 				"T9PomCSv",
 				"2026-06-17T04:32:49.279302Z",
-				&["1.21.1"],
-				&["neoforge"],
+				&["0.1.0"],
+				&["shroudforge"],
 				vec![],
 			),
 		]);
@@ -533,10 +475,10 @@ mod tests {
 				selected: ResolutionPreferences::default(),
 				target: ResolutionPreferences {
 					game_versions: vec![
-						"1.21.1".to_string(),
-						"1.21.2".to_string(),
+						"0.1.0".to_string(),
+						"0.2.0".to_string(),
 					],
-					loaders: vec!["neoforge".to_string()],
+					loaders: vec!["shroudforge".to_string()],
 				},
 				existing_project_ids: Vec::new(),
 			},

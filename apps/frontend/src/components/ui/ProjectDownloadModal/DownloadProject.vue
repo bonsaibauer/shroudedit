@@ -49,7 +49,6 @@
 			</template>
 		</Combobox>
 		<Combobox
-			v-if="project.project_type !== 'resourcepack'"
 			:model-value="currentPlatform || undefined"
 			class="w-full"
 			:options="platformOptions"
@@ -199,9 +198,9 @@ const userSelectedCompatibleVersionId = ref<string | null>(null)
 const showAllVersions = ref(defaultShowAllVersions())
 const versionFilter = ref('')
 const preferredPlatformRanks = new Map([
-	['fabric', 0],
-	['forge', 1],
-	['neoforge', 2],
+	['shroudtopia', 0],
+	['shroudforge', 1],
+	['eml', 2],
 ])
 
 const incompatibleGameVersionsSet = computed(() => new Set(props.incompatibleGameVersions))
@@ -344,8 +343,7 @@ const filteredVersions = computed<Labrinth.Versions.v3.Version[]>(() => {
 
 	const platform = currentPlatform.value
 	const result = props.versions.filter((x) => {
-		const matchesPlatform =
-			props.project.project_type === 'resourcepack' || (!!platform && x.loaders.includes(platform))
+		const matchesPlatform = !!platform && x.loaders.includes(platform)
 
 		return x.game_versions.includes(gameVersion) && matchesPlatform
 	})
@@ -435,39 +433,11 @@ const selectedPrimaryFile = computed<Labrinth.Versions.v3.VersionFile | null>(()
 	)
 })
 
-const requiredResourcePackFile = computed<Labrinth.Versions.v3.VersionFile | null>(() => {
-	if (props.project.project_type !== 'datapack') return null
-
-	return (
-		selectedVersion.value?.files?.find(
-			(file) => file !== selectedPrimaryFile.value && file.file_type === 'required-resource-pack',
-		) || null
-	)
-})
-
-const recommendedResourcePackFiles = computed<Labrinth.Versions.v3.VersionFile[]>(() => {
-	if (props.project.project_type !== 'datapack') return []
-
-	return (
-		selectedVersion.value?.files?.filter(
-			(file) => file !== selectedPrimaryFile.value && file.file_type === 'optional-resource-pack',
-		) || []
-	)
-})
-
 const hasAdditionalDownloads = computed(() => {
 	const hrefs = new Set<string>()
 
 	if (selectedPrimaryFile.value) {
 		hrefs.add(selectedPrimaryFile.value.url)
-	}
-
-	if (requiredResourcePackFile.value) {
-		hrefs.add(requiredResourcePackFile.value.url)
-	}
-
-	for (const file of recommendedResourcePackFiles.value) {
-		hrefs.add(file.url)
 	}
 
 	for (const file of props.dependencyDownloadFiles) {

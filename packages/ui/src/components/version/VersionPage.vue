@@ -70,26 +70,19 @@ const versionSubtitle = computed(() => props.version.name)
 const publishDate = computed(() => formatRelativeTime(props.version.date_published))
 const publishDateTooltip = computed(() => formatDateTime(props.version.date_published))
 
-const isModpack = computed(() => props.version.loaders.includes('mrpack'))
+const isModpack = computed(() => props.version.loaders.includes('sfpack'))
 const platforms = computed(() =>
-	isModpack.value ? props.version.mrpack_loaders : props.version.loaders,
+	isModpack.value ? props.version.modpack_loaders : props.version.loaders,
 )
 const noModpackLoader = computed(
 	() =>
 		(isModpack.value &&
-			props.version.mrpack_loaders?.length === 1 &&
-			props.version.mrpack_loaders?.[0] === 'enshrouded') ||
-		props.version.mrpack_loaders?.length === 0,
+			props.version.modpack_loaders?.length === 1 &&
+			props.version.modpack_loaders?.[0] === 'enshrouded') ||
+		props.version.modpack_loaders?.length === 0,
 )
 const primaryFile = computed(
 	() => props.version.files?.find((file) => file.primary) ?? props.version.files?.[0] ?? {},
-)
-const promotedSupplementaryFiles = computed(() =>
-	props.version.files.filter(
-		(file) =>
-			file.file_type &&
-			['required-resource-pack', 'optional-resource-pack'].includes(file.file_type),
-	),
 )
 
 type DependencyContext = {
@@ -398,7 +391,6 @@ const authorLink = computed(() =>
 				<slot
 					name="headerActions"
 					:primary-file="primaryFile"
-					:promoted-files="promotedSupplementaryFiles"
 				/>
 			</div>
 		</div>
@@ -533,7 +525,7 @@ const authorLink = computed(() =>
 			<h3 class="mt-0 mb-2 text-lg font-semibold">
 				{{
 					formatMessage(
-						version.loaders.includes('mrpack') ? messages.content : messages.includedContent,
+						version.loaders.includes('sfpack') ? messages.content : messages.includedContent,
 					)
 				}}
 			</h3>

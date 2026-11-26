@@ -144,7 +144,7 @@ mod tests {
 			monetization_status: MonetizationStatus::Monetized,
 			side_types_migration_review_status:
 				SideTypesMigrationReviewStatus::Reviewed,
-			loaders: vec!["fabric".to_string()],
+			loaders: vec!["shroudforge".to_string()],
 			components: exp::ProjectSerial::default(),
 		}
 	}

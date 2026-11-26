@@ -27,7 +27,7 @@
 //! searching into the project document, it's because collating version info
 //! into the project doc will break filtering on multiple fields. Let's say for
 //! example we have a project with 2 versions:
-//! - ShroudForge on Enshrouded 0.9.1.2
+//! - ShroudEML on Enshrouded 0.9.1.2
 //! - Shroudtopia on Enshrouded 0.9.0.0
 //!
 //! If we put both of these versions into the project object, we'd end up with
@@ -40,7 +40,7 @@
 //! }
 //! ```
 //!
-//! A search for ShroudForge on Enshrouded 0.9.0.0 would match the combined
+//! A search for ShroudEML on Enshrouded 0.9.0.0 would match the combined
 //! document. Separate version documents require both filters to match the
 //! same version.
 //!

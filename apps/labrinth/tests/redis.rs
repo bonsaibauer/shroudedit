@@ -785,7 +785,7 @@ async fn many_get_routes_handle_cross_slot_cache_lifecycle() {
 						"dependencies": [{
 							"project_id": beta.project_id,
 							"dependency_type": "required",
-							"file_name": "cluster-test.jar",
+							"file_name": "cluster-test.zip",
 						}],
 					}),
 					USER_USER_PAT,

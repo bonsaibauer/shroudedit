@@ -103,7 +103,6 @@ export interface BrowseManagerContext {
 		environment?: string
 		syncButton?: string
 		providedBy?: string
-		gameVersionShaderMessage?: string
 	}>
 
 	loadingComponent?: Component

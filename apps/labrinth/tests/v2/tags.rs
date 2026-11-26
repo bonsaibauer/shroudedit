@@ -24,13 +24,16 @@ async fn get_tags() {
 			// - ordering ties settled by date added to database
 			// - We also expect presentation of NEWEST to OLDEST
 			// - All null orderings are treated as older than any non-null ordering
-			// (for this test, the 1.20.1, etc, versions are all null ordering)
+			// (for this test, the 0.1.0, etc, versions are all null ordering)
 			let game_version_versions = game_versions
 				.into_iter()
 				.map(|x| x.version)
 				.filter(|version| {
 					version.starts_with("Ordering_")
-						|| version.starts_with("1.20.")
+						|| matches!(
+							version.as_str(),
+							"0.5.0" | "0.4.0" | "0.3.0" | "0.2.0" | "0.1.0"
+						)
 				})
 				.collect::<Vec<_>>();
 			assert_eq!(
@@ -38,11 +41,11 @@ async fn get_tags() {
 				[
 					"Ordering_Negative1",
 					"Ordering_Positive100",
-					"1.20.5",
-					"1.20.4",
-					"1.20.3",
-					"1.20.2",
-					"1.20.1"
+					"0.5.0",
+					"0.4.0",
+					"0.3.0",
+					"0.2.0",
+					"0.1.0"
 				]
 				.iter()
 				.map(|s| s.to_string())
@@ -53,19 +56,10 @@ async fn get_tags() {
 				loaders.into_iter().map(|x| x.name).collect::<HashSet<_>>();
 			assert_eq!(
 				loader_names,
-				[
-					"fabric",
-					"forge",
-					"bukkit",
-					"waterfall",
-					"datapack",
-					"shroudforge",
-					"shroudtopia",
-					"eml",
-				]
-				.iter()
-				.map(|s| s.to_string())
-				.collect()
+				["shroudforge", "eml", "shroudtopia",]
+					.iter()
+					.map(|s| s.to_string())
+					.collect()
 			);
 
 			let side_type_names =

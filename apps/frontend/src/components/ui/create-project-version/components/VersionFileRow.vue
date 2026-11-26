@@ -68,13 +68,9 @@ import { Combobox, IconButton, injectProjectPageContext } from '@shroudedit/ui'
 import type { ComboboxOption } from '@shroudedit/ui/src/components/base/Combobox.vue'
 import { acceptFileFromProjectType } from '@shroudedit/utils'
 
-import {
-	fileTypeLabels,
-	injectManageVersionContext,
-} from '~/providers/version/manage-version-modal'
+import { fileTypeLabels } from '~/providers/version/manage-version-modal'
 
 const { projectV2 } = injectProjectPageContext()
-const { projectType } = injectManageVersionContext()
 
 const emit = defineEmits<{
 	(e: 'setPrimaryFile', file?: File): void
@@ -92,23 +88,11 @@ const { name, isPrimary, onRemove, initialFileType, editingVersion } = definePro
 const selectedType = ref<Labrinth.Versions.v3.FileType | 'primary'>(initialFileType || 'unknown')
 const primaryFileInput = ref<HTMLInputElement>()
 
-const isDatapackProject = computed(() => projectType.value === 'datapack')
-
 const versionTypes = computed(
 	() =>
 		[
 			!editingVersion && { class: 'text-sm', value: 'primary', label: fileTypeLabels.primary },
 			{ class: 'text-sm', value: 'unknown', label: fileTypeLabels.unknown },
-			isDatapackProject.value && {
-				class: 'text-sm',
-				value: 'required-resource-pack',
-				label: fileTypeLabels['required-resource-pack'],
-			},
-			isDatapackProject.value && {
-				class: 'text-sm',
-				value: 'optional-resource-pack',
-				label: fileTypeLabels['optional-resource-pack'],
-			},
 			{ class: 'text-sm', value: 'sources-jar', label: fileTypeLabels['sources-jar'] },
 			{ class: 'text-sm', value: 'dev-jar', label: fileTypeLabels['dev-jar'] },
 			{ class: 'text-sm', value: 'javadoc-jar', label: fileTypeLabels['javadoc-jar'] },

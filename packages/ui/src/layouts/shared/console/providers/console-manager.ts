@@ -1,4 +1,3 @@
-import type { Mclogs } from '@shroudedit/api-client'
 import type { ComputedRef, Ref } from 'vue'
 
 import { createContext } from '#ui/providers/create-context'
@@ -25,12 +24,7 @@ export interface ConsoleManagerContext {
 	deleteDisabled?: Ref<boolean> | ComputedRef<boolean>
 	deleteDisabledTooltip?: string
 
-	shareDisabled?: Ref<boolean> | ComputedRef<boolean>
-
 	emptyStateType?: 'server' | 'instance'
-
-	crashAnalysis?: Ref<Mclogs.Insights.v1.InsightsResponse | null>
-	onDismissCrash?: () => void
 }
 
 export const [injectConsoleManager, provideConsoleManager] = createContext<ConsoleManagerContext>(

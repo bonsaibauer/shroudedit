@@ -185,7 +185,7 @@ pub async fn version_create(
 				for file_part in &legacy_create.file_parts {
 					if let Some(ext) = file_part.split('.').next_back() {
 						match ext {
-							"mrpack" | "mrpack-primary" => {
+							"sfpack" | "sfpack-primary" => {
 								project_type = Some("modpack");
 								break;
 							}
@@ -196,7 +196,7 @@ pub async fn version_create(
 					}
 				}
 
-				// Similarly, check actual content disposition for mrpacks, in case file_parts is wrong
+				// Similarly, check actual content disposition for sfpacks, in case file_parts is wrong
 				for content_disposition in content_dispositions {
 					// Uses version_create functions to get the file name and extension
 					let (_, file_extension) =
@@ -208,23 +208,23 @@ pub async fn version_create(
 							)
 						})?;
 
-					if file_extension == "mrpack" {
+					if file_extension == "sfpack" {
 						project_type = Some("modpack");
 						break;
 					}
 				}
 
-				// Modpacks now use the "mrpack" loader, and loaders are converted to loader fields.
+				// Modpacks now use the "sfpack" loader, and loaders are converted to loader fields.
 				// Setting of 'project_type' directly is removed, it's loader-based now.
 				if project_type == Some("modpack") {
 					fields.insert(
-						"mrpack_loaders".to_string(),
+						"modpack_loaders".to_string(),
 						json!(legacy_create.loaders),
 					);
 				}
 
 				let loaders = if project_type == Some("modpack") {
-					vec![Loader("mrpack".to_string())]
+					vec![Loader("sfpack".to_string())]
 				} else {
 					legacy_create.loaders
 				};

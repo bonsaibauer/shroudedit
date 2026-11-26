@@ -22,10 +22,6 @@ export type ProjectType =
 	| 'mod'
 	| 'modpack'
 	| 'schematic'
-	| 'resourcepack'
-	| 'shader'
-	| 'plugin'
-	| 'datapack'
 	| 'project'
 export type MonetizationStatus = 'monetized' | 'demonetized' | 'force-demonetized'
 
@@ -289,8 +285,6 @@ export type Dependency = VersionDependency | ProjectDependency | FileDependency
 export type VersionChannel = 'release' | 'beta' | 'alpha'
 export type VersionStatus = 'listed' | 'archived' | 'draft' | 'unlisted' | 'scheduled' | 'unknown'
 export type FileType =
-	| 'required-resource-pack'
-	| 'optional-resource-pack'
 	| 'sources-jar'
 	| 'dev-jar'
 	| 'javadoc-jar'
@@ -341,8 +335,6 @@ export type UserRole = 'admin' | 'moderator' | 'developer'
 export enum UserBadge {
 	MIDAS = 1 << 0,
 	EARLY_MODPACK_ADOPTER = 1 << 1,
-	EARLY_RESPACK_ADOPTER = 1 << 2,
-	EARLY_PLUGIN_ADOPTER = 1 << 3,
 	ALPHA_TESTER = 1 << 4,
 	CONTRIBUTOR = 1 << 5,
 	TRANSLATOR = 1 << 6,

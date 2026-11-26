@@ -40,11 +40,6 @@ interface CategoryGroup {
 
 const MAX_FEATURED_TAGS = 3
 
-const SHARED_CATEGORY_PROJECT_TYPES: Record<string, string> = {
-	plugin: 'mod',
-	datapack: 'mod',
-}
-
 const tags = useGeneratedState()
 const { formatMessage, locale } = useVIntl()
 
@@ -174,8 +169,7 @@ const allCategories = computed(
 const projectTypesByCategoryList = computed(() => {
 	const lists = new Map<string, string[]>()
 	for (const projectType of projectTypes.value) {
-		const source = SHARED_CATEGORY_PROJECT_TYPES[projectType] ?? projectType
-		lists.set(source, [...(lists.get(source) ?? []), projectType])
+		lists.set(projectType, [...(lists.get(projectType) ?? []), projectType])
 	}
 	return lists
 })

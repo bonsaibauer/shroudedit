@@ -105,10 +105,6 @@ const resultsDisplayMode = computed<DisplayMode>(() =>
 
 const layoutPreferenceKeys = {
 	mod: 'mods',
-	plugin: 'plugins',
-	datapack: 'datapacks',
-	shader: 'shaders',
-	resourcepack: 'resourcepacks',
 	modpack: 'modpacks',
 	schematic: 'mods',
 	server: 'servers',
@@ -282,11 +278,6 @@ const messages = defineMessages({
 		defaultMessage:
 			'Search and browse Enshrouded {projectType} on ShroudEdit with fast, accurate filters.',
 	},
-	gameVersionShaderMessage: {
-		id: 'search.filter.game-version-shader-message',
-		defaultMessage:
-			'Shader packs for older versions most likely work on newer versions with only minor issues.',
-	},
 })
 
 const advancedFiltersCollapsed = computed({
@@ -396,7 +387,6 @@ provideBrowseManager({
 		modLoader: formatMessage(messages.modLoaderProvidedByServer),
 		syncButton: formatMessage(messages.syncFilterButton),
 		providedBy: formatMessage(messages.providedByServer),
-		gameVersionShaderMessage: formatMessage(messages.gameVersionShaderMessage),
 	},
 	loadingComponent: LogoAnimated,
 })

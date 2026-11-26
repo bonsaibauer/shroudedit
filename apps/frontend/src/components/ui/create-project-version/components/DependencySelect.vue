@@ -63,15 +63,7 @@ const search = async (query: string) => {
 		const results = await labrinth.projects_v2.search({
 			query: query,
 			limit: 20,
-			facets: [
-				[
-					'project_type:mod',
-					'project_type:plugin',
-					'project_type:shader ',
-					'project_type:resourcepack',
-					'project_type:datapack',
-				],
-			],
+			facets: [['project_type:mod']],
 		})
 
 		const resultsByProjectId = await labrinth.projects_v2.search({

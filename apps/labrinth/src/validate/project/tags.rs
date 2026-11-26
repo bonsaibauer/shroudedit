@@ -2,15 +2,13 @@ use std::collections::BTreeSet;
 
 use crate::{
 	database::models::categories::Category,
-	models::{projects::Project, v2::projects::LegacyProject},
+	models::projects::Project,
 };
 
 use super::{ProjectNag, ProjectNagKind, ProjectNagSeverity};
 
 const MAX_TAG_COUNT: usize = 8;
 const MAX_TAG_COUNT_SERVER: usize = 18;
-const RESOLUTION_TAGS: [&str; 8] =
-	["8x-", "16x", "32x", "48x", "64x", "128x", "256x", "512x+"];
 
 pub(super) fn validate(
 	project: &Project,
@@ -20,8 +18,6 @@ pub(super) fn validate(
 	let tag_count =
 		project.categories.len() + project.additional_categories.len();
 	let is_enshrouded_server = project.components.enshrouded_server.is_some();
-	let project_type =
-		LegacyProject::get_project_type(&project.project_types).0;
 
 	if !project.versions.is_empty() && project.categories.is_empty() {
 		nags.push(ProjectNag::new(
@@ -56,32 +52,6 @@ pub(super) fn validate(
 		);
 	}
 
-	let mut resolution_tags = project
-		.categories
-		.iter()
-		.chain(&project.additional_categories)
-		.filter(|tag| RESOLUTION_TAGS.contains(&tag.as_str()))
-		.map(String::as_str)
-		.collect::<Vec<_>>();
-	resolution_tags.sort_by_key(|tag| {
-		RESOLUTION_TAGS
-			.iter()
-			.position(|resolution| resolution == tag)
-			.unwrap_or(RESOLUTION_TAGS.len())
-	});
-	if project_type == "resourcepack" && resolution_tags.len() > 1 {
-		nags.push(
-			ProjectNag::new(
-				ProjectNagKind::MultipleResolutionTags,
-				ProjectNagSeverity::Warning,
-			)
-			.with_details(serde_json::json!({
-				"count": resolution_tags.len(),
-				"tags": resolution_tags.join("|"),
-			})),
-		);
-	}
-
 	if let Some(available_categories) = available_categories
 		&& let Some(total_available_tags) = all_available_tags_selected(
 			project
@@ -91,7 +61,7 @@ pub(super) fn validate(
 				.map(String::as_str),
 			available_categories
 				.iter()
-				.filter(|category| category.project_type == project_type)
+				.filter(|category| project.project_types.contains(&category.project_type))
 				.map(|category| category.category.as_str()),
 		) {
 		nags.push(

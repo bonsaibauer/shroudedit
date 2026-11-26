@@ -54,29 +54,7 @@
 					<DownloadIcon v-else aria-hidden="true" />
 					{{ formatMessage(messages.downloadAsZip) }}
 				</Button>
-				<SplitButton
-					v-if="hasRecommendedDownloadFiles"
-					type="colored"
-					:color="downloadActionColor"
-					:options="downloadWithRecommendedOptions"
-					:menu-label="formatMessage(messages.downloadWithRecommended)"
-					:disabled="
-						!!downloadingActionType ||
-						!dependencyDownloadFilesLoaded ||
-						!canDownloadVersion(selectedVersion)
-					"
-					@click="downloadFilesWithDependencies"
-				>
-					<SpinnerIcon
-						v-if="downloadingActionType === 'dependencies'"
-						aria-hidden="true"
-						class="animate-spin"
-					/>
-					<DownloadIcon v-else aria-hidden="true" />
-					{{ formatMessage(messages.downloadWithDependencies) }}
-				</SplitButton>
 				<Button
-					v-else
 					type="colored"
 					:color="downloadActionColor"
 					:disabled="
@@ -105,13 +83,11 @@ import { DownloadIcon, SpinnerIcon } from '@shroudedit/assets'
 import {
 	Avatar,
 	Button,
-	type ButtonMenuOption,
 	type CdnDownloadReason,
 	defineMessages,
 	injectNotificationManager,
 	injectShroudEditClient,
 	NewModal,
-	SplitButton,
 	truncatedTooltip,
 	useDebugLogger,
 	useVIntl,
@@ -155,7 +131,7 @@ type DownloadedFile = DownloadableFile & {
 	blob: Blob
 }
 
-type DownloadActionType = 'zip' | 'dependencies' | 'recommended'
+type DownloadActionType = 'zip' | 'dependencies'
 
 type NewModalRef = {
 	show: (event?: MouseEvent) => void
@@ -193,7 +169,6 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
-const tags = useGeneratedState()
 const client = injectShroudEditClient()
 const queryClient = useQueryClient()
 const { createProjectDownloadUrl } = useCdnDownloadContext()
@@ -287,15 +262,6 @@ const currentPlatform = computed(() => projectDownloadSelection.value.currentPla
 const selectedVersion = computed(() => projectDownloadSelection.value.selectedVersion)
 const selectedPrimaryFile = computed(() => projectDownloadSelection.value.selectedPrimaryFile)
 
-const additionalFiles = computed(() => {
-	if (!selectedVersion.value || !selectedPrimaryFile.value) return []
-	return selectedVersion.value.files.filter((file) => file !== selectedPrimaryFile.value)
-})
-
-const hasRequiredResourcePackAdditionalFile = computed(() =>
-	additionalFiles.value.some((file) => file.file_type === 'required-resource-pack'),
-)
-
 const downloadModalProvider = provideDownloadModalProvider({
 	project,
 	selectedVersion,
@@ -303,7 +269,6 @@ const downloadModalProvider = provideDownloadModalProvider({
 	currentGameVersion,
 	currentPlatform,
 	downloadReason: computed(() => props.downloadReason),
-	additionalFiles,
 })
 const dependencyDownloadFiles = downloadModalProvider.downloadableDependencyFiles
 const dependencyDownloadFilesLoaded = downloadModalProvider.downloadableDependencyFilesLoaded
@@ -313,31 +278,7 @@ const selectedVersionDownloadFiles = computed<DownloadableFile[]>(() => {
 	if (!selectedVersion.value || !canDownloadVersion(selectedVersion.value)) return []
 
 	return selectedVersion.value.files
-		.filter(
-			(file) => file === selectedPrimaryFile.value || file.file_type === 'required-resource-pack',
-		)
-		.map((file) => ({
-			href: createProjectDownloadUrl(file.url, {
-				reason: props.downloadReason,
-				gameVersion: currentGameVersion.value ?? undefined,
-				loader: currentPlatform.value ?? undefined,
-			}),
-			filename: file.filename,
-		}))
-})
-
-const recommendedDownloadFiles = computed<DownloadableFile[]>(() => {
-	if (
-		project.value?.project_type !== 'datapack' ||
-		!selectedVersion.value ||
-		!canDownloadVersion(selectedVersion.value)
-	)
-		return []
-
-	return selectedVersion.value.files
-		.filter(
-			(file) => file !== selectedPrimaryFile.value && file.file_type === 'optional-resource-pack',
-		)
+		.filter((file) => file === selectedPrimaryFile.value)
 		.map((file) => ({
 			href: createProjectDownloadUrl(file.url, {
 				reason: props.downloadReason,
@@ -354,30 +295,11 @@ const downloadActionColor = computed(() =>
 		: malwareDownloadColor(selectedVersion.value),
 )
 
-const hasRecommendedDownloadFiles = computed(() => recommendedDownloadFiles.value.length > 0)
-
 const showDependencyDownloadActions = computed(
 	() =>
 		selectedVersionDownloadFiles.value.length > 0 &&
-		(dependencyDownloadFiles.value.length > 0 ||
-			hasRequiredResourcePackAdditionalFile.value ||
-			hasRecommendedDownloadFiles.value),
+		dependencyDownloadFiles.value.length > 0,
 )
-
-const downloadWithRecommendedOptions = computed<ButtonMenuOption[]>(() => [
-	{
-		id: 'download-with-recommended',
-		label: formatMessage(messages.downloadWithRecommended),
-		icon: DownloadIcon,
-		action: () => void downloadFilesWithRecommended(),
-	},
-	{
-		id: 'download-with-recommended-zip',
-		label: formatMessage(messages.downloadWithRecommendedAsZip),
-		icon: DownloadIcon,
-		action: () => void downloadSelectedVersionZip(),
-	},
-])
 
 watch(projectV2Error, (error) => {
 	if (error) {
@@ -398,14 +320,6 @@ const messages = defineMessages({
 		id: 'project.download.download-with-dependencies',
 		defaultMessage: 'Download with deps',
 	},
-	downloadWithRecommended: {
-		id: 'project.download.download-with-recommended',
-		defaultMessage: 'Download with recommended',
-	},
-	downloadWithRecommendedAsZip: {
-		id: 'project.download.download-with-recommended-as-zip',
-		defaultMessage: 'Download with recommended as .zip',
-	},
 	downloadZipFailedTitle: {
 		id: 'project.download.zip-failed-title',
 		defaultMessage: 'Could not download files',
@@ -415,25 +329,6 @@ const messages = defineMessages({
 		defaultMessage: 'One or more files could not be downloaded. Please try again.',
 	},
 })
-
-function getProjectTypeForUrl(
-	type: Labrinth.Projects.v2.ProjectType,
-	loaders: string[],
-): DisplayProjectType {
-	if (type !== 'mod') return type as DisplayProjectType
-
-	const isMod = loaders.some((loader) => tags.value.loaderData.modLoaders.includes(loader))
-	const isPlugin = loaders.some((loader) => tags.value.loaderData.allPluginLoaders.includes(loader))
-	const isDataPack = loaders.some((loader) =>
-		tags.value.loaderData.dataPackLoaders.includes(loader),
-	)
-
-	if (isDataPack) return 'datapack'
-	if (isPlugin) return 'plugin'
-	if (isMod) return 'mod'
-
-	return 'mod'
-}
 
 function updateDownloadQuery({
 	gameVersion,
@@ -573,7 +468,6 @@ async function downloadSelectedVersionZip() {
 	const files = dedupeDownloadFiles([
 		...selectedVersionDownloadFiles.value,
 		...dependencyDownloadFiles.value,
-		...recommendedDownloadFiles.value,
 	])
 
 	try {
@@ -619,38 +513,6 @@ async function downloadFilesWithDependencies() {
 		const files = dedupeDownloadFiles([
 			...selectedVersionDownloadFiles.value,
 			...dependencyDownloadFiles.value,
-		])
-
-		await downloadFiles(files)
-
-		emit('download')
-	} catch (error) {
-		console.error('Failed to download selected version files:', error)
-		addNotification({
-			title: formatMessage(messages.downloadZipFailedTitle),
-			text: formatMessage(messages.downloadZipFailedText),
-			type: 'error',
-		})
-	} finally {
-		downloadingActionType.value = null
-	}
-}
-
-async function downloadFilesWithRecommended() {
-	if (
-		downloadingActionType.value ||
-		!dependencyDownloadFilesLoaded.value ||
-		!canDownloadVersion(selectedVersion.value)
-	)
-		return
-
-	downloadingActionType.value = 'recommended'
-
-	try {
-		const files = dedupeDownloadFiles([
-			...selectedVersionDownloadFiles.value,
-			...dependencyDownloadFiles.value,
-			...recommendedDownloadFiles.value,
 		])
 
 		await downloadFiles(files)
@@ -882,9 +744,7 @@ function getSelectedRouteVersion(
 	if (!gameVersion || !platform || !project.value) return null
 
 	const filteredVersions = versionList.filter((version) => {
-		const matchesPlatform =
-			project.value?.project_type === 'resourcepack' ||
-			(!!platform && version.loaders.includes(platform))
+		const matchesPlatform = !!platform && version.loaders.includes(platform)
 
 		return version.game_versions.includes(gameVersion) && matchesPlatform
 	})
@@ -907,13 +767,13 @@ function normalizeVersionsForDownload(
 		const files = Array.isArray(version.files) ? version.files : []
 		const gameVersions = Array.isArray(version.game_versions) ? version.game_versions : []
 		const loaders = Array.isArray(version.loaders) ? version.loaders : []
-		const mrpackLoaders = Array.isArray(version.mrpack_loaders) ? version.mrpack_loaders : []
+		const sfpackLoaders = Array.isArray(version.modpack_loaders) ? version.modpack_loaders : []
 
 		return {
 			...version,
 			files,
 			game_versions: gameVersions,
-			loaders: isModpack && mrpackLoaders.length ? mrpackLoaders : loaders,
+			loaders: isModpack && sfpackLoaders.length ? sfpackLoaders : loaders,
 		}
 	})
 }

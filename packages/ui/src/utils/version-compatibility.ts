@@ -1,9 +1,4 @@
-const NON_MOD_PROJECT_TYPES = new Set(['shader', 'shaderpack', 'resourcepack', 'datapack'])
-
-const LOADER_ALIAS_GROUPS = [
-	['paper', 'purpur', 'spigot', 'bukkit'],
-	['neoforge', 'neo'],
-]
+const LOADER_ALIAS_GROUPS: string[][] = []
 
 type VersionCompatibilityData = {
 	game_versions: string[]
@@ -49,18 +44,10 @@ export function versionMatchesCompatibilityTarget(
 
 	const normalizedVersionLoaders = version.loaders.map(normalizeLoaderAlias)
 
-	if (target.projectType === 'datapack') {
-		return normalizedVersionLoaders.includes('datapack')
-	}
-
-	if (target.projectType && NON_MOD_PROJECT_TYPES.has(target.projectType)) {
-		return true
-	}
-
 	if (
 		target.projectType === 'modpack' &&
 		(normalizedVersionLoaders.length === 0 ||
-			normalizedVersionLoaders.every((loader) => loader === 'mrpack'))
+			normalizedVersionLoaders.every((loader) => loader === 'sfpack'))
 	) {
 		return true
 	}

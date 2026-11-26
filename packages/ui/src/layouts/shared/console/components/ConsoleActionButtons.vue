@@ -24,19 +24,6 @@
 			<TrashIcon aria-hidden="true" />
 			{{ formatMessage(commonMessages.deleteLabel) }}
 		</Button>
-		<Button
-			v-if="hasLogs"
-			v-tooltip="shareDisabled ? shareDisabledTooltip : undefined"
-			type="quiet"
-			class="!text-sm !font-medium"
-			:disabled="shareDisabled"
-			:loading="sharing"
-			@click="emit('share')"
-		>
-			<SpinnerIcon v-if="sharing" class="animate-spin" aria-hidden="true" />
-			<ShareIcon v-else aria-hidden="true" />
-			{{ formatMessage(messages.share) }}
-		</Button>
 		<Button type="quiet" class="!text-sm !font-medium" @click="emit('toggle-fullscreen')">
 			<ContractIcon v-if="fullscreen" aria-hidden="true" />
 			<ExpandIcon v-else aria-hidden="true" />
@@ -49,8 +36,6 @@
 import {
 	ContractIcon,
 	ExpandIcon,
-	ShareIcon,
-	SpinnerIcon,
 	TrashIcon,
 	XIcon,
 } from '@shroudedit/assets'
@@ -61,10 +46,6 @@ import { commonMessages } from '#ui/utils/common-messages'
 
 const { formatMessage } = useVIntl()
 const messages = defineMessages({
-	share: {
-		id: 'console.actions.share',
-		defaultMessage: 'Share',
-	},
 	collapse: {
 		id: 'console.actions.collapse',
 		defaultMessage: 'Collapse',
@@ -78,9 +59,6 @@ const messages = defineMessages({
 defineProps<{
 	showClear?: boolean
 	hasLogs?: boolean
-	shareDisabled?: boolean
-	shareDisabledTooltip?: string
-	sharing?: boolean
 	fullscreen?: boolean
 	clearDisabled?: boolean
 	clearDisabledTooltip?: string
@@ -91,7 +69,6 @@ defineProps<{
 
 const emit = defineEmits<{
 	clear: []
-	share: []
 	'toggle-fullscreen': []
 	delete: []
 }>()

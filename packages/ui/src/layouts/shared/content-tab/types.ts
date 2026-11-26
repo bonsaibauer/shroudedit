@@ -128,7 +128,7 @@ export type ManagedContentVersion = Pick<
 	'id' | 'version_number' | 'date_published'
 >
 
-export type ManagedContentSummaryType = 'mod' | 'plugin' | 'datapack' | 'resourcepack' | 'shader'
+export type ManagedContentSummaryType = 'mod' | 'modpack'
 
 export interface ManagedContentManager {
 	name: string

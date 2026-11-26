@@ -616,12 +616,12 @@ function getModpackLoaders(version: VersionWithDisplayUrlEnding): string[] {
 		return loaders
 	}
 
-	const mrpackLoaders = Array.isArray(version.mrpack_loaders) ? version.mrpack_loaders : []
-	if (mrpackLoaders.length) {
-		return mrpackLoaders
+	const sfpackLoaders = Array.isArray(version.modpack_loaders) ? version.modpack_loaders : []
+	if (sfpackLoaders.length) {
+		return sfpackLoaders
 	}
 
-	return loaders.filter((loader) => loader !== 'mrpack')
+	return loaders.filter((loader) => loader !== 'sfpack')
 }
 
 function getGameVersions(version: VersionWithDisplayUrlEnding): string[] {

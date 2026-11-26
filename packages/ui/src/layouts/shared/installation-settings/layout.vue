@@ -22,7 +22,6 @@ import Avatar from '#ui/components/base/Avatar.vue'
 import { Button } from '#ui/components/base/buttons'
 import Chips from '#ui/components/base/Chips.vue'
 import Combobox from '#ui/components/base/Combobox.vue'
-import PaperChannelBadge from '#ui/components/base/PaperChannelBadge.vue'
 import ConfirmLeaveModal from '#ui/components/modal/ConfirmLeaveModal.vue'
 import { useDebugLogger } from '#ui/composables/debug-logger'
 import { defineMessages, useVIntl } from '#ui/composables/i18n'
@@ -128,23 +127,6 @@ watch(
 		debug('state watch:', { oldValue, value, snapshot: stateSnapshot() })
 	},
 )
-
-function paperLoaderChannelTag(index: number): LoaderVersionEntry['channelTag'] | null {
-	if (form.selectedPlatform.value !== 'paper') return null
-	const entries = ctx.resolveLoaderVersions(
-		form.selectedPlatform.value,
-		form.selectedGameVersion.value,
-	)
-	const tag = entries[index]?.channelTag
-	debug('paperLoaderChannelTag:', {
-		index,
-		selectedPlatform: form.selectedPlatform.value,
-		selectedGameVersion: form.selectedGameVersion.value,
-		entries: entries.length,
-		tag,
-	})
-	return tag === 'ALPHA' || tag === 'BETA' ? tag : null
-}
 
 function handleBeforeUnload(e: BeforeUnloadEvent) {
 	if (form.isSaving.value) {
@@ -890,31 +872,6 @@ const messages = defineMessages({
 								"
 								:disabled="ctx.isBusy.value"
 							>
-								<template
-									v-if="form.selectedPlatform.value === 'paper'"
-									#option="{ item, isSelected }"
-								>
-									<div class="flex w-full items-center justify-between gap-2">
-										<div class="flex flex-wrap items-center gap-2">
-											<span
-												class="font-semibold leading-tight"
-												:class="isSelected ? 'text-contrast' : 'text-primary'"
-											>
-												{{ item.label }}
-											</span>
-											<PaperChannelBadge :channel="paperLoaderChannelTag(item.value)" />
-										</div>
-									</div>
-								</template>
-								<template
-									v-if="form.selectedPlatform.value === 'paper'"
-									#search-selection-affix="{ option }"
-								>
-									<PaperChannelBadge
-										affix
-										:channel="option ? paperLoaderChannelTag(option.value) : null"
-									/>
-								</template>
 							</Combobox>
 						</div>
 

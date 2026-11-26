@@ -52,12 +52,8 @@ export type GameVersionTag = {
 
 export type DisplayProjectType =
 	| 'mod'
-	| 'plugin'
-	| 'datapack'
-	| 'resourcepack'
 	| 'modpack'
 	| 'schematic'
-	| 'shader'
 	| 'server'
 	| 'project'
 
@@ -275,10 +271,6 @@ export const PROJECT_TYPE_PRECEDENCE = [
 	'server',
 	'schematic',
 	'modpack',
-	'datapack',
-	'plugin',
-	'shader',
-	'resourcepack',
 	'mod',
 	'project',
 ] as const

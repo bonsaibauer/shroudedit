@@ -13,8 +13,6 @@ bitflags::bitflags! {
 	pub struct Badges: u64 {
 		const MIDAS = 1 << 0;
 		const EARLY_MODPACK_ADOPTER = 1 << 1;
-		const EARLY_RESPACK_ADOPTER = 1 << 2;
-		const EARLY_PLUGIN_ADOPTER = 1 << 3;
 		const ALPHA_TESTER = 1 << 4;
 		const CONTRIBUTOR = 1 << 5;
 		const TRANSLATOR = 1 << 6;

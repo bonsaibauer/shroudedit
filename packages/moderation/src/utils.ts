@@ -72,7 +72,7 @@ export function licenseRequiresSource(licenseId: string): boolean {
 }
 
 export function notSourceAsDistributed(projectTypes): boolean {
-	return projectTypes.includes('mod') || projectTypes.includes('plugin')
+	return projectTypes.includes('mod')
 }
 
 export function promptSourceRequired(licenseId: string, projectTypes): boolean {
@@ -95,10 +95,6 @@ export function formatProjectTypes(type: string, lower: boolean = false) {
 	try {
 		value = value
 			.replaceAll('mod', 'Mod')
-			.replaceAll('resourcepack', 'Resource Pack')
-			.replaceAll('datapack', 'Data Pack')
-			.replaceAll('plugin', 'Plugin')
-			.replaceAll('shader', 'Shaders')
 			.replaceAll('enshrouded_server', 'Server')
 	} catch {
 		return 'No project type'

@@ -162,18 +162,13 @@ pub(super) fn validate(
 	let is_source_project = project
 		.project_types
 		.iter()
-		.any(|project_type| project_type == "mod" || project_type == "plugin");
-	let is_datapack = project
-		.project_types
-		.iter()
-		.any(|project_type| project_type == "datapack");
+		.any(|project_type| project_type == "mod");
 	let has_source_link =
 		named_link(project, "source").is_some_and(|url| !url.is_empty());
 	let every_version_has_additional_files =
 		versions.iter().all(|version| version.files.len() >= 2);
 
-	if !is_datapack
-		&& is_source_project
+	if is_source_project
 		&& SOURCE_REQUIRING_LICENSES.contains(&project.license.id.as_str())
 		&& !has_source_link
 		&& !every_version_has_additional_files

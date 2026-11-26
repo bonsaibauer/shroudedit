@@ -194,15 +194,6 @@
 
 			<div v-else-if="!isEditingImage" class="flex gap-2">
 				<IconButton
-					v-if="isLogFile"
-					v-tooltip="formatMessage(messages.shareToMclogs)"
-					type="quiet"
-					:label="formatMessage(messages.shareToMclogs)"
-					@click="$emit('share')"
-				>
-					<ShareIcon />
-				</IconButton>
-				<IconButton
 					v-tooltip="formatMessage(messages.findInFile)"
 					:type="isEditorFindOpen ? 'colored' : 'quiet'"
 					:color="isEditorFindOpen ? 'brand' : undefined"
@@ -230,7 +221,6 @@ import {
 	PlusIcon,
 	RefreshCwIcon,
 	SearchIcon,
-	ShareIcon,
 	UploadIcon,
 } from '@shroudedit/assets'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
@@ -290,10 +280,6 @@ const messages = defineMessages({
 	installCurseForgePack: {
 		id: 'files.navbar.install-curseforge-pack',
 		defaultMessage: 'Install CurseForge pack',
-	},
-	shareToMclogs: {
-		id: 'files.navbar.share-to-mclogs',
-		defaultMessage: 'Share to mclo.gs',
 	},
 	findInFile: {
 		id: 'files.navbar.find-in-file',
@@ -399,14 +385,6 @@ watch(
 		requestAnimationFrame(checkBreadcrumbOverflow)
 	},
 )
-
-const isLogFile = computed(() => {
-	return (
-		props.editingFilePath?.startsWith('logs') ||
-		props.editingFilePath?.startsWith('crash-reports') ||
-		props.editingFilePath?.endsWith('.log')
-	)
-})
 </script>
 
 <style scoped>

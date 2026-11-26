@@ -68,15 +68,15 @@ pub fn get_public_version_creation_data_json(
 		"version_title": "start",
 		"dependencies": [],
 		"release_channel": "release",
-		"loaders": [if is_modpack { "mrpack" } else { "fabric" }],
+		"loaders": [if is_modpack { "sfpack" } else { "shroudforge" }],
 		"featured": true,
 
 		// Loader fields
-		"game_versions": ["1.20.1"],
+		"game_versions": ["0.1.0"],
 		"environment": "client_only_server_optional",
 	});
 	if is_modpack {
-		j["mrpack_loaders"] = json!(["fabric"]);
+		j["modpack_loaders"] = json!(["shroudforge"]);
 	}
 	if let Some(ordering) = ordering {
 		j["ordering"] = json!(ordering);
@@ -128,7 +128,7 @@ pub fn get_public_creation_data_multipart(
 		let file_segment = MultipartSegment {
 			name: jar.filename(),
 			filename: Some(jar.filename()),
-			content_type: Some("application/java-archive".to_string()),
+			content_type: version_jar.content_type(),
 			data: MultipartSegmentData::Binary(jar.bytes()),
 		};
 

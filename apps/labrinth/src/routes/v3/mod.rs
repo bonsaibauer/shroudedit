@@ -169,7 +169,6 @@ pub fn config(cfg: &mut web::ServiceConfig) {
 		super::maven::version_file,
 		super::maven::version_file_sha1,
 		super::maven::version_file_sha512,
-		super::updates::forge_updates,
 		projects::project_search,
 		projects::project_search_post,
 		projects::projects_get_route,

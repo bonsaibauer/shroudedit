@@ -983,12 +983,9 @@ pub async fn project_edit_internal(
 		}
 		if !slug.eq_ignore_ascii_case(
 			project_item.inner.slug.as_deref().unwrap_or_default(),
-		) && project_item
-			.inner
-			.loaders
-			.iter()
-			.any(|loader| matches!(loader.as_str(), "shroudforge" | "eml" | "sfpack"))
-		{
+		) && project_item.inner.loaders.iter().any(|loader| {
+			matches!(loader.as_str(), "shroudforge" | "eml" | "sfpack")
+		}) {
 			return Err(ApiError::Request(eyre::eyre!(
 				"a published ShroudForge package keeps its manifest ID as its project slug"
 			)));

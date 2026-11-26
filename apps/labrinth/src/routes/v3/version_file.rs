@@ -987,9 +987,12 @@ pub async fn delete_file(
 			}
 			if version.loaders.iter().any(|loader| loader == "sfpack")
 				&& version.files.iter().any(|file| {
-					file.id == row.id && file.primary && file.filename.to_ascii_lowercase().ends_with(".sfpack")
-				})
-			{
+					file.id == row.id
+						&& file.primary && file
+						.filename
+						.to_ascii_lowercase()
+						.ends_with(".sfpack")
+				}) {
 				return Err(ApiError::Request(eyre::eyre!(
 					"the primary `.sfpack` cannot be removed from a modpack version"
 				)));

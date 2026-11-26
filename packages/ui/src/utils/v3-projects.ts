@@ -21,7 +21,7 @@ export function getProjectCardTags(project: Labrinth.Projects.v3.Project): strin
 	if (isProjectServer(project)) {
 		return project.categories
 	}
-	return [...project.categories, ...project.loaders, ...(project.mrpack_loaders ?? [])]
+	return [...project.categories, ...project.loaders, ...(project.modpack_loaders ?? [])]
 }
 
 export function getProjectCardAllTags(project: Labrinth.Projects.v3.Project): string[] {

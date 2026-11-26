@@ -82,7 +82,7 @@ pub async fn version_list(
 ) -> Result<HttpResponse, ApiError> {
 	let loaders = if let Some(loaders) = filters.loaders {
 		if let Ok(mut loaders) = serde_json::from_str::<Vec<String>>(&loaders) {
-			loaders.push("mrpack".to_string());
+			loaders.push("sfpack".to_string());
 			Some(loaders)
 		} else {
 			None
@@ -416,15 +416,15 @@ pub async fn version_edit(
 		Err(response) => return Ok(response),
 	};
 
-	// If this has 'mrpack_loaders' as a loader field previously, this is a modpack.
+	// If this has 'modpack_loaders' as a loader field previously, this is a modpack.
 	// Therefore, if we are modifying the 'loader' field in this case,
-	// we are actually modifying the 'mrpack_loaders' loader field
+	// we are actually modifying the 'modpack_loaders' loader field
 	let mut loaders = new_version.loaders.clone();
-	if old_version.fields.contains_key("mrpack_loaders")
+	if old_version.fields.contains_key("modpack_loaders")
 		&& new_version.loaders.is_some()
 	{
 		fields.insert(
-			"mrpack_loaders".to_string(),
+			"modpack_loaders".to_string(),
 			serde_json::json!(new_version.loaders),
 		);
 		loaders = None;

@@ -33,8 +33,6 @@ import {
 } from './disclosures'
 import {
 	DEFAULT_MOD_LOADERS,
-	DEFAULT_PLUGIN_LOADERS,
-	DEFAULT_SHADER_LOADERS,
 	formatCategory,
 	formatCategoryHeader,
 	formatLoader,
@@ -169,10 +167,7 @@ export type EnvironmentSearchOverride =
 
 export const LOADER_FILTER_TYPES = [
 	'mod_loader',
-	'plugin_loader',
 	'modpack_loader',
-	'shader_loader',
-	'plugin_platform',
 ] as const
 
 export interface GameVersion {
@@ -186,21 +181,13 @@ export type ProjectType =
 	| 'mod'
 	| 'modpack'
 	| 'schematic'
-	| 'resourcepack'
-	| 'shader'
-	| 'datapack'
-	| 'plugin'
 	| 'server'
 	| 'project'
 
 const ALL_PROJECT_TYPES: ProjectType[] = [
 	'mod',
-	'resourcepack',
-	'datapack',
-	'shader',
 	'modpack',
 	'schematic',
-	'plugin',
 	'server',
 ]
 
@@ -215,13 +202,7 @@ export interface SortType {
 	name: string
 }
 
-const PLUGIN_PLATFORMS = ['bungeecord', 'waterfall', 'velocity', 'geyser']
-
-const PROJECT_TYPE_EXCLUSION_FILTERS: Partial<Record<ProjectType, ProjectType[]>> = {
-	mod: ['plugin', 'datapack'],
-	plugin: ['mod', 'datapack'],
-	datapack: ['mod', 'plugin'],
-}
+const PROJECT_TYPE_EXCLUSION_FILTERS: Partial<Record<ProjectType, ProjectType[]>> = {}
 
 export type DisclosureTypeFilter = Labrinth.Projects.v3.ProjectDisclosureType
 
@@ -426,10 +407,7 @@ export function useSearch(
 				categoryFilters[filterTypeId] = {
 					id: filterTypeId,
 					formatted_name: formatCategoryHeader(formatMessage, category.header),
-					supported_project_types:
-						category.project_type === 'mod'
-							? ['mod', 'plugin', 'datapack']
-							: ([category.project_type] as ProjectType[]),
+					supported_project_types: [category.project_type as ProjectType],
 					display: 'all',
 					query_param: category.header === 'resolutions' ? 'g' : 'f',
 					supports: ['include', 'exclude'],
@@ -544,11 +522,7 @@ export function useSearch(
 					query_value: gameVersion.version,
 					method: 'or',
 				})),
-				ordering: projectTypes.value.includes('mod')
-					? 2
-					: projectTypes.value.includes('shader')
-						? -1
-						: undefined,
+				ordering: projectTypes.value.includes('mod') ? 2 : undefined,
 			},
 			{
 				id: 'mod_loader',
@@ -565,12 +539,7 @@ export function useSearch(
 				default_values: DEFAULT_MOD_LOADERS,
 				searchable: false,
 				options: tags.value.loaders
-					.filter(
-						(loader) =>
-							loader.supported_project_types.includes('mod') &&
-							!loader.supported_project_types.includes('plugin') &&
-							!loader.supported_project_types.includes('datapack'),
-					)
+					.filter((loader) => loader.supported_project_types.includes('mod'))
 					.map((loader) => {
 						return {
 							id: loader.name,
@@ -608,92 +577,11 @@ export function useSearch(
 					}),
 			},
 			{
-				id: 'plugin_loader',
-				formatted_name: formatMessage(
-					defineMessage({
-						id: 'search.filter_type.plugin_loader',
-						defaultMessage: 'Loader',
-					}),
-				),
-				supported_project_types: ['plugin'],
-				display: 'expandable',
-				default_values: DEFAULT_PLUGIN_LOADERS,
-				query_param: 'g',
-				supports: ['include', 'exclude'],
-				searchable: false,
-				options: tags.value.loaders
-					.filter(
-						(loader) =>
-							loader.supported_project_types.includes('plugin') &&
-							!PLUGIN_PLATFORMS.includes(loader.name),
-					)
-					.map((loader) => {
-						return {
-							id: loader.name,
-							formatted_name: formatLoader(formatMessage, loader.name),
-							icon: getLoaderIcon(loader.name),
-							method: 'or',
-							value: `categories:${loader.name}`,
-						}
-					}),
-			},
-			{
-				id: 'plugin_platform',
-				formatted_name: formatMessage(
-					defineMessage({
-						id: 'search.filter_type.plugin_platform',
-						defaultMessage: 'Platform',
-					}),
-				),
-				supported_project_types: ['plugin'],
-				display: 'all',
-				query_param: 'g',
-				supports: ['include', 'exclude'],
-				searchable: false,
-				options: tags.value.loaders
-					.filter((loader) => PLUGIN_PLATFORMS.includes(loader.name))
-					.map((loader) => {
-						return {
-							id: loader.name,
-							formatted_name: formatLoader(formatMessage, loader.name),
-							icon: getLoaderIcon(loader.name),
-							method: 'or',
-							value: `categories:${loader.name}`,
-						}
-					}),
-			},
-			{
-				id: 'shader_loader',
-				formatted_name: formatMessage(
-					defineMessage({
-						id: 'search.filter_type.shader_loader',
-						defaultMessage: 'Loader',
-					}),
-				),
-				supported_project_types: ['shader'],
-				query_param: 'g',
-				supports: ['include', 'exclude'],
-				searchable: false,
-				display: 'expandable',
-				default_values: DEFAULT_SHADER_LOADERS,
-				options: tags.value.loaders
-					.filter((loader) => loader.supported_project_types.includes('shader'))
-					.map((loader) => {
-						return {
-							id: loader.name,
-							formatted_name: formatLoader(formatMessage, loader.name),
-							icon: getLoaderIcon(loader.name),
-							method: 'or',
-							value: `categories:${loader.name}`,
-						}
-					}),
-			},
-			{
 				id: 'license',
 				formatted_name: formatMessage(
 					defineMessage({ id: 'search.filter_type.license', defaultMessage: 'License' }),
 				),
-				supported_project_types: ['mod', 'modpack', 'resourcepack', 'shader', 'plugin', 'datapack'],
+				supported_project_types: ['mod', 'modpack', 'schematic', 'server'],
 				query_param: 'l',
 				supports: ['include', 'exclude'],
 				display: 'all',

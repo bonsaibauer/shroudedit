@@ -1,14 +1,6 @@
 import { defineMessages } from '@shroudedit/ui'
 
 const projectTypeMessages = defineMessages({
-	datapack: {
-		id: 'project-type.datapack.singular',
-		defaultMessage: 'Data Pack',
-	},
-	datapacks: {
-		id: 'project-type.datapack.plural',
-		defaultMessage: 'Data Packs',
-	},
 	mod: {
 		id: 'project-type.mod.singular',
 		defaultMessage: 'Mod',
@@ -33,22 +25,6 @@ const projectTypeMessages = defineMessages({
 		id: 'project-type.schematic.plural',
 		defaultMessage: 'Schematics',
 	},
-	plugin: {
-		id: 'project-type.plugin.singular',
-		defaultMessage: 'Plugin',
-	},
-	plugins: {
-		id: 'project-type.plugin.plural',
-		defaultMessage: 'Plugins',
-	},
-	resourcepack: {
-		id: 'project-type.resourcepack.singular',
-		defaultMessage: 'Resource Pack',
-	},
-	resourcepacks: {
-		id: 'project-type.resourcepack.plural',
-		defaultMessage: 'Resource Packs',
-	},
 	server: {
 		id: 'project-type.server.singular',
 		defaultMessage: 'Server',
@@ -56,14 +32,6 @@ const projectTypeMessages = defineMessages({
 	servers: {
 		id: 'project-type.server.plural',
 		defaultMessage: 'Servers',
-	},
-	shader: {
-		id: 'project-type.shader.singular',
-		defaultMessage: 'Shader',
-	},
-	shaders: {
-		id: 'project-type.shader.plural',
-		defaultMessage: 'Shaders',
 	},
 	project: {
 		id: 'project-type.project.singular',

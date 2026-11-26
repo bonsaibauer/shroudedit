@@ -67,8 +67,8 @@ pub async fn test_patch_version() {
 						"changelog": "new changelog",
 						"version_type": "beta",
 						// // "dependencies": [], TODO: test this
-						"game_versions": ["1.20.5"],
-						"loaders": ["forge"],
+						"game_versions": ["0.5.0"],
+						"loaders": ["eml"],
 						"featured": false,
 						// "primary_file": [], TODO: test this
 						// // "downloads": 0, TODO: moderator exclusive
@@ -90,8 +90,8 @@ pub async fn test_patch_version() {
 				version.version_type,
 				serde_json::from_str::<VersionType>("\"beta\"").unwrap()
 			);
-			assert_eq!(version.game_versions, vec!["1.20.5"]);
-			assert_eq!(version.loaders, vec![Loader("forge".to_string())]);
+			assert_eq!(version.game_versions, vec!["0.5.0"]);
+			assert_eq!(version.loaders, vec![Loader("eml".to_string())]);
 			assert!(!version.featured);
 			assert_eq!(version.status, VersionStatus::from_string("draft"));
 
@@ -101,7 +101,7 @@ pub async fn test_patch_version() {
 				.edit_version(
 					alpha_version_id,
 					json!({
-						"game_versions": ["1.20.1", "1.20.2", "1.20.4"],
+						"game_versions": ["0.1.0", "0.2.0", "0.4.0"],
 					}),
 					USER_USER_PAT,
 				)
@@ -111,17 +111,14 @@ pub async fn test_patch_version() {
 			let version = api
 				.get_version_deserialized(alpha_version_id, USER_USER_PAT)
 				.await;
-			assert_eq!(
-				version.game_versions,
-				vec!["1.20.1", "1.20.2", "1.20.4"]
-			);
-			assert_eq!(version.loaders, vec![Loader("forge".to_string())]); // From last patch
+			assert_eq!(version.game_versions, vec!["0.1.0", "0.2.0", "0.4.0"]);
+			assert_eq!(version.loaders, vec![Loader("eml".to_string())]); // From last patch
 
 			let resp = api
 				.edit_version(
 					alpha_version_id,
 					json!({
-						"loaders": ["fabric"],
+						"loaders": ["shroudforge"],
 					}),
 					USER_USER_PAT,
 				)
@@ -131,11 +128,11 @@ pub async fn test_patch_version() {
 			let version = api
 				.get_version_deserialized(alpha_version_id, USER_USER_PAT)
 				.await;
+			assert_eq!(version.game_versions, vec!["0.1.0", "0.2.0", "0.4.0"]); // From last patch
 			assert_eq!(
-				version.game_versions,
-				vec!["1.20.1", "1.20.2", "1.20.4"]
-			); // From last patch
-			assert_eq!(version.loaders, vec![Loader("fabric".to_string())]);
+				version.loaders,
+				vec![Loader("shroudforge".to_string())]
+			);
 		},
 	)
 	.await;
@@ -277,21 +274,21 @@ async fn version_updates() {
 				(
 					"0.9.9",
 					json!({
-						"game_versions": ["1.20.1"],
+						"game_versions": ["0.1.0"],
 					}),
 				),
 				(
 					"1.5.0",
 					json!({
-						"game_versions": ["1.20.3"],
-						"loaders": ["fabric"],
+						"game_versions": ["0.3.0"],
+						"loaders": ["shroudforge"],
 					}),
 				),
 				(
 					"1.5.1",
 					json!({
-						"game_versions": ["1.20.4"],
-						"loaders": ["forge"],
+						"game_versions": ["0.4.0"],
+						"loaders": ["eml"],
 						"version_type": "beta"
 					}),
 				),
@@ -300,7 +297,7 @@ async fn version_updates() {
 					.add_public_version_deserialized_common(
 						*alpha_project_id_parsed,
 						version_number,
-						TestFile::build_random_jar(),
+						TestFile::build_random_mod_zip(),
 						None,
 						None,
 						USER_USER_PAT,
@@ -398,19 +395,19 @@ async fn version_updates() {
 
 			let tests = vec![
 				check_expected(
-					Some(vec!["1.20.1".to_string()]),
+					Some(vec!["0.1.0".to_string()]),
 					None,
 					None,
 					Some(update_ids[0]),
 				),
 				check_expected(
-					Some(vec!["1.20.3".to_string()]),
+					Some(vec!["0.3.0".to_string()]),
 					None,
 					None,
 					Some(update_ids[1]),
 				),
 				check_expected(
-					Some(vec!["1.20.4".to_string()]),
+					Some(vec!["0.4.0".to_string()]),
 					None,
 					None,
 					Some(update_ids[2]),
@@ -418,13 +415,13 @@ async fn version_updates() {
 				// Loader restrictions
 				check_expected(
 					None,
-					Some(vec!["fabric".to_string()]),
+					Some(vec!["shroudforge".to_string()]),
 					None,
 					Some(update_ids[1]),
 				),
 				check_expected(
 					None,
-					Some(vec!["forge".to_string()]),
+					Some(vec!["eml".to_string()]),
 					None,
 					Some(update_ids[2]),
 				),
@@ -444,14 +441,14 @@ async fn version_updates() {
 				// Specific combination
 				check_expected(
 					None,
-					Some(vec!["fabric".to_string()]),
+					Some(vec!["shroudforge".to_string()]),
 					Some(vec!["release".to_string()]),
 					Some(update_ids[1]),
 				),
 				// Impossible combination
 				check_expected(
 					None,
-					Some(vec!["fabric".to_string()]),
+					Some(vec!["shroudforge".to_string()]),
 					Some(vec!["beta".to_string()]),
 					None,
 				),
@@ -484,7 +481,7 @@ async fn version_updates() {
 				.get_project_versions_deserialized_common(
 					alpha_project_id,
 					None,
-					Some(vec!["forge".to_string()]),
+					Some(vec!["eml".to_string()]),
 					None,
 					None,
 					None,
@@ -520,25 +517,21 @@ async fn add_version_project_types_v2() {
 					USER_USER_PAT,
 				)
 				.await;
-			assert_eq!(test_project.project_type, "project"); // No project_type set, as no versions are set
-			// Default to 'project' if none are found
-			// This is a known difference between older v2 ,but is acceptable.
-			// This would be the appropriate test on older v2:
-			// assert_eq!(test_project.project_type, "modpack");
+			assert_eq!(test_project.project_type, "mod");
 
 			// Create a version with a modpack file attached
 			let test_version = api
 				.add_public_version_deserialized_common(
 					test_project.id,
 					"1.0.0",
-					TestFile::build_random_mrpack(),
+					TestFile::build_random_sfpack("test-modpack", "1.0.0"),
 					None,
 					None,
 					USER_USER_PAT,
 				)
 				.await;
 
-			// When we get the version as v2, it should display 'fabric' as the loader (and no project_type)
+			// When we get the version as v2, it should display 'shroudforge' as the loader (and no project_type)
 			let test_version = api
 				.get_version_deserialized(
 					&test_version.id.to_string(),
@@ -547,10 +540,10 @@ async fn add_version_project_types_v2() {
 				.await;
 			assert_eq!(
 				test_version.loaders,
-				vec![Loader("fabric".to_string())]
+				vec![Loader("shroudforge".to_string())]
 			);
 
-			// When we get the project as v2, it should display 'modpack' as the project_type, and 'fabric' as the loader
+			// When we get the project as v2, it should display 'modpack' as the project_type, and 'shroudforge' as the loader
 			let test_project = api
 				.get_project_deserialized(
 					&test_project.slug.unwrap(),
@@ -558,10 +551,10 @@ async fn add_version_project_types_v2() {
 				)
 				.await;
 			assert_eq!(test_project.project_type, "modpack");
-			assert_eq!(test_project.loaders, vec!["fabric"]);
+			assert_eq!(test_project.loaders, vec!["shroudforge"]);
 
-			// When we get the version as v3, it should display 'mrpack' as the loader, and 'modpack' as the project_type
-			// When we get the project as v3, it should display 'modpack' as the project_type, and 'mrpack' as the loader
+			// When we get the version as v3, it should display 'sfpack' as the loader, and 'modpack' as the project_type
+			// When we get the project as v3, it should display 'modpack' as the project_type, and 'sfpack' as the loader
 
 			// The project should be a modpack project
 		},
@@ -596,7 +589,7 @@ async fn add_version_accepts_environment_v2() {
 				.add_public_version(
 					test_project.id,
 					"1.0.0",
-					TestFile::build_random_jar(),
+					TestFile::build_random_mod_zip(),
 					None,
 					Some(serde_json::from_value(patch).unwrap()),
 					USER_USER_PAT,
@@ -637,7 +630,7 @@ async fn create_project_initial_version_accepts_environment_v2() {
 			}]);
 			let creation_data = get_public_project_creation_data(
 				slug,
-				Some(TestFile::build_random_jar()),
+				Some(TestFile::build_random_mod_zip()),
 				Some(serde_json::from_value(patch).unwrap()),
 			);
 
@@ -659,8 +652,8 @@ async fn create_project_initial_version_accepts_environment_v2() {
 
 #[actix_rt::test]
 async fn test_incorrect_file_parts() {
-	// Ensures that a version get that 'should' have mrpack_loaders does still display them
-	//   if the file is 'mrpack' but the file_parts are incorrect
+	// Ensures that a version get that 'should' have modpack_loaders does still display them
+	//   if the file is 'sfpack' but the file_parts are incorrect
 	with_test_environment(
 		None,
 		|test_env: TestEnvironment<ApiV2>| async move {
@@ -670,7 +663,7 @@ async fn test_incorrect_file_parts() {
 			let patch = json!([{
 				"op": "add",
 				"path": "/file_parts",
-				"value": ["invalid.zip"] // one file, wrong non-mrpack extension
+				"value": ["invalid.zip"] // one file, wrong non-sfpack extension
 			}]);
 
 			// Create an empty project
@@ -683,14 +676,14 @@ async fn test_incorrect_file_parts() {
 			// Get the project
 			let project =
 				api.get_project_deserialized(slug, USER_USER_PAT).await;
-			assert_eq!(project.project_type, "project");
+			assert_eq!(project.project_type, "mod");
 
-			// Create a version with a mrpack file, but incorrect file_parts
+			// Create a version with a sfpack file, but incorrect file_parts
 			let resp = api
 				.add_public_version(
 					project.id,
 					"1.0.0",
-					TestFile::build_random_mrpack(),
+					TestFile::build_random_sfpack("test-project", "1.0.0"),
 					None,
 					Some(serde_json::from_value(patch).unwrap()),
 					USER_USER_PAT,
@@ -702,7 +695,7 @@ async fn test_incorrect_file_parts() {
 			let project =
 				api.get_project_deserialized(slug, USER_USER_PAT).await;
 			assert_eq!(project.project_type, "modpack");
-			assert_eq!(project.loaders, vec!["fabric"]);
+			assert_eq!(project.loaders, vec!["shroudforge"]);
 		},
 	)
 	.await;

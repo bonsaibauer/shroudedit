@@ -1,14 +1,8 @@
 export const loaderDisplayNames: Record<string, string> = {
-	fabric: 'Fabric',
-	neoforge: 'NeoForge',
-	neo_forge: 'NeoForge',
-	forge: 'Forge',
-	quilt: 'Quilt',
-	paper: 'Paper',
-	spigot: 'Spigot',
-	purpur: 'Purpur',
-	bukkit: 'Bukkit',
-	vanilla: 'Vanilla',
+	shroudforge: 'ShroudForge',
+	eml: 'EML',
+	shroudtopia: 'Shroudtopia',
+	sfpack: 'ShroudForge Pack',
 }
 
 export const formatLoaderLabel = (item: string) =>

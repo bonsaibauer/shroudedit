@@ -10,12 +10,8 @@ import {
 	Downloads100mBadge,
 	Downloads250mBadge,
 	Downloads500mBadge,
-	EarlyDatapackBadge,
 	EarlyModpackBadge,
-	EarlyPluginBadge,
-	EarlyResourcepackBadge,
 	EarlyServersBadge,
-	EarlyShadersBadge,
 	ModeratorBadge,
 	PrideBadge,
 	ShroudEditIcon,
@@ -37,10 +33,6 @@ const formatNumber = useFormatNumber()
 
 type EarlyAdopterProjectTypes =
 	| 'modpack'
-	| 'resourcepack'
-	| 'plugin'
-	| 'datapack'
-	| 'shader'
 	| 'server'
 
 type BadgeCriterion =
@@ -221,94 +213,6 @@ const BADGES = [
 			{
 				type: 'badge',
 				bitflag: BadgeBitflag.EARLY_MODPACK_ADOPTER,
-			},
-		],
-	},
-	{
-		icon: EarlyResourcepackBadge,
-		name: defineMessage({
-			id: 'user.profile.badge.early-resourcepack-adopter.name',
-			defaultMessage: 'Early Resource Pack Adopter',
-		}),
-		about: [
-			defineMessage({
-				id: 'user.profile.badge.early-resourcepack-adopter.about.1',
-				defaultMessage: `This user helped us test Resource Pack projects on ShroudEdit before we launched them in August 2022.`,
-			}),
-		],
-		criteria: [
-			{
-				type: 'earliest_project_date',
-				project_type: 'resourcepack',
-				cutoff: new Date('2022-08-27T23:03:00.000Z'),
-			},
-			{
-				type: 'badge',
-				bitflag: BadgeBitflag.EARLY_RESPACK_ADOPTER,
-			},
-		],
-	},
-	{
-		icon: EarlyPluginBadge,
-		name: defineMessage({
-			id: 'user.profile.badge.early-plugin-adopter.name',
-			defaultMessage: 'Early Plugin Adopter',
-		}),
-		about: [
-			defineMessage({
-				id: 'user.profile.badge.early-plugin-adopter.about.1',
-				defaultMessage: `This user helped us test Plugin projects on ShroudEdit before we launched them in August 2022.`,
-			}),
-		],
-		criteria: [
-			{
-				type: 'earliest_project_date',
-				project_type: 'plugin',
-				cutoff: new Date('2022-08-27T23:03:00.000Z'),
-			},
-			{
-				type: 'badge',
-				bitflag: BadgeBitflag.EARLY_PLUGIN_ADOPTER,
-			},
-		],
-	},
-	{
-		icon: EarlyDatapackBadge,
-		name: defineMessage({
-			id: 'user.profile.badge.early-datapack-adopter.name',
-			defaultMessage: 'Early Data Pack Adopter',
-		}),
-		about: [
-			defineMessage({
-				id: 'user.profile.badge.early-datapack-adopter.about.1',
-				defaultMessage: `This user helped us test Data Pack projects on ShroudEdit before we launched them in January 2023.`,
-			}),
-		],
-		criteria: [
-			{
-				type: 'earliest_project_date',
-				project_type: 'datapack',
-				cutoff: new Date('2023-01-08T02:00:00.000Z'),
-			},
-		],
-	},
-	{
-		icon: EarlyShadersBadge,
-		name: defineMessage({
-			id: 'user.profile.badge.early-shader-adopter.name',
-			defaultMessage: 'Early Shader Adopter',
-		}),
-		about: [
-			defineMessage({
-				id: 'user.profile.badge.early-shader-adopter.about.1',
-				defaultMessage: `This user helped us test Shader projects on ShroudEdit before we launched them in January 2023.`,
-			}),
-		],
-		criteria: [
-			{
-				type: 'earliest_project_date',
-				project_type: 'shader',
-				cutoff: new Date('2023-01-08T02:00:00.000Z'),
 			},
 		],
 	},

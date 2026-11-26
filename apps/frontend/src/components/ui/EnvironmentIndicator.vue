@@ -3,14 +3,7 @@
 		<InfoIcon aria-hidden="true" />
 		A {{ type }}
 	</span>
-	<span
-		v-else-if="
-			!['resourcepack', 'shader'].includes(type) &&
-			!(type === 'plugin' && search) &&
-			!categories.some((x) => tags.loaderData.dataPackLoaders.includes(x))
-		"
-		class="environment"
-	>
+	<span v-else class="environment">
 		<template v-if="clientSide === 'optional' && serverSide === 'optional'">
 			<GlobeIcon aria-hidden="true" />
 			Client or server
@@ -90,7 +83,6 @@ defineProps({
 	},
 })
 
-const tags = useGeneratedState()
 </script>
 <style lang="scss" scoped>
 .environment {

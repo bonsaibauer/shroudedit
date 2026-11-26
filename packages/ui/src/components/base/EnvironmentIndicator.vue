@@ -3,14 +3,7 @@
 		<InfoIcon aria-hidden="true" />
 		{{ formatMessage(messages.typeLabel, { type: type }) }}
 	</span>
-	<span
-		v-else-if="
-			!['resourcepack', 'shader'].includes(type) &&
-			!(type === 'plugin' && search) &&
-			!categories.includes('datapack')
-		"
-		class="environment"
-	>
+	<span v-else class="environment">
 		<template v-if="clientSide === 'optional' && serverSide === 'optional'">
 			<GlobeIcon aria-hidden="true" />
 			{{ formatMessage(messages.clientOrServerLabel) }}

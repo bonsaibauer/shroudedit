@@ -1,7 +1,6 @@
 import {
 	ArchiveIcon,
 	BoxIcon,
-	BracesIcon,
 	CalendarIcon,
 	CardIcon,
 	CheckCircleIcon,
@@ -15,16 +14,13 @@ import {
 	FileTextIcon,
 	FolderOpenIcon,
 	GithubIcon,
-	GlassesIcon,
 	GlobeIcon,
 	InfoIcon,
 	IssuesIcon,
 	LinkIcon,
 	LockIcon,
 	PackageOpenIcon,
-	PaintbrushIcon,
 	PayPalIcon,
-	PlugIcon,
 	PolygonIcon,
 	ScaleIcon,
 	ServerIcon,
@@ -49,10 +45,6 @@ export const PROJECT_TYPE_ICONS: Record<ProjectType, Component> = {
 	mod: BoxIcon,
 	modpack: PackageOpenIcon,
 	schematic: WorldgenIcon,
-	resourcepack: PaintbrushIcon,
-	shader: GlassesIcon,
-	plugin: PlugIcon,
-	datapack: BracesIcon,
 	project: BoxIcon,
 	server: ServerIcon,
 }
@@ -110,7 +102,6 @@ export const PROJECT_STATUS_COLORS: Record<ProjectStatus, BadgeColor> = {
 export const DIRECTORY_ICONS: Record<string, Component> = {
 	config: FolderOpenIcon,
 	world: FolderOpenIcon,
-	resourcepacks: PaintbrushIcon,
 	_default: FolderOpenIcon,
 }
 

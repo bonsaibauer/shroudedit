@@ -30,10 +30,7 @@ import Combobox from '../base/Combobox.vue'
 export type ProjectType =
 	| 'mod'
 	| 'modpack'
-	| 'resourcepack'
-	| 'shader'
-	| 'datapack'
-	| 'plugin'
+	| 'schematic'
 	| 'server'
 
 export interface SearchHit {

@@ -306,10 +306,10 @@ mod tests {
 	#[test]
 	fn compacts_cartesian_product() {
 		let expression = parse_expression(
-            "(game_versions = 1.20.1 AND categories = fabric AND categories = technology) OR \
-             (game_versions = 1.20.1 AND categories = forge AND categories = technology) OR \
-             (game_versions = 1.21.1 AND categories = fabric AND categories = technology) OR \
-             (game_versions = 1.21.1 AND categories = forge AND categories = technology)",
+            "(game_versions = 0.1.0 AND categories = shroudforge AND categories = technology) OR \
+             (game_versions = 0.1.0 AND categories = eml AND categories = technology) OR \
+             (game_versions = 1.21.1 AND categories = shroudforge AND categories = technology) OR \
+             (game_versions = 1.21.1 AND categories = eml AND categories = technology)",
         )
         .unwrap();
 		let FilterExpr::And(predicates) = normalize(expression) else {
@@ -321,8 +321,8 @@ mod tests {
 			field: FilterField::new("categories"),
 			condition: FilterCondition::In {
 				values: vec![
-					FilterLiteral::String("fabric".into()),
-					FilterLiteral::String("forge".into()),
+					FilterLiteral::String("shroudforge".into()),
+					FilterLiteral::String("eml".into()),
 				],
 				negated: false,
 			},
@@ -331,7 +331,7 @@ mod tests {
 			field: FilterField::new("game_versions"),
 			condition: FilterCondition::In {
 				values: vec![
-					FilterLiteral::String("1.20.1".into()),
+					FilterLiteral::String("0.1.0".into()),
 					FilterLiteral::String("1.21.1".into()),
 				],
 				negated: false,
@@ -342,8 +342,8 @@ mod tests {
 	#[test]
 	fn factors_common_predicates_before_compacting() {
 		let expression = parse_expression(
-			"(license = MIT AND game_versions = 1.20.1 AND categories = fabric) OR \
-             (license = MIT AND game_versions = 1.21.1 AND categories = forge)",
+			"(license = MIT AND game_versions = 0.1.0 AND categories = shroudforge) OR \
+             (license = MIT AND game_versions = 1.21.1 AND categories = eml)",
 		)
 		.unwrap();
 		let FilterExpr::And(expressions) = normalize(expression) else {
@@ -367,13 +367,13 @@ mod tests {
 		let versions = [
 			"26.2", "26.1.2", "26.1.1", "26.1", "1.21.11", "1.21.10", "1.21.8",
 			"1.21.7", "1.21.5", "1.21.4", "1.21.3", "1.21.1", "1.21", "1.20.6",
-			"1.20.4", "1.20.2", "1.20.1", "1.20", "1.19.4", "1.19.3", "1.19.2",
+			"0.4.0", "0.2.0", "0.1.0", "1.20", "1.19.4", "1.19.3", "1.19.2",
 			"1.18.2", "1.17.1", "1.12.2", "1.8.9",
 		];
 		let input = versions
             .iter()
             .flat_map(|version| {
-                ["fabric", "forge"].map(|loader| {
+                ["shroudforge", "eml"].map(|loader| {
                     format!(
                         "(project_types = modpack AND game_versions = {version} AND categories = {loader} AND categories = technology)"
                     )
@@ -384,7 +384,7 @@ mod tests {
 		let normalized = normalize(parse_expression(&input).unwrap());
 		let expected = normalize(
             parse_expression(&format!(
-                "project_types = modpack AND game_versions IN [{}] AND categories IN [fabric, forge] AND categories = technology",
+                "project_types = modpack AND game_versions IN [{}] AND categories IN [shroudforge, eml] AND categories = technology",
                 versions.join(", ")
             ))
             .unwrap(),

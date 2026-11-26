@@ -135,7 +135,7 @@ async fn rejects_duplicate_filename_when_uploading_file_to_version() {
 
 			let conflicting_file = TestFile::BasicModRandom {
 				filename: primary_before.filename.clone(),
-				bytes: TestFile::build_random_jar().bytes(),
+				bytes: TestFile::build_random_mod_zip().bytes(),
 			};
 			let response = api
 				.upload_file_to_version(
@@ -257,21 +257,21 @@ async fn version_updates() {
 				(
 					"0.9.9",
 					json!({
-						"game_versions": ["1.20.1"],
+						"game_versions": ["0.1.0"],
 					}),
 				),
 				(
 					"1.5.0",
 					json!({
-						"game_versions": ["1.20.3"],
-						"loaders": ["fabric"],
+						"game_versions": ["0.3.0"],
+						"loaders": ["shroudforge"],
 					}),
 				),
 				(
 					"1.5.1",
 					json!({
-						"game_versions": ["1.20.4"],
-						"loaders": ["forge"],
+						"game_versions": ["0.4.0"],
+						"loaders": ["eml"],
 						"version_type": "beta"
 					}),
 				),
@@ -280,7 +280,7 @@ async fn version_updates() {
 					.add_public_version_deserialized(
 						*alpha_project_id_parsed,
 						version_number,
-						TestFile::build_random_jar(),
+						TestFile::build_random_mod_zip(),
 						None,
 						None,
 						USER_USER_PAT,
@@ -389,19 +389,19 @@ async fn version_updates() {
 
 			let tests = vec![
 				check_expected(
-					Some(vec!["1.20.1".to_string()]),
+					Some(vec!["0.1.0".to_string()]),
 					None,
 					None,
 					Some(update_ids[0]),
 				),
 				check_expected(
-					Some(vec!["1.20.3".to_string()]),
+					Some(vec!["0.3.0".to_string()]),
 					None,
 					None,
 					Some(update_ids[1]),
 				),
 				check_expected(
-					Some(vec!["1.20.4".to_string()]),
+					Some(vec!["0.4.0".to_string()]),
 					None,
 					None,
 					Some(update_ids[2]),
@@ -409,13 +409,13 @@ async fn version_updates() {
 				// Loader restrictions
 				check_expected(
 					None,
-					Some(vec!["fabric".to_string()]),
+					Some(vec!["shroudforge".to_string()]),
 					None,
 					Some(update_ids[1]),
 				),
 				check_expected(
 					None,
-					Some(vec!["forge".to_string()]),
+					Some(vec!["eml".to_string()]),
 					None,
 					Some(update_ids[2]),
 				),
@@ -435,14 +435,14 @@ async fn version_updates() {
 				// Specific combination
 				check_expected(
 					None,
-					Some(vec!["fabric".to_string()]),
+					Some(vec!["shroudforge".to_string()]),
 					Some(vec!["release".to_string()]),
 					Some(update_ids[1]),
 				),
 				// Impossible combination
 				check_expected(
 					None,
-					Some(vec!["fabric".to_string()]),
+					Some(vec!["shroudforge".to_string()]),
 					Some(vec!["beta".to_string()]),
 					None,
 				),
@@ -475,7 +475,7 @@ async fn version_updates() {
 				.get_project_versions_deserialized_common(
 					alpha_project_id,
 					None,
-					Some(vec!["forge".to_string()]),
+					Some(vec!["eml".to_string()]),
 					None,
 					None,
 					None,
@@ -543,8 +543,8 @@ pub async fn test_patch_version() {
 						"dependency_type": "required",
 						"file_name": "dummy_file_name"
 					}],
-					"game_versions": ["1.20.5"],
-					"loaders": ["forge"],
+					"game_versions": ["0.5.0"],
+					"loaders": ["eml"],
 					"featured": false,
 					// "primary_file": [], TODO: test this
 					// // "downloads": 0, TODO: moderator exclusive
@@ -576,7 +576,7 @@ pub async fn test_patch_version() {
 				attribution: None,
 			}]
 		);
-		assert_eq!(version.loaders, vec!["forge".to_string()]);
+		assert_eq!(version.loaders, vec!["eml".to_string()]);
 		assert!(!version.featured);
 		assert_eq!(version.status, VersionStatus::from_string("draft"));
 
@@ -586,7 +586,7 @@ pub async fn test_patch_version() {
 			.edit_version(
 				alpha_version_id,
 				json!({
-					"game_versions": ["1.20.1", "1.20.2", "1.20.4"],
+					"game_versions": ["0.1.0", "0.2.0", "0.4.0"],
 				}),
 				USER_USER_PAT,
 			)
@@ -596,13 +596,13 @@ pub async fn test_patch_version() {
 		let version = api
 			.get_version_deserialized_common(alpha_version_id, USER_USER_PAT)
 			.await;
-		assert_eq!(version.loaders, vec!["forge".to_string()]); // From last patch
+		assert_eq!(version.loaders, vec!["eml".to_string()]); // From last patch
 
 		let resp = api
 			.edit_version(
 				alpha_version_id,
 				json!({
-					"loaders": ["fabric"],
+					"loaders": ["shroudforge"],
 				}),
 				USER_USER_PAT,
 			)
@@ -612,7 +612,7 @@ pub async fn test_patch_version() {
 		let version = api
 			.get_version_deserialized_common(alpha_version_id, USER_USER_PAT)
 			.await;
-		assert_eq!(version.loaders, vec!["fabric".to_string()]);
+		assert_eq!(version.loaders, vec!["shroudforge".to_string()]);
 	})
 	.await;
 }

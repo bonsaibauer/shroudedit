@@ -534,10 +534,6 @@ const OVERRIDE_PREFIXES: &[&str] = &[
 	"overrides/mods",
 	"client-overrides/mods",
 	"server-overrides/mods",
-	"overrides/shaderpacks",
-	"client-overrides/shaderpacks",
-	"overrides/resourcepacks",
-	"client-overrides/resourcepacks",
 ];
 
 const OVERRIDE_ROOT_PREFIXES: &[&str] =
@@ -605,7 +601,8 @@ fn extract_override_files(data: &[u8]) -> Result<Vec<OverrideFile>> {
 			continue;
 		}
 
-		let Some(relative_name) = override_relative_name(&name, is_sfpack) else {
+		let Some(relative_name) = override_relative_name(&name, is_sfpack)
+		else {
 			continue;
 		};
 

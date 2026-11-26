@@ -26,11 +26,8 @@ export const TELEMETRY_CONSENT_TYPES = [
 
 const ALL_CONTENT_PROJECT_TYPES = [
 	'mod',
-	'resourcepack',
-	'datapack',
-	'shader',
 	'modpack',
-	'plugin',
+	'schematic',
 	'server',
 ] as const
 
@@ -45,8 +42,8 @@ export const DISCLOSURE_SUPPORTED_PROJECT_TYPES: Record<
 	derivative_work: ALL_CONTENT_PROJECT_TYPES,
 	paid_features: ALL_CONTENT_PROJECT_TYPES,
 	archived: ALL_CONTENT_PROJECT_TYPES,
-	telemetry: ['mod', 'plugin', 'modpack', 'server'],
-	system_interactions: ['mod', 'plugin', 'modpack'],
+	telemetry: ['mod', 'modpack', 'server'],
+	system_interactions: ['mod', 'modpack'],
 }
 
 function normalizeProjectType(type: string): string {

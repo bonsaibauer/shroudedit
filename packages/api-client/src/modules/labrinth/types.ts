@@ -6,10 +6,6 @@ export namespace Labrinth {
 		export namespace v3 {
 			export type ContentType =
 				| 'mod'
-				| 'plugin'
-				| 'datapack'
-				| 'resourcepack'
-				| 'shader'
 				| 'modpack'
 				| 'schematic'
 
@@ -49,7 +45,6 @@ export namespace Labrinth {
 					| 'conflicting_dependency'
 					| 'no_compatible_version'
 					| 'missing_version'
-					| 'quilt_fabric_api'
 			}
 		}
 	}
@@ -909,10 +904,6 @@ export namespace Labrinth {
 				| 'modpack'
 				| 'schematic'
 				| 'server'
-				| 'resourcepack'
-				| 'shader'
-				| 'plugin'
-				| 'datapack'
 				| 'project'
 
 			export type GalleryImage = {
@@ -1065,10 +1056,6 @@ export namespace Labrinth {
 				| 'mod'
 				| 'modpack'
 				| 'schematic'
-				| 'resourcepack'
-				| 'shader'
-				| 'plugin'
-				| 'datapack'
 
 			export type Environment =
 				| 'client_and_server'
@@ -1204,7 +1191,7 @@ export namespace Labrinth {
 				categories: string[]
 				additional_categories: string[]
 				loaders: string[]
-				mrpack_loaders: string[]
+				modpack_loaders: string[]
 				versions: string[]
 				icon_url?: string
 				raw_icon_url?: string
@@ -1499,7 +1486,7 @@ export namespace Labrinth {
 
 			export type DependencyType = 'required' | 'optional' | 'incompatible' | 'embedded'
 
-			export type FileType = 'required-resource-pack' | 'optional-resource-pack' | 'unknown'
+			export type FileType = 'unknown'
 
 			export type VersionFileHash = {
 				sha512: string
@@ -1616,8 +1603,6 @@ export namespace Labrinth {
 			export type VersionChannel = 'release' | 'beta' | 'alpha'
 
 			export type FileType =
-				| 'required-resource-pack'
-				| 'optional-resource-pack'
 				| 'sources-jar'
 				| 'dev-jar'
 				| 'javadoc-jar'
@@ -1669,8 +1654,8 @@ export namespace Labrinth {
 				files: VersionFile[]
 				files_missing_attribution?: string[]
 				environment?: Labrinth.Projects.v3.Environment
-				mrpack_loaders?: string[]
-			modpack_contents?: ModpackContent[]
+				modpack_loaders?: string[]
+				modpack_contents?: ModpackContent[]
 				schematic_format_version?: number
 				world_editor_version?: string
 				schematic_width?: number
@@ -1714,7 +1699,7 @@ export namespace Labrinth {
 				primary_file?: string
 				file_types?: Record<string, Labrinth.Versions.v3.FileType | null>
 				environment?: Labrinth.Projects.v3.Environment
-				mrpack_loaders?: string[]
+				modpack_loaders?: string[]
 				schematic_format_version?: number
 				world_editor_version?: string
 				schematic_width?: number
@@ -1831,10 +1816,6 @@ export namespace Labrinth {
 
 			export type LayoutPreferences = {
 				mods: LayoutOption
-				plugins: LayoutOption
-				datapacks: LayoutOption
-				shaders: LayoutOption
-				resourcepacks: LayoutOption
 				modpacks: LayoutOption
 				servers: LayoutOption
 				users: LayoutOption

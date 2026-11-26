@@ -647,9 +647,9 @@ static DOWNLOAD_SOURCE_PATTERNS: LazyLock<Vec<(Regex, DownloadSourcePattern)>> =
 			(r"Feather/[0-9A-Za-z]+", P::Named("Feather Client")),
 			(r"^PandoraLauncher/", P::Named("Pandora Launcher")),
 			(r"^unsup", P::Named("unsup")),
-			(r"nothub/mrpack-install", P::Named("mrpack-install")),
+			(r"nothub/sfpack-install", P::Named("sfpack-install")),
 			(r"^(packwiz-installer|packwiz/)", P::Named("Packwiz")),
-			(r"^mrpack4server", P::Named("mrpack4server")),
+			(r"^sfpack4server", P::Named("sfpack4server")),
 			(r"^DawnLauncher/", P::Named("Dawn")),
 			(
 				r"^Complementary-Installer",

@@ -11,7 +11,6 @@ import type {
 } from './analytics-types'
 
 const SERVER_PROJECT_TYPE = 'server'
-const PLUGIN_PROJECT_TYPE = 'plugin'
 
 export const UNKNOWN_ORGANIZATION_NAME = 'Organization'
 
@@ -46,11 +45,6 @@ export function isAnalyticsEligibleProject(
 	project: ProjectTypeMetadata & { status?: string | null },
 ): boolean {
 	return !isServerProject(project) && getProjectStatusFilterValue(project.status) !== 'draft'
-}
-
-export function isPluginProject(project: ProjectTypeMetadata): boolean {
-	const projectTypes = getProjectTypes(project)
-	return projectTypes.length > 0 && projectTypes.every((type) => type === PLUGIN_PROJECT_TYPE)
 }
 
 export function getSingleQueryValue(value: unknown): string | undefined {

@@ -69,25 +69,9 @@ export function areStringArraysEqual(left: string[], right: string[]) {
 }
 
 const LOADER_CHART_COLORS: Record<string, string> = {
-	fabric: 'var(--color-platform-fabric)',
-	'legacy-fabric': 'var(--color-platform-fabric)',
-	quilt: 'var(--color-platform-quilt)',
-	forge: 'var(--color-platform-forge)',
-	neoforge: 'var(--color-platform-neoforge)',
-	neo_forge: 'var(--color-platform-neoforge)',
-	liteloader: 'var(--color-platform-liteloader)',
-	bukkit: 'var(--color-platform-bukkit)',
-	bungeecord: 'var(--color-platform-bungeecord)',
-	folia: 'var(--color-platform-folia)',
-	paper: 'var(--color-platform-paper)',
-	purpur: 'var(--color-platform-purpur)',
-	spigot: 'var(--color-platform-spigot)',
-	velocity: 'var(--color-platform-velocity)',
-	waterfall: 'var(--color-platform-waterfall)',
-	sponge: 'var(--color-platform-sponge)',
-	ornithe: 'var(--color-platform-ornithe)',
-	'bta-babric': 'var(--color-platform-bta-babric)',
-	nilloader: 'var(--color-platform-nilloader)',
+	shroudforge: 'var(--color-platform-shroudforge)',
+	eml: 'var(--color-platform-eml)',
+	shroudtopia: 'var(--color-platform-shroudtopia)',
 }
 
 const REGION_CODE_PATTERN = /^[a-z]{2}$/i

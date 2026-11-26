@@ -977,7 +977,7 @@ fn strip_technical_syntax(line: &str) -> String {
 
 fn strip_loaders(text: &str) -> String {
 	static LOADER_WORD: LazyLock<Regex> = LazyLock::new(|| {
-		Regex::new(r"(?i)\b(?:fabric|forge|quilt|neoforge|liteloader)\b")
+		Regex::new(r"(?i)\b(?:shroudforge|eml|shroudtopia)\b")
 			.unwrap()
 	});
 

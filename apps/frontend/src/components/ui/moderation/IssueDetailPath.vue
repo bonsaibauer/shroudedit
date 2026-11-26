@@ -43,7 +43,7 @@ const decodedSegments = computed(() => {
 		.filter((segment) => segment.length > 0)
 		.map((segment) => (props.decode ? decodePath(segment) : segment))
 
-	if (props.hideBaseMrpack && segments[0]?.toLowerCase().endsWith('.mrpack')) {
+	if (props.hideBaseMrpack && segments[0]?.toLowerCase().endsWith('.sfpack')) {
 		return segments.slice(1)
 	}
 

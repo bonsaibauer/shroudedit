@@ -70,7 +70,7 @@ mod tests {
 	#[test]
 	fn converts_v2_boolean_structure() {
 		let expression = from_legacy_v2_facets_json(
-            r#"[["categories:fabric", "categories:forge"], [["game_versions:1.21", "project_types:mod"]]]"#,
+            r#"[["categories:shroudforge", "categories:eml"], [["game_versions:1.21", "project_types:mod"]]]"#,
         )
         .unwrap()
         .unwrap();

@@ -693,21 +693,21 @@ async fn build_search_documents(
 
 			// SPECIAL BEHAVIOUR
 			// Todo: revisit.
-			// For consistency with v2 searching, we consider the loader field 'mrpack_loaders' to be a category.
+			// For consistency with v2 searching, we consider the loader field 'modpack_loaders' to be a category.
 			// These were previously considered the loader, and in v2, the loader is a category for searching.
 			// So to avoid breakage or awkward conversions, we just consider those loader_fields to be categories.
 			// The loaders are kept in the project document's aggregated loader fields as well, so that no information is lost on retrieval.
 			let mut version_categories = project_categories.clone();
 			version_categories.extend(version.loaders.iter().cloned());
-			let mrpack_loaders = fields
-				.get("mrpack_loaders")
+			let modpack_loaders = fields
+				.get("modpack_loaders")
 				.into_iter()
 				.flatten()
 				.filter_map(|value| value.as_str().map(String::from))
 				.collect::<Vec<_>>();
-			version_categories.extend(mrpack_loaders);
-			if fields.contains_key("mrpack_loaders") {
-				version_categories.retain(|category| category != "mrpack");
+			version_categories.extend(modpack_loaders);
+			if fields.contains_key("modpack_loaders") {
+				version_categories.retain(|category| category != "sfpack");
 			}
 			version_categories.sort();
 			version_categories.dedup();
@@ -747,15 +747,15 @@ async fn build_search_documents(
 		let mut categories = project_categories.clone();
 		categories.extend(project_loaders.iter().cloned());
 
-		let mrpack_loaders = loader_fields
-			.get("mrpack_loaders")
+		let modpack_loaders = loader_fields
+			.get("modpack_loaders")
 			.into_iter()
 			.flatten()
 			.filter_map(|value| value.as_str().map(String::from))
 			.collect::<Vec<_>>();
-		categories.extend(mrpack_loaders);
-		if loader_fields.contains_key("mrpack_loaders") {
-			categories.retain(|category| category != "mrpack");
+		categories.extend(modpack_loaders);
+		if loader_fields.contains_key("modpack_loaders") {
+			categories.retain(|category| category != "sfpack");
 		}
 		categories.sort();
 		categories.dedup();

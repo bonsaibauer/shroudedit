@@ -581,11 +581,11 @@ pub async fn project_edit(
 
 	// TODO: Some kind of handling here to ensure project type is fine.
 	// We expect the version uploaded to be of loader type modpack, but there might  not be a way to check here for that.
-	// After all, theoretically, they could be creating a genuine 'fabric' mod, and modpack no longer carries information on whether its a mod or modpack,
+	// The upload's project type is inferred from the selected Enshrouded loader and file format.
 	// as those are out to the versions.
 
 	// Ideally this would, if the project 'should' be a modpack:
-	// - change the loaders to mrpack only
+	// - change the loaders to sfpack only
 	// - add categories to the project for the corresponding loaders
 
 	let mut new_links = HashMap::new();

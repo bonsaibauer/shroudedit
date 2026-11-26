@@ -55,7 +55,7 @@
 					:dependency-link-creator="createDependencyLink"
 					class="mb-4"
 				>
-					<template #headerActions="{ primaryFile, promotedFiles }">
+					<template #headerActions="{ primaryFile }">
 						<VersionMalwareStatus v-if="primaryFile" :scan="getVersionMalware(version)" />
 						<ButtonLink
 							v-tooltip="
@@ -85,34 +85,6 @@
 						>
 							<ExternalIcon aria-hidden="true" />
 							Slicer
-						</ButtonLink>
-						<ButtonLink
-							v-for="file in promotedFiles.filter(
-								(x) =>
-									!!x &&
-									(x.file_type === 'required-resource-pack' ||
-										x.file_type === 'optional-resource-pack'),
-							)"
-							:key="`promoted-file-${file.hashes.sha1}`"
-							v-tooltip="file.filename + ' (' + formatBytes(file.size) + ')'"
-							:href="
-								decoratedPrimaryFileUrl
-									? createProjectDownloadUrl(file.url, { reason: 'dependency' })
-									: ''
-							"
-							:download="file.filename"
-							:type="decoratedPrimaryFileUrl ? 'outlined' : 'base'"
-							:color="decoratedPrimaryFileUrl ? malwareDownloadColor(version) : undefined"
-							:disabled="!decoratedPrimaryFileUrl"
-							@click="emit('onDownload')"
-						>
-							<DownloadIcon aria-hidden="true" />
-							<template v-if="file.file_type === 'required-resource-pack'">
-								{{ formatMessage(messages.requiredResourcePack) }}
-							</template>
-							<template v-else-if="file.file_type === 'optional-resource-pack'">
-								{{ formatMessage(messages.optionalResourcePack) }}
-							</template>
 						</ButtonLink>
 						<template v-if="currentMember">
 							<TeleportOverflowMenu
@@ -651,8 +623,8 @@ const projectOnlyDependencyProjectIds = computed(() => {
 
 const dependencyResolutionLoaders = computed(() => {
 	if (!version.value) return []
-	if (version.value.loaders.includes('mrpack')) {
-		return (version.value.mrpack_loaders ?? []).filter((loader) => loader !== 'enshrouded')
+	if (version.value.loaders.includes('sfpack')) {
+		return (version.value.modpack_loaders ?? []).filter((loader) => loader !== 'enshrouded')
 	}
 	return version.value.loaders
 })
@@ -929,14 +901,6 @@ const messages = defineMessages({
 	downloadProject: {
 		id: 'version.download.download-dependency',
 		defaultMessage: 'Select a version to download',
-	},
-	requiredResourcePack: {
-		id: 'version.download.required-resource-pack',
-		defaultMessage: 'Required resource pack',
-	},
-	optionalResourcePack: {
-		id: 'version.download.optional-resource-pack',
-		defaultMessage: 'Optional resource pack',
 	},
 	confirmTitle: {
 		id: 'version.confirm-delete.title',

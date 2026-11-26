@@ -1,24 +1,15 @@
 export const PROJECT_TYPE_ORDER = [
 	'mod',
-	'resourcepack',
-	'datapack',
-	'shader',
 	'modpack',
 	'schematic',
-	'plugin',
 	'server',
 	'collection',
 ] as const
 
 export type OrderedProjectType = (typeof PROJECT_TYPE_ORDER)[number]
 
-const PROJECT_TYPE_SORT_ALIASES: Record<string, string> = {
-	shaderpack: 'shader',
-}
-
 export function getProjectTypeSortIndex(type: string): number {
-	const normalized = PROJECT_TYPE_SORT_ALIASES[type] ?? type
-	const index = (PROJECT_TYPE_ORDER as readonly string[]).indexOf(normalized)
+	const index = (PROJECT_TYPE_ORDER as readonly string[]).indexOf(type)
 	return index === -1 ? PROJECT_TYPE_ORDER.length : index
 }
 

@@ -63,9 +63,9 @@ pub fn get_public_version_creation_data_json(
 		"version_number": version_number,
 		"version_title": "start",
 		"dependencies": [],
-		"game_versions": ["1.20.1"] ,
+		"game_versions": ["0.1.0"] ,
 		"release_channel": "release",
-		"loaders": ["fabric"],
+		"loaders": ["shroudforge"],
 		"featured": true
 	});
 	if let Some(ordering) = ordering {
@@ -121,7 +121,7 @@ pub fn get_public_creation_data_multipart(
 		let file_segment = MultipartSegment {
 			name: jar.filename(),
 			filename: Some(jar.filename()),
-			content_type: Some("application/java-archive".to_string()),
+			content_type: version_jar.content_type(),
 			data: MultipartSegmentData::Binary(jar.bytes()),
 		};
 

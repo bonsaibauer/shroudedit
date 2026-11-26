@@ -2,7 +2,7 @@ import type { Labrinth } from '@shroudedit/api-client'
 
 import type { FilterValue } from '#ui/utils/search'
 
-export type BrowseInstallContentType = 'modpack' | 'mod' | 'plugin' | 'datapack'
+export type BrowseInstallContentType = 'modpack' | 'mod'
 export type BrowseInstallAddonContentType = Exclude<BrowseInstallContentType, 'modpack'>
 
 /**
@@ -393,19 +393,13 @@ type NavigatorWithLocks = {
  */
 export function getLoaderFilterTypes(contentType: string) {
 	if (contentType === 'mod') return ['mod_loader']
-	if (contentType === 'plugin') return ['plugin_loader', 'plugin_platform']
 	if (contentType === 'modpack') return ['modpack_loader']
-	if (contentType === 'shader') return ['shader_loader']
-	if (contentType === 'datapack') return ['datapack_loader']
 	return []
 }
 
 const SERVER_RUNTIME_INSTALL_FILTER_TYPES = new Set([
 	'game_version',
 	'mod_loader',
-	'plugin_loader',
-	'plugin_platform',
-	'datapack_loader',
 ])
 
 export function stripServerRuntimeInstallFilters(filters: readonly FilterValue[]) {
@@ -483,12 +477,7 @@ export function getTargetInstallPreferences(
 
 	return normalizeInstallPreferences({
 		gameVersions: gameVersion && shouldUseTargetRuntime ? [gameVersion] : undefined,
-		loaders:
-			contentType === 'datapack'
-				? ['datapack']
-				: loader && shouldUseTargetRuntime
-					? [loader]
-					: undefined,
+		loaders: loader && shouldUseTargetRuntime ? [loader] : undefined,
 	})
 }
 
@@ -505,12 +494,6 @@ export function normalizeLoaderAlias(loader: string) {
 export function getCompatibleLoaderAliases(loader: string) {
 	const normalized = normalizeLoaderAlias(loader)
 	if (!normalized) return new Set<string>()
-	if (['paper', 'purpur', 'spigot', 'bukkit'].includes(normalized)) {
-		return new Set(['paper', 'purpur', 'spigot', 'bukkit'])
-	}
-	if (normalized === 'neoforge' || normalized === 'neo') {
-		return new Set(['neoforge', 'neo'])
-	}
 	return new Set([normalized])
 }
 
@@ -960,7 +943,7 @@ function isStoredBrowseInstallProject(value: unknown): value is BrowseInstallPro
 }
 
 function isStoredBrowseInstallContentType(value: unknown): value is BrowseInstallContentType {
-	return value === 'modpack' || value === 'mod' || value === 'plugin' || value === 'datapack'
+	return value === 'modpack' || value === 'mod'
 }
 
 function isStoredBrowseInstallPreferences(value: unknown): value is BrowseInstallPreferences {
@@ -984,9 +967,5 @@ function createNoCompatibleVersionError(
 		: 'any game version'
 	const loaderLabel = preferences.loaders?.length ? preferences.loaders.join(', ') : 'any loader'
 
-	return new Error(
-		contentType === 'datapack'
-			? `No compatible version found for ${versionLabel}.`
-			: `No compatible version found for ${versionLabel} / ${loaderLabel}.`,
-	)
+	return new Error(`No compatible version found for ${versionLabel} / ${loaderLabel}.`)
 }

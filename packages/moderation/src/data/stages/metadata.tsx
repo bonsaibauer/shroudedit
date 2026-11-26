@@ -15,23 +15,6 @@ import {
 } from '../../types/node'
 import { requiresEnvironmentInfo } from '../../utils'
 
-const loaderLabels: Record<string, string> = {
-	neoforge: 'NeoForge',
-	liteloader: 'LiteLoader',
-	datapack: 'Data Pack',
-	resourcepack: 'Resource Pack',
-}
-
-function _formatLoaderLabel(id: string): string {
-	return (
-		loaderLabels[id] ??
-		id
-			.split(/[-_]/g)
-			.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-			.join(' ')
-	)
-}
-
 export default function () {
 	const { projectV3: project } = injectProjectPageContext()
 	const { loaders: _loaders, gameVersions: _gameVersions } = injectTags()

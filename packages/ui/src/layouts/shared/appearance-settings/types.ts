@@ -10,11 +10,8 @@ export type AppearanceSetter<T> = (value: T) => void | Promise<void>
 
 export const projectDisplayLocations = [
 	'mod',
-	'plugin',
-	'resourcepack',
 	'modpack',
-	'shader',
-	'datapack',
+	'schematic',
 	'server',
 	'user',
 ] as const

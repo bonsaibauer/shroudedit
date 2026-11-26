@@ -9,17 +9,6 @@ use chrono::{DateTime, Utc};
 use serde::Serialize;
 use xredis::RedisPool;
 
-const PLUGIN_LOADERS: &[&str] = &[
-	"bukkit",
-	"spigot",
-	"paper",
-	"purpur",
-	"bungeecord",
-	"waterfall",
-	"velocity",
-	"sponge",
-];
-
 struct WebhookMetadata {
 	pub project_url: String,
 	pub project_title: String,
@@ -127,25 +116,9 @@ async fn get_webhook_metadata(
 
 		let formatted_game_versions = get_gv_range(versions, all_game_versions);
 
-		let mut project_type = project.project_types.pop().unwrap_or_default(); // TODO: Should this grab a not-first?
+		let project_type = project.project_types.pop().unwrap_or_default(); // TODO: Should this grab a not-first?
 
-		if project
-			.inner
-			.loaders
-			.iter()
-			.all(|x| PLUGIN_LOADERS.contains(&&**x))
-		{
-			project_type = "plugin".to_string();
-		} else if project.inner.loaders.iter().any(|x| x == "datapack") {
-			project_type = "datapack".to_string();
-		}
-
-		let mut display_project_type = match &*project_type {
-			"datapack" => "data pack",
-			"resourcepack" => "resource pack",
-			_ => &*project_type,
-		}
-		.to_string();
+		let mut display_project_type = project_type.clone();
 
 		Ok(Some(WebhookMetadata {
 			project_url: format!(
@@ -666,29 +639,12 @@ fn get_gv_range(
 // https://github.com/bonsaibauer/shroudedit/blob/HEAD/packages/utils/utils.ts
 fn format_category_or_loader(mut x: String) -> String {
 	match &*x {
-		"modloader" => "Risugami's ModLoader".to_string(),
-		"bungeecord" => "BungeeCord".to_string(),
-		"liteloader" => "LiteLoader".to_string(),
-		"neoforge" => "NeoForge".to_string(),
+		"shroudforge" => "ShroudForge".to_string(),
+		"eml" => "EML".to_string(),
+		"shroudtopia" => "Shroudtopia".to_string(),
+		"sfpack" => "ShroudForge Pack".to_string(),
 		"game-mechanics" => "Game Mechanics".to_string(),
 		"worldgen" => "World Generation".to_string(),
-		"core-shaders" => "Core Shaders".to_string(),
-		"gui" => "GUI".to_string(),
-		"8x-" => "8x or lower".to_string(),
-		"512x+" => "512x or higher".to_string(),
-		"kitchen-sink" => "Kitchen Sink".to_string(),
-		"path-tracing" => "Path Tracing".to_string(),
-		"pbr" => "PBR".to_string(),
-		"datapack" => "Data Pack".to_string(),
-		"colored-lighting" => "Colored Lighting".to_string(),
-		"optifine" => "OptiFine".to_string(),
-		"bta-babric" => "BTA (Babric)".to_string(),
-		"legacy-fabric" => "Legacy Fabric".to_string(),
-		"java-agent" => "Java Agent".to_string(),
-		"nilloader" => "NilLoader".to_string(),
-		"mrpack" => "Modpack".to_string(),
-		"enshrouded" => "Resource Pack".to_string(),
-		"vanilla" => "Vanilla Shader".to_string(),
 		_ => format!("{}{x}", x.remove(0).to_uppercase()),
 	}
 }

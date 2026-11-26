@@ -75,7 +75,6 @@ import {
 	getSingleQueryValue,
 	getUniqueAnalyticsDashboardProjects,
 	isAnalyticsEligibleProject,
-	isPluginProject,
 	toAnalyticsDashboardProject,
 	UNKNOWN_ORGANIZATION_NAME,
 } from './analytics-project-utils'
@@ -739,9 +738,7 @@ export function createAnalyticsDashboardContext(
 			selectedProjectIdSet.has(project.id),
 		)
 
-		return (
-			selectedProjects.length === 0 || selectedProjects.some((project) => !isPluginProject(project))
-		)
+		return selectedProjects.length === 0
 	})
 
 	function isAnalyticsDashboardStatAvailableForTimeframe(stat: AnalyticsDashboardStat): boolean {

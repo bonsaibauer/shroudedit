@@ -25,8 +25,8 @@ function toAnalyticsVersionMetadata(
 		downloads: version.downloads,
 		gameVersions: [...version.game_versions],
 		loaders:
-			version.mrpack_loaders && version.mrpack_loaders.length > 0
-				? [...version.mrpack_loaders]
+			version.modpack_loaders && version.modpack_loaders.length > 0
+				? [...version.modpack_loaders]
 				: [...version.loaders],
 	}
 }
@@ -50,7 +50,7 @@ export function getProjectVersionFilterOptionSummary(
 
 		for (const loader of version.loaders) {
 			const normalizedLoader = loader.trim().toLowerCase()
-			if (normalizedLoader.length > 0 && normalizedLoader !== 'mrpack') {
+			if (normalizedLoader.length > 0 && normalizedLoader !== 'sfpack') {
 				loaders.add(normalizedLoader)
 			}
 		}
@@ -210,7 +210,7 @@ export function getAnalyticsFacetsFilterOptionSummary(
 	const loaderTypes = new Set<string>()
 	for (const loader of [...downloadLoaders, ...playtimeLoaders]) {
 		const normalizedLoader = loader.trim().toLowerCase()
-		if (normalizedLoader.length > 0 && normalizedLoader !== 'mrpack') {
+		if (normalizedLoader.length > 0 && normalizedLoader !== 'sfpack') {
 			loaderTypes.add(normalizedLoader)
 		}
 	}

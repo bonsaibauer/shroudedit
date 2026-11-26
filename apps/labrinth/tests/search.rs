@@ -42,18 +42,21 @@ async fn search_projects() {
 			// 2. expected project ids to be returned by this search
 			let pairs = vec![
 				(
-					json!([["categories:fabric"]]),
+					json!([["categories:shroudforge"]]),
 					vec![0, 1, 2, 3, 4, 5, 6, 7, 9],
 				),
-				(json!([["categories:forge"]]), vec![7]),
+				(json!([["categories:eml"]]), vec![7]),
 				(
-					json!([["categories:fabric", "categories:forge"]]),
+					json!([["categories:shroudforge", "categories:eml"]]),
 					vec![0, 1, 2, 3, 4, 5, 6, 7, 9],
 				),
-				(json!([["categories:fabric"], ["categories:forge"]]), vec![]),
+				(
+					json!([["categories:shroudforge"], ["categories:eml"]]),
+					vec![],
+				),
 				(
 					json!([
-						["categories:fabric"],
+						["categories:shroudforge"],
 						[&format!("categories:{}", DUMMY_CATEGORIES[0])],
 					]),
 					vec![1, 2, 3, 4],
@@ -68,26 +71,29 @@ async fn search_projects() {
 				(json!([["license:MIT"]]), vec![1, 2, 4, 9]),
 				(json!([[r#"name:'Mysterious Project'"#]]), vec![2, 3]),
 				(json!([["author:user"]]), vec![0, 1, 2, 4, 5, 7, 9]), // Organization test '9' is included here as user is owner of org
-				(json!([["game_versions:1.20.5"]]), vec![4, 5]),
+				(json!([["game_versions:0.5.0"]]), vec![4, 5]),
 				// bug fix
 				(
 					json!([
-						// Only the forge one has 1.20.2, so its true that this project 'has'
-						// 1.20.2 and a fabric version, but not true that it has a 1.20.2 fabric version.
-						["categories:fabric"],
-						["game_versions:1.20.2"]
+						// Only the eml one has 0.2.0, so its true that this project 'has'
+						// 0.2.0 and a shroudforge version, but not true that it has a 0.2.0 shroudforge version.
+						["categories:shroudforge"],
+						["game_versions:0.2.0"]
 					]),
 					vec![],
 				),
 				// Project type change
-				// Modpack should still be able to search based on former loader, even though technically the loader is 'mrpack'
-				// (json!([["categories:mrpack"]]), vec![4]),
+				// Modpack should still be able to search based on former loader, even though technically the loader is 'sfpack'
+				// (json!([["categories:sfpack"]]), vec![4]),
 				// (
-				//     json!([["categories:fabric"]]),
+				//     json!([["categories:shroudforge"]]),
 				//     vec![4],
 				// ),
 				(
-					json!([["categories:fabric"], ["project_types:modpack"]]),
+					json!([
+						["categories:shroudforge"],
+						["project_types:modpack"]
+					]),
 					vec![4],
 				),
 				(
@@ -201,7 +207,7 @@ async fn index_swaps() {
 				.api
 				.search_deserialized(
 					None,
-					Some(json!([["categories:fabric"]])),
+					Some(json!([["categories:shroudforge"]])),
 					USER_USER_PAT,
 				)
 				.await;
@@ -221,7 +227,7 @@ async fn index_swaps() {
 				.api
 				.search_deserialized(
 					None,
-					Some(json!([["categories:fabric"]])),
+					Some(json!([["categories:shroudforge"]])),
 					USER_USER_PAT,
 				)
 				.await;

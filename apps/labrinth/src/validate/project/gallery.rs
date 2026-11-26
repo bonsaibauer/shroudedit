@@ -68,34 +68,6 @@ pub(super) fn validate(
 	project: &crate::models::projects::Project,
 ) -> Vec<super::ProjectNag> {
 	let mut nags = Vec::new();
-	let gallery_is_empty = project.gallery.is_empty();
-	let is_shader = project.project_types.iter().any(|ty| ty == "shader");
-	let is_resource_pack =
-		project.project_types.iter().any(|ty| ty == "resourcepack");
-	let has_gallery_exemption = project
-		.categories
-		.iter()
-		.chain(&project.additional_categories)
-		.any(|category| category == "audio" || category == "locale");
-
-	if is_shader && project.gallery.len() < 3 {
-		nags.push(
-			ProjectNag::new(
-				ProjectNagKind::UploadGalleryImage,
-				ProjectNagSeverity::Required,
-			)
-			.with_details(json!({ "project_type": "shader" })),
-		);
-	} else if is_resource_pack && gallery_is_empty && !has_gallery_exemption {
-		nags.push(
-			ProjectNag::new(
-				ProjectNagKind::UploadGalleryImage,
-				ProjectNagSeverity::Required,
-			)
-			.with_details(json!({ "project_type": "resourcepack" })),
-		);
-	}
-
 	let is_enshrouded_server = project.components.enshrouded_server.is_some();
 	if !is_enshrouded_server
 		&& !project.gallery.iter().any(|item| item.featured)

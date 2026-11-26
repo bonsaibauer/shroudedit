@@ -444,10 +444,6 @@ type ModalRef = {
 }
 type EarlyAdopterProjectType =
 	| 'modpack'
-	| 'resourcepack'
-	| 'plugin'
-	| 'datapack'
-	| 'shader'
 	| 'server'
 
 const props = withDefaults(

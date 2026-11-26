@@ -361,12 +361,8 @@ const showTableActions = computed(() => props.enableToggle || hasExternalSlicerU
 function getTypeIcon(type: string) {
 	switch (type) {
 		case 'mod':
+		case 'modpack':
 			return BoxIcon
-		case 'shaderpack':
-		case 'shader':
-			return GlassesIcon
-		case 'resourcepack':
-			return PaintbrushIcon
 		default:
 			return BoxIcon
 	}

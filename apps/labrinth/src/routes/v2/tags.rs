@@ -116,24 +116,16 @@ pub async fn loader_list(
 		Ok(loaders) => {
 			let loaders = loaders
 				.into_iter()
-				.filter(|l| &*l.name != "mrpack")
+				.filter(|l| &*l.name != "sfpack")
 				.map(|l| {
 					let mut supported_project_types = l.supported_project_types;
 					// Add generic 'project' type to all loaders, which is the v2 representation of
 					// a project type before any versions are set.
 					supported_project_types.push("project".to_string());
 
-					if ["forge", "fabric", "quilt", "neoforge"]
-						.contains(&&*l.name)
+					if ["shroudforge", "eml", "shroudtopia"].contains(&&*l.name)
 					{
 						supported_project_types.push("modpack".to_string());
-					}
-
-					if supported_project_types.contains(&"datapack".to_string())
-						|| supported_project_types
-							.contains(&"plugin".to_string())
-					{
-						supported_project_types.push("mod".to_string());
 					}
 
 					LoaderData {

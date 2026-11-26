@@ -3,7 +3,7 @@
 use std::cmp::Reverse;
 use std::collections::{HashMap, HashSet};
 
-use crate::shared::{ContentType, Error};
+use crate::shared::Error;
 
 pub use model::{
 	Dependency, DependencyType, ResolutionPreferences, ResolveContentPlan,
@@ -11,8 +11,6 @@ pub use model::{
 	Version,
 };
 pub use provider::ContentMetadataProvider;
-
-const QUILT_FABRIC_API_EXCEPTION_PROJECT_ID: &str = "P7dR8mSH";
 
 pub async fn resolve_content<P: ContentMetadataProvider>(
 	mut provider: P,
@@ -64,7 +62,6 @@ async fn resolve_primary_version<P: ContentMetadataProvider>(
 
 	select_newest_matching_version(
 		versions,
-		request.content_type,
 		&request.selected,
 		&request.target,
 	)
@@ -73,7 +70,6 @@ async fn resolve_primary_version<P: ContentMetadataProvider>(
 
 struct InstallResolver<'a, P> {
 	provider: P,
-	content_type: ContentType,
 	selected: &'a ResolutionPreferences,
 	target: &'a ResolutionPreferences,
 	existing_project_ids: HashSet<String>,
@@ -93,7 +89,6 @@ impl<'a, P: ContentMetadataProvider> InstallResolver<'a, P> {
 
 		Self {
 			provider,
-			content_type: request.content_type,
 			selected: &request.selected,
 			target: &request.target,
 			existing_project_ids: request
@@ -124,17 +119,6 @@ impl<'a, P: ContentMetadataProvider> InstallResolver<'a, P> {
 					dependency.dependency_type,
 					DependencyType::Required
 				) {
-					continue;
-				}
-
-				if should_skip_quilt_fabric_api(dependency, self.target) {
-					self.skipped.push(SkippedContent {
-						project_id: QUILT_FABRIC_API_EXCEPTION_PROJECT_ID
-							.to_string(),
-						version_id: dependency.version_id.clone(),
-						dependent_on_version_id: Some(version.id.clone()),
-						reason: SkippedReason::QuiltFabricApi,
-					});
 					continue;
 				}
 
@@ -219,7 +203,6 @@ impl<'a, P: ContentMetadataProvider> InstallResolver<'a, P> {
 		let versions = self.provider.get_project_versions(project_id).await?;
 		let version = select_newest_matching_version(
 			versions,
-			self.content_type,
 			self.selected,
 			self.target,
 		);
@@ -239,7 +222,6 @@ impl<'a, P: ContentMetadataProvider> InstallResolver<'a, P> {
 
 fn select_newest_matching_version(
 	mut versions: Vec<Version>,
-	content_type: ContentType,
 	selected: &ResolutionPreferences,
 	target: &ResolutionPreferences,
 ) -> Option<Version> {
@@ -248,11 +230,11 @@ fn select_newest_matching_version(
 
 	versions
 		.iter()
-		.find(|version| version_matches(version, content_type, &merged))
+		.find(|version| version_matches(version, &merged))
 		.or_else(|| {
 			versions
 				.iter()
-				.find(|version| version_matches(version, content_type, target))
+				.find(|version| version_matches(version, target))
 		})
 		.cloned()
 }
@@ -280,11 +262,10 @@ impl MergePreferences for ResolutionPreferences {
 
 fn version_matches(
 	version: &Version,
-	content_type: ContentType,
 	preferences: &ResolutionPreferences,
 ) -> bool {
 	matches_game_versions(version, preferences)
-		&& matches_loaders(version, content_type, preferences)
+		&& matches_loaders(version, preferences)
 }
 
 fn matches_game_versions(
@@ -302,7 +283,6 @@ fn matches_game_versions(
 
 fn matches_loaders(
 	version: &Version,
-	content_type: ContentType,
 	preferences: &ResolutionPreferences,
 ) -> bool {
 	if preferences.loaders.is_empty() {
@@ -320,40 +300,11 @@ fn matches_loaders(
 		return true;
 	}
 
-	content_type == ContentType::Mod
-		&& version.loaders.iter().any(|loader| loader == "datapack")
+	false
 }
 
 fn loaders_match(expected: &str, candidate: &str) -> bool {
-	let expected = expected.to_lowercase();
-	let candidate = candidate.to_lowercase();
-
-	expected == candidate
-		|| loader_aliases(&expected).contains(&candidate.as_str())
-		|| loader_aliases(&candidate).contains(&expected.as_str())
-}
-
-fn loader_aliases(loader: &str) -> &'static [&'static str] {
-	match loader {
-		"neoforge" => &["neo"],
-		"neo" => &["neoforge"],
-		"paper" | "purpur" | "spigot" | "bukkit" => {
-			&["paper", "purpur", "spigot", "bukkit"]
-		}
-		_ => &[],
-	}
-}
-
-fn should_skip_quilt_fabric_api(
-	dependency: &Dependency,
-	target: &ResolutionPreferences,
-) -> bool {
-	dependency.project_id.as_deref()
-		== Some(QUILT_FABRIC_API_EXCEPTION_PROJECT_ID)
-		&& target
-			.loaders
-			.iter()
-			.any(|loader| loaders_match(loader, "quilt"))
+	expected.eq_ignore_ascii_case(candidate)
 }
 
 mod model;

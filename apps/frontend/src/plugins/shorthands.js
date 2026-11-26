@@ -71,35 +71,7 @@ export default defineNuxtPlugin((nuxtApp) => {
 			})
 			.sort((a, b) => nuxtApp.$dayjs(b.date_published) - nuxtApp.$dayjs(a.date_published))
 	})
-	nuxtApp.provide('getProjectTypeForDisplay', (type, categories) => {
-		if (type === 'mod') {
-			const isPlugin = categories.some((category) => {
-				return tagStore.value.loaderData.allPluginLoaders.includes(category)
-			})
-			const isMod = categories.some((category) => {
-				return tagStore.value.loaderData.modLoaders.includes(category)
-			})
-			const isDataPack = categories.some((category) => {
-				return tagStore.value.loaderData.dataPackLoaders.includes(category)
-			})
-
-			if (isMod && isPlugin && isDataPack) {
-				return 'mod, plugin, and data pack'
-			} else if (isMod && isPlugin) {
-				return 'mod and plugin'
-			} else if (isMod && isDataPack) {
-				return 'mod and data pack'
-			} else if (isPlugin && isDataPack) {
-				return 'plugin and data pack'
-			} else if (isDataPack) {
-				return 'data pack'
-			} else if (isPlugin) {
-				return 'plugin'
-			}
-		}
-
-		return type
-	})
+	nuxtApp.provide('getProjectTypeForDisplay', (type) => type)
 	nuxtApp.provide('getProjectTypeForUrl', (type, loaders, tags) =>
 		getProjectTypeForUrlShorthand(type, loaders, tags),
 	)

@@ -203,7 +203,7 @@ fn common_file_policy_only_affects_files_present_on_both_sides() {
 
 #[test]
 fn assumed_common_file_update_counts_as_a_change() {
-	let content = snapshot(&[], &[(ContentType::ResourcePack, "textures.zip")]);
+	let content = snapshot(&[], &[(ContentType::Mod, "textures.zip")]);
 	let diff = diff_content_sets(
 		&content,
 		&content,
@@ -216,7 +216,7 @@ fn assumed_common_file_update_counts_as_a_change() {
 	assert_eq!(
 		diff.content,
 		vec![ContentSetDiffEntry::ExternalFile {
-			file: file(ContentType::ResourcePack, "textures.zip"),
+			file: file(ContentType::Mod, "textures.zip"),
 			kind: ContentSetDiffKind::Updated,
 		}]
 	);
@@ -228,14 +228,14 @@ fn file_identity_includes_content_type_and_relative_path() {
 		&[],
 		&[
 			(ContentType::Mod, "shared.jar"),
-			(ContentType::DataPack, "first/data.zip"),
+			(ContentType::Mod, "first/data.zip"),
 		],
 	);
 	let after = snapshot(
 		&[],
 		&[
-			(ContentType::Plugin, "shared.jar"),
-			(ContentType::DataPack, "second/data.zip"),
+			(ContentType::Mod, "shared.jar"),
+			(ContentType::Mod, "second/data.zip"),
 		],
 	);
 
@@ -250,15 +250,15 @@ fn file_identity_includes_content_type_and_relative_path() {
 				kind: ContentSetDiffKind::Removed,
 			},
 			ContentSetDiffEntry::ExternalFile {
-				file: file(ContentType::Plugin, "shared.jar"),
+				file: file(ContentType::Mod, "shared.jar"),
 				kind: ContentSetDiffKind::Added,
 			},
 			ContentSetDiffEntry::ExternalFile {
-				file: file(ContentType::DataPack, "first/data.zip"),
+				file: file(ContentType::Mod, "first/data.zip"),
 				kind: ContentSetDiffKind::Removed,
 			},
 			ContentSetDiffEntry::ExternalFile {
-				file: file(ContentType::DataPack, "second/data.zip"),
+				file: file(ContentType::Mod, "second/data.zip"),
 				kind: ContentSetDiffKind::Added,
 			},
 		]
@@ -387,8 +387,8 @@ fn modpack_link_unlink_and_update_have_directional_version_ids() {
 		),
 	] {
 		let before =
-			configuration(before_id, "1.21.1", "fabric", Some("0.16.0"));
-		let after = configuration(after_id, "1.21.1", "fabric", Some("0.16.0"));
+			configuration(before_id, "0.1.0", "shroudforge", Some("0.16.0"));
+		let after = configuration(after_id, "0.1.0", "shroudforge", Some("0.16.0"));
 
 		assert_eq!(
 			diff_configuration(&before, &after),
@@ -399,12 +399,12 @@ fn modpack_link_unlink_and_update_have_directional_version_ids() {
 
 #[test]
 fn configuration_normalization_does_not_create_false_changes() {
-	let empty = configuration(None, "1.21.1", "fabric", None);
-	let explicit_empty = configuration(Some(""), "1.21.1", "Fabric", Some(""));
+	let empty = configuration(None, "0.1.0", "shroudforge", None);
+	let explicit_empty = configuration(Some(""), "0.1.0", "ShroudForge", Some(""));
 	let linked =
-		configuration(Some("pack-v1"), "1.21.1", "NeoForge", Some("21.1.1"));
+		configuration(Some("pack-v1"), "0.1.0", "ShroudForge", Some("1.0.1"));
 	let canonical =
-		configuration(Some("pack-v1"), "1.21.1", "neoforge", Some("21.1.1"));
+		configuration(Some("pack-v1"), "0.1.0", "shroudforge", Some("1.0.1"));
 
 	for (before, after) in [(&empty, &explicit_empty), (&linked, &canonical)] {
 		assert!(diff_configuration(before, after).is_empty());
@@ -415,14 +415,14 @@ fn configuration_normalization_does_not_create_false_changes() {
 
 #[test]
 fn changing_only_the_game_version_produces_one_configuration_entry() {
-	let before = configuration(None, "1.21.1", "fabric", Some("0.16.0"));
-	let after = configuration(None, "1.21.2", "fabric", Some("0.16.0"));
+	let before = configuration(None, "0.1.0", "shroudforge", Some("0.16.0"));
+	let after = configuration(None, "0.2.0", "shroudforge", Some("0.16.0"));
 
 	assert_eq!(
 		diff_configuration(&before, &after),
 		vec![ConfigurationDiff::GameVersion(Change::Updated {
-			before: "1.21.1".to_string(),
-			after: "1.21.2".to_string(),
+			before: "0.1.0".to_string(),
+			after: "0.2.0".to_string(),
 		}),]
 	);
 }
@@ -434,8 +434,8 @@ fn loader_version_changes_include_added_and_removed_optional_versions() {
 		(None, Some("0.16.0")),
 		(Some("0.16.0"), None),
 	] {
-		let before = configuration(None, "1.21.1", "fabric", before_version);
-		let after = configuration(None, "1.21.1", "fabric", after_version);
+		let before = configuration(None, "0.1.0", "shroudforge", before_version);
+		let after = configuration(None, "0.1.0", "shroudforge", after_version);
 
 		assert_eq!(
 			diff_configuration(&before, &after),
@@ -449,8 +449,8 @@ fn loader_version_changes_include_added_and_removed_optional_versions() {
 
 #[test]
 fn compatible_loader_names_still_represent_different_installed_loaders() {
-	let before = configuration(None, "1.21.1", "paper", Some("123"));
-	let after = configuration(None, "1.21.1", "purpur", Some("123"));
+	let before = configuration(None, "0.1.0", "shroudforge", Some("123"));
+	let after = configuration(None, "0.1.0", "eml", Some("123"));
 
 	assert_eq!(
 		diff_configuration(&before, &after),
@@ -464,9 +464,9 @@ fn compatible_loader_names_still_represent_different_installed_loaders() {
 #[test]
 fn simultaneous_configuration_changes_are_composed_in_stable_order() {
 	let before =
-		configuration(Some("pack-v1"), "1.21.1", "fabric", Some("0.16.0"));
+		configuration(Some("pack-v1"), "0.1.0", "shroudforge", Some("0.16.0"));
 	let after =
-		configuration(Some("pack-v2"), "1.21.2", "neoforge", Some("21.2.1"));
+		configuration(Some("pack-v2"), "0.2.0", "shroudforge", Some("1.0.2"));
 	let content = ContentSetSnapshot::default();
 	let diff = diff_content_sets(
 		&content,
@@ -485,8 +485,8 @@ fn simultaneous_configuration_changes_are_composed_in_stable_order() {
 				after: "pack-v2".to_string(),
 			}),
 			ConfigurationDiff::GameVersion(Change::Updated {
-				before: "1.21.1".to_string(),
-				after: "1.21.2".to_string(),
+				before: "0.1.0".to_string(),
+				after: "0.2.0".to_string(),
 			}),
 			ConfigurationDiff::Loader(Change::Updated {
 				before: before.loader,

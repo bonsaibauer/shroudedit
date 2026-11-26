@@ -34,9 +34,9 @@ async fn search_projects() {
                 let slug = format!("{test_name}-searchable-project-{id}");
 
                 let jar = if is_modpack {
-                    TestFile::build_random_mrpack()
+					TestFile::build_random_sfpack(&slug, "1.2.3")
                 } else {
-                    TestFile::build_random_jar()
+                    TestFile::build_random_mod_zip()
                 };
                 async move {
                     // Add a project- simple, should work.
@@ -108,7 +108,7 @@ async fn search_projects() {
         let modify_json = serde_json::from_value(json!([
             { "op": "add", "path": "/categories", "value": DUMMY_CATEGORIES[0..3] },
             { "op": "add", "path": "/server_side", "value": "required" },
-            { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["1.20.4"] },
+            { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["0.4.0"] },
             { "op": "add", "path": "/title", "value": "Mysterious Project" },
             { "op": "add", "path": "/license_id", "value": "LicenseRef-All-Rights-Reserved" },
         ]))
@@ -125,7 +125,7 @@ async fn search_projects() {
         let modify_json = serde_json::from_value(json!([
             { "op": "add", "path": "/categories", "value": DUMMY_CATEGORIES[0..3] },
             { "op": "add", "path": "/client_side", "value": "optional" },
-            { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["1.20.5"] },
+            { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["0.5.0"] },
         ]))
         .unwrap();
         project_creation_futures.push(create_async_future(
@@ -140,7 +140,7 @@ async fn search_projects() {
         let modify_json = serde_json::from_value(json!([
             { "op": "add", "path": "/categories", "value": DUMMY_CATEGORIES[5..6] },
             { "op": "add", "path": "/client_side", "value": "optional" },
-            { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["1.20.5"] },
+            { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["0.5.0"] },
             { "op": "add", "path": "/license_id", "value": "LGPL-3.0-or-later" },
             { "op": "add", "path": "/source_url", "value": "https://github.com/shroudedit/labrinth" },
         ]))
@@ -170,9 +170,9 @@ async fn search_projects() {
         ));
 
         // Test project 7 (testing the search bug)
-        // This project has an initial private forge version that is 1.20.2, and a fabric 1.20.1 version.
-        // This means that a search for fabric + 1.20.1 or forge + 1.20.1 should not return this project,
-        // but a search for fabric + 1.20.1 should, and it should include both versions in the data.
+        // This project has an initial private eml version that is 0.2.0, and a shroudforge 0.1.0 version.
+        // This means that a search for shroudforge + 0.1.0 or eml + 0.1.0 should not return this project,
+        // but a search for shroudforge + 0.1.0 should, and it should include both versions in the data.
         let id = 7;
         let modify_json = serde_json::from_value(json!([
             { "op": "add", "path": "/categories", "value": DUMMY_CATEGORIES[5..6] },
@@ -180,8 +180,8 @@ async fn search_projects() {
             { "op": "add", "path": "/server_side", "value": "required" },
             { "op": "add", "path": "/license_id", "value": "LGPL-3.0-or-later" },
             { "op": "add", "path": "/source_url", "value": "https://github.com/shroudedit/labrinth" },
-            { "op": "add", "path": "/initial_versions/0/loaders", "value": ["forge"] },
-            { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["1.20.2"] },
+            { "op": "add", "path": "/initial_versions/0/loaders", "value": ["eml"] },
+            { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["0.2.0"] },
         ]))
         .unwrap();
         project_creation_futures.push(create_async_future(
@@ -222,7 +222,7 @@ async fn search_projects() {
         api.add_public_version(
             project_7.id,
             "1.0.0",
-            TestFile::build_random_jar(),
+            TestFile::build_random_mod_zip(),
             None,
             None,
             USER_USER_PAT,
@@ -234,18 +234,18 @@ async fn search_projects() {
         // 2. expected project ids to be returned by this search
         let pairs = vec![
             (
-                json!([["categories:fabric"]]),
+                json!([["categories:shroudforge"]]),
                 vec![0, 1, 2, 3, 4, 5, 6, 7, 8],
             ),
-            (json!([["categories:forge"]]), vec![7]),
+            (json!([["categories:eml"]]), vec![7]),
             (
-                json!([["categories:fabric", "categories:forge"]]),
+                json!([["categories:shroudforge", "categories:eml"]]),
                 vec![0, 1, 2, 3, 4, 5, 6, 7, 8],
             ),
-            (json!([["categories:fabric"], ["categories:forge"]]), vec![]),
+            (json!([["categories:shroudforge"], ["categories:eml"]]), vec![]),
             (
                 json!([
-                    ["categories:fabric"],
+                    ["categories:shroudforge"],
                     [&format!("categories:{}", DUMMY_CATEGORIES[0])],
                 ]),
                 vec![1, 2, 3, 4],
@@ -259,36 +259,36 @@ async fn search_projects() {
             (json!([["license:MIT"]]), vec![1, 2, 4, 8]),
             (json!([[r#"title:'Mysterious Project'"#]]), vec![2, 3]),
             (json!([["author:user"]]), vec![0, 1, 2, 4, 5, 7, 8]),
-            (json!([["versions:1.20.5"]]), vec![4, 5]),
+            (json!([["versions:0.5.0"]]), vec![4, 5]),
             // bug fix
             (
                 json!([
-                    // Only the forge one has 1.20.2, so its true that this project 'has'
-                    // 1.20.2 and a fabric version, but not true that it has a 1.20.2 fabric version.
-                    ["categories:fabric"],
-                    ["versions:1.20.2"]
+                    // Only the eml one has 0.2.0, so its true that this project 'has'
+                    // 0.2.0 and a shroudforge version, but not true that it has a 0.2.0 shroudforge version.
+                    ["categories:shroudforge"],
+                    ["versions:0.2.0"]
                 ]),
                 vec![],
             ),
             (
                 json!([
-                    // But it does have a 1.20.2 forge version, so this should return it.
-                    ["categories:forge"],
-                    ["versions:1.20.2"]
+                    // But it does have a 0.2.0 eml version, so this should return it.
+                    ["categories:eml"],
+                    ["versions:0.2.0"]
                 ]),
                 vec![7],
             ),
             // Project type change
-            // Modpack should still be able to search based on former loader, even though technically the loader is 'mrpack'
-            // (json!([["categories:mrpack"]]), vec![4]),
+            // Modpack should still be able to search based on former loader, even though technically the loader is 'sfpack'
+            // (json!([["categories:sfpack"]]), vec![4]),
             // (
-            //     json!([["categories:mrpack"], ["categories:fabric"]]),
+            //     json!([["categories:sfpack"], ["categories:shroudforge"]]),
             //     vec![4],
             // ),
             (
                 json!([
-                    // ["categories:mrpack"],
-                    ["categories:fabric"],
+                    // ["categories:sfpack"],
+                    ["categories:shroudforge"],
                     ["project_type:modpack"]
                 ]),
                 vec![4],
@@ -390,7 +390,7 @@ async fn search_projects() {
         let game_versions = api
             .search_deserialized(
                 Some(&format!("&{test_name}")),
-                Some(json!([["categories:forge"], ["versions:1.20.2"]])),
+                Some(json!([["categories:eml"], ["versions:0.2.0"]])),
                 USER_USER_PAT,
             )
             .await;
@@ -398,12 +398,12 @@ async fn search_projects() {
         for hit in game_versions.hits {
             assert_eq!(
                 hit.versions,
-                vec!["1.20.1".to_string(), "1.20.2".to_string()]
+                vec!["0.1.0".to_string(), "0.2.0".to_string()]
             );
-            assert!(hit.categories.contains(&"forge".to_string()));
-            assert!(hit.categories.contains(&"fabric".to_string()));
-            assert!(hit.display_categories.contains(&"forge".to_string()));
-            assert!(hit.display_categories.contains(&"fabric".to_string()));
+            assert!(hit.categories.contains(&"eml".to_string()));
+            assert!(hit.categories.contains(&"shroudforge".to_string()));
+            assert!(hit.display_categories.contains(&"eml".to_string()));
+            assert!(hit.display_categories.contains(&"shroudforge".to_string()));
 
             // Also, ensure author is correctly capitalized
             assert_eq!(hit.author, "User".to_string());

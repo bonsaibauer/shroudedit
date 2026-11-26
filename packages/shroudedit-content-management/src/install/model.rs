@@ -54,7 +54,6 @@ pub enum SkippedReason {
 	ConflictingDependency,
 	NoCompatibleVersion,
 	MissingVersion,
-	QuiltFabricApi,
 }
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]

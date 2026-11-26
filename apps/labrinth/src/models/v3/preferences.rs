@@ -103,10 +103,6 @@ impl Default for LocalizationPreferences {
 #[derive(Debug, Serialize, Deserialize, ToSchema, PartialEq, Component)]
 pub struct LayoutPreferences {
 	pub mods: LayoutOption,
-	pub plugins: LayoutOption,
-	pub datapacks: LayoutOption,
-	pub shaders: LayoutOption,
-	pub resourcepacks: LayoutOption,
 	pub modpacks: LayoutOption,
 	pub servers: LayoutOption,
 	pub users: LayoutOption,
@@ -116,10 +112,6 @@ impl Default for LayoutPreferences {
 	fn default() -> Self {
 		Self {
 			mods: LayoutOption::Rows,
-			plugins: LayoutOption::Rows,
-			datapacks: LayoutOption::Rows,
-			shaders: LayoutOption::Grid,
-			resourcepacks: LayoutOption::Grid,
 			modpacks: LayoutOption::Rows,
 			servers: LayoutOption::Rows,
 			users: LayoutOption::Rows,

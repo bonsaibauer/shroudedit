@@ -1,27 +1,11 @@
-import { normalizeProjectType } from '#ui/utils/common-messages'
-
 import type { ContentItem, ManagedContentSummaryItem, ManagedContentSummaryType } from '../types'
 
-const summaryOrder: ManagedContentSummaryType[] = [
-	'mod',
-	'plugin',
-	'datapack',
-	'resourcepack',
-	'shader',
-]
+const summaryOrder: ManagedContentSummaryType[] = ['mod', 'modpack']
 
 function normalizeSummaryType(type: string): ManagedContentSummaryType | null {
-	const normalized = normalizeProjectType(type)
-	switch (normalized) {
-		case 'mod':
-		case 'plugin':
-		case 'datapack':
-		case 'resourcepack':
-		case 'shader':
-			return normalized
-		default:
-			return null
-	}
+	return summaryOrder.includes(type as ManagedContentSummaryType)
+		? (type as ManagedContentSummaryType)
+		: null
 }
 
 export function dedupeManagedContentItems(items: ContentItem[]): ContentItem[] {

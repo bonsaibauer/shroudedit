@@ -72,7 +72,7 @@ function createProjectV3(status: Labrinth.Projects.v2.ProjectStatus): Labrinth.P
 		categories,
 		additional_categories: [],
 		loaders: [],
-		mrpack_loaders: [],
+		modpack_loaders: [],
 		versions: [],
 		link_urls: {},
 		gallery: [],

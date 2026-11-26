@@ -40,9 +40,8 @@ impl ContentSetSnapshot {
 	}
 }
 
-/// A file's type and path, so a mod and a plugin with the same filename are
-/// treated as separate files. For example, `mods/example.jar` uses type `Mod`
-/// and path `example.jar`.
+/// A file's type and path, so files with the same filename but different
+/// content types are treated as separate files.
 #[derive(
 	Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize,
 )]

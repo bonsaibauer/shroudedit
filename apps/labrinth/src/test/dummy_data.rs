@@ -42,70 +42,28 @@ pub enum TestFile {
 	BasicZip,
 	BasicMod,
 	BasicModDifferent,
-	// Randomly generates a valid .jar with a random hash.
-	// Unlike the other dummy jar files, this one is not a static file.
+	// Randomly generates a valid ShroudForge ZIP with a random hash.
+	// Unlike the other dummy mod files, this one is not a static file.
 	// and BasicModRandom.bytes() will return a different file each time.
 	BasicModRandom { filename: String, bytes: Vec<u8> },
 	BasicModpackRandom { filename: String, bytes: Vec<u8> },
-	BasicPluginRandom { filename: String, bytes: Vec<u8> },
-	BasicDatapackRandom { filename: String, bytes: Vec<u8> },
 }
 
 impl TestFile {
-	pub fn build_random_jar() -> Self {
-		let filename = format!("random-mod-{}.jar", rand::random::<u64>());
-
-		let fabric_mod_json = serde_json::json!({
-			"schemaVersion": 1,
-			"id": filename,
-			"version": "1.0.1",
-
-			"name": filename,
-			"description": "Does nothing",
-			"authors": [
-			  "user"
-			],
-			"contact": {
-			  "homepage": "https://www.shroudedit.com",
-			  "sources": "https://www.shroudedit.com",
-			  "issues": "https://www.shroudedit.com"
-			},
-
-			"license": "MIT",
-			"icon": "none.png",
-
-			"environment": "client",
-			"entrypoints": {
-			  "main": [
-				"io.github.shroudedit.ShroudEdit"
-			  ]
-			},
-			"depends": {
-			  "enshrouded": ">=1.20-"
-			}
-		  }
-		)
-		.to_string();
+	pub fn build_random_mod_zip() -> Self {
+		let filename = format!("random-mod-{}.zip", rand::random::<u64>());
 
 		// Create a simulated zip file
 		let mut cursor = Cursor::new(Vec::new());
 		{
 			let mut zip = ZipWriter::new(&mut cursor);
 			zip.start_file(
-				"fabric.mod.json",
+				"content.txt",
 				FileOptions::<()>::default()
 					.compression_method(CompressionMethod::Stored),
 			)
 			.unwrap();
-			zip.write_all(fabric_mod_json.as_bytes()).unwrap();
-
-			zip.start_file(
-				"META-INF/mods.toml",
-				FileOptions::<()>::default()
-					.compression_method(CompressionMethod::Stored),
-			)
-			.unwrap();
-			zip.write_all(fabric_mod_json.as_bytes()).unwrap();
+			zip.write_all(b"Enshrouded mod test payload").unwrap();
 
 			zip.finish().unwrap();
 		}
@@ -114,109 +72,48 @@ impl TestFile {
 		TestFile::BasicModRandom { filename, bytes }
 	}
 
-	pub fn build_random_mrpack() -> Self {
+	pub fn build_random_sfpack(slug: &str, version: &str) -> Self {
 		let filename =
-			format!("random-modpack-{}.mrpack", rand::random::<u64>());
+			format!("random-modpack-{}.sfpack", rand::random::<u64>());
 
-		let shroudedit_index_json = serde_json::json!({
-            "formatVersion": 1,
-            "game": "enshrouded",
-            "versionId": "1.20.1-9.6",
-            "name": filename,
-            "files": [
-                {
-                    "path": "mods/animatica-0.6+1.20.jar",
-                    "hashes": {
-                        "sha1": "3bcb19c759f313e69d3f7848b03c48f15167b88d",
-                        "sha512": "7d50f3f34479f8b052bfb9e2482603b4906b8984039777dc2513ecf18e9af2b599c9d094e88cec774f8525345859e721a394c8cd7c14a789c9538d2533c71d65"
-                    },
-                    "env": {
-                        "client": "required",
-                        "server": "required"
-                    },
-                    "downloads": [
-                        "https://cdn.shroudedit.com/data/PRN43VSY/versions/uNgEPb10/animatica-0.6%2B1.20.jar"
-                    ],
-                    "fileSize": 69810
-                }
-            ],
-            "dependencies": {
-                "fabric-loader": "0.14.22",
-                "enshrouded": "1.20.1"
-            }
-        }
-        )
-        .to_string();
+		let modpack_json = serde_json::json!({
+			"id": slug.to_ascii_lowercase(),
+			"name": filename,
+			"version": version,
+			"gameVersions": ["0.1.0"],
+			"mods": [{ "path": "mods/test-mod" }],
+		})
+		.to_string();
+		let mod_json = serde_json::json!({
+			"id": "test-mod",
+			"name": "Test Mod",
+			"version": "1.0.0",
+		})
+		.to_string();
 
 		// Create a simulated zip file
 		let mut cursor = Cursor::new(Vec::new());
 		{
 			let mut zip = ZipWriter::new(&mut cursor);
 			zip.start_file(
-				"modrinth.index.json",
+				"modpack.json",
 				FileOptions::<()>::default()
 					.compression_method(CompressionMethod::Stored),
 			)
 			.unwrap();
-			zip.write_all(shroudedit_index_json.as_bytes()).unwrap();
+			zip.write_all(modpack_json.as_bytes()).unwrap();
+			zip.start_file(
+				"mods/test-mod/mod.json",
+				FileOptions::<()>::default()
+					.compression_method(CompressionMethod::Stored),
+			)
+			.unwrap();
+			zip.write_all(mod_json.as_bytes()).unwrap();
 			zip.finish().unwrap();
 		}
 		let bytes = cursor.into_inner();
 
 		TestFile::BasicModpackRandom { filename, bytes }
-	}
-
-	pub fn build_random_plugin() -> Self {
-		let filename = format!("random-plugin-{}.jar", rand::random::<u64>());
-		let plugin_yml =
-			"name: TestPlugin\nversion: 1.0.0\nmain: com.example.TestPlugin\n";
-
-		let mut cursor = Cursor::new(Vec::new());
-		{
-			let mut zip = ZipWriter::new(&mut cursor);
-			zip.start_file(
-				"plugin.yml",
-				FileOptions::<()>::default()
-					.compression_method(CompressionMethod::Stored),
-			)
-			.unwrap();
-			zip.write_all(plugin_yml.as_bytes()).unwrap();
-			zip.finish().unwrap();
-		}
-
-		TestFile::BasicPluginRandom {
-			filename,
-			bytes: cursor.into_inner(),
-		}
-	}
-
-	pub fn build_random_datapack() -> Self {
-		let filename = format!("random-datapack-{}.zip", rand::random::<u64>());
-		let pack_mcmeta = serde_json::json!({
-			"pack": {
-				"pack_format": 15,
-				"description": "Test datapack"
-			}
-		})
-		.to_string();
-
-		let mut cursor = Cursor::new(Vec::new());
-		{
-			let mut zip = ZipWriter::new(&mut cursor);
-			zip.start_file(
-				"pack.mcmeta",
-				FileOptions::<()>::default()
-					.compression_method(CompressionMethod::Stored),
-			)
-			.unwrap();
-			zip.write_all(pack_mcmeta.as_bytes()).unwrap();
-			zip.finish().unwrap();
-		}
-
-		TestFile::BasicDatapackRandom {
-			filename,
-			bytes: cursor.into_inner(),
-		}
 	}
 }
 
@@ -522,15 +419,13 @@ pub async fn get_oauth_client_alpha(api: &ApiV3) -> OAuthClient {
 impl TestFile {
 	pub fn filename(&self) -> String {
 		match self {
-			TestFile::DummyProjectAlpha => "dummy-project-alpha.jar",
-			TestFile::DummyProjectBeta => "dummy-project-beta.jar",
+			TestFile::DummyProjectAlpha => "dummy-project-alpha.zip",
+			TestFile::DummyProjectBeta => "dummy-project-beta.zip",
 			TestFile::BasicZip => "simple-zip.zip",
-			TestFile::BasicMod => "basic-mod.jar",
-			TestFile::BasicModDifferent => "basic-mod-different.jar",
+			TestFile::BasicMod => "basic-mod.zip",
+			TestFile::BasicModDifferent => "basic-mod-different.zip",
 			TestFile::BasicModRandom { filename, .. } => filename,
 			TestFile::BasicModpackRandom { filename, .. } => filename,
-			TestFile::BasicPluginRandom { filename, .. } => filename,
-			TestFile::BasicDatapackRandom { filename, .. } => filename,
 		}
 		.to_string()
 	}
@@ -538,27 +433,25 @@ impl TestFile {
 	pub fn bytes(&self) -> Vec<u8> {
 		match self {
 			TestFile::DummyProjectAlpha => {
-				include_bytes!("../../tests/files/dummy-project-alpha.jar")
+				include_bytes!("../../tests/files/dummy-project-alpha.zip")
 					.to_vec()
 			}
 			TestFile::DummyProjectBeta => {
-				include_bytes!("../../tests/files/dummy-project-beta.jar")
+				include_bytes!("../../tests/files/dummy-project-beta.zip")
 					.to_vec()
 			}
 			TestFile::BasicMod => {
-				include_bytes!("../../tests/files/basic-mod.jar").to_vec()
+				include_bytes!("../../tests/files/basic-mod.zip").to_vec()
 			}
 			TestFile::BasicZip => {
 				include_bytes!("../../tests/files/simple-zip.zip").to_vec()
 			}
 			TestFile::BasicModDifferent => {
-				include_bytes!("../../tests/files/basic-mod-different.jar")
+				include_bytes!("../../tests/files/basic-mod-different.zip")
 					.to_vec()
 			}
 			TestFile::BasicModRandom { bytes, .. } => bytes.clone(),
 			TestFile::BasicModpackRandom { bytes, .. } => bytes.clone(),
-			TestFile::BasicPluginRandom { bytes, .. } => bytes.clone(),
-			TestFile::BasicDatapackRandom { bytes, .. } => bytes.clone(),
 		}
 	}
 
@@ -570,32 +463,26 @@ impl TestFile {
 			TestFile::BasicModDifferent => "mod",
 			TestFile::BasicModRandom { .. } => "mod",
 
-			TestFile::BasicZip => "resourcepack",
+			TestFile::BasicZip => "mod",
 
 			TestFile::BasicModpackRandom { .. } => "modpack",
-			TestFile::BasicPluginRandom { .. } => "plugin",
-			TestFile::BasicDatapackRandom { .. } => "datapack",
 		}
 		.to_string()
 	}
 
 	pub fn content_type(&self) -> Option<String> {
 		match self {
-			TestFile::DummyProjectAlpha => Some("application/java-archive"),
-			TestFile::DummyProjectBeta => Some("application/java-archive"),
-			TestFile::BasicMod => Some("application/java-archive"),
-			TestFile::BasicModDifferent => Some("application/java-archive"),
-			TestFile::BasicModRandom { .. } => Some("application/java-archive"),
+			TestFile::DummyProjectAlpha => Some("application/zip"),
+			TestFile::DummyProjectBeta => Some("application/zip"),
+			TestFile::BasicMod => Some("application/zip"),
+			TestFile::BasicModDifferent => Some("application/zip"),
+			TestFile::BasicModRandom { .. } => Some("application/zip"),
 
 			TestFile::BasicZip => Some("application/zip"),
 
 			TestFile::BasicModpackRandom { .. } => {
-				Some("application/x-modrinth-modpack+zip")
+				Some("application/x-shroudforge-modpack+zip")
 			}
-			TestFile::BasicPluginRandom { .. } => {
-				Some("application/java-archive")
-			}
-			TestFile::BasicDatapackRandom { .. } => Some("application/zip"),
 		}
 		.map(|s| s.to_string())
 	}

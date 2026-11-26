@@ -53,27 +53,15 @@ async fn get_tags_v3() {
 				loader_metadata.keys().cloned().collect::<HashSet<String>>();
 			assert_eq!(
 				loader_names,
-				[
-					"fabric",
-					"forge",
-					"mrpack",
-					"bukkit",
-					"waterfall",
-					"datapack",
-					"shroudforge",
-					"shroudtopia",
-					"eml"
-				]
-				.iter()
-				.map(|s| s.to_string())
-				.collect()
+				["sfpack", "shroudforge", "shroudtopia", "eml"]
+					.iter()
+					.map(|s| s.to_string())
+					.collect()
 			);
-			assert_eq!(loader_metadata["fabric"], None);
-			assert_eq!(loader_metadata["bukkit"], Some(false));
-			assert_eq!(loader_metadata["waterfall"], Some(true));
 			assert_eq!(loader_metadata["shroudforge"], Some(false));
 			assert_eq!(loader_metadata["shroudtopia"], Some(false));
 			assert_eq!(loader_metadata["eml"], Some(false));
+			assert_eq!(loader_metadata["sfpack"], Some(false));
 		},
 	)
 	.await;

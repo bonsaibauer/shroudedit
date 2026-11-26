@@ -141,7 +141,7 @@ async fn test_add_remove_project() {
 
 			// Basic json, with a different file
 			json_data["initial_versions"][0]["file_parts"][0] =
-				json!("basic-mod-different.jar");
+				json!("basic-mod-different.zip");
 			let json_diff_file_segment = MultipartSegment {
 				data: MultipartSegmentData::Text(
 					serde_json::to_string(&json_data).unwrap(),
@@ -152,7 +152,7 @@ async fn test_add_remove_project() {
 			// Basic json, with a different file, and a different slug
 			json_data["slug"] = json!("new_demo");
 			json_data["initial_versions"][0]["file_parts"][0] =
-				json!("basic-mod-different.jar");
+				json!("basic-mod-different.zip");
 			let json_diff_slug_file_segment = MultipartSegment {
 				data: MultipartSegmentData::Text(
 					serde_json::to_string(&json_data).unwrap(),
@@ -746,71 +746,6 @@ async fn test_description_similarity_to_summary() {
 		},
 	)
 	.await;
-}
-
-#[actix_rt::test]
-async fn test_plugin_and_datapack_validation_use_mod_tags() {
-	with_test_environment(
-        None,
-        |test_env: TestEnvironment<ApiV3>| async move {
-            let api = &test_env.api;
-            let mod_categories = api
-                .get_categories_deserialized_common()
-                .await
-                .into_iter()
-                .filter(|category| category.project_type == "mod")
-                .map(|category| category.name)
-                .collect::<Vec<_>>();
-            assert!(mod_categories.len() > 3);
-
-            for (project_type, loader, file) in [
-                ("plugin", "bukkit", TestFile::build_random_plugin()),
-                (
-                    "datapack",
-                    "datapack",
-                    TestFile::build_random_datapack(),
-                ),
-            ] {
-                let slug = format!("all-tags-selected-{project_type}");
-                let modify_json = serde_json::from_value(json!([
-                    { "op": "replace", "path": "/is_draft", "value": true },
-                    { "op": "replace", "path": "/categories", "value": mod_categories[..3] },
-                    { "op": "add", "path": "/additional_categories", "value": mod_categories[3..] },
-                    { "op": "replace", "path": "/initial_versions/0/loaders", "value": [loader] },
-                ]))
-                .unwrap();
-                let creation_data = get_public_project_creation_data(
-                    &slug,
-                    Some(file),
-                    Some(modify_json),
-                );
-                let response =
-                    api.create_project(creation_data, USER_USER_PAT).await;
-                assert_status!(&response, StatusCode::OK);
-
-                let request = test::TestRequest::get()
-                    .uri(&format!("/v3/project/{slug}/validate"))
-                    .append_pat(USER_USER_PAT)
-                    .to_request();
-                let response = api.call(request).await;
-                assert_status!(&response, StatusCode::OK);
-                let validation: serde_json::Value =
-                    test::read_body_json(response).await;
-                let all_tags_selected = validation["nags"]
-                    .as_array()
-                    .unwrap()
-                    .iter()
-                    .find(|nag| nag["kind"] == "all_tags_selected")
-                    .expect("all shared mod tags should be detected as selected");
-
-                assert_eq!(
-                    all_tags_selected["details"]["total_available_tags"],
-                    mod_categories.len()
-                );
-            }
-        },
-    )
-    .await;
 }
 
 #[actix_rt::test]
@@ -1510,7 +1445,7 @@ async fn permissions_upload_version() {
 			let api = &test_env.api;
 
 			let upload_version = ProjectPermissions::UPLOAD_VERSION;
-			// Upload version with basic-mod.jar
+			// Upload version with basic-mod.zip
 			let req_gen = |ctx: PermissionsTestContext| async move {
 				let project_id = ctx.project_id.unwrap();
 				let project_id = ProjectId(parse_base62(&project_id).unwrap());
@@ -1785,7 +1720,7 @@ async fn project_permissions_consistency_test() {
 //         let projects = api
 //             .search_deserialized(
 //                 Some(&format!("\"&{test_name}\"")),
-//                 Some(json!([["categories:fabric"]])),
+//                 Some(json!([["categories:shroudforge"]])),
 //                 USER_USER_PAT,
 //             )
 //             .await;

@@ -3,141 +3,21 @@ import { capitalizeString } from '@shroudedit/utils'
 import { defineMessages, type MessageDescriptor, type VIntlFormatters } from '../composables/i18n'
 
 export const loaderMessages = defineMessages({
-	babric: {
-		id: 'tag.loader.babric',
-		defaultMessage: 'Babric',
-	},
-	'bta-babric': {
-		id: 'tag.loader.bta-babric',
-		defaultMessage: 'BTA (Babric)',
-	},
-	bukkit: {
-		id: 'tag.loader.bukkit',
-		defaultMessage: 'Bukkit',
-	},
-	bungeecord: {
-		id: 'tag.loader.bungeecord',
-		defaultMessage: 'BungeeCord',
-	},
-	canvas: {
-		id: 'tag.loader.canvas',
-		defaultMessage: 'Canvas',
-	},
-	datapack: {
-		id: 'tag.loader.datapack',
-		defaultMessage: 'Data Pack',
-	},
-	fabric: {
-		id: 'tag.loader.fabric',
-		defaultMessage: 'Fabric',
-	},
-	folia: {
-		id: 'tag.loader.folia',
-		defaultMessage: 'Folia',
-	},
-	forge: {
-		id: 'tag.loader.forge',
-		defaultMessage: 'Forge',
-	},
-	geyser: {
-		id: 'tag.loader.geyser',
-		defaultMessage: 'Geyser Extension',
-	},
-	iris: {
-		id: 'tag.loader.iris',
-		defaultMessage: 'Iris',
-	},
-	'java-agent': {
-		id: 'tag.loader.java-agent',
-		defaultMessage: 'Java Agent',
-	},
-	'legacy-fabric': {
-		id: 'tag.loader.legacy-fabric',
-		defaultMessage: 'Legacy Fabric',
-	},
-	liteloader: {
-		id: 'tag.loader.liteloader',
-		defaultMessage: 'LiteLoader',
-	},
-	enshrouded: {
-		id: 'tag.loader.enshrouded',
-		defaultMessage: 'Resource Pack',
-	},
 	eml: {
 		id: 'tag.loader.eml',
 		defaultMessage: 'EML',
-	},
-	modloader: {
-		id: 'tag.loader.modloader',
-		defaultMessage: "Risugami's ModLoader",
-	},
-	mrpack: {
-		id: 'tag.loader.mrpack',
-		defaultMessage: 'Modpack',
-	},
-	neoforge: {
-		id: 'tag.loader.neoforge',
-		defaultMessage: 'NeoForge',
-	},
-	nilloader: {
-		id: 'tag.loader.nilloader',
-		defaultMessage: 'NilLoader',
-	},
-	optifine: {
-		id: 'tag.loader.optifine',
-		defaultMessage: 'OptiFine',
-	},
-	ornithe: {
-		id: 'tag.loader.ornithe',
-		defaultMessage: 'Ornithe',
-	},
-	paper: {
-		id: 'tag.loader.paper',
-		defaultMessage: 'Paper',
-	},
-	purpur: {
-		id: 'tag.loader.purpur',
-		defaultMessage: 'Purpur',
-	},
-	quilt: {
-		id: 'tag.loader.quilt',
-		defaultMessage: 'Quilt',
-	},
-	rift: {
-		id: 'tag.loader.rift',
-		defaultMessage: 'Rift',
-	},
-	spigot: {
-		id: 'tag.loader.spigot',
-		defaultMessage: 'Spigot',
-	},
-	shroudforge: {
-		id: 'tag.loader.shroudforge',
-		defaultMessage: 'Shroudforge',
 	},
 	sfpack: {
 		id: 'tag.loader.sfpack',
 		defaultMessage: 'ShroudForge Pack',
 	},
+	shroudforge: {
+		id: 'tag.loader.shroudforge',
+		defaultMessage: 'ShroudForge',
+	},
 	shroudtopia: {
 		id: 'tag.loader.shroudtopia',
 		defaultMessage: 'Shroudtopia',
-	},
-	sponge: {
-		id: 'tag.loader.sponge',
-		defaultMessage: 'Sponge',
-	},
-	vanilla: {
-		id: 'tag.loader.vanilla',
-		defaultMessage: 'Vanilla Shader',
-	},
-	velocity: {
-		id: 'tag.loader.velocity',
-		defaultMessage: 'Velocity',
-	},
-	waterfall: {
-		id: 'tag.loader.waterfall',
-		defaultMessage: 'Waterfall',
 	},
 })
 
@@ -597,10 +477,7 @@ export const categoryMessages = defineMessages({
 })
 
 export const DEFAULT_MOD_LOADERS: string[] = ['shroudtopia', 'shroudforge', 'eml']
-export const DEFAULT_PLUGIN_LOADERS: string[] = ['paper', 'spigot']
-export const DEFAULT_SHADER_LOADERS: string[] = ['iris', 'optifine', 'vanilla']
-
-const DEFAULT_LOADER_NAMES = new Set([...DEFAULT_MOD_LOADERS, ...DEFAULT_SHADER_LOADERS])
+const DEFAULT_LOADER_NAMES = new Set(DEFAULT_MOD_LOADERS)
 
 // sort by:
 // 1. categories, alphabetically

@@ -14,7 +14,7 @@
 				</TagItem>
 			</div>
 		</section>
-		<section v-if="project.project_type !== 'resourcepack'" class="flex flex-col gap-2">
+		<section class="flex flex-col gap-2">
 			<h3 class="text-primary !font-normal text-base m-0">
 				{{ formatMessage(messages.platforms) }}
 			</h3>
@@ -79,8 +79,6 @@
 				</TagItem>
 				<TagItem
 					v-if="
-						// @ts-ignore
-						project.project_type !== 'datapack' &&
 						project.client_side !== 'unsupported' &&
 						project.server_side !== 'unsupported' &&
 						project.client_side !== 'unknown' &&
@@ -141,9 +139,9 @@ const props = defineProps<{
 const noModpackLoader = computed(
 	() =>
 		(props.projectV3?.project_types.includes('modpack') &&
-			props.projectV3?.mrpack_loaders?.length === 1 &&
-			props.projectV3?.mrpack_loaders?.[0] === 'enshrouded') ||
-		props.projectV3?.mrpack_loaders?.length === 0,
+			props.projectV3?.modpack_loaders?.length === 1 &&
+			props.projectV3?.modpack_loaders?.[0] === 'enshrouded') ||
+		props.projectV3?.modpack_loaders?.length === 0,
 )
 
 const showEnvironments = computed(

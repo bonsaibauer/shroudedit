@@ -18,7 +18,6 @@ pub mod analytics;
 mod index;
 mod maven;
 mod not_found;
-mod updates;
 
 pub use self::not_found::not_found;
 
@@ -145,11 +144,6 @@ pub fn public_config(cfg: &mut web::ServiceConfig) {
 		web::scope("/maven")
 			.wrap(default_cors())
 			.configure(maven::config),
-	);
-	cfg.service(
-		web::scope("/updates")
-			.wrap(default_cors())
-			.configure(updates::config),
 	);
 	cfg.service(
 		web::scope("/analytics")

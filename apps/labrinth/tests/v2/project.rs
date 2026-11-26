@@ -37,26 +37,30 @@ async fn test_project_type_sanity() {
 			let api = &test_env.api;
 
 			// Perform all other patch tests on both 'mod' and 'modpack'
-			for (mod_or_modpack, slug, file) in [
-				("mod", "test-mod", TestFile::build_random_jar()),
-				("modpack", "test-modpack", TestFile::build_random_mrpack()),
-			] {
+			for (mod_or_modpack, slug) in
+				[("mod", "test-mod"), ("modpack", "test-modpack")]
+			{
+				let file = if mod_or_modpack == "modpack" {
+					TestFile::build_random_sfpack(slug, "1.2.3")
+				} else {
+					TestFile::build_random_mod_zip()
+				};
 				// Create a modpack or mod
-				// both are 'fabric' (but modpack is actually 'mrpack' behind the scenes, through v3,with fabric as a 'mrpack_loader')
+				// both are 'shroudforge' (but modpack is actually 'sfpack' behind the scenes, through v3,with shroudforge as a 'sfpack_loader')
 				let (test_project, test_version) = api
 					.add_public_project(slug, Some(file), None, USER_USER_PAT)
 					.await;
 				let test_project_slug = test_project.slug.as_ref().unwrap();
 
-				// Check that the loader displays correctly as fabric from the version creation
-				assert_eq!(test_project.loaders, vec!["fabric"]);
-				assert_eq!(test_version[0].loaders, vec!["fabric"]);
+				// Check that the loader displays correctly as shroudforge from the version creation
+				assert_eq!(test_project.loaders, vec!["shroudforge"]);
+				assert_eq!(test_version[0].loaders, vec!["shroudforge"]);
 
 				// Check that the project type is correct when getting the project
 				let project = api
 					.get_project_deserialized(test_project_slug, USER_USER_PAT)
 					.await;
-				assert_eq!(test_project.loaders, vec!["fabric"]);
+				assert_eq!(test_project.loaders, vec!["shroudforge"]);
 				assert_eq!(project.project_type, mod_or_modpack);
 
 				// Check that the project type is correct when getting the version
@@ -68,15 +72,15 @@ async fn test_project_type_sanity() {
 					.await;
 				assert_eq!(
 					version.loaders.iter().map(|x| &x.0).collect_vec(),
-					vec!["fabric"]
+					vec!["shroudforge"]
 				);
 
-				// Edit the version loader to change it to 'forge'
+				// Edit the version loader to change it to 'eml'
 				let resp = api
 					.edit_version(
 						&test_version[0].id.to_string(),
 						json!({
-							"loaders": ["forge"],
+							"loaders": ["eml"],
 						}),
 						USER_USER_PAT,
 					)
@@ -88,7 +92,7 @@ async fn test_project_type_sanity() {
 					.get_project_deserialized(test_project_slug, USER_USER_PAT)
 					.await;
 				assert_eq!(project.project_type, mod_or_modpack);
-				assert_eq!(project.loaders, vec!["forge"]);
+				assert_eq!(project.loaders, vec!["eml"]);
 
 				// Check that the project type is still correct when getting the version
 				let version = api
@@ -99,7 +103,7 @@ async fn test_project_type_sanity() {
 					.await;
 				assert_eq!(
 					version.loaders.iter().map(|x| &x.0).collect_vec(),
-					vec!["forge"]
+					vec!["eml"]
 				);
 			}
 
@@ -136,7 +140,7 @@ async fn test_add_remove_project() {
 
 			// Basic json, with a different file
 			json_data["initial_versions"][0]["file_parts"][0] =
-				json!("basic-mod-different.jar");
+				json!("basic-mod-different.zip");
 			let json_diff_file_segment = MultipartSegment {
 				data: MultipartSegmentData::Text(
 					serde_json::to_string(&json_data).unwrap(),
@@ -147,7 +151,7 @@ async fn test_add_remove_project() {
 			// Basic json, with a different file, and a different slug
 			json_data["slug"] = json!("new_demo");
 			json_data["initial_versions"][0]["file_parts"][0] =
-				json!("basic-mod-different.jar");
+				json!("basic-mod-different.zip");
 			let json_diff_slug_file_segment = MultipartSegment {
 				data: MultipartSegmentData::Text(
 					serde_json::to_string(&json_data).unwrap(),

@@ -20,86 +20,50 @@ VALUES (50, {{user_id::ADMIN}},     'admin-pat',     '{{pat::ADMIN}}',     {{all
        (53, {{user_id::FRIEND}},    'friend-pat',    '{{pat::FRIEND}}',    {{all_scopes}}, '2030-08-18 15:48:58.435729+00'),
        (54, {{user_id::ENEMY}},     'enemy-pat',     '{{pat::ENEMY}}',     {{all_scopes}}, '2030-08-18 15:48:58.435729+00');
 
-INSERT INTO loaders (loader) VALUES ('fabric');
-INSERT INTO loaders_project_types (joining_loader_id, joining_project_type_id)
-SELECT loaders.id, project_types.id
-FROM loaders
-CROSS JOIN project_types
-WHERE loaders.loader = 'fabric' AND project_types.name = 'mod';
-
-INSERT INTO loaders (loader) VALUES ('forge');
-INSERT INTO loaders_project_types (joining_loader_id, joining_project_type_id)
-SELECT loaders.id, project_types.id
-FROM loaders
-CROSS JOIN project_types
-WHERE loaders.loader = 'forge' AND project_types.name = 'mod';
-
-INSERT INTO loaders (loader, metadata) VALUES ('bukkit', '{"platform":false}'::JSONB);
-INSERT INTO loaders (loader, metadata) VALUES ('waterfall', '{"platform":true}'::JSONB);
-INSERT INTO loaders (loader) VALUES ('datapack');
-
-INSERT INTO loaders_project_types (joining_loader_id, joining_project_type_id)
-SELECT l.id, pt.id
-FROM loaders l
-CROSS JOIN project_types pt
-WHERE
-	(l.loader IN ('bukkit', 'waterfall') AND pt.name = 'plugin')
-	OR (l.loader = 'datapack' AND pt.name = 'datapack');
-
 INSERT INTO loaders_project_types_games (loader_id, project_type_id, game_id)
-SELECT lpt.joining_loader_id, lpt.joining_project_type_id, games.id
-FROM loaders_project_types lpt
-JOIN loaders ON loaders.id = lpt.joining_loader_id
-CROSS JOIN games
-WHERE loaders.loader IN ('bukkit', 'waterfall', 'datapack')
-	AND games.name = 'enshrouded';
-
--- Adds dummies to mrpack_loaders
-INSERT INTO loader_field_enum_values (enum_id, value)
-SELECT id, 'fabric' FROM loader_field_enums WHERE enum_name = 'mrpack_loaders';
-INSERT INTO loader_field_enum_values (enum_id, value)
-SELECT id, 'forge' FROM loader_field_enums WHERE enum_name = 'mrpack_loaders';
-
-INSERT INTO loaders_project_types_games (loader_id, project_type_id, game_id)
-SELECT loaders_project_types.joining_loader_id, loaders_project_types.joining_project_type_id, games.id
+SELECT loaders_project_types.joining_loader_id,
+	loaders_project_types.joining_project_type_id,
+	games.id
 FROM loaders_project_types
 JOIN loaders ON loaders.id = loaders_project_types.joining_loader_id
 CROSS JOIN games
-WHERE loaders.loader = 'fabric'
-	AND games.name = 'enshrouded';
-INSERT INTO loaders_project_types_games (loader_id, project_type_id, game_id)
-SELECT loaders_project_types.joining_loader_id, loaders_project_types.joining_project_type_id, games.id
-FROM loaders_project_types
-JOIN loaders ON loaders.id = loaders_project_types.joining_loader_id
-CROSS JOIN games
-WHERE loaders.loader = 'forge'
-	AND games.name = 'enshrouded';
+WHERE loaders.loader IN ('shroudforge', 'eml', 'shroudtopia')
+	AND games.name = 'enshrouded'
+ON CONFLICT DO NOTHING;
+
+-- Adds valid Enshrouded loaders to modpack_loaders.
+INSERT INTO loader_field_enum_values (enum_id, value)
+SELECT loader_field_enums.id, supported_loaders.value
+FROM loader_field_enums
+CROSS JOIN (VALUES ('shroudforge'), ('eml'), ('shroudtopia')) AS supported_loaders(value)
+WHERE loader_field_enums.enum_name = 'modpack_loaders'
+ON CONFLICT DO NOTHING;
 
 -- Dummy-data only optional field, as we don't have any yet
 INSERT INTO loader_fields
 	(field, field_type, optional)
 VALUES
-	('test_fabric_optional', 'integer', TRUE);
+	('test_shroudtopia_optional', 'integer', TRUE);
 INSERT INTO loader_fields_loaders (loader_id, loader_field_id)
 SELECT l.id, lf.id
 FROM
 	loaders AS l
 	CROSS JOIN loader_fields AS lf
-WHERE lf.field = 'test_fabric_optional' AND l.loader = 'fabric'
+WHERE lf.field = 'test_shroudtopia_optional' AND l.loader = 'shroudtopia'
 ON CONFLICT DO NOTHING;
 
 -- Sample game versions, loaders, categories
 -- Game versions is '2'
 INSERT INTO loader_field_enum_values (enum_id, value, metadata, created)
-VALUES (2, '1.20.1', '{"type":"release","major":false}', '2021-08-18 15:48:58.435729+00');
+VALUES (2, '0.1.0', '{"type":"release","major":false}', '2021-08-18 15:48:58.435729+00');
 INSERT INTO loader_field_enum_values (enum_id, value, metadata, created)
-VALUES (2, '1.20.2', '{"type":"release","major":false}', '2021-08-18 15:48:59.435729+00');
+VALUES (2, '0.2.0', '{"type":"release","major":false}', '2021-08-18 15:48:59.435729+00');
 INSERT INTO loader_field_enum_values (enum_id, value, metadata, created)
-VALUES (2, '1.20.3', '{"type":"release","major":false}', '2021-08-18 15:49:00.435729+00');
+VALUES (2, '0.3.0', '{"type":"release","major":false}', '2021-08-18 15:49:00.435729+00');
 INSERT INTO loader_field_enum_values (enum_id, value, metadata, created)
-VALUES (2, '1.20.4', '{"type":"beta","major":false}', '2021-08-18 15:49:01.435729+00');
+VALUES (2, '0.4.0', '{"type":"beta","major":false}', '2021-08-18 15:49:01.435729+00');
 INSERT INTO loader_field_enum_values (enum_id, value, metadata, created)
-VALUES (2, '1.20.5', '{"type":"release","major":true}', '2061-08-18 15:49:02.435729+00');
+VALUES (2, '0.5.0', '{"type":"release","major":true}', '2061-08-18 15:49:02.435729+00');
 
 -- Also add 'Ordering_Negative1' and 'Ordering_Positive100' to game versions (to test ordering override)
 INSERT INTO loader_field_enum_values (enum_id, value, metadata, ordering)

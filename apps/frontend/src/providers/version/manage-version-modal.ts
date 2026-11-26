@@ -122,8 +122,6 @@ const PROJECT_TYPE_LOADERS: Record<string, readonly string[]> = {
 export const fileTypeLabels: Record<Labrinth.Versions.v3.FileType | 'primary', string> = {
 	primary: 'Primary',
 	unknown: 'Other',
-	'required-resource-pack': 'Required RP',
-	'optional-resource-pack': 'Optional RP',
 	'sources-jar': 'Sources JAR',
 	'dev-jar': 'Dev JAR',
 	'javadoc-jar': 'Javadoc JAR',
@@ -141,14 +139,6 @@ export const fileTypeMessages: Record<
 	unknown: defineMessage({
 		id: 'version.file-type.unknown',
 		defaultMessage: 'Other',
-	}),
-	'required-resource-pack': defineMessage({
-		id: 'version.file-type.required-resource-pack',
-		defaultMessage: 'Required resource pack',
-	}),
-	'optional-resource-pack': defineMessage({
-		id: 'version.file-type.optional-resource-pack',
-		defaultMessage: 'Optional resource pack',
 	}),
 	'sources-jar': defineMessage({
 		id: 'version.file-type.sources-jar',

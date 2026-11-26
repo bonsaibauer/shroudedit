@@ -23,10 +23,9 @@ pub fn get_image_ext(content_type: &str) -> Option<&'static str> {
 }
 
 pub fn project_file_type(ext: &str) -> Option<&str> {
-	// Notify #mr-devops before adding new filetype.
+	// Notify #sf-devops before adding new filetype.
 	match ext {
-		"jar" => Some("application/java-archive"),
-		"zip" | "litemod" => Some("application/zip"),
+		"zip" => Some("application/zip"),
 		"sfpack" => Some(SFPACK_MIME_TYPE),
 		"sfbp" => Some("application/octet-stream"),
 		"asc" | "gpg" | "sig" => Some("application/pgp-signature"),

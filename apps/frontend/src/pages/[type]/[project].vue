@@ -962,13 +962,13 @@ const versionsRaw = computed(() => {
 		const gameVersions = Array.isArray(version.game_versions) ? version.game_versions : []
 		const loaders = Array.isArray(version.loaders) ? version.loaders : []
 		const isModpack = version.project_types?.includes('modpack')
-		const mrpackLoaders = Array.isArray(version.mrpack_loaders) ? version.mrpack_loaders : []
+		const sfpackLoaders = Array.isArray(version.modpack_loaders) ? version.modpack_loaders : []
 
 		return {
 			...version,
 			files,
 			game_versions: gameVersions,
-			loaders: isModpack && mrpackLoaders.length ? mrpackLoaders : loaders,
+			loaders: isModpack && sfpackLoaders.length ? sfpackLoaders : loaders,
 		}
 	})
 })
@@ -1553,7 +1553,6 @@ const projectHeaderMoreActions = computed(() => {
 				},
 			},
 		}))
-	const isPluginOnly = dependentSearchTypes.length === 1 && dependentSearchTypes[0] === 'plugin'
 
 	return [
 		{
@@ -1576,7 +1575,7 @@ const projectHeaderMoreActions = computed(() => {
 					dep: formatDependencyProjectFilterOption(projectId, ['required']),
 				},
 			},
-			shown: !isPluginOnly && project.value?.actualProjectType !== 'modpack',
+			shown: project.value?.actualProjectType !== 'modpack',
 		},
 		{ type: 'divider' },
 		{

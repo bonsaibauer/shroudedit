@@ -45,10 +45,6 @@ pub enum Error {
 #[cfg_attr(feature = "utoipa", derive(utoipa::ToSchema))]
 pub enum ContentType {
 	Mod,
-	Plugin,
-	DataPack,
-	ResourcePack,
-	Shader,
 	ModPack,
 }
 
@@ -58,10 +54,6 @@ impl std::str::FromStr for ContentType {
 	fn from_str(value: &str) -> Result<Self, Self::Err> {
 		match value {
 			"mod" => Ok(Self::Mod),
-			"plugin" => Ok(Self::Plugin),
-			"datapack" => Ok(Self::DataPack),
-			"resourcepack" => Ok(Self::ResourcePack),
-			"shader" => Ok(Self::Shader),
 			"modpack" => Ok(Self::ModPack),
 			_ => Err(Error::UnknownContentType(value.to_owned())),
 		}
@@ -69,14 +61,10 @@ impl std::str::FromStr for ContentType {
 }
 
 impl ContentType {
-	/// Returns the API name, such as `mod` or `resourcepack`.
+	/// Returns the API name, such as `mod` or `modpack`.
 	pub fn as_str(self) -> &'static str {
 		match self {
 			Self::Mod => "mod",
-			Self::Plugin => "plugin",
-			Self::DataPack => "datapack",
-			Self::ResourcePack => "resourcepack",
-			Self::Shader => "shader",
 			Self::ModPack => "modpack",
 		}
 	}

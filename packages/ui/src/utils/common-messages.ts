@@ -830,21 +830,13 @@ export const financialMessages = defineMessages({
 	},
 })
 
-const PROJECT_TYPE_ALIASES: Record<string, string> = {
-	shaderpack: 'shader',
-}
-
 export function normalizeProjectType(type: string): string {
-	return PROJECT_TYPE_ALIASES[type] ?? type
+	return type
 }
 
 type FormatMessage = (descriptor: MessageDescriptor, values?: Record<string, unknown>) => string
 
 export const commonProjectTypeCategoryMessages = defineMessages({
-	datapack: {
-		id: 'project-type.datapack.category',
-		defaultMessage: 'Data Packs',
-	},
 	mod: {
 		id: 'project-type.mod.category',
 		defaultMessage: 'Mods',
@@ -857,18 +849,6 @@ export const commonProjectTypeCategoryMessages = defineMessages({
 		id: 'project-type.schematic.category',
 		defaultMessage: 'Schematics',
 	},
-	plugin: {
-		id: 'project-type.plugin.category',
-		defaultMessage: 'Plugins',
-	},
-	resourcepack: {
-		id: 'project-type.resourcepack.category',
-		defaultMessage: 'Resource Packs',
-	},
-	shader: {
-		id: 'project-type.shader.category',
-		defaultMessage: 'Shaders',
-	},
 	server: {
 		id: 'project-type.server.category',
 		defaultMessage: 'Servers',
@@ -880,10 +860,6 @@ export const commonProjectTypeCategoryMessages = defineMessages({
 })
 
 export const commonProjectTypeTitleMessages = defineMessages({
-	datapack: {
-		id: 'project-type.datapack.capital',
-		defaultMessage: '{count, plural, one {Data Pack} other {Data Packs}}',
-	},
 	mod: {
 		id: 'project-type.mod.capital',
 		defaultMessage: '{count, plural, one {Mod} other {Mods}}',
@@ -896,18 +872,6 @@ export const commonProjectTypeTitleMessages = defineMessages({
 		id: 'project-type.schematic.capital',
 		defaultMessage: '{count, plural, one {Schematic} other {Schematics}}',
 	},
-	plugin: {
-		id: 'project-type.plugin.capital',
-		defaultMessage: '{count, plural, one {Plugin} other {Plugins}}',
-	},
-	resourcepack: {
-		id: 'project-type.resourcepack.capital',
-		defaultMessage: '{count, plural, one {Resource Pack} other {Resource Packs}}',
-	},
-	shader: {
-		id: 'project-type.shader.capital',
-		defaultMessage: '{count, plural, one {Shader} other {Shaders}}',
-	},
 	server: {
 		id: 'project-type.server.capital',
 		defaultMessage: '{count, plural, one {Server} other {Servers}}',
@@ -919,10 +883,6 @@ export const commonProjectTypeTitleMessages = defineMessages({
 })
 
 export const commonProjectTypeSentenceMessages = defineMessages({
-	datapack: {
-		id: 'project-type.datapack.lowercase',
-		defaultMessage: '{count, plural, one {data pack} other {data packs}}',
-	},
 	mod: {
 		id: 'project-type.mod.lowercase',
 		defaultMessage: '{count, plural, one {mod} other {mods}}',
@@ -934,18 +894,6 @@ export const commonProjectTypeSentenceMessages = defineMessages({
 	schematic: {
 		id: 'project-type.schematic.lowercase',
 		defaultMessage: '{count, plural, one {schematic} other {schematics}}',
-	},
-	plugin: {
-		id: 'project-type.plugin.lowercase',
-		defaultMessage: '{count, plural, one {plugin} other {plugins}}',
-	},
-	resourcepack: {
-		id: 'project-type.resourcepack.lowercase',
-		defaultMessage: '{count, plural, one {resource pack} other {resource packs}}',
-	},
-	shader: {
-		id: 'project-type.shader.lowercase',
-		defaultMessage: '{count, plural, one {shader} other {shaders}}',
 	},
 	server: {
 		id: 'project-type.server.lowercase',
@@ -1466,14 +1414,6 @@ export const fileTypeMessages: Record<
 	unknown: defineMessage({
 		id: 'version.file-type.unknown',
 		defaultMessage: 'Other',
-	}),
-	'required-resource-pack': defineMessage({
-		id: 'version.file-type.required-resource-pack',
-		defaultMessage: 'Required resource pack',
-	}),
-	'optional-resource-pack': defineMessage({
-		id: 'version.file-type.optional-resource-pack',
-		defaultMessage: 'Optional resource pack',
 	}),
 	'sources-jar': defineMessage({
 		id: 'version.file-type.sources-jar',

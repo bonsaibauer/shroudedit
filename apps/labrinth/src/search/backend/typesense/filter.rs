@@ -424,19 +424,21 @@ mod tests {
 	#[test]
 	fn correlated_version_filters_share_one_join() {
 		assert_eq!(
-			serialize("categories = fabric AND game_versions = 1.21"),
-			"$versions(categories:`fabric` && game_versions:1.21)"
+			serialize("categories = shroudforge AND game_versions = 1.21"),
+			"$versions(categories:`shroudforge` && game_versions:1.21)"
 		);
 	}
 
 	#[test]
 	fn mixed_boolean_filters_preserve_version_correlation() {
 		let filter = serialize(
-			"(license = MIT OR categories = fabric) AND game_versions = 1.21",
+			"(license = MIT OR categories = shroudforge) AND game_versions = 1.21",
 		);
 
 		assert_eq!(filter.matches("$versions(").count(), 2);
-		assert!(filter.contains("categories:`fabric` && game_versions:1.21"));
+		assert!(
+			filter.contains("categories:`shroudforge` && game_versions:1.21")
+		);
 		assert!(filter.contains("license:=`MIT`"));
 	}
 
@@ -461,29 +463,29 @@ mod tests {
 	#[test]
 	fn cartesian_version_filter_uses_one_join() {
 		let filter = serialize(
-			"(project_types = modpack AND game_versions = 1.20.1 AND categories = fabric AND categories = technology) OR \
-             (project_types = modpack AND game_versions = 1.20.1 AND categories = forge AND categories = technology) OR \
-             (project_types = modpack AND game_versions = 1.21.1 AND categories = fabric AND categories = technology) OR \
-             (project_types = modpack AND game_versions = 1.21.1 AND categories = forge AND categories = technology)",
+			"(project_types = modpack AND game_versions = 0.1.0 AND categories = shroudforge AND categories = technology) OR \
+             (project_types = modpack AND game_versions = 0.1.0 AND categories = eml AND categories = technology) OR \
+             (project_types = modpack AND game_versions = 1.21.1 AND categories = shroudforge AND categories = technology) OR \
+             (project_types = modpack AND game_versions = 1.21.1 AND categories = eml AND categories = technology)",
 		);
 
 		assert_eq!(filter.matches("$versions(").count(), 1);
-		assert!(filter.contains("categories:[`fabric`,`forge`]"));
-		assert!(filter.contains("game_versions:[`1.20.1`,`1.21.1`]"));
+		assert!(filter.contains("categories:[`shroudforge`,`eml`]"));
+		assert!(filter.contains("game_versions:[`0.1.0`,`1.21.1`]"));
 		assert!(filter.contains("categories:`technology`"));
 	}
 
 	#[test]
 	fn factored_mixed_filter_uses_one_version_join() {
 		let filter = serialize(
-			"(license = MIT AND game_versions = 1.20.1 AND categories = fabric) OR \
-             (license = MIT AND game_versions = 1.21.1 AND categories = forge)",
+			"(license = MIT AND game_versions = 0.1.0 AND categories = shroudforge) OR \
+             (license = MIT AND game_versions = 1.21.1 AND categories = eml)",
 		);
 
 		assert_eq!(filter.matches("$versions(").count(), 1);
 		assert!(filter.contains("license:=`MIT`"));
 		assert!(filter.contains(
-            "categories:`fabric` && game_versions:`1.20.1` || categories:`forge` && game_versions:`1.21.1`"
+            "categories:`shroudforge` && game_versions:`0.1.0` || categories:`eml` && game_versions:`1.21.1`"
         ));
 	}
 
@@ -492,13 +494,13 @@ mod tests {
 		let versions = [
 			"26.2", "26.1.2", "26.1.1", "26.1", "1.21.11", "1.21.10", "1.21.8",
 			"1.21.7", "1.21.5", "1.21.4", "1.21.3", "1.21.1", "1.21", "1.20.6",
-			"1.20.4", "1.20.2", "1.20.1", "1.20", "1.19.4", "1.19.3", "1.19.2",
+			"0.4.0", "0.2.0", "0.1.0", "1.20", "1.19.4", "1.19.3", "1.19.2",
 			"1.18.2", "1.17.1", "1.12.2", "1.8.9",
 		];
 		let input = versions
             .iter()
             .flat_map(|version| {
-                ["fabric", "forge"].map(|loader| {
+                ["shroudforge", "eml"].map(|loader| {
                     format!(
                         "(project_types = modpack AND game_versions = {version} AND categories = {loader} AND categories = technology)"
                     )
@@ -509,7 +511,7 @@ mod tests {
 		let filter = serialize(&input);
 
 		assert_eq!(filter.matches("$versions(").count(), 1);
-		assert!(filter.contains("categories:[`fabric`,`forge`]"));
+		assert!(filter.contains("categories:[`shroudforge`,`eml`]"));
 		assert!(filter.contains("game_versions:["));
 		assert!(filter.contains("`1.8.9`"));
 		assert!(filter.contains("26.2"));

@@ -29,9 +29,10 @@ export default function () {
 							.required()
 							.none('Unknown')
 							.options(
+								option('mod', 'Mod').message(),
 								option('modpack', 'Modpack').message(),
-								option('resourcepack', 'Resource Pack').message(),
-								option('datapack', 'Data Pack').message(),
+								option('schematic', 'Schematic').message(),
+								option('server', 'Server').message(),
 							),
 					)
 					.collect(),
@@ -46,41 +47,21 @@ export default function () {
 							.options(
 								option('primary', 'Primary Files').message(),
 								option('additional', 'Additional Files').message(),
-								option('mono', 'Monofile')
-									.shown(
-										computed(
-											() =>
-												project.value.project_types.includes('resourcepack') ||
-												project.value.loaders.includes('datapack'),
-										),
-									)
-									.message(),
 								option('server', 'Server Files (Primary Files)')
 									.shown(computed(() => project.value.project_types.includes('modpack')))
 									.message(),
 								option('server-additional', 'Server Files (Additional Files)')
 									.shown(computed(() => project.value.project_types.includes('modpack')))
 									.message(),
-								option('zip', 'mods.zip')
+				option('sfpack', '.sfpack')
 									.shown(computed(() => project.value.project_types.includes('modpack')))
 									.message(),
 							),
 					)
 					.collect(),
 
-				toggle('vanilla-assets', 'Vanilla Assets')
-					.shown(computed(() => project.value.project_types.includes('resourcepack')))
-					.suggestedStatus('rejected')
-					.message(),
-
 				toggle('redist-libs', 'Packed Libs')
-					.shown(
-						computed(
-							() =>
-								project.value.project_types.includes('mod') ||
-								project.value.project_types.includes('plugin'),
-						),
-					)
+					.shown(computed(() => project.value.project_types.includes('mod')))
 					.suggestedStatus('rejected')
 					.message(),
 

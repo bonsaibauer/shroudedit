@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BoxIcon, BracesIcon, GlassesIcon, PaintbrushIcon, PlugIcon } from '@shroudedit/assets'
+import { BoxIcon, PackageOpenIcon } from '@shroudedit/assets'
 import { type Component, computed, onBeforeUnmount, ref, watch } from 'vue'
 
 import BulletDivider from '#ui/components/base/BulletDivider.vue'
@@ -34,10 +34,7 @@ const messages = defineMessages({
 
 const icons: Record<ManagedContentSummaryType, Component> = {
 	mod: BoxIcon,
-	plugin: PlugIcon,
-	datapack: BracesIcon,
-	resourcepack: PaintbrushIcon,
-	shader: GlassesIcon,
+	modpack: PackageOpenIcon,
 }
 
 const MINIMUM_LOADING_TIME = 500

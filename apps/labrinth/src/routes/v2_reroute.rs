@@ -204,15 +204,11 @@ pub fn convert_v3_side_types_to_v2_side_types(
 /// The first side type is for the client, the second is for the server.
 pub fn convert_v3_environment_to_v2_side_types(
 	environment: &str,
-	project_type: Option<&str>,
+	_project_type: Option<&str>,
 ) -> (LegacySideType, LegacySideType) {
 	use LegacySideType::{Optional, Required, Unknown, Unsupported};
 
 	match project_type {
-		Some("plugin") => (Unsupported, Required),
-		Some("datapack") => (Optional, Required),
-		Some("shader") => (Required, Unsupported),
-		Some("resourcepack") => (Required, Unsupported),
 		_ => match environment {
 			"client_and_server" => (Required, Required),
 			"client_only" => (Required, Unsupported),

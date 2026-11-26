@@ -264,9 +264,9 @@ impl Project {
 	//
 	//     // Loaders
 	//     let mut loaders = m.loaders;
-	//     let mrpack_loaders_strings =
+	//     let modpack_loaders_strings =
 	//         m.project_loader_fields
-	//             .get("mrpack_loaders")
+	//             .get("modpack_loaders")
 	//             .cloned()
 	//             .map(|v| {
 	//                 v.into_iter()
@@ -274,24 +274,24 @@ impl Project {
 	//                     .collect_vec()
 	//             });
 	//
-	//     // If the project has a mrpack loader,  keep only 'loaders' that are not in the mrpack_loaders
-	//     if let Some(ref mrpack_loaders) = mrpack_loaders_strings {
-	//         loaders.retain(|l| !mrpack_loaders.contains(l));
+	//     // If the project has a sfpack loader,  keep only 'loaders' that are not in the modpack_loaders
+	//     if let Some(ref modpack_loaders) = modpack_loaders_strings {
+	//         loaders.retain(|l| !modpack_loaders.contains(l));
 	//     }
 	//
 	//     // Categories
 	//     let mut categories = m.display_categories.clone();
 	//     categories.retain(|c| !loaders.contains(c));
-	//     if let Some(ref mrpack_loaders) = mrpack_loaders_strings {
-	//         categories.retain(|l| !mrpack_loaders.contains(l));
+	//     if let Some(ref modpack_loaders) = modpack_loaders_strings {
+	//         categories.retain(|l| !modpack_loaders.contains(l));
 	//     }
 	//
 	//     // Additional categories
 	//     let mut additional_categories = m.categories.clone();
 	//     additional_categories.retain(|c| !categories.contains(c));
 	//     additional_categories.retain(|c| !loaders.contains(c));
-	//     if let Some(ref mrpack_loaders) = mrpack_loaders_strings {
-	//         additional_categories.retain(|l| !mrpack_loaders.contains(l));
+	//     if let Some(ref modpack_loaders) = modpack_loaders_strings {
+	//         additional_categories.retain(|l| !modpack_loaders.contains(l));
 	//     }
 	//
 	//     let games = m.games;
@@ -1133,8 +1133,6 @@ impl DependencyType {
 )]
 #[serde(rename_all = "kebab-case")]
 pub enum FileType {
-	RequiredResourcePack,
-	OptionalResourcePack,
 	SourcesJar,
 	DevJar,
 	JavadocJar,
@@ -1152,8 +1150,6 @@ impl FileType {
 	// These are constant, so this can remove unnecessary allocations (`to_string`)
 	pub fn as_str(&self) -> &'static str {
 		match self {
-			FileType::RequiredResourcePack => "required-resource-pack",
-			FileType::OptionalResourcePack => "optional-resource-pack",
 			FileType::SourcesJar => "sources-jar",
 			FileType::DevJar => "dev-jar",
 			FileType::JavadocJar => "javadoc-jar",
@@ -1164,8 +1160,6 @@ impl FileType {
 
 	pub fn from_string(string: &str) -> FileType {
 		match string {
-			"required-resource-pack" => FileType::RequiredResourcePack,
-			"optional-resource-pack" => FileType::OptionalResourcePack,
 			"sources-jar" => FileType::SourcesJar,
 			"dev-jar" => FileType::DevJar,
 			"javadoc-jar" => FileType::JavadocJar,

@@ -355,14 +355,10 @@ const scrollable = computed(
 )
 
 function iconStyle(option: FilterOption) {
-	// Match project page platform coloring (Forge/Fabric/Velocity/etc.) while leaving other
-	// filter icons unchanged.
+	// Match project page platform colors for loader filters.
 	if (
 		props.filterType.id === 'mod_loader' ||
-		props.filterType.id === 'modpack_loader' ||
-		props.filterType.id === 'plugin_loader' ||
-		props.filterType.id === 'plugin_platform' ||
-		props.filterType.id === 'shader_loader'
+		props.filterType.id === 'modpack_loader'
 	) {
 		return { color: `var(--color-platform-${option.id})` }
 	}

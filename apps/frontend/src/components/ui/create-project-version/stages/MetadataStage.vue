@@ -49,15 +49,9 @@
 				</span>
 
 				<Button
-					v-tooltip="
-						isModpack
-							? formatMessage(messages.modpackLoadersTooltip)
-							: isResourcePack
-								? formatMessage(messages.resourcePackLoadersTooltip)
-								: undefined
-					"
+					v-tooltip="isModpack ? formatMessage(messages.modpackLoadersTooltip) : undefined"
 					type="quiet"
-					:disabled="isModpack || isResourcePack"
+					:disabled="isModpack"
 					@click="editLoaders"
 				>
 					<EditIcon />
@@ -212,7 +206,6 @@ import {
 	defineMessages,
 	ENVIRONMENTS_COPY,
 	FormattedTag,
-	injectProjectPageContext,
 	Tabs,
 	type TabsTab,
 	TagItem,
@@ -238,8 +231,6 @@ const {
 	visibleSuggestedDependencies,
 } = injectManageVersionContext()
 
-const { projectV2 } = injectProjectPageContext()
-
 const generatedState = useGeneratedState()
 const loaders = computed(() => generatedState.value.loaders)
 
@@ -254,12 +245,6 @@ function setEditTab(tab: TabsTab) {
 }
 
 const isModpack = computed(() => projectType.value === 'modpack')
-const isResourcePack = computed(
-	() =>
-		projectType.value === 'resourcepack' &&
-		(projectV2.value?.project_type === 'resourcepack' ||
-			projectV2.value?.project_type === 'project'),
-)
 
 const draftVersionLoaders = computed(() => draftVersion.value.loaders)
 
@@ -369,10 +354,6 @@ const messages = defineMessages({
 	modpackLoadersTooltip: {
 		id: 'create-project-version.create-modal.stage.metadata.modpack-loaders-tooltip',
 		defaultMessage: 'Modpack loaders cannot be edited',
-	},
-	resourcePackLoadersTooltip: {
-		id: 'create-project-version.create-modal.stage.metadata.resource-pack-loaders-tooltip',
-		defaultMessage: 'Resource pack loaders cannot be edited',
 	},
 	noModLoader: {
 		id: 'create-project-version.create-modal.stage.metadata.no-mod-loader',

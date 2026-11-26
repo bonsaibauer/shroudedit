@@ -5,14 +5,6 @@
 			isFullscreen ? `fixed inset-0 z-[15] bg-surface-1 p-6 py-8 ${isApp ? 'pt-12' : ''}` : ''
 		"
 	>
-		<CollapsibleAdmonition
-			v-if="ctx.crashAnalysis?.value && !isFullscreen"
-			type="critical"
-			:header="crashHeader"
-			:items="crashItems"
-			dismissible
-			@dismiss="ctx.onDismissCrash?.()"
-		/>
 
 		<div class="flex flex-col gap-2">
 			<div class="flex items-center gap-2">
@@ -43,8 +35,6 @@
 				<ConsoleActionButtons
 					:show-clear="isLiveSource"
 					:has-logs="hasLogs"
-					:share-disabled="resolvedShareDisabled"
-					:sharing="isSharing"
 					:fullscreen="isFullscreen"
 					:clear-disabled="resolvedClearDisabled"
 					:clear-disabled-tooltip="resolvedClearDisabledTooltip"
@@ -52,7 +42,6 @@
 					:delete-disabled="resolvedDeleteDisabled"
 					:delete-disabled-tooltip="ctx.deleteDisabledTooltip"
 					@clear="handleClear"
-					@share="handleShare"
 					@toggle-fullscreen="toggleFullscreen"
 					@delete="handleDelete"
 				/>
@@ -73,7 +62,6 @@
 			@ready="handleTerminalReady"
 		/>
 	</div>
-	<ShareModal ref="shareModal" header="Share Logs" link :social-buttons="false" />
 	<NewModal ref="deleteModal" header="Delete log file" :fade="'danger'" max-width="500px">
 		<div class="flex flex-col gap-6">
 			<Admonition type="critical" header="This is irreversible">
@@ -103,14 +91,10 @@ import { computed, isRef, nextTick, onBeforeUnmount, onMounted, ref, watch } fro
 import Admonition from '#ui/components/base/Admonition.vue'
 import BaseTerminal from '#ui/components/base/BaseTerminal.vue'
 import { Button } from '#ui/components/base/buttons'
-import type { CollapsibleAdmonitionItem } from '#ui/components/base/CollapsibleAdmonition.vue'
-import CollapsibleAdmonition from '#ui/components/base/CollapsibleAdmonition.vue'
 import Combobox from '#ui/components/base/Combobox.vue'
 import Input from '#ui/components/base/inputs/Input.vue'
 import NewModal from '#ui/components/modal/NewModal.vue'
-import ShareModal from '#ui/components/modal/ShareModal.vue'
 import { useModalStack } from '#ui/composables/modal-stack'
-import { injectShroudEditClient } from '#ui/providers'
 import { injectModalBehavior } from '#ui/providers/modal-behavior'
 import { injectPageContext } from '#ui/providers/page-context'
 import { injectNotificationManager } from '#ui/providers/web-notifications.ts'
@@ -130,28 +114,13 @@ import { injectConsoleManager } from './providers'
 import type { LogLevel, LogLine } from './types'
 
 const ctx = injectConsoleManager()
-const client = injectShroudEditClient()
 const modalBehavior = injectModalBehavior()
 const pageContext = injectPageContext(null)
 const { addNotification } = injectNotificationManager()
 const { hasModal } = useModalStack()
 
-const crashHeader = computed(() => {
-	const problems = ctx.crashAnalysis?.value?.analysis.problems ?? []
-	const count = problems.length
-	return `${count} problem${count !== 1 ? 's' : ''} detected`
-})
-
-const crashItems = computed<CollapsibleAdmonitionItem[]>(() => {
-	const problems = ctx.crashAnalysis?.value?.analysis.problems ?? []
-	return problems.map((p) => ({
-		title: p.message,
-		descriptions: p.solutions.map((s) => s.message),
-	}))
-})
 
 const terminalRef = ref<InstanceType<typeof BaseTerminal> | null>(null)
-const shareModal = ref<InstanceType<typeof ShareModal> | null>(null)
 const deleteModal = ref<InstanceType<typeof NewModal> | null>(null)
 const isDeleting = ref(false)
 const searchQuery = ref('')
@@ -161,9 +130,7 @@ const fullscreenIntercomPadding = 20
 const fullscreenIntercomPaddingRequestId = Symbol('console-fullscreen')
 const isApp =
 	typeof window !== 'undefined' && !!(window as Record<string, unknown>).__TAURI_INTERNALS__
-const isSharing = ref(false)
 const { activeFilters, toggleFilter, buildFilterPredicate } = useConsoleFilters()
-const hasLogs = computed(() => ctx.logLines.value.length > 0)
 const presentLevels = computed(() => {
 	const levels = new Set<ConditionalLevel>()
 	for (const line of ctx.logLines.value) {
@@ -179,6 +146,7 @@ const isLiveSource = computed(() => {
 	if (!sources || index === undefined) return true
 	return sources[index]?.live ?? true
 })
+const hasLogs = computed(() => ctx.logLines.value.length > 0)
 const logSourceOptions = computed(() =>
 	(ctx.logSources?.value ?? []).map((s, i) => ({ value: i, label: s.name })),
 )
@@ -249,11 +217,6 @@ const resolvedInputDisabledPlaceholder = computed(() =>
 	resolvedInputDisabledTooltip.value ? 'Command input disabled' : 'Server is not running',
 )
 
-const resolvedShareDisabled = computed(() => {
-	const v = ctx.shareDisabled
-	if (!v) return false
-	return isRef(v) ? v.value : v
-})
 
 const showDelete = computed(() => !isLiveSource.value && ctx.onDelete != null)
 
@@ -434,28 +397,7 @@ async function confirmDelete() {
 	}
 }
 
-async function handleShare() {
-	const predicate = buildCombinedPredicate()
-	const lines = predicate ? ctx.logLines.value.filter(predicate) : ctx.logLines.value
-	const content = lines.map((l) => l.text).join('\n')
 
-	isSharing.value = true
-	try {
-		const data = await client.mclogs.logs_v1.create(content)
-		if (data.url) {
-			shareModal.value?.show(data.url)
-		}
-	} catch (err) {
-		console.error('Failed to share logs:', err)
-		addNotification({
-			type: 'error',
-			title: 'Failed to share logs',
-			text: typeof err === 'string' ? err : 'Unknown error.',
-		})
-	} finally {
-		isSharing.value = false
-	}
-}
 </script>
 
 <style>

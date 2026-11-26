@@ -471,8 +471,6 @@
   "payment-method.virtual-visa-plural": "Virtual Visas",
   "payment-method.visa": "Visa",
   "project-type.all": "الكل",
-  "project-type.datapack.capital": "{count, plural, one {Data Pack} other {Data Packs}}",
-  "project-type.datapack.category": "داتاباك",
   "project-type.mod.category": "mods",
   "project-type.modpack.category": "modpacks",
   "project-type.schematic.category": "schematics",

@@ -153,11 +153,8 @@ const layoutPreferenceKeys: Record<
 	keyof Labrinth.Users.v3.LayoutPreferences
 > = {
 	mod: 'mods',
-	plugin: 'plugins',
-	datapack: 'datapacks',
-	shader: 'shaders',
-	resourcepack: 'resourcepacks',
 	modpack: 'modpacks',
+	schematic: 'mods',
 	server: 'servers',
 	user: 'users',
 }

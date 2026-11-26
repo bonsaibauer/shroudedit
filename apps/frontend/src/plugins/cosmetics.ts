@@ -4,12 +4,8 @@ export type DisplayMode = 'list' | 'gallery' | 'grid'
 
 export type DisplayLocation =
 	| 'mod'
-	| 'plugin'
-	| 'resourcepack'
 	| 'modpack'
 	| 'schematic'
-	| 'shader'
-	| 'datapack'
 	| 'server'
 	| 'user'
 	| 'collection'
@@ -46,12 +42,8 @@ export default defineNuxtPlugin({
 				preferredDarkTheme: 'dark',
 				searchDisplayMode: {
 					mod: 'list',
-					plugin: 'list',
-					resourcepack: 'gallery',
 					modpack: 'list',
 					schematic: 'gallery',
-					shader: 'gallery',
-					datapack: 'list',
 					server: 'list',
 					user: 'list',
 					collection: 'list',

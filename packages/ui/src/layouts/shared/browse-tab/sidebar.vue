@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { InfoIcon, XIcon } from '@shroudedit/assets'
+import { XIcon } from '@shroudedit/assets'
 import { computed, nextTick, toValue, useTemplateRef, watch } from 'vue'
 
 import { IconButton } from '#ui/components/base/buttons'
@@ -123,13 +123,6 @@ function getFilterOpenByDefault(filterId: string): boolean {
 	}
 	if (isApp.value) {
 		return filterId.startsWith('category') || filterId === 'environment' || filterId === 'license'
-	}
-	if (
-		lockedMessages.value?.gameVersionShaderMessage &&
-		ctx.projectType.value === 'shader' &&
-		filterId === 'game_version'
-	) {
-		return false
 	}
 	return true
 }
@@ -275,26 +268,10 @@ function getFilterOpenByDefault(filterId: string): boolean {
 				<template v-if="filter.id === 'advanced'" #prefix>
 					<AdvancedFiltersPersistenceNote />
 				</template>
-				<template
-					v-else-if="
-						lockedMessages?.gameVersionShaderMessage &&
-						ctx.projectType.value === 'shader' &&
-						filter.id === 'game_version'
-					"
-					#prefix
-				>
-					<div class="mb-4 grid grid-cols-[auto_1fr] gap-2 px-3 text-sm font-medium text-blue">
-						<InfoIcon class="mt-1 size-4" />
-						<span>{{ lockedMessages?.gameVersionShaderMessage }}</span>
-					</div>
-				</template>
 				<template v-if="lockedMessages?.gameVersion" #locked-game_version>
 					{{ lockedMessages.gameVersion }}
 				</template>
 				<template v-if="lockedMessages?.modLoader" #locked-mod_loader>
-					{{ lockedMessages.modLoader }}
-				</template>
-				<template v-if="lockedMessages?.modLoader" #locked-shader_loader>
 					{{ lockedMessages.modLoader }}
 				</template>
 				<template v-if="lockedMessages?.environment" #locked-environment>

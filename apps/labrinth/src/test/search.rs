@@ -32,9 +32,9 @@ pub async fn setup_search_projects(
 			let slug = format!("{test_name}-searchable-project-{id}");
 
 			let jar = if is_modpack {
-				TestFile::build_random_mrpack()
+				TestFile::build_random_sfpack(&slug, "1.2.3")
 			} else {
-				TestFile::build_random_jar()
+				TestFile::build_random_mod_zip()
 			};
 			async move {
 				// Add a project- simple, should work.
@@ -107,7 +107,7 @@ pub async fn setup_search_projects(
 	let modify_json = serde_json::from_value(json!([
         { "op": "add", "path": "/categories", "value": DUMMY_CATEGORIES[0..3] },
         { "op": "add", "path": "/initial_versions/0/environment", "value": "server_only" },
-        { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["1.20.4"] },
+        { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["0.4.0"] },
         { "op": "add", "path": "/name", "value": "Mysterious Project" },
         { "op": "add", "path": "/license_id", "value": "LicenseRef-All-Rights-Reserved" },
     ]))
@@ -124,7 +124,7 @@ pub async fn setup_search_projects(
 	let modify_json = serde_json::from_value(json!([
         { "op": "add", "path": "/categories", "value": DUMMY_CATEGORIES[0..3] },
         { "op": "add", "path": "/initial_versions/0/environment", "value": "client_or_server" },
-        { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["1.20.5"] },
+        { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["0.5.0"] },
     ]))
     .unwrap();
 	project_creation_futures.push(create_async_future(
@@ -139,7 +139,7 @@ pub async fn setup_search_projects(
 	let modify_json = serde_json::from_value(json!([
         { "op": "add", "path": "/categories", "value": DUMMY_CATEGORIES[5..6] },
         { "op": "add", "path": "/initial_versions/0/environment", "value": "client_or_server" },
-        { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["1.20.5"] },
+        { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["0.5.0"] },
         { "op": "add", "path": "/license_id", "value": "LGPL-3.0-or-later" },
         { "op": "add", "path": "/link_urls", "value": { "source": "https://github.com/shroudedit/labrinth" } },
     ]))
@@ -168,16 +168,16 @@ pub async fn setup_search_projects(
 	));
 
 	// Test project 7 (testing the search bug)
-	// This project has an initial private forge version that is 1.20.3, and a fabric 1.20.5 version.
-	// This means that a search for fabric + 1.20.3 or forge + 1.20.5 should not return this project.
+	// This project has an initial private eml version that is 0.3.0, and a shroudforge 0.5.0 version.
+	// This means that a search for shroudforge + 0.3.0 or eml + 0.5.0 should not return this project.
 	let id = 7;
 	let modify_json = serde_json::from_value(json!([
         { "op": "add", "path": "/categories", "value": DUMMY_CATEGORIES[5..6] },
         { "op": "add", "path": "/initial_versions/0/environment", "value": "client_or_server_prefers_both" },
         { "op": "add", "path": "/license_id", "value": "LGPL-3.0-or-later" },
         { "op": "add", "path": "/link_urls", "value": { "source": "https://github.com/shroudedit/labrinth" } },
-        { "op": "add", "path": "/initial_versions/0/loaders", "value": ["forge"] },
-        { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["1.20.2"] },
+        { "op": "add", "path": "/initial_versions/0/loaders", "value": ["eml"] },
+        { "op": "add", "path": "/initial_versions/0/game_versions", "value": ["0.2.0"] },
     ]))
     .unwrap();
 	project_creation_futures.push(create_async_future(
@@ -240,7 +240,7 @@ pub async fn setup_search_projects(
 	api.add_public_version(
 		project_7.id,
 		"1.0.0",
-		TestFile::build_random_jar(),
+		TestFile::build_random_mod_zip(),
 		None,
 		Some(modify_json),
 		USER_USER_PAT,

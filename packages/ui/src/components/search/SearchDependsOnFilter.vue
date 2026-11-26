@@ -171,10 +171,6 @@ const props = defineProps<{
 
 const selectableProjectTypes: ProjectComboboxProjectType[] = [
 	'mod',
-	'resourcepack',
-	'shader',
-	'datapack',
-	'plugin',
 ]
 const isModpack = computed(() => props.projectType === 'modpack')
 const dependencyProjectIds = computed(() => [

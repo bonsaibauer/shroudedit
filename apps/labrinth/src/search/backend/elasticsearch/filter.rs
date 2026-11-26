@@ -363,7 +363,8 @@ mod tests {
 
 	#[test]
 	fn correlated_version_filters_use_one_join() {
-		let query = serialize("categories = fabric AND game_versions = 1.21");
+		let query =
+			serialize("categories = shroudforge AND game_versions = 1.21");
 		assert_eq!(query.to_string().matches("has_child").count(), 1);
 	}
 
@@ -383,7 +384,7 @@ mod tests {
 	#[test]
 	fn mixed_boolean_filters_preserve_version_correlation() {
 		let query = serialize(
-			"(license = MIT OR categories = fabric) AND game_versions = 1.21",
+			"(license = MIT OR categories = shroudforge) AND game_versions = 1.21",
 		);
 		assert_eq!(query.to_string().matches("has_child").count(), 2);
 	}
