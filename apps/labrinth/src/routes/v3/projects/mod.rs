@@ -987,10 +987,10 @@ pub async fn project_edit_internal(
 			.inner
 			.loaders
 			.iter()
-			.any(|loader| matches!(loader.as_str(), "shroudforge" | "eml"))
+			.any(|loader| matches!(loader.as_str(), "shroudforge" | "eml" | "sfpack"))
 		{
 			return Err(ApiError::Request(eyre::eyre!(
-				"A published ShroudForge mod keeps its mod.json ID as its project slug. Create a new project to change the ID."
+				"a published ShroudForge package keeps its manifest ID as its project slug"
 			)));
 		}
 

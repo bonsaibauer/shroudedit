@@ -19,7 +19,7 @@ use crate::models::notifications::NotificationBody;
 use crate::models::pats::Scopes;
 use crate::models::projects::skip_nulls;
 use crate::models::projects::{
-	Dependency, FileType, Loader, Version, VersionFile, VersionStatus,
+	Dependency, FileType, Loader, ProjectStatus, Version, VersionFile, VersionStatus,
 	VersionType,
 };
 use crate::models::teams::ProjectPermissions;
@@ -448,6 +448,7 @@ async fn version_create_inner(
                 uploaded_files,
                 &mut version.files,
                 &mut version.dependencies,
+                &mut version.components.modpack_contents,
                 &content_disposition,
                 version.project_id.into(),
                 version.version_id.into(),
@@ -794,6 +795,11 @@ async fn upload_file_to_version_inner(
 			"An invalid project id was supplied".to_string(),
 		)
 	})?;
+	if version.loaders.iter().any(|loader| loader == "sfpack") {
+		return Err(CreateError::InvalidInput(
+			"publish a new modpack version to change its files".into(),
+		));
+	}
 	if selected_loaders.iter().any(|loader| {
 		!loader.can_publish_project_type(&project.inner.project_type)
 	}) {
@@ -904,6 +910,7 @@ async fn upload_file_to_version_inner(
 				uploaded_files,
 				&mut file_builders,
 				&mut dependencies,
+				&mut None,
 				&content_disposition,
 				project_id,
 				version_id.into(),
@@ -966,6 +973,7 @@ pub async fn upload_file(
 	uploaded_files: &mut Vec<UploadedFile>,
 	version_files: &mut Vec<VersionFileBuilder>,
 	dependencies: &mut Vec<DependencyBuilder>,
+	pack_contents: &mut Option<Vec<serde_json::Value>>,
 	content_disposition: &actix_web::http::header::ContentDisposition,
 	project_id: ProjectId,
 	version_id: VersionId,
@@ -982,6 +990,11 @@ pub async fn upload_file(
 ) -> Result<(), CreateError> {
 	let (file_name, file_extension) = get_name_ext(content_disposition)?;
 	let file_extension = file_extension.to_ascii_lowercase();
+	if loaders.iter().any(|loader| loader.0 == "sfpack") && file_extension != "sfpack" {
+		return Err(CreateError::InvalidInput(
+			"a modpack version requires a `.sfpack` archive".into(),
+		));
+	}
 
 	if other_file_names.iter().any(|name| name == file_name) {
 		return Err(CreateError::InvalidInput(
@@ -1035,6 +1048,19 @@ pub async fn upload_file(
 
 	let data = data.freeze();
 	if file_extension == "sfpack" {
+		if total_files_len != 1 {
+			return Err(CreateError::InvalidInput(
+				"a modpack version must contain exactly one `.sfpack` file".into(),
+			));
+		}
+		if loaders.len() != 1 || loaders[0].0 != "sfpack" {
+			return Err(CreateError::InvalidInput(
+				".sfpack requires only the sfpack loader".into(),
+			));
+		}
+		let slug = expected_project_slug.ok_or_else(|| CreateError::InvalidInput(
+			"a modpack project needs a slug matching modpack.json id".into(),
+		))?;
 		if !(force_primary
 			|| total_files_len == 1
 			|| (!ignore_primary
@@ -1046,6 +1072,7 @@ pub async fn upload_file(
 		}
 		let pack = crate::validate::sfpack::validate_package(
 			data.clone(),
+			Some(slug),
 			Some(expected_version_number),
 		)
 		.map_err(CreateError::InvalidInput)?;
@@ -1058,152 +1085,126 @@ pub async fn upload_file(
 		pack_games.sort();
 		if selected_games != pack_games {
 			return Err(CreateError::InvalidInput(
-				".sfpack gameVersions must match the selected game versions"
-					.into(),
+				".sfpack gameVersions must match the selected game versions".into(),
 			));
 		}
-		let version_ids = pack
-			.mods
-			.iter()
-			.map(|item| {
-				serde_json::from_value::<VersionId>(serde_json::json!(
-					item.version_id
-				))
-				.map(models::DBVersionId::from)
-				.map_err(|error| {
-					CreateError::InvalidInput(format!(
-						"Invalid .sfpack version ID: {error}"
-					))
-				})
-			})
-			.collect::<Result<Vec<_>, _>>()?;
-		let versions =
-			models::DBVersion::get_many(&version_ids, &mut *transaction, redis)
-				.await?;
-		let version_project_ids = versions
-			.iter()
-			.map(|version| version.inner.project_id)
-			.unique()
-			.collect::<Vec<_>>();
-		let schematic_project_ids = models::DBProject::get_many_ids(
-			&version_project_ids,
-			&mut *transaction,
-			redis,
-		)
-		.await?
-		.into_iter()
-		.filter(|project| project.inner.components.schematic.is_some())
-		.map(|project| project.inner.id)
-		.collect::<HashSet<_>>();
 		dependencies.clear();
-		for (item, version_id) in pack.mods.iter().zip(&version_ids) {
-			let project_id = serde_json::from_value::<ProjectId>(
-				serde_json::json!(item.project_id),
-			)
-			.map(models::DBProjectId::from)
-			.map_err(|error| {
-				CreateError::InvalidInput(format!(
-					"Invalid .sfpack project ID: {error}"
-				))
-			})?;
-			let version = versions
-				.iter()
-				.find(|version| version.inner.id == *version_id)
-				.ok_or_else(|| {
-					CreateError::InvalidInput(format!(
-						".sfpack version '{}' is unavailable",
-						item.version_id
-					))
-				})?;
-			if version.inner.project_id != project_id
-				|| schematic_project_ids.contains(&project_id)
-				|| !matches!(
-					version.inner.status,
-					VersionStatus::Listed
-						| VersionStatus::Unlisted
-						| VersionStatus::Archived
-				) || !version.project_types.iter().any(|kind| kind == "mod")
-				|| !version.loaders.iter().any(|loader| {
-					matches!(loader.as_str(), "shroudforge" | "eml")
-				}) {
+		let mut catalog_versions = Vec::new();
+		for item in &pack.mods {
+			let crate::validate::sfpack::PackMod::Catalog { id, version, optional } = item else {
+				continue;
+			};
+			let project = models::DBProject::get(id, &mut *transaction, redis)
+				.await?
+				.ok_or_else(|| CreateError::InvalidInput(format!(
+					".sfpack mod {id} is not a ShroudEdit project"
+				)))?;
+			if project.inner.slug.as_deref() != Some(id.as_str()) {
 				return Err(CreateError::InvalidInput(format!(
-					".sfpack version '{}' is not a published ShroudForge mod of project '{}'",
-					item.version_id, item.project_id
+					".sfpack mod {id} must use its project slug"
 				)));
 			}
-			let file = version
-				.files
-				.iter()
-				.find(|file| file.primary)
-				.or_else(|| version.files.first())
-				.ok_or_else(|| {
-					CreateError::InvalidInput(format!(
-						".sfpack version '{}' has no package",
-						item.version_id
-					))
-				})?;
+			if project.inner.status != ProjectStatus::Approved {
+				return Err(CreateError::InvalidInput(format!(
+					".sfpack mod {id} must be a published ShroudEdit project"
+				)));
+			}
+			let versions = models::DBVersion::get_many(
+				&project.versions,
+				&mut *transaction,
+				redis,
+			)
+			.await?;
+			let selected = versions.iter().find(|candidate| {
+				candidate.inner.version_number == *version
+					&& candidate.inner.status == VersionStatus::Listed
+					&& candidate.project_types.iter().any(|kind| kind == "mod")
+					&& candidate.loaders.iter().any(|loader| {
+						matches!(loader.as_str(), "shroudforge" | "eml")
+					})
+			}).ok_or_else(|| CreateError::InvalidInput(format!(
+				".sfpack mod {id} version {version} is unavailable"
+			)))?;
+			let file = selected.files.iter().find(|file| file.primary)
+				.ok_or_else(|| CreateError::InvalidInput(format!(
+					".sfpack mod {id} version {version} has no primary package"
+				)))?;
 			if !file.filename.to_ascii_lowercase().ends_with(".zip")
-				|| !file
-					.hashes
-					.get("sha512")
-					.is_some_and(|hash| hash.eq_ignore_ascii_case(&item.sha512))
+				|| !file.url.starts_with("https://")
+				|| file.size == 0
+				|| !file.hashes.contains_key("sha512")
 			{
 				return Err(CreateError::InvalidInput(format!(
-					".sfpack checksum does not match primary ZIP of version '{}'",
-					item.version_id
+					".sfpack mod {id} version {version} has no primary ZIP"
 				)));
 			}
-			let games = version.version_fields.iter()
+			let games = selected.version_fields.iter()
 				.find_map(|field| crate::database::models::legacy_loader_fields::EnshroudedGameVersion::try_from_version_field(field).ok())
 				.unwrap_or_default();
 			if !pack.game_versions.iter().all(|game| {
 				games.iter().any(|supported| &supported.version == game)
 			}) {
 				return Err(CreateError::InvalidInput(format!(
-					".sfpack mod '{}' does not support every declared game version",
-					item.project_id
+					".sfpack mod {id} does not support every declared game version"
 				)));
 			}
-			for dependency in version
-				.dependencies
-				.iter()
-				.filter(|dependency| dependency.dependency_type == "required")
-			{
-				if (dependency.project_id.is_some()
-					|| dependency.version_id.is_some())
-					&& !pack.mods.iter().any(|candidate| {
-						let candidate_project =
-							serde_json::from_value::<ProjectId>(
-								serde_json::json!(candidate.project_id),
-							)
-							.map(models::DBProjectId::from)
-							.ok();
-						let candidate_version =
-							serde_json::from_value::<VersionId>(
-								serde_json::json!(candidate.version_id),
-							)
-							.map(models::DBVersionId::from)
-							.ok();
-						dependency
-							.project_id
-							.is_none_or(|id| candidate_project == Some(id))
-							&& dependency
-								.version_id
-								.is_none_or(|id| candidate_version == Some(id))
-					}) {
+			catalog_versions.push((project.inner.id, selected.inner.id));
+			dependencies.push(DependencyBuilder {
+				project_id: Some(project.inner.id),
+				version_id: Some(selected.inner.id),
+				file_name: None,
+				dependency_type: if *optional { "optional" } else { "required" }.into(),
+			});
+		}
+		let version_ids = catalog_versions.iter().map(|(_, version_id)| *version_id).collect::<Vec<_>>();
+		for version in models::DBVersion::get_many(&version_ids, &mut *transaction, redis).await? {
+			for dependency in version.dependencies.iter().filter(|dependency| dependency.dependency_type == "required") {
+				if let Some(id) = dependency.project_id {
+					let project = models::DBProject::get_id(id, &mut *transaction, redis).await?;
+					let present = project.as_ref().and_then(|project| project.inner.slug.as_deref())
+						.and_then(|slug| pack.mods.iter().find(|item| item.id() == slug));
+					if present.is_none_or(|item| item.optional()) {
+						return Err(CreateError::InvalidInput(format!(
+							".sfpack omits a required non-optional mod of version {}",
+							version.inner.version_number
+						)));
+					}
+				}
+				if let Some(id) = dependency.version_id
+					&& !dependencies.iter().any(|candidate| {
+						candidate.version_id == Some(id) && candidate.dependency_type == "required"
+					})
+				{
 					return Err(CreateError::InvalidInput(format!(
-						".sfpack omits a required catalog dependency of version '{}'",
-						item.version_id
+						".sfpack omits a required exact version of {}",
+						version.inner.version_number
 					)));
 				}
 			}
-			dependencies.push(DependencyBuilder {
-				project_id: Some(project_id),
-				version_id: Some(*version_id),
-				file_name: None,
-				dependency_type: "required".into(),
-			});
+			for dependency in version.dependencies.iter().filter(|dependency| dependency.dependency_type == "incompatible") {
+				let project_match = if let Some(id) = dependency.project_id {
+					let project = models::DBProject::get_id(id, &mut *transaction, redis).await?;
+					project.as_ref().and_then(|project| project.inner.slug.as_deref())
+						.is_some_and(|slug| pack.mods.iter().any(|item| item.id() == slug))
+				} else {
+					true
+				};
+				let version_match = dependency.version_id.is_none_or(|id| {
+					catalog_versions.iter().any(|(_, selected_id)| *selected_id == id)
+				});
+				if (dependency.project_id.is_some() || dependency.version_id.is_some())
+					&& project_match && version_match
+				{
+					return Err(CreateError::InvalidInput(format!(
+						".sfpack contains a mod incompatible with version {}",
+						version.inner.version_number
+					)));
+				}
+			}
 		}
+		*pack_contents = Some(pack.mods.iter().map(|item| {
+			serde_json::to_value(item).expect("validated modpack entry serializes")
+		}).collect());
 	}
 	if file_extension == "zip"
 		&& loaders

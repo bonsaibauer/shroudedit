@@ -790,6 +790,7 @@ async fn project_create_inner(
 				uploaded_files,
 				&mut created_version.files,
 				&mut created_version.dependencies,
+				&mut created_version.components.modpack_contents,
 				&content_disposition,
 				project_id,
 				created_version.version_id.into(),

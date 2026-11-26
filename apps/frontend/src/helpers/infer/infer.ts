@@ -19,7 +19,7 @@ export type InferredVersionInfo = Partial<
 		| 'schematic_height'
 		| 'schematic_depth'
 	>
-> & { mod_id?: string; package_fields?: string[] }
+> & { mod_id?: string; package_fields?: string[]; modpack_contents?: Labrinth.Versions.v3.ModpackContent[] }
 
 export async function inferVersionInfo(
 	file: File,
@@ -34,11 +34,14 @@ export async function inferVersionInfo(
 	}
 
 	const isModpack = filename.endsWith('.sfpack')
+	if (isModpack && project.actualProjectType !== 'modpack') {
+		throw new InvalidSfpackError('A .sfpack archive must be uploaded to a modpack project.')
+	}
 	if (project.actualProjectType === 'modpack' && !isModpack) {
 		throw new InvalidSfpackError('Modpacks must use the .sfpack file extension.')
 	}
-	if (isModpack && file.size > 2 * 1024 * 1024) {
-		throw new InvalidSfpackError('The .sfpack archive exceeds 2 MiB.')
+	if (isModpack && file.size > 95 * 1024 * 1024) {
+		throw new InvalidSfpackError('The .sfpack archive exceeds 95 MiB.')
 	}
 	if (!isModpack && !filename.endsWith('.zip')) {
 		return {}
@@ -55,7 +58,7 @@ export async function inferVersionInfo(
 			const inferred = await inferShroudForgeVersion(entries.filter((entry) => !entry.directory))
 			return inferred
 		}
-		return inferSfpackVersion(entries.filter((entry) => !entry.directory))
+		return inferSfpackVersion(entries)
 	} finally {
 		await reader.close()
 	}

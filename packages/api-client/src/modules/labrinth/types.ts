@@ -1646,6 +1646,11 @@ export namespace Labrinth {
 				failed: boolean
 			}
 
+			export type ModpackContent =
+				| { path: string; optional?: boolean }
+				| { id: string; version: string; optional?: boolean }
+				| { id: string; version: string; url: string; sha512: string; optional?: boolean }
+
 			export interface Version {
 				name: string
 				version_number: string
@@ -1665,6 +1670,7 @@ export namespace Labrinth {
 				files_missing_attribution?: string[]
 				environment?: Labrinth.Projects.v3.Environment
 				mrpack_loaders?: string[]
+			modpack_contents?: ModpackContent[]
 				schematic_format_version?: number
 				world_editor_version?: string
 				schematic_width?: number

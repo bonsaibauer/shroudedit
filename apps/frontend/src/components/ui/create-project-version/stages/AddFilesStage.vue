@@ -12,10 +12,10 @@
 		>
 			<DropzoneFileInput
 				:aria-label="formatMessage(messages.uploadFileAriaLabel)"
-				multiple
+				:multiple="projectV2.project_type !== 'modpack'"
 				:accept="acceptFileFromProjectType(projectV2.project_type)"
-				:max-size="524288000"
-				:primary-prompt="formatMessage(messages.uploadPrimaryPrompt)"
+				:max-size="projectV2.project_type === 'modpack' ? 95 * 1024 * 1024 : 524288000"
+				:primary-prompt="formatMessage(projectV2.project_type === 'modpack' ? messages.uploadModpackPrompt : messages.uploadPrimaryPrompt)"
 				:secondary-prompt="formatMessage(messages.uploadSecondaryPrompt)"
 				@change="handleNewFiles"
 			/>
@@ -42,7 +42,7 @@
 				</span>
 			</div>
 
-			<div class="flex flex-col gap-2">
+			<div v-if="projectV2.project_type !== 'modpack'" class="flex flex-col gap-2">
 				<div class="flex flex-col gap-2">
 					<Admonition v-if="hasSupplementaryFiles" type="warning">
 						{{ formatMessage(messages.addFilesAdmonition) }}
@@ -185,6 +185,10 @@ const messages = defineMessages({
 	uploadPrimaryPrompt: {
 		id: 'create-project-version.create-modal.stage.add-files.upload-primary-prompt',
 		defaultMessage: 'Upload primary and supporting files',
+	},
+	uploadModpackPrompt: {
+		id: 'create-project-version.create-modal.stage.add-files.upload-modpack-prompt',
+		defaultMessage: 'Upload one .sfpack archive',
 	},
 	uploadSecondaryPrompt: {
 		id: 'create-project-version.create-modal.stage.add-files.upload-secondary-prompt',

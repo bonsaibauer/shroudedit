@@ -985,6 +985,15 @@ pub async fn delete_file(
 					"Versions must have at least one file uploaded to them",
 				)));
 			}
+			if version.loaders.iter().any(|loader| loader == "sfpack")
+				&& version.files.iter().any(|file| {
+					file.id == row.id && file.primary && file.filename.to_ascii_lowercase().ends_with(".sfpack")
+				})
+			{
+				return Err(ApiError::Request(eyre::eyre!(
+					"the primary `.sfpack` cannot be removed from a modpack version"
+				)));
+			}
 
 			database::models::DBVersion::clear_cache(&version, &redis)
 				.await

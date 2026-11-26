@@ -278,6 +278,22 @@ const messages = defineMessages({
 		id: 'version.section.content',
 		defaultMessage: 'Content',
 	},
+	bundledMod: {
+		id: 'version.modpack-content.bundled',
+		defaultMessage: 'Included mod',
+	},
+	externalMod: {
+		id: 'version.modpack-content.external',
+		defaultMessage: 'External download',
+	},
+	catalogMod: {
+		id: 'version.modpack-content.catalog',
+		defaultMessage: 'ShroudEdit mod',
+	},
+	optionalMod: {
+		id: 'version.modpack-content.optional',
+		defaultMessage: 'Optional',
+	},
 	includedContent: {
 		id: 'version.section.included-content',
 		defaultMessage: 'Included content',
@@ -438,6 +454,24 @@ const authorLink = computed(() =>
 					</div>
 				</div>
 			</div>
+		</section>
+		<section v-if="version.modpack_contents?.length" id="modpack-contents">
+			<h3 class="mt-0 mb-2 text-lg font-semibold">{{ formatMessage(messages.content) }}</h3>
+			<ul class="grid md:grid-cols-2 gap-4 list-none p-0">
+				<li
+					v-for="item in version.modpack_contents"
+					:key="'path' in item ? item.path : item.id"
+					class="bg-surface-3 border border-solid border-surface-4 p-4 rounded-2xl"
+				>
+					<div class="font-semibold">{{ 'path' in item ? item.path.split('/').at(-1) : item.id }}</div>
+					<div class="text-secondary text-sm">
+						{{ 'path' in item ? formatMessage(messages.bundledMod) : 'url' in item ? formatMessage(messages.externalMod) : formatMessage(messages.catalogMod) }}
+						<span v-if="'version' in item"> · {{ item.version }}</span>
+						<span v-if="item.optional"> · {{ formatMessage(messages.optionalMod) }}</span>
+					</div>
+					<AutoLink v-if="'url' in item" :to="item.url" target="_blank" class="text-sm break-all">{{ item.url }}</AutoLink>
+				</li>
+			</ul>
 		</section>
 		<section v-if="requiredContent.length > 0" id="dependencies">
 			<h3 class="mt-0 mb-2 text-lg font-semibold">{{ formatMessage(messages.required) }}</h3>

@@ -543,7 +543,14 @@ const OVERRIDE_PREFIXES: &[&str] = &[
 const OVERRIDE_ROOT_PREFIXES: &[&str] =
 	&["overrides/", "client-overrides/", "server-overrides/"];
 
-fn override_relative_name(name: &str) -> Option<&str> {
+fn override_relative_name(name: &str, is_sfpack: bool) -> Option<&str> {
+	if is_sfpack {
+		if let Some(relative) = name.strip_prefix("mods/") {
+			if relative.split('/').count() >= 2 {
+				return Some(relative);
+			}
+		}
+	}
 	// strip the root prefix
 	let relative = OVERRIDE_ROOT_PREFIXES
 		.iter()
@@ -584,6 +591,7 @@ fn extract_override_files(data: &[u8]) -> Result<Vec<OverrideFile>> {
 	let reader = Cursor::new(data);
 	let mut zip =
 		ZipArchive::new(reader).wrap_err("creating zip archive reader")?;
+	let is_sfpack = zip.file_names().any(|name| name == "modpack.json");
 
 	let mut files = Vec::new();
 
@@ -597,11 +605,14 @@ fn extract_override_files(data: &[u8]) -> Result<Vec<OverrideFile>> {
 			continue;
 		}
 
-		let Some(relative_name) = override_relative_name(&name) else {
+		let Some(relative_name) = override_relative_name(&name, is_sfpack) else {
 			continue;
 		};
 
-		if !should_scan(relative_name) {
+		let bundled_mod_file = name.starts_with("mods/")
+			&& !name.ends_with("/mod.json")
+			&& !name.ends_with("/extended.mod.json");
+		if !bundled_mod_file && !should_scan(relative_name) {
 			continue;
 		}
 
@@ -1199,14 +1210,9 @@ async fn flame_project_url_is_not_found(url: &str) -> bool {
 	}
 }
 
-fn hash_flame_murmur32(input: Vec<u8>) -> u32 {
-	murmur2::murmur2(
-		&input
-			.into_iter()
-			.filter(|x| *x != 9 && *x != 10 && *x != 13 && *x != 32)
-			.collect::<Vec<u8>>(),
-		1,
-	)
+fn hash_flame_murmur32(mut input: Vec<u8>) -> u32 {
+	input.retain(|byte| !matches!(byte, 9 | 10 | 13 | 32));
+	murmur2::murmur2(&input, 1)
 }
 
 pub async fn get_files_missing_attribution<'a, E>(

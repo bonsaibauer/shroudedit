@@ -965,6 +965,7 @@ impl DBVersion {
                             .collect::<Vec<_>>();
 
                         let components_serial = v.components.0;
+                        let modpack_contents = components_serial.modpack_contents.clone();
                         let query_version = VersionQueryResult {
                             inner: DBVersion {
                                 id: DBVersionId(v.id),
@@ -1025,7 +1026,7 @@ impl DBVersion {
                             games,
                             dependencies,
                             // TODO populate
-                            components: exp::VersionQuery::default(),
+                            components: exp::VersionQuery { modpack_contents },
                         };
 
                         acc.insert(v.id, query_version);
@@ -1041,6 +1042,13 @@ impl DBVersion {
         .wrap_err("fetching cached versions")?;
 
 		val.sort();
+		for version in &mut val {
+			if version.loaders.iter().any(|loader| loader == "sfpack")
+				&& version.inner.components.modpack_contents.is_none()
+			{
+				version.inner.status = VersionStatus::Draft;
+			}
+		}
 
 		Ok(val)
 	}

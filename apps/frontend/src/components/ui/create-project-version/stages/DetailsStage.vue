@@ -14,7 +14,7 @@
 			<div class="font-semibold text-contrast">{{ formatMessage(messages.packageMismatch) }}</div>
 			<p v-if="packageIdMismatch" class="mt-2 text-sm text-secondary">
 				{{
-					formatMessage(messages.packageIdMismatch, {
+					formatMessage(projectType === 'modpack' ? messages.modpackIdMismatch : messages.packageIdMismatch, {
 						packageId: inferredVersionData?.mod_id,
 						projectSlug: projectV2.slug,
 					})
@@ -33,6 +33,16 @@
 				</Button>
 			</div>
 			<p class="mt-2 text-sm text-secondary">{{ formatMessage(messages.updatePackageHint) }}</p>
+		</div>
+		<div v-if="inferredVersionData?.modpack_contents?.length" class="rounded-xl border border-solid border-surface-5 bg-surface-2 p-4">
+			<div class="font-semibold text-contrast">{{ formatMessage(messages.modpackContents) }}</div>
+			<ul class="mt-2 mb-0 max-h-48 overflow-auto list-none p-0 text-sm text-secondary">
+				<li v-for="item in inferredVersionData.modpack_contents" :key="'path' in item ? item.path : item.id">
+					{{ 'path' in item ? item.path : item.id }} ·
+					{{ 'path' in item ? formatMessage(messages.bundledMod) : 'url' in item ? formatMessage(messages.externalMod) : formatMessage(messages.catalogMod) }}
+					<span v-if="item.optional"> · {{ formatMessage(messages.optionalMod) }}</span>
+				</li>
+			</ul>
 		</div>
 		<div class="flex flex-col gap-2">
 			<span class="font-semibold text-contrast">
@@ -183,6 +193,30 @@ const messages = defineMessages({
 		id: 'create-project-version.package-id-mismatch',
 		defaultMessage:
 			'Package mod ID: {packageId}. Project slug: {projectSlug}. Update mod.json or the project slug before uploading.',
+	},
+	modpackIdMismatch: {
+		id: 'create-project-version.modpack-id-mismatch',
+		defaultMessage: 'modpack.json ID: {packageId}. Project slug: {projectSlug}. Update modpack.json or the project slug before uploading.',
+	},
+	modpackContents: {
+		id: 'create-project-version.modpack-contents',
+		defaultMessage: 'Modpack contents',
+	},
+	bundledMod: {
+		id: 'create-project-version.bundled-mod',
+		defaultMessage: 'Included mod',
+	},
+	externalMod: {
+		id: 'create-project-version.external-mod',
+		defaultMessage: 'External download',
+	},
+	catalogMod: {
+		id: 'create-project-version.catalog-mod',
+		defaultMessage: 'ShroudEdit mod',
+	},
+	optionalMod: {
+		id: 'create-project-version.optional-mod',
+		defaultMessage: 'Optional',
 	},
 	packageValue: {
 		id: 'create-project-version.package-value',

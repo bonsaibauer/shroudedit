@@ -310,6 +310,14 @@ export function createManageVersionContext(
 
 	async function handleNewFiles(newFiles: File[]) {
 		if (handlingNewFiles.value || newFiles.length === 0) return
+		if (projectType.value === 'modpack' && (newFiles.length !== 1 || filesToAdd.value.length || editingVersion.value)) {
+			addNotification({
+				title: 'Invalid modpack files',
+				text: 'Publish a new modpack version with exactly one .sfpack archive.',
+				type: 'error',
+			})
+			return
+		}
 
 		if (
 			projectType.value === 'schematic' &&
@@ -553,7 +561,7 @@ export function createManageVersionContext(
 			const previousFields = previousInferred as Record<string, unknown> | undefined
 			const detectedFields = Object.fromEntries(
 				Object.entries(inferredData).filter(([key, value]) => {
-					if (key === 'mod_id' || key === 'package_fields' || value === undefined) return false
+					if (key === 'mod_id' || key === 'package_fields' || key === 'modpack_contents' || value === undefined) return false
 					const current = draftFields[key]
 					if (previousFields && previousFields[key] !== undefined) {
 						return JSON.stringify(current) === JSON.stringify(previousFields[key])
@@ -743,6 +751,10 @@ export function createManageVersionContext(
 	async function handleCreateVersion() {
 		const version = toRaw(draftVersion.value)
 		const files = toRaw(filesToAdd.value)
+		if (projectType.value === 'modpack' && (files.length !== 1 || !isSfpackFile(files[0].file))) {
+			notifyInvalidSupplementarySfpack()
+			return
+		}
 
 		if (hasSupplementarySfpackFile(files)) {
 			notifyInvalidSupplementarySfpack()
