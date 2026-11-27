@@ -58,7 +58,6 @@
   "nags.too-many-tags-server.title": "Vyberte odpovídající štítky",
   "nags.too-many-tags.title": "Vyberte odpovídající štítky",
   "nags.upload-gallery-image.description": "Je vyžadován alespoň jeden obrázek v galerii pro zobrazení obsahu vašeho {type}.",
-  "nags.upload-gallery-image.description-shader": "K prezentaci obsahu vašeho shaderu v různých situacích a podmínkách jsou vyžadovány alespoň tři obrázky v galerii.",
   "nags.upload-gallery-image.title": "Nahrajte obrázek do galerie",
   "nags.upload-version.description": "Pro předložení projektu k posouzení je nutná alespoň jedna verze.",
   "nags.upload-version.title": "Nahrajte verzi",

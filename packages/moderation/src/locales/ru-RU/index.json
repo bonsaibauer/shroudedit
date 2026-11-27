@@ -118,8 +118,6 @@
   "nags.too-many-tags.description": "{tagCount, plural, one {Выбран # тег} few {Выбрано # тега} other {Выбрано # тегов}}. Оставьте не более {maxTagCount}, чтобы повысить релевантность проекта в поиске.",
   "nags.too-many-tags.title": "Оставьте ключевые теги",
   "nags.upload-gallery-image.description": "Нужно минимум одно изображение, чтобы показать контент, входящий в {type}.",
-  "nags.upload-gallery-image.description-resourcepack": "В галерее требуется хотя бы одно изображение, в котором показано содержимое набора ресурсов. Если он содержит только звуки или переводы, укажите это в тегах.",
-  "nags.upload-gallery-image.description-shader": "В галерее требуется хотя бы три изображения, в которых показано содержимое шейдера в различных ситуациях и условиях.",
   "nags.upload-gallery-image.title": "Добавьте изображения",
   "nags.upload-version.description": "Требуется хотя бы одна версия перед отправкой проекта на проверку.",
   "nags.upload-version.title": "Загрузите версию",

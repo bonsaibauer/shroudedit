@@ -58,8 +58,6 @@
   "nags.too-many-tags-server.title": "Uygun etiketleri seç",
   "nags.too-many-tags.title": "Uygun etiketleri seç",
   "nags.upload-gallery-image.description": "{type} içeriğinizi sergilemek için en az bir galeri görseli gereklidir.",
-  "nags.upload-gallery-image.description-resourcepack": "Ses veya yerelleştirme paketleri hariç tutulmak üzere, kaynak paketinizin içeriğini sergilemek için en az bir galeri görseli eklemeniz gerekmektedir. Eğer paketiniz bu kategorilerden birine giriyorsa, lütfen ilgili etiketi seçin.",
-  "nags.upload-gallery-image.description-shader": "Shader'ınızdaki içeriği çeşitli şekillerde sergilemek için en az üç görsel gerekmektedir.",
   "nags.upload-gallery-image.title": "Galeriye resim yükle",
   "nags.upload-version.description": "Projeni incelemeye göndermek için en az bir sürüm yüklemelisin.",
   "nags.upload-version.title": "Bir sürüm yükle",

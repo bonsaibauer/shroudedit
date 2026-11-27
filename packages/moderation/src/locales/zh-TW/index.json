@@ -118,8 +118,6 @@
   "nags.too-many-tags.description": "你選擇了 {tagCount, plural, other {# 個標籤}}。請減少到 {maxTagCount} 個或更少，以確保你的專案出現在相關的搜尋結果中。",
   "nags.too-many-tags.title": "選擇精確的標籤",
   "nags.upload-gallery-image.description": "需要至少一張圖庫圖片來展示你的{type}。",
-  "nags.upload-gallery-image.description-resourcepack": "需要至少一張圖庫圖片來展示你的資源包內容（音效包或在地化語言包除外）。如果你的資源包屬於此類，請選擇對應的標籤。",
-  "nags.upload-gallery-image.description-shader": "需要至少三張圖庫圖片來展示你的光影包在各種情境與條件下的效果。",
   "nags.upload-gallery-image.title": "上傳圖庫圖片",
   "nags.upload-version.description": "你的專案需要至少一個版本才能提交審查。",
   "nags.upload-version.title": "上傳版本",

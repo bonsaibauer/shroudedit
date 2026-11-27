@@ -166,7 +166,6 @@
   "landing.feature.follow.heading": "Seuraa projekteja joita rakastat",
   "landing.feature.mod-loaders.description": "Lataa ShroudForge Modloader osoitteesta <link>shroudforge.net</link>. ShroudForge valmistelee ShroudEdit-integraatiota modien etsimiseen, asentamiseen ja päivittämiseen. Muut yhteisön työkalut voivat muodostaa yhteyden avoimen lähdekoodin API-rajapintamme kautta.",
   "landing.feature.mod-loaders.heading": "Modisi, suosikkityökalusi",
-  "landing.feature.mod-loaders.illustration-alt": "ShroudForge-, EMF-, Kiln- ja Shroudtopia-logot",
   "landing.feature.search.heading": "Löydä mitä haluat nopeasti ja helposti",
   "landing.heading.the-place-for-enshrouded": "Paikka Enshrouded {content}",
   "landing.heading.the-place-for-enshrouded.modpacks": "modpacks",

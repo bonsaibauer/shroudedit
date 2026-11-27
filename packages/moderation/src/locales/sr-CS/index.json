@@ -75,8 +75,6 @@
   "nags.too-many-tags-server.title": "Izaberi tačne oznake",
   "nags.too-many-tags.title": "Izaberi tačne oznake",
   "nags.upload-gallery-image.description": "Barem jedna slika u geliriji je potrebna da bi se predstavio sadržaj tvog {type}.",
-  "nags.upload-gallery-image.description-resourcepack": "Potrebna je najmanje jedna slika iz galerije da bi se prikazao sadržaj vašeg resource packa, osim za audio ili packove lokalizacije. Ako ovo opisuje vaš pack, izaberite odgovarajući tag.",
-  "nags.upload-gallery-image.description-shader": "Potrebne su najmanje tri slike iz galerije da bi se prikazao sadržaj vašeg shadera u različitim situacijama i uslovima.",
   "nags.upload-gallery-image.title": "Postavi sliku za geleriju",
   "nags.upload-version.description": "Barem jedna verzija je potrebna da bi projekat bio podnet na pregled.",
   "nags.upload-version.title": "Postavi verziju",

@@ -118,8 +118,6 @@
   "nags.too-many-tags.description": "U heeft {tagCount, plural, one {# tag} other {# tags}} geselecteerd. Verminder dit naar {maxTagCount} of minder om zeker te weten dat uw project in relevante zoekopdrachten verschijnt.",
   "nags.too-many-tags.title": "Selecteer relevante tags",
   "nags.upload-gallery-image.description": "Er is minstens één afbeelding in de galerij vereist om de inhoud van je {type} te tonen.",
-  "nags.upload-gallery-image.description-resourcepack": "Er is minstens één afbeelding in de galerij vereist om de inhoud van je bronpakket te laten zien, met uitzondering van audio- of lokalisatiepakketten. Als dit op jouw pakket van toepassing is, selecteer dan de juiste tag.",
-  "nags.upload-gallery-image.description-shader": "Er zijn minstens drie afbeeldingen in de galerij nodig om de werking van je shader in verschillende situaties en omstandigheden te laten zien.",
   "nags.upload-gallery-image.title": "Afbeelding uit de galerij uploaden",
   "nags.upload-version.description": "Minimaal één versie is nodig om een project in te dienen voor beoordeling.",
   "nags.upload-version.title": "Upload een versie",

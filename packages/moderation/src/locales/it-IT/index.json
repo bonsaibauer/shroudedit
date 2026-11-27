@@ -115,8 +115,6 @@
   "nags.too-many-tags-server.title": "Seleziona i tag pertinenti",
   "nags.too-many-tags.description": "Hai selezionato {tagCount} tag. Tienine al massimo {maxTagCount} per assicurarti che il progetto appaia solo nelle ricerche più rilevanti.",
   "nags.too-many-tags.title": "Seleziona i tag pertinenti",
-  "nags.upload-gallery-image.description-resourcepack": "È necessaria almeno un'immagine per dimostrare il contenuto del pacchetto di risorse, a meno che contenga solo audio o traduzioni. In tal caso, seleziona il tag appropriato.",
-  "nags.upload-gallery-image.description-shader": "Sono necessarie almeno tre immagini per dimostrare le shader in vari ambienti, situazioni e condizioni.",
   "nags.upload-gallery-image.title": "Carica un'immagine",
   "nags.upload-version.description": "Carica almeno una versione per poter presentare il progetto per la revisione.",
   "nags.upload-version.title": "Carica una versione",

@@ -153,7 +153,6 @@
   "files.navbar.new-file": "Ny fil",
   "files.navbar.new-folder": "Ny mappe",
   "files.navbar.search-files": "Søg efter filer",
-  "files.navbar.share-to-mclogs": "Del til mclo.gs",
   "files.navbar.upload-file": "Upload fil",
   "files.navbar.upload-from-zip": "Upload fra .zip fil",
   "files.navbar.upload-from-zip-url": "Upload fra .zip URL",
@@ -557,7 +556,6 @@
   "search.filter_type.license.open_source": "Open source",
   "search.filter_type.mod_loader": "Loader",
   "search.filter_type.modpack_loader": "Loader",
-  "search.filter_type.plugin_platform": "Platform",
   "search.filter_type.project_id": "Projekt-ID",
   "search.filter_type.server_status": "Status",
   "search.server_content_type.modpack": "Moddet",
@@ -615,8 +613,6 @@
   "tag.category.library": "Bibliotek",
   "tag.category.lightweight": "Letvægt",
   "tag.category.optimization": "Optimering",
-  "tag.loader.enshrouded": "Ressourcepakke",
-  "tag.loader.vanilla": "Vanilla Shader",
   "ui.component.unsaved-changes-popup.body": "Du har ændringer, der ikke er gemt.",
   "ui.confirm-leave-modal.header": "Du har ændringer, der ikke er gemt"
 }

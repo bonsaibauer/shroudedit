@@ -119,8 +119,6 @@
   "nags.too-many-tags.description": "You've selected {tagCount, plural, one {# tag} other {# tags}}. Please reduce to {maxTagCount} or fewer to ensure your project appears in relevant search results.",
   "nags.too-many-tags.title": "Select accurate tags",
   "nags.upload-gallery-image.description": "At least one gallery image is required to showcase the content of your {type}.",
-  "nags.upload-gallery-image.description-resourcepack": "At least one gallery image is required to showcase the content of your resource pack, except for audio or localization packs. If this describes your pack, please select the appropriate tag.",
-  "nags.upload-gallery-image.description-shader": "At least three gallery images are required to showcase the content of your shader in a variety of situations and conditions.",
   "nags.upload-gallery-image.title": "Upload a gallery image",
   "nags.upload-version.description": "At least one version is required for a project to be submitted for review.",
   "nags.upload-version.title": "Upload a version",

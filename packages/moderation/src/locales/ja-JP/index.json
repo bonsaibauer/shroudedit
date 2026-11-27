@@ -58,8 +58,6 @@
   "nags.too-many-tags-server.title": "適切なタグを選択する",
   "nags.too-many-tags.title": "正確なタグを選択",
   "nags.upload-gallery-image.description": "{type}の内容を展示するには、少なくとも１枚の画像が必要です。",
-  "nags.upload-gallery-image.description-resourcepack": "オーディオパックやローカライズパックを除き、リソースパックの内容を紹介するために少なくとも1枚のギャラリー画像が必要です。これらに該当するパックの場合は、適切なタグを選択してください。",
-  "nags.upload-gallery-image.description-shader": "シェーダーの様々なシチュエーションや環境での仕上がりを紹介するため、少なくとも3枚のギャラリー画像が必要です。",
   "nags.upload-gallery-image.title": "ギャラリー画像をアップロード",
   "nags.upload-version.description": "プロジェクトを審査に提出するためには、少なくとも1つのバージョンが必要です。",
   "nags.upload-version.title": "バージョンをアップロード",

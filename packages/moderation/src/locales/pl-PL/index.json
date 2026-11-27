@@ -118,8 +118,6 @@
   "nags.too-many-tags.description": "Wybrano {tagCount, plural, one {# tag} few {# tagi} many {# tagów} other {# tagu}}. Ogranicz ich liczbę do {maxTagCount} lub mniej, aby projekt pojawiał się w odpowiednich wynikach wyszukiwania.",
   "nags.too-many-tags.title": "Wybierz odpowiednie tagi",
   "nags.upload-gallery-image.description": "Przynajmniej jeden z obrazów w galerii musi pokazywać zawartość {type}.",
-  "nags.upload-gallery-image.description-resourcepack": "Co najmniej jeden obraz galerii jest wymagany do wyświetlenia zawartości paczki zasobów, z wyjątkiem paczek audio lub pakietów lokalizacyjnych. Jeśli to opisuje paczkę, wybierz odpowiedni tag.",
-  "nags.upload-gallery-image.description-shader": "Wymagane są co najmniej trzy zdjęcia galerii, aby zaprezentować zawartość twojego cienia w różnych sytuacjach i warunkach.",
   "nags.upload-gallery-image.title": "Prześlij obraz do galerii",
   "nags.upload-version.description": "Wymagana jest co najmniej jedna wersja projektu do jego sprawdzenia.",
   "nags.upload-version.title": "Prześlij wersję",

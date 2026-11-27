@@ -181,7 +181,6 @@
   "landing.feature.follow.heading": "ติดตามโปรเจกต์ที่คุณชื่นชอบ",
   "landing.feature.mod-loaders.description": "ดาวน์โหลด ShroudForge Modloader ได้ที่ <link>shroudforge.net</link> โดย ShroudForge กำลังเตรียมการเชื่อมต่อกับ ShroudEdit เพื่อค้นหา ติดตั้ง และอัปเดตม็อด เครื่องมืออื่นจากชุมชนสามารถเชื่อมต่อผ่าน API แบบโอเพนซอร์สของเราได้",
   "landing.feature.mod-loaders.heading": "ม็อดของคุณ เครื่องมือโปรดของคุณ",
-  "landing.feature.mod-loaders.illustration-alt": "โลโก้ ShroudForge, EMF, Kiln และ Shroudtopia",
   "landing.feature.search.description": "ระบบค้นหาสุดรวดเร็วของ ShroudEdit พร้อมฟิลเตอร์ ช่วยให้คุณเจอสิ่งที่ต้องการได้ตั้งแต่ตอนพิมพ์เลย",
   "landing.feature.search.heading": "ค้นหาสิ่งที่คุณต้องการได้อย่างรวดเร็วและง่ายดาย",
   "landing.heading.the-place-for-enshrouded": "พื้นที่สำหรับ {content} ของ Enshrouded",

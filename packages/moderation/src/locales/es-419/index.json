@@ -118,8 +118,6 @@
   "nags.too-many-tags.description": "Has seleccionado {tagCount, plural, one {# etiqueta} other {# etiquetas}}. Por favor, reduce a {maxTagCount} o menos para asegurar que tu proyecto aparezca en los resultados de búsqueda relevantes.",
   "nags.too-many-tags.title": "Selecciona etiquetas adecuadas",
   "nags.upload-gallery-image.description": "Se requiere al menos una imagen en la galería para mostrar el contenido de tu {type}.",
-  "nags.upload-gallery-image.description-resourcepack": "Se necesita al menos una imagen para mostrar el contenido de tu paquete de recursos, excepto si es un paquete de audio o de localizaciones. Si esto describe tu paquete, por favor selecciona la etiqueta apropiada.",
-  "nags.upload-gallery-image.description-shader": "Se necesitan al menos tres imágenes para mostrar el contenido de tu shader en una variedad de situaciones y condiciones.",
   "nags.upload-gallery-image.title": "Subir una imagen a la galería",
   "nags.upload-version.description": "Se requiere al menos una versión para poder enviar un proyecto a revisión.",
   "nags.upload-version.title": "Subir una nueva versión",

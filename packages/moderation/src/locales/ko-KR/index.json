@@ -58,8 +58,6 @@
   "nags.too-many-tags-server.title": "올바른 태그를 선택해 주세요",
   "nags.too-many-tags.title": "올바른 태그를 선택해주세요",
   "nags.upload-gallery-image.description": "{type}의 내용을 보여주기 위해서는 갤러리 이미지가 최소 한 장 이상 필요합니다.",
-  "nags.upload-gallery-image.description-resourcepack": "오디오 또는 현지화 팩을 제외한 리소스 팩의 경우(해당된다면 적절한 태그를 선택해 주세요)의 콘텐츠를 보여주기 위해서 최소 1장의 이미지가 필요합니다.",
-  "nags.upload-gallery-image.description-shader": "이 셰이더의 여러 상황 및 조건에서의 모습을 보여주기 위해서 최소 3장의 이미지가 필요합니다.",
   "nags.upload-gallery-image.title": "갤러리 이미지 업로드",
   "nags.upload-version.description": "프로젝트 심사를 요청하려면 최소 하나의 버전이 필요합니다.",
   "nags.upload-version.title": "버전 업로드",

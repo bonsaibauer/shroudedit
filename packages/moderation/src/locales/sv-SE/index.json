@@ -82,8 +82,6 @@
   "nags.too-many-tags-server.title": "Välj lämpliga taggar",
   "nags.too-many-tags.title": "Välj lämpliga taggar",
   "nags.upload-gallery-image.description": "Minst en galleribild krävs för att visa innehållet i ditt {type}.",
-  "nags.upload-gallery-image.description-resourcepack": "Minst en galleribild krävs för att visa innehållet i ditt resurspaket, utom för ljud- eller lokaliseringspaket. Vänligen välj lämplig tagg om det här beskriver ditt paket.",
-  "nags.upload-gallery-image.description-shader": "Minst tre galleribilder krävs för att visa innehållet i din shader i flera olika situationer och förhållanden.",
   "nags.upload-gallery-image.title": "Ladda upp en galleribild",
   "nags.upload-version.description": "Minst en version krävs för att ett projekt ska kunna skickas in för granskning.",
   "nags.upload-version.title": "Ladda upp en version",

@@ -87,8 +87,6 @@
   "nags.too-many-tags-server.title": "حدد علامات دقيقة",
   "nags.too-many-tags.title": "اختار علامات دقيقة",
   "nags.upload-gallery-image.description": "يُطلب صورة واحدة على الأقل في المَعْرِض لعرض محتوى {type} الخاص بك.",
-  "nags.upload-gallery-image.description-resourcepack": "يجب إضافة صورة واحدة على الأقل إلى المعرض لعرض محتوى الريسورسباك الخاص بك، باستثناء ريسورساكات الصوت أو الترجمة. إذا كان هذا ينطبق على ريسورسباكك، يُرجى اختيار الوسم المناسب.",
-  "nags.upload-gallery-image.description-shader": "يلزم وجود ثلاث صور معرض على الأقل لعرض محتوى المظلل (Shader) الخاص بك في مجموعة متنوعة من الحالات والظروف.",
   "nags.upload-gallery-image.title": "رفع صورة من معرض الصور",
   "nags.upload-version.description": "يلزم إصدار واحد على الأقل لإرسال المشروع للمراجعة.",
   "nags.upload-version.title": "تحميل إصدار",

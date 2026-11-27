@@ -118,8 +118,6 @@
   "nags.too-many-tags.description": "{tagCount, plural, one {# címkét} other {# címkét}} választottál. Csökkentsd a címkék számát {maxTagCount} vagy annál kevesebbre, hogy a projekted megjelenjen a releváns keresési találatok között.",
   "nags.too-many-tags.title": "Válaszd ki a pontos címkéket",
   "nags.upload-gallery-image.description": "Legalább egy kép megadása szükséged a te {type}-od alapján.",
-  "nags.upload-gallery-image.description-resourcepack": "A forráscsomag tartalmának bemutatásához legalább egy galériakép szükséges, kivéve a hang- vagy lokalizációs csomagokat. Ha a csomagod ebbe a kategóriába tartozik, kérjük, válaszd ki a megfelelő címkét.",
-  "nags.upload-gallery-image.description-shader": "Legalább három galériakép szükséges a shader tartalmának különféle helyzetekben és körülmények között történő bemutatásához.",
   "nags.upload-gallery-image.title": "Tölts fel egy képet",
   "nags.upload-version.description": "Legalább egy verzió szükséges a projekt felülvizsgálatra történő benyújtásához.",
   "nags.upload-version.title": "Tölts fel egy verziót",

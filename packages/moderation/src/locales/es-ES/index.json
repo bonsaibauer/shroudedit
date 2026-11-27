@@ -67,8 +67,6 @@
   "nags.too-many-tags-server.title": "Selecciona las etiquetas adecuadas",
   "nags.too-many-tags.title": "Selecciona etiquetas precisas",
   "nags.upload-gallery-image.description": "Se requiere al menos una imagen en la galería para mostrar el contenido de tu {type}.",
-  "nags.upload-gallery-image.description-resourcepack": "Se requiere al menos una imagen en la galería para mostrar el contenido de tu paquete de recursos, excepto para los paquetes de audio o localización. Si este es el caso de tu paquete, selecciona la etiqueta correspondiente.",
-  "nags.upload-gallery-image.description-shader": "Se requieren al menos tres imágenes en la galería para mostrar el contenido de su shader en diversas situaciones y condiciones.",
   "nags.upload-gallery-image.title": "Subir una imagen a la galería",
   "nags.upload-version.description": "Se requiere al menos una versión para que un proyecto pueda ser enviado para su revisión.",
   "nags.upload-version.title": "Subir una versión",

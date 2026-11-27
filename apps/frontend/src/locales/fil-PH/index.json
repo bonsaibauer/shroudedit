@@ -367,7 +367,6 @@
   "landing.feature.follow.heading": "Mag-follow sa mga mahal mong proyekto",
   "landing.feature.mod-loaders.description": "I-download ang ShroudForge Modloader mula sa <link>shroudforge.net</link>. Naghahanda ang ShroudForge ng integrasyon sa ShroudEdit upang tumuklas, mag-install, at mag-update ng mga mod. Makakonekta ang iba pang mga tool ng komunidad sa pamamagitan ng aming open-source API.",
   "landing.feature.mod-loaders.heading": "Mga mod mo, mga paborito mong tool",
-  "landing.feature.mod-loaders.illustration-alt": "Mga logo ng ShroudForge, EMF, Kiln, at Shroudtopia",
   "landing.feature.search.description": "Ang malakitdlating-bilis na panghanap ng ShroudEdit at mahuhusay na pansala ay bibigyan ka ng daang mahanap ang lahat ng iyong gusto sa bawat mong pagtipa.",
   "landing.feature.search.heading": "Hanapin ang gusto mo, mabilisan at madalian",
   "landing.heading.the-place-for-enshrouded": "Ang lugar para sa Enshrouded na {content}",

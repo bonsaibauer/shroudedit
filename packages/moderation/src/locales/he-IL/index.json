@@ -67,8 +67,6 @@
   "nags.too-many-tags.description": "בחרת {tagCount, plural, one {תגית #} other {# תגיות}}. אנא צמצם את המספר ל-{maxTagCount} או פחות, כדי להבטיח שהפרויקט שלך יופיע בתוצאות חיפוש רלוונטיות.",
   "nags.too-many-tags.title": "בחר תגים מדוייקים",
   "nags.upload-gallery-image.description": "נדרש לפחות תמונה אחת כדי להראות את תוכן ה{type} שלך.",
-  "nags.upload-gallery-image.description-resourcepack": "נדרשת לפחות תמונת גלריה אחת כדי להציג את תוכן חבילת המשאבים שלך, למעט חבילות שמע או תרגום. אם זה מתאר את החבילה שלך, בחר בתגית המתאימה.",
-  "nags.upload-gallery-image.description-shader": "נדרשות לפחות שלוש תמונות גלריה כדי להציג את השיידר במגוון מצבים ותנאים.",
   "nags.upload-gallery-image.title": "העלה תמונת גלריה",
   "nags.upload-version.description": "לפחות גרסה אחת נדרשת כדי להגיש פרוייקט לבדיקה.",
   "nags.upload-version.title": "העלה גרסה",

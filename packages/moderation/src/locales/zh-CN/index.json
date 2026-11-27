@@ -118,8 +118,6 @@
   "nags.too-many-tags.description": "您已选择 {tagCount, plural, other {# 个标签}}。请将其数量减少到 {maxTagCount} 个或更少，以确保您的项目能正常出现在相关搜索结果中。",
   "nags.too-many-tags.title": "选择准确的标签",
   "nags.upload-gallery-image.description": "至少需提供一张图库图片，展示你的{type}内容。",
-  "nags.upload-gallery-image.description-resourcepack": "至少需提供一张图库图片，展示你的资源包内容。音频包或本地化包不在此限，若你的资源包属于此类，请选择相应标签。",
-  "nags.upload-gallery-image.description-shader": "至少需提供 3 张图库图片，展示你的光影包在不同场景和条件下的效果。",
   "nags.upload-gallery-image.title": "上传图片至项目图库",
   "nags.upload-version.description": "项目提交审核时，至少需要包含一个版本。",
   "nags.upload-version.title": "上传一个版本",
