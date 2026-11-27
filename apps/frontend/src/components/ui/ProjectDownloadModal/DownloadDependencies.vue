@@ -21,7 +21,6 @@
 				/>
 			</div>
 		</div>
-
 	</div>
 </template>
 
@@ -49,10 +48,7 @@ const emit = defineEmits<{
 	download: []
 }>()
 const { formatMessage } = useVIntl()
-const {
-	duplicateDependencyRowsHidden,
-	downloadRows,
-} = injectDownloadModalProvider()
+const { duplicateDependencyRowsHidden, downloadRows } = injectDownloadModalProvider()
 
 const messages = defineMessages({
 	dependenciesTitle: {

@@ -33,12 +33,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-	ContractIcon,
-	ExpandIcon,
-	TrashIcon,
-	XIcon,
-} from '@shroudedit/assets'
+import { ContractIcon, ExpandIcon, TrashIcon, XIcon } from '@shroudedit/assets'
 
 import { Button } from '#ui/components/base/buttons'
 import { defineMessages, useVIntl } from '#ui/composables/i18n'

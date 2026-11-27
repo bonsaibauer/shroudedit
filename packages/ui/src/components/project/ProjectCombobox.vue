@@ -27,11 +27,7 @@ import { injectNotificationManager, injectShroudEditClient } from '../../provide
 import type { ComboboxOption, ComboboxSearchInputVariant } from '../base/Combobox.vue'
 import Combobox from '../base/Combobox.vue'
 
-export type ProjectType =
-	| 'mod'
-	| 'modpack'
-	| 'schematic'
-	| 'server'
+export type ProjectType = 'mod' | 'modpack' | 'schematic' | 'server'
 
 export interface SearchHit {
 	project_id: string

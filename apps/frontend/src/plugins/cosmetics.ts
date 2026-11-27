@@ -2,13 +2,7 @@ import type { DarkTheme } from './theme/index.ts'
 
 export type DisplayMode = 'list' | 'gallery' | 'grid'
 
-export type DisplayLocation =
-	| 'mod'
-	| 'modpack'
-	| 'schematic'
-	| 'server'
-	| 'user'
-	| 'collection'
+export type DisplayLocation = 'mod' | 'modpack' | 'schematic' | 'server' | 'user' | 'collection'
 
 export interface Cosmetics {
 	rightSearchLayout: boolean

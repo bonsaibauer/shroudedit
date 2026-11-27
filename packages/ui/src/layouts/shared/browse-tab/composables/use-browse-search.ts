@@ -170,11 +170,10 @@ export function useBrowseSearch(options: UseBrowseSearchOptions): BrowseSearchSt
 			)
 			.map((f) => f.option),
 	)
-	const excludeLoaders = computed(
-		() =>
-			currentFilters.value.some((f) =>
-				LOADER_FILTER_TYPES.includes(f.type as (typeof LOADER_FILTER_TYPES)[number]),
-			),
+	const excludeLoaders = computed(() =>
+		currentFilters.value.some((f) =>
+			LOADER_FILTER_TYPES.includes(f.type as (typeof LOADER_FILTER_TYPES)[number]),
+		),
 	)
 	const loadersNotForThisType = computed(
 		() =>

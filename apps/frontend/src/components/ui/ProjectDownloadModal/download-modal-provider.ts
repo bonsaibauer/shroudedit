@@ -506,9 +506,7 @@ function primaryFileForVersion(version?: Labrinth.Versions.v3.Version) {
 }
 
 function shouldShowDependency(dependency: ResolvedContent) {
-	return !(
-		'reason' in dependency && dependency.reason === 'duplicate_project'
-	)
+	return !('reason' in dependency && dependency.reason === 'duplicate_project')
 }
 
 function hasSkippedDuplicateDependency(resolution?: Labrinth.Content.v3.ResolveContentPlan) {

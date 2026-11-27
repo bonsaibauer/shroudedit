@@ -442,9 +442,7 @@ type ModalRef = {
 	show: () => void
 	hide: () => void
 }
-type EarlyAdopterProjectType =
-	| 'modpack'
-	| 'server'
+type EarlyAdopterProjectType = 'modpack' | 'server'
 
 const props = withDefaults(
 	defineProps<{

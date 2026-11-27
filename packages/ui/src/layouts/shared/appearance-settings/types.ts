@@ -8,13 +8,7 @@ export type SidebarPreferences = Labrinth.Users.v3.SidebarPreferences
 export type AppearanceRef<T> = Ref<T> | ComputedRef<T>
 export type AppearanceSetter<T> = (value: T) => void | Promise<void>
 
-export const projectDisplayLocations = [
-	'mod',
-	'modpack',
-	'schematic',
-	'server',
-	'user',
-] as const
+export const projectDisplayLocations = ['mod', 'modpack', 'schematic', 'server', 'user'] as const
 
 export type ProjectDisplayLocation = (typeof projectDisplayLocations)[number]
 

@@ -259,13 +259,7 @@ const messages = {
 	},
 }
 
-const PROJECT_PATH_PREFIXES = [
-	'/mod/',
-	'/modpack/',
-	'/schematic/',
-	'/server/',
-	'/project/',
-]
+const PROJECT_PATH_PREFIXES = ['/mod/', '/modpack/', '/schematic/', '/server/', '/project/']
 
 const routeMessages = [
 	{

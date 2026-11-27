@@ -15,7 +15,13 @@
 				:multiple="projectV2.project_type !== 'modpack'"
 				:accept="acceptFileFromProjectType(projectV2.project_type)"
 				:max-size="MAX_VERSION_FILE_SIZE_BYTES"
-				:primary-prompt="formatMessage(projectV2.project_type === 'modpack' ? messages.uploadModpackPrompt : messages.uploadPrimaryPrompt)"
+				:primary-prompt="
+					formatMessage(
+						projectV2.project_type === 'modpack'
+							? messages.uploadModpackPrompt
+							: messages.uploadPrimaryPrompt,
+					)
+				"
 				:secondary-prompt="formatMessage(messages.uploadSecondaryPrompt)"
 				@change="handleNewFiles"
 			/>

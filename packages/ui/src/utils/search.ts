@@ -165,10 +165,7 @@ export type EnvironmentSearchOverride =
 	| { mode: 'include'; values: string[] }
 	| { mode: 'exclude'; values: string[] }
 
-export const LOADER_FILTER_TYPES = [
-	'mod_loader',
-	'modpack_loader',
-] as const
+export const LOADER_FILTER_TYPES = ['mod_loader', 'modpack_loader'] as const
 
 export interface GameVersion {
 	version: string
@@ -177,19 +174,9 @@ export interface GameVersion {
 	major: boolean
 }
 
-export type ProjectType =
-	| 'mod'
-	| 'modpack'
-	| 'schematic'
-	| 'server'
-	| 'project'
+export type ProjectType = 'mod' | 'modpack' | 'schematic' | 'server' | 'project'
 
-const ALL_PROJECT_TYPES: ProjectType[] = [
-	'mod',
-	'modpack',
-	'schematic',
-	'server',
-]
+const ALL_PROJECT_TYPES: ProjectType[] = ['mod', 'modpack', 'schematic', 'server']
 
 export interface Tags {
 	gameVersions: Labrinth.Tags.v2.GameVersion[]

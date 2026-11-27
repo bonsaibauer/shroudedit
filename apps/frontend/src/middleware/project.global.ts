@@ -8,13 +8,7 @@ import { getProjectTypeForUrlShorthand } from '~/helpers/projects.js'
 import { useServerShroudEditClient } from '~/server/utils/api-client'
 
 // All valid project type URL segments
-const PROJECT_TYPES = [
-	'project',
-	'mod',
-	'modpack',
-	'schematic',
-	'server',
-]
+const PROJECT_TYPES = ['project', 'mod', 'modpack', 'schematic', 'server']
 
 export default defineNuxtRouteMiddleware(async (to) => {
 	const routeProjectParam = to.params.project

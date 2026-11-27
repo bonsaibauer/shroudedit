@@ -356,10 +356,7 @@ const scrollable = computed(
 
 function iconStyle(option: FilterOption) {
 	// Match project page platform colors for loader filters.
-	if (
-		props.filterType.id === 'mod_loader' ||
-		props.filterType.id === 'modpack_loader'
-	) {
+	if (props.filterType.id === 'mod_loader' || props.filterType.id === 'modpack_loader') {
 		return { color: `var(--color-platform-${option.id})` }
 	}
 

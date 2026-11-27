@@ -14,10 +14,13 @@
 			<div class="font-semibold text-contrast">{{ formatMessage(messages.packageMismatch) }}</div>
 			<p v-if="packageIdMismatch" class="mt-2 text-sm text-secondary">
 				{{
-					formatMessage(projectType === 'modpack' ? messages.modpackIdMismatch : messages.packageIdMismatch, {
-						packageId: inferredVersionData?.mod_id,
-						projectSlug: projectV2.slug,
-					})
+					formatMessage(
+						projectType === 'modpack' ? messages.modpackIdMismatch : messages.packageIdMismatch,
+						{
+							packageId: inferredVersionData?.mod_id,
+							projectSlug: projectV2.slug,
+						},
+					)
 				}}
 			</p>
 			<div v-for="difference in packageDifferences" :key="difference.key" class="mt-3 text-sm">
@@ -34,12 +37,24 @@
 			</div>
 			<p class="mt-2 text-sm text-secondary">{{ formatMessage(messages.updatePackageHint) }}</p>
 		</div>
-		<div v-if="inferredVersionData?.modpack_contents?.length" class="rounded-xl border border-solid border-surface-5 bg-surface-2 p-4">
+		<div
+			v-if="inferredVersionData?.modpack_contents?.length"
+			class="rounded-xl border border-solid border-surface-5 bg-surface-2 p-4"
+		>
 			<div class="font-semibold text-contrast">{{ formatMessage(messages.modpackContents) }}</div>
-			<ul class="mt-2 mb-0 max-h-48 overflow-auto list-none p-0 text-sm text-secondary">
-				<li v-for="item in inferredVersionData.modpack_contents" :key="'path' in item ? item.path : item.id">
+			<ul class="mb-0 mt-2 max-h-48 list-none overflow-auto p-0 text-sm text-secondary">
+				<li
+					v-for="item in inferredVersionData.modpack_contents"
+					:key="'path' in item ? item.path : item.id"
+				>
 					{{ 'path' in item ? item.path : item.id }} ·
-					{{ 'path' in item ? formatMessage(messages.bundledMod) : 'url' in item ? formatMessage(messages.externalMod) : formatMessage(messages.catalogMod) }}
+					{{
+						'path' in item
+							? formatMessage(messages.bundledMod)
+							: 'url' in item
+								? formatMessage(messages.externalMod)
+								: formatMessage(messages.catalogMod)
+					}}
 					<span v-if="item.optional"> · {{ formatMessage(messages.optionalMod) }}</span>
 				</li>
 			</ul>
@@ -196,7 +211,8 @@ const messages = defineMessages({
 	},
 	modpackIdMismatch: {
 		id: 'create-project-version.modpack-id-mismatch',
-		defaultMessage: 'modpack.json ID: {packageId}. Project slug: {projectSlug}. Update modpack.json or the project slug before uploading.',
+		defaultMessage:
+			'modpack.json ID: {packageId}. Project slug: {projectSlug}. Update modpack.json or the project slug before uploading.',
 	},
 	modpackContents: {
 		id: 'create-project-version.modpack-contents',

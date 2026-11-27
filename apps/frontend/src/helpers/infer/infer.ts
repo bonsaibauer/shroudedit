@@ -19,7 +19,11 @@ export type InferredVersionInfo = Partial<
 		| 'schematic_height'
 		| 'schematic_depth'
 	>
-> & { mod_id?: string; package_fields?: string[]; modpack_contents?: Labrinth.Versions.v3.ModpackContent[] }
+> & {
+	mod_id?: string
+	package_fields?: string[]
+	modpack_contents?: Labrinth.Versions.v3.ModpackContent[]
+}
 
 export async function inferVersionInfo(
 	file: File,

@@ -397,10 +397,7 @@ export function getLoaderFilterTypes(contentType: string) {
 	return []
 }
 
-const SERVER_RUNTIME_INSTALL_FILTER_TYPES = new Set([
-	'game_version',
-	'mod_loader',
-])
+const SERVER_RUNTIME_INSTALL_FILTER_TYPES = new Set(['game_version', 'mod_loader'])
 
 export function stripServerRuntimeInstallFilters(filters: readonly FilterValue[]) {
 	return filters.filter((filter) => !SERVER_RUNTIME_INSTALL_FILTER_TYPES.has(filter.type))

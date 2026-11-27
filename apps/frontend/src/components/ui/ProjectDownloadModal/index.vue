@@ -296,9 +296,7 @@ const downloadActionColor = computed(() =>
 )
 
 const showDependencyDownloadActions = computed(
-	() =>
-		selectedVersionDownloadFiles.value.length > 0 &&
-		dependencyDownloadFiles.value.length > 0,
+	() => selectedVersionDownloadFiles.value.length > 0 && dependencyDownloadFiles.value.length > 0,
 )
 
 watch(projectV2Error, (error) => {

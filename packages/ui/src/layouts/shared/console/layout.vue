@@ -5,7 +5,6 @@
 			isFullscreen ? `fixed inset-0 z-[15] bg-surface-1 p-6 py-8 ${isApp ? 'pt-12' : ''}` : ''
 		"
 	>
-
 		<div class="flex flex-col gap-2">
 			<div class="flex items-center gap-2">
 				<Input
@@ -119,7 +118,6 @@ const pageContext = injectPageContext(null)
 const { addNotification } = injectNotificationManager()
 const { hasModal } = useModalStack()
 
-
 const terminalRef = ref<InstanceType<typeof BaseTerminal> | null>(null)
 const deleteModal = ref<InstanceType<typeof NewModal> | null>(null)
 const isDeleting = ref(false)
@@ -216,7 +214,6 @@ const resolvedInputDisabledTooltip = computed(() =>
 const resolvedInputDisabledPlaceholder = computed(() =>
 	resolvedInputDisabledTooltip.value ? 'Command input disabled' : 'Server is not running',
 )
-
 
 const showDelete = computed(() => !isLiveSource.value && ctx.onDelete != null)
 
@@ -396,8 +393,6 @@ async function confirmDelete() {
 		isDeleting.value = false
 	}
 }
-
-
 </script>
 
 <style>

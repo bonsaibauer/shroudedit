@@ -168,7 +168,7 @@ pub fn validate_package(
 	let mut payloads = HashSet::new();
 	let mut expanded = 0_u64;
 	for index in 0..archive.len() {
-		let mut entry = archive
+		let entry = archive
 			.by_index(index)
 			.map_err(|error| format!("invalid ZIP entry: {error}"))?;
 		let name = entry.name().to_owned();

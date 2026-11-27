@@ -388,10 +388,7 @@ const authorLink = computed(() =>
 				</div>
 			</div>
 			<div class="flex gap-2 flex-wrap items-center">
-				<slot
-					name="headerActions"
-					:primary-file="primaryFile"
-				/>
+				<slot name="headerActions" :primary-file="primaryFile" />
 			</div>
 		</div>
 		<hr class="w-full border-none h-[1px] bg-surface-4 m-0" />
@@ -455,13 +452,23 @@ const authorLink = computed(() =>
 					:key="'path' in item ? item.path : item.id"
 					class="bg-surface-3 border border-solid border-surface-4 p-4 rounded-2xl"
 				>
-					<div class="font-semibold">{{ 'path' in item ? item.path.split('/').at(-1) : item.id }}</div>
+					<div class="font-semibold">
+						{{ 'path' in item ? item.path.split('/').at(-1) : item.id }}
+					</div>
 					<div class="text-secondary text-sm">
-						{{ 'path' in item ? formatMessage(messages.bundledMod) : 'url' in item ? formatMessage(messages.externalMod) : formatMessage(messages.catalogMod) }}
+						{{
+							'path' in item
+								? formatMessage(messages.bundledMod)
+								: 'url' in item
+									? formatMessage(messages.externalMod)
+									: formatMessage(messages.catalogMod)
+						}}
 						<span v-if="'version' in item"> · {{ item.version }}</span>
 						<span v-if="item.optional"> · {{ formatMessage(messages.optionalMod) }}</span>
 					</div>
-					<AutoLink v-if="'url' in item" :to="item.url" target="_blank" class="text-sm break-all">{{ item.url }}</AutoLink>
+					<AutoLink v-if="'url' in item" :to="item.url" target="_blank" class="text-sm break-all">{{
+						item.url
+					}}</AutoLink>
 				</li>
 			</ul>
 		</section>

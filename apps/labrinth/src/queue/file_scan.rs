@@ -540,12 +540,11 @@ const OVERRIDE_ROOT_PREFIXES: &[&str] =
 	&["overrides/", "client-overrides/", "server-overrides/"];
 
 fn override_relative_name(name: &str, is_sfpack: bool) -> Option<&str> {
-	if is_sfpack {
-		if let Some(relative) = name.strip_prefix("mods/") {
-			if relative.split('/').count() >= 2 {
-				return Some(relative);
-			}
-		}
+	if is_sfpack
+		&& let Some(relative) = name.strip_prefix("mods/")
+		&& relative.split('/').count() >= 2
+	{
+		return Some(relative);
 	}
 	// strip the root prefix
 	let relative = OVERRIDE_ROOT_PREFIXES

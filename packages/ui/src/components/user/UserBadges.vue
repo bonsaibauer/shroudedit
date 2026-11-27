@@ -31,9 +31,7 @@ import UserBadge from './UserBadge.vue'
 const { formatMessage } = useVIntl()
 const formatNumber = useFormatNumber()
 
-type EarlyAdopterProjectTypes =
-	| 'modpack'
-	| 'server'
+type EarlyAdopterProjectTypes = 'modpack' | 'server'
 
 type BadgeCriterion =
 	| {

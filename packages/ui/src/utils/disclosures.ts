@@ -24,12 +24,7 @@ export const TELEMETRY_CONSENT_TYPES = [
 	'always_active',
 ] as const satisfies readonly Labrinth.Projects.v3.TelemetryConsent[]
 
-const ALL_CONTENT_PROJECT_TYPES = [
-	'mod',
-	'modpack',
-	'schematic',
-	'server',
-] as const
+const ALL_CONTENT_PROJECT_TYPES = ['mod', 'modpack', 'schematic', 'server'] as const
 
 export const DISCLOSURE_SUPPORTED_PROJECT_TYPES: Record<
 	Labrinth.Projects.v3.ProjectDisclosureType,

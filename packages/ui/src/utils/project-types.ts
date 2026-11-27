@@ -1,10 +1,4 @@
-export const PROJECT_TYPE_ORDER = [
-	'mod',
-	'modpack',
-	'schematic',
-	'server',
-	'collection',
-] as const
+export const PROJECT_TYPE_ORDER = ['mod', 'modpack', 'schematic', 'server', 'collection'] as const
 
 export type OrderedProjectType = (typeof PROJECT_TYPE_ORDER)[number]
 
