@@ -224,11 +224,7 @@
 					</div>
 					<div class="blob-demonstration gradient-border">
 						<div class="launcher-view">
-							<img
-								src="/branding/mod-loaders.svg"
-								alt=""
-								aria-hidden="true"
-							/>
+							<img src="/branding/mod-loaders.svg" alt="" aria-hidden="true" />
 						</div>
 					</div>
 				</div>

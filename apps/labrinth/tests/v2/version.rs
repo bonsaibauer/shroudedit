@@ -56,6 +56,14 @@ pub async fn test_patch_version() {
 					.await;
 				assert_status!(&resp, StatusCode::BAD_REQUEST);
 			}
+			let resp = api
+				.edit_version(
+					alpha_version_id,
+					json!({ "version_number": "1.3.0" }),
+					USER_USER_PAT,
+				)
+				.await;
+			assert_status!(&resp, StatusCode::BAD_REQUEST);
 
 			// Successful request to patch many fields.
 			let resp = api
@@ -63,7 +71,6 @@ pub async fn test_patch_version() {
 					alpha_version_id,
 					json!({
 						"name": "new version name",
-						"version_number": "1.3.0",
 						"changelog": "new changelog",
 						"version_type": "beta",
 						// // "dependencies": [], TODO: test this
@@ -84,7 +91,7 @@ pub async fn test_patch_version() {
 				.get_version_deserialized(alpha_version_id, USER_USER_PAT)
 				.await;
 			assert_eq!(version.name, "new version name");
-			assert_eq!(version.version_number, "1.3.0");
+			assert_eq!(version.version_number, "1.2.3");
 			assert_eq!(version.changelog, Some("new changelog".into()));
 			assert_eq!(
 				version.version_type,
@@ -313,6 +320,9 @@ async fn version_updates() {
 				)
 				.await;
 			}
+			let project_response =
+				api.get_project(alpha_project_id, USER_USER_PAT).await;
+			common::db::mark_fixture_project_scanned(project_response).await;
 
 			let check_expected =
 				|game_versions: Option<Vec<String>>,
@@ -517,7 +527,7 @@ async fn add_version_project_types_v2() {
 					USER_USER_PAT,
 				)
 				.await;
-			assert_eq!(test_project.project_type, "mod");
+			assert_eq!(test_project.project_type, "project");
 
 			// Create a version with a modpack file attached
 			let test_version = api
@@ -676,7 +686,7 @@ async fn test_incorrect_file_parts() {
 			// Get the project
 			let project =
 				api.get_project_deserialized(slug, USER_USER_PAT).await;
-			assert_eq!(project.project_type, "mod");
+			assert_eq!(project.project_type, "project");
 
 			// Create a version with a sfpack file, but incorrect file_parts
 			let resp = api

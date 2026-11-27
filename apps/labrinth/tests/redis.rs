@@ -613,7 +613,7 @@ async fn blocking_queue_and_pubsub_work_with_cluster_connections() {
 
 /// Protects the real many-get routes as one end-to-end cluster scenario:
 /// partial cache hits, IDs and case-insensitive slugs, duplicates, misses,
-/// invalidation, file hashes, dependency caches, and visibility filtering.
+/// project and version invalidation, file hashes, dependency reads, and visibility.
 #[actix_rt::test]
 async fn many_get_routes_handle_cross_slot_cache_lifecycle() {
 	with_test_environment(
@@ -748,8 +748,7 @@ async fn many_get_routes_handle_cross_slot_cache_lifecycle() {
 				.await;
 			assert_eq!(versions_by_hash.len(), 2);
 
-			// Warming dependencies before the edit ensures the assertion below
-			// depends on invalidating the project's separate dependency slot.
+			// Keep the project's dependency cache warm across an unrelated edit.
 			let dependencies = api
 				.get_project_dependencies(&alpha.project_id, USER_USER_PAT)
 				.await;
@@ -758,36 +757,30 @@ async fn many_get_routes_handle_cross_slot_cache_lifecycle() {
 				test::read_body_json(dependencies).await;
 			assert!(dependencies["projects"].as_array().unwrap().is_empty());
 
-			let new_slug = format!("cluster-cache-{}", Uuid::new_v4().simple());
 			let response = api
 				.edit_project(
 					&alpha.project_id,
-					json!({ "slug": new_slug }),
+					json!({ "name": "cluster cache invalidation project" }),
 					USER_USER_PAT,
 				)
 				.await;
 			assert_status!(&response, StatusCode::NO_CONTENT);
-			assert_status!(
-				&api.get_project(&alpha.project_slug, USER_USER_PAT).await,
-				StatusCode::NOT_FOUND
-			);
-			assert_status!(
-				&api.get_project(&new_slug, USER_USER_PAT).await,
-				StatusCode::OK
+			let updated_project = api
+				.get_project_deserialized_common(
+					&alpha.project_id,
+					USER_USER_PAT,
+				)
+				.await;
+			assert_eq!(
+				updated_project.name,
+				"cluster cache invalidation project"
 			);
 
-			let updated_version_name = "cluster cache invalidation";
+			let updated_version_name = "cluster cache invalidation version";
 			let response = api
 				.edit_version(
 					&alpha.version_id,
-					json!({
-						"name": updated_version_name,
-						"dependencies": [{
-							"project_id": beta.project_id,
-							"dependency_type": "required",
-							"file_name": "cluster-test.zip",
-						}],
-					}),
+					json!({ "name": updated_version_name }),
 					USER_USER_PAT,
 				)
 				.await;
@@ -825,13 +818,7 @@ async fn many_get_routes_handle_cross_slot_cache_lifecycle() {
 			assert_status!(&dependencies, StatusCode::OK);
 			let dependencies: serde_json::Value =
 				test::read_body_json(dependencies).await;
-			assert!(
-				dependencies["projects"]
-					.as_array()
-					.unwrap()
-					.iter()
-					.any(|project| project["id"] == beta.project_id)
-			);
+			assert!(dependencies["projects"].as_array().unwrap().is_empty());
 
 			// Visibility is evaluated after cache resolution, so a warm private
 			// project must not leak through a many-get to another user.

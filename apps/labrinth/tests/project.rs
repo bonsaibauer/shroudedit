@@ -438,6 +438,14 @@ pub async fn test_patch_project() {
 					.await;
 				assert_status!(&resp, StatusCode::BAD_REQUEST);
 			}
+			let resp = api
+				.edit_project(
+					alpha_project_slug,
+					json!({ "slug": "newslug" }),
+					USER_USER_PAT,
+				)
+				.await;
+			assert_status!(&resp, StatusCode::BAD_REQUEST);
 
 			// Not allowed to directly set status, as 'beta_project_slug' (the other project) is "processing" and cannot have its status changed like this.
 			let resp = api
@@ -456,7 +464,6 @@ pub async fn test_patch_project() {
 				.edit_project(
 					alpha_project_slug,
 					json!({
-						"slug": "newslug",
 						"categories": [DUMMY_CATEGORIES[0]],
 						"license_id": "MIT",
 						"link_urls":
@@ -472,15 +479,14 @@ pub async fn test_patch_project() {
 				.await;
 			assert_status!(&resp, StatusCode::NO_CONTENT);
 
-			// Old slug no longer works
-			let resp = api.get_project(alpha_project_slug, USER_USER_PAT).await;
-			assert_status!(&resp, StatusCode::NOT_FOUND);
+			let project = api
+				.get_project_deserialized(alpha_project_slug, USER_USER_PAT)
+				.await;
 
-			// New slug does work
-			let project =
-				api.get_project_deserialized("newslug", USER_USER_PAT).await;
-
-			assert_eq!(project.slug.unwrap(), "newslug");
+			assert_eq!(
+				project.slug.as_deref(),
+				Some(alpha_project_slug.as_str())
+			);
 			assert_eq!(project.categories, vec![DUMMY_CATEGORIES[0]]);
 			assert_eq!(project.license.id, "MIT");
 
@@ -502,7 +508,7 @@ pub async fn test_patch_project() {
 			// Unset the set link_urls
 			let resp = api
 				.edit_project(
-					"newslug",
+					alpha_project_slug,
 					json!({
 						"link_urls":
 							{
@@ -513,8 +519,9 @@ pub async fn test_patch_project() {
 				)
 				.await;
 			assert_status!(&resp, StatusCode::NO_CONTENT);
-			let project =
-				api.get_project_deserialized("newslug", USER_USER_PAT).await;
+			let project = api
+				.get_project_deserialized(alpha_project_slug, USER_USER_PAT)
+				.await;
 			assert_eq!(project.link_urls.len(), 3);
 			assert!(!project.link_urls.contains_key("issues"));
 		},

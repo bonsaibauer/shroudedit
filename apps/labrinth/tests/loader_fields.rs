@@ -534,7 +534,11 @@ async fn get_loader_fields_variants() {
 			.into_iter()
 			.map(|x| x.value)
 			.filter(|version| {
-				version.starts_with("Ordering_") || version.starts_with("1.20.")
+				version.starts_with("Ordering_")
+					|| matches!(
+						version.as_str(),
+						"0.1.0" | "0.2.0" | "0.3.0" | "0.4.0" | "0.5.0"
+					)
 			})
 			.collect::<Vec<_>>();
 		assert_eq!(
@@ -563,7 +567,7 @@ async fn get_available_loader_fields() {
 			let api = &test_env.api;
 			let loaders = api.get_loaders_deserialized().await;
 
-			let fabric_loader_fields = loaders
+			let shroudforge_loader_fields = loaders
 				.iter()
 				.find(|x| x.name == "shroudforge")
 				.unwrap()
@@ -572,11 +576,17 @@ async fn get_available_loader_fields() {
 				.into_iter()
 				.collect::<HashSet<_>>();
 			assert_eq!(
-				fabric_loader_fields,
+				shroudforge_loader_fields,
 				[
 					"game_versions",
 					"environment",
-					"test_shroudforge_optional" // exists for testing
+					"test_shroudforge_optional",
+					"schematic_format_version",
+					"world_editor_version",
+					"schematic_width",
+					"schematic_height",
+					"schematic_depth",
+					"schematic_installation"
 				]
 				.iter()
 				.map(|s| s.to_string())

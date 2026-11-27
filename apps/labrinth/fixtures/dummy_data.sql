@@ -39,17 +39,17 @@ CROSS JOIN (VALUES ('shroudforge'), ('eml'), ('shroudtopia')) AS supported_loade
 WHERE loader_field_enums.enum_name = 'modpack_loaders'
 ON CONFLICT DO NOTHING;
 
--- Dummy-data only optional field, as we don't have any yet
+-- Dummy-data-only optional field for loader field validation tests
 INSERT INTO loader_fields
 	(field, field_type, optional)
 VALUES
-	('test_shroudtopia_optional', 'integer', TRUE);
+	('test_shroudforge_optional', 'integer', TRUE);
 INSERT INTO loader_fields_loaders (loader_id, loader_field_id)
 SELECT l.id, lf.id
 FROM
 	loaders AS l
 	CROSS JOIN loader_fields AS lf
-WHERE lf.field = 'test_shroudtopia_optional' AND l.loader = 'shroudtopia'
+WHERE lf.field = 'test_shroudforge_optional' AND l.loader = 'shroudforge'
 ON CONFLICT DO NOTHING;
 
 -- Sample game versions, loaders, categories

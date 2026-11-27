@@ -470,7 +470,7 @@ mod tests {
 		);
 
 		assert_eq!(filter.matches("$versions(").count(), 1);
-		assert!(filter.contains("categories:[`shroudforge`,`eml`]"));
+		assert!(filter.contains("categories:[`eml`,`shroudforge`]"));
 		assert!(filter.contains("game_versions:[`0.1.0`,`1.21.1`]"));
 		assert!(filter.contains("categories:`technology`"));
 	}
@@ -485,7 +485,7 @@ mod tests {
 		assert_eq!(filter.matches("$versions(").count(), 1);
 		assert!(filter.contains("license:=`MIT`"));
 		assert!(filter.contains(
-            "categories:`shroudforge` && game_versions:`0.1.0` || categories:`eml` && game_versions:`1.21.1`"
+			"categories:`eml` && game_versions:`1.21.1` || categories:`shroudforge` && game_versions:`0.1.0`"
         ));
 	}
 
@@ -511,7 +511,7 @@ mod tests {
 		let filter = serialize(&input);
 
 		assert_eq!(filter.matches("$versions(").count(), 1);
-		assert!(filter.contains("categories:[`shroudforge`,`eml`]"));
+		assert!(filter.contains("categories:[`eml`,`shroudforge`]"));
 		assert!(filter.contains("game_versions:["));
 		assert!(filter.contains("`1.8.9`"));
 		assert!(filter.contains("26.2"));

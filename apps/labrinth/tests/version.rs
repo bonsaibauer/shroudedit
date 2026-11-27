@@ -19,9 +19,7 @@ use labrinth::database::models::version_item::{
 	VERSIONS_NAMESPACE, VersionQueryResult,
 };
 use labrinth::models::ids::VersionId;
-use labrinth::models::projects::{
-	Dependency, DependencyType, VersionStatus, VersionType,
-};
+use labrinth::models::projects::{VersionStatus, VersionType};
 use labrinth::routes::v3::version_file::FileUpdateData;
 use serde_json::json;
 use xredis::RedisValue;
@@ -296,6 +294,9 @@ async fn version_updates() {
 				)
 				.await;
 			}
+			let project_response =
+				api.get_project(alpha_project_id, USER_USER_PAT).await;
+			common::db::mark_fixture_project_scanned(project_response).await;
 
 			let check_expected =
 				|game_versions: Option<Vec<String>>,
@@ -497,7 +498,6 @@ pub async fn test_patch_version() {
 		let alpha_version_id = &test_env.dummy.project_alpha.version_id;
 		let DummyProjectBeta {
 			project_id: beta_project_id,
-			project_id_parsed: beta_project_id_parsed,
 			..
 		} = &test_env.dummy.project_beta;
 
@@ -529,20 +529,38 @@ pub async fn test_patch_version() {
 			assert_status!(&resp, StatusCode::BAD_REQUEST);
 		}
 
-		// Successful request to patch many fields.
-		let resp = api
+		let response = api
+			.edit_version(
+				alpha_version_id,
+				json!({ "version_number": "1.3.0" }),
+				USER_USER_PAT,
+			)
+			.await;
+		assert_status!(&response, StatusCode::BAD_REQUEST);
+
+		let response = api
 			.edit_version(
 				alpha_version_id,
 				json!({
-					"name": "new version name",
-					"version_number": "1.3.0",
-					"changelog": "new changelog",
-					"version_type": "beta",
 					"dependencies": [{
 						"project_id": beta_project_id,
 						"dependency_type": "required",
 						"file_name": "dummy_file_name"
 					}],
+				}),
+				USER_USER_PAT,
+			)
+			.await;
+		assert_status!(&response, StatusCode::BAD_REQUEST);
+
+		// Successful request to patch mutable fields.
+		let resp = api
+			.edit_version(
+				alpha_version_id,
+				json!({
+					"name": "new version name",
+					"changelog": "new changelog",
+					"version_type": "beta",
 					"game_versions": ["0.5.0"],
 					"loaders": ["eml"],
 					"featured": false,
@@ -560,21 +578,11 @@ pub async fn test_patch_version() {
 			.get_version_deserialized_common(alpha_version_id, USER_USER_PAT)
 			.await;
 		assert_eq!(version.name, "new version name");
-		assert_eq!(version.version_number, "1.3.0");
+		assert_eq!(version.version_number, "1.2.3");
 		assert_eq!(version.changelog, "new changelog");
 		assert_eq!(
 			version.version_type,
 			serde_json::from_str::<VersionType>("\"beta\"").unwrap()
-		);
-		assert_eq!(
-			version.dependencies,
-			vec![Dependency {
-				project_id: Some(*beta_project_id_parsed),
-				version_id: None,
-				file_name: Some("dummy_file_name".to_string()),
-				dependency_type: DependencyType::Required,
-				attribution: None,
-			}]
 		);
 		assert_eq!(version.loaders, vec!["eml".to_string()]);
 		assert!(!version.featured);

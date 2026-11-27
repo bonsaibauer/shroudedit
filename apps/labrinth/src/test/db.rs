@@ -59,8 +59,8 @@ pub async fn mark_email_verified(db: &PgPool, user_id: DBUserId) -> Result<()> {
 	Ok(())
 }
 
-/// Record a successful scan for the files uploaded to create a public test fixture.
-pub(super) async fn mark_fixture_project_scanned(response: ServiceResponse) {
+/// Record successful scans for every file in a public test fixture project.
+pub async fn mark_fixture_project_scanned(response: ServiceResponse) {
 	#[derive(Deserialize)]
 	struct CreatedProject {
 		id: ProjectId,

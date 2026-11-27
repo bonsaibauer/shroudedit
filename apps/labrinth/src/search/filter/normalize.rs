@@ -321,8 +321,8 @@ mod tests {
 			field: FilterField::new("categories"),
 			condition: FilterCondition::In {
 				values: vec![
-					FilterLiteral::String("shroudforge".into()),
 					FilterLiteral::String("eml".into()),
+					FilterLiteral::String("shroudforge".into()),
 				],
 				negated: false,
 			},
@@ -384,7 +384,7 @@ mod tests {
 		let normalized = normalize(parse_expression(&input).unwrap());
 		let expected = normalize(
             parse_expression(&format!(
-                "project_types = modpack AND game_versions IN [{}] AND categories IN [shroudforge, eml] AND categories = technology",
+				"project_types = modpack AND game_versions IN [{}] AND categories IN [eml, shroudforge] AND categories = technology",
                 versions.join(", ")
             ))
             .unwrap(),
