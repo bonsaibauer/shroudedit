@@ -613,6 +613,7 @@
   "tag.category.library": "Bibliotek",
   "tag.category.lightweight": "Letvægt",
   "tag.category.optimization": "Optimering",
+  "tag.category.sparkworks": "Sparkworks",
   "ui.component.unsaved-changes-popup.body": "Du har ændringer, der ikke er gemt.",
   "ui.confirm-leave-modal.header": "Du har ændringer, der ikke er gemt"
 }

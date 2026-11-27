@@ -100,6 +100,7 @@ import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
 
 import { navigateTo } from '#app'
 import { STALE_TIME, STALE_TIME_LONG } from '~/composables/queries/project'
+import { getProjectTypeForUrl } from '~/helpers/projects.js'
 import {
 	canDownloadVersion,
 	hasPendingMalware,

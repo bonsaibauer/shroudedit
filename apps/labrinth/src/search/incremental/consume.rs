@@ -399,21 +399,25 @@ pub async fn reindex_project_documents(
 	search_backend: &dyn SearchBackend,
 	project_ids: &[ProjectId],
 ) -> eyre::Result<()> {
-	info!("Creating project documents");
-	let projects = build_project_documents(ro_pool, redis_pool, project_ids)
-		.instrument(info_span!("index", batch_size = project_ids.len()))
-		.await
-		.wrap_err_with(|| {
-			format!(
-				"failed to build search documents for {} projects",
-				project_ids.len()
-			)
-		})?;
-	let removed_projects = missing_project_document_ids(project_ids, &projects);
+	info!("Creating project and version documents");
+	let documents = build_project_and_all_version_documents(
+		ro_pool,
+		redis_pool,
+		project_ids,
+	)
+	.instrument(info_span!("index", batch_size = project_ids.len()))
+	.await
+	.wrap_err_with(|| {
+		format!(
+			"failed to build search documents for {} projects and their versions",
+			project_ids.len()
+		)
+	})?;
 	search_backend
 		.apply_update(SearchIndexUpdate {
-			projects: &projects,
-			removed_projects: &removed_projects,
+			projects: &documents.projects,
+			versions: &documents.versions,
+			removed_projects: project_ids,
 			..SearchIndexUpdate::default()
 		})
 		.await?;

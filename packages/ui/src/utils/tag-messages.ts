@@ -418,6 +418,10 @@ export const categoryMessages = defineMessages({
 		id: 'tag.category.social',
 		defaultMessage: 'Social',
 	},
+	sparkworks: {
+		id: 'tag.category.sparkworks',
+		defaultMessage: 'Sparkworks',
+	},
 	storage: {
 		id: 'tag.category.storage',
 		defaultMessage: 'Storage',

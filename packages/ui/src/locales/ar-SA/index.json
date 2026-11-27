@@ -472,5 +472,6 @@
   "project-type.mod.category": "mods",
   "project-type.modpack.category": "modpacks",
   "project-type.schematic.category": "schematics",
-  "project-type.server.category": "servers"
+  "project-type.server.category": "servers",
+  "tag.category.sparkworks": "Sparkworks"
 }

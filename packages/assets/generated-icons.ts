@@ -375,6 +375,7 @@ import _TagCategoryShieldIcon from './icons/tags/categories/shield.svg?component
 import _TagCategorySimplisticIcon from './icons/tags/categories/simplistic.svg?component'
 import _TagCategorySkullIcon from './icons/tags/categories/skull.svg?component'
 import _TagCategorySocialIcon from './icons/tags/categories/social.svg?component'
+import _TagCategorySparkworksIcon from './icons/tags/categories/sparkworks.svg?component'
 import _TagCategorySquareIcon from './icons/tags/categories/square.svg?component'
 import _TagCategoryStorageIcon from './icons/tags/categories/storage.svg?component'
 import _TagCategorySwordIcon from './icons/tags/categories/sword.svg?component'
@@ -843,6 +844,7 @@ export const TagCategoryShieldIcon = _TagCategoryShieldIcon
 export const TagCategorySimplisticIcon = _TagCategorySimplisticIcon
 export const TagCategorySkullIcon = _TagCategorySkullIcon
 export const TagCategorySocialIcon = _TagCategorySocialIcon
+export const TagCategorySparkworksIcon = _TagCategorySparkworksIcon
 export const TagCategorySquareIcon = _TagCategorySquareIcon
 export const TagCategoryStorageIcon = _TagCategoryStorageIcon
 export const TagCategorySwordIcon = _TagCategorySwordIcon
@@ -1024,6 +1026,7 @@ export const categoryIconMap: Record<string, IconComponent> = {
 	simplistic: TagCategorySimplisticIcon,
 	skull: TagCategorySkullIcon,
 	social: TagCategorySocialIcon,
+	sparkworks: TagCategorySparkworksIcon,
 	square: TagCategorySquareIcon,
 	storage: TagCategoryStorageIcon,
 	sword: TagCategorySwordIcon,

@@ -204,5 +204,6 @@
   "settings.display.theme.title": "Väriteema",
   "settings.language.title": "Kieli",
   "settings.sessions.title": "Istunnot",
+  "tag.category.sparkworks": "Sparkworks",
   "ui.component.unsaved-changes-popup.body": "Sinulla on tallentamattomia muutoksia."
 }

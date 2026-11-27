@@ -200,5 +200,6 @@
   "settings.display.theme.light": "สว่าง",
   "settings.display.theme.oled": "OLED",
   "settings.display.theme.title": "ธีมสี",
-  "settings.language.title": "ภาษา"
+  "settings.language.title": "ภาษา",
+  "tag.category.sparkworks": "Sparkworks"
 }
