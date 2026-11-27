@@ -766,10 +766,7 @@ async fn many_get_routes_handle_cross_slot_cache_lifecycle() {
 				.await;
 			assert_status!(&response, StatusCode::NO_CONTENT);
 			let updated_project = api
-				.get_project_deserialized_common(
-					&alpha.project_id,
-					USER_USER_PAT,
-				)
+				.get_project_deserialized(&alpha.project_id, USER_USER_PAT)
 				.await;
 			assert_eq!(
 				updated_project.name,

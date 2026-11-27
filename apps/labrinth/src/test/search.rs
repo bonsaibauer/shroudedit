@@ -32,7 +32,11 @@ pub async fn setup_search_projects(
 			let slug = format!("{test_name}-searchable-project-{id}");
 
 			let jar = if is_modpack {
-				TestFile::build_random_sfpack(&slug, "1.2.3")
+				TestFile::build_random_sfpack_with_game_versions(
+					&slug,
+					"1.2.3",
+					&["0.5.0"],
+				)
 			} else {
 				TestFile::build_random_mod_zip()
 			};

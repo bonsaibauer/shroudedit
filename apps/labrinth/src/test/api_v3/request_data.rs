@@ -88,6 +88,8 @@ pub fn get_public_project_creation_data_json(
 	slug: &str,
 	version_jar: Option<&TestFile>,
 ) -> serde_json::Value {
+	let project_type =
+		version_jar.map_or_else(|| "mod".to_string(), TestFile::project_type);
 	let initial_versions = if let Some(jar) = version_jar {
 		json!([get_public_version_creation_data_json("1.2.3", None, jar)])
 	} else {
@@ -98,6 +100,7 @@ pub fn get_public_project_creation_data_json(
 	json!(
 		{
 			"name": format!("Test Project {slug}"),
+			"project_type": project_type,
 			"slug": slug,
 			"summary": "A dummy project for testing with.",
 			"description": "This project is approved and its versions are listed. It contains enough descriptive information to satisfy project review validation requirements and explain what the project provides to its users.",

@@ -63,7 +63,11 @@ impl TestFile {
 					.compression_method(CompressionMethod::Stored),
 			)
 			.unwrap();
-			zip.write_all(b"Enshrouded mod test payload").unwrap();
+			let content = format!(
+				"Enshrouded mod test payload {}",
+				rand::random::<u64>()
+			);
+			zip.write_all(content.as_bytes()).unwrap();
 
 			zip.finish().unwrap();
 		}
@@ -73,6 +77,14 @@ impl TestFile {
 	}
 
 	pub fn build_random_sfpack(slug: &str, version: &str) -> Self {
+		Self::build_random_sfpack_with_game_versions(slug, version, &["0.1.0"])
+	}
+
+	pub fn build_random_sfpack_with_game_versions(
+		slug: &str,
+		version: &str,
+		game_versions: &[&str],
+	) -> Self {
 		let filename =
 			format!("random-modpack-{}.sfpack", rand::random::<u64>());
 
@@ -80,7 +92,7 @@ impl TestFile {
 			"id": slug.to_ascii_lowercase(),
 			"name": filename,
 			"version": version,
-			"gameVersions": ["0.1.0"],
+			"gameVersions": game_versions,
 			"mods": [{ "path": "mods/test-mod" }],
 		})
 		.to_string();

@@ -73,7 +73,8 @@ macro_rules! define_version_components {
             }
         }
 
-        #[derive(Debug, Clone, Default, Serialize, Deserialize, utoipa::ToSchema)]
+		#[serde_binhum]
+		#[derive(Debug, Clone, Default, utoipa::ToSchema)]
         pub struct VersionQuery {
             #[serde(default, skip_serializing_if = "Option::is_none")]
             pub modpack_contents: Option<Vec<serde_json::Value>>,

@@ -322,7 +322,8 @@ async fn version_updates() {
 			}
 			let project_response =
 				api.get_project(alpha_project_id, USER_USER_PAT).await;
-			common::db::mark_fixture_project_scanned(project_response).await;
+			crate::common::db::mark_fixture_project_scanned(project_response)
+				.await;
 
 			let check_expected =
 				|game_versions: Option<Vec<String>>,
@@ -516,7 +517,19 @@ async fn add_version_project_types_v2() {
 
 			// Create a project in v2 with project_type = modpack, and no initial version set.
 			let (test_project, test_versions) = api
-				.add_public_project("test-modpack", None, None, USER_USER_PAT)
+				.add_public_project(
+					"test-modpack",
+					None,
+					Some(
+						serde_json::from_value(json!([{
+							"op": "add",
+							"path": "/project_type",
+							"value": "modpack"
+						}]))
+						.unwrap(),
+					),
+					USER_USER_PAT,
+				)
 				.await;
 			assert_eq!(test_versions.len(), 0); // No initial version set
 
@@ -678,8 +691,18 @@ async fn test_incorrect_file_parts() {
 
 			// Create an empty project
 			let slug = "test-project";
-			let creation_data =
-				get_public_project_creation_data(slug, None, None);
+			let creation_data = get_public_project_creation_data(
+				slug,
+				None,
+				Some(
+					serde_json::from_value(json!([{
+						"op": "add",
+						"path": "/project_type",
+						"value": "modpack"
+					}]))
+					.unwrap(),
+				),
+			);
 			let resp = api.create_project(creation_data, USER_USER_PAT).await;
 			assert_status!(&resp, StatusCode::OK);
 
