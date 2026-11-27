@@ -226,7 +226,8 @@
 						<div class="launcher-view">
 							<img
 								src="/branding/mod-loaders.svg"
-								:alt="formatMessage(messages.modLoadersIllustrationAlt)"
+								alt=""
+								aria-hidden="true"
 							/>
 						</div>
 					</div>
@@ -375,10 +376,6 @@ const messages = defineMessages({
 		id: 'landing.feature.mod-loaders.description',
 		defaultMessage:
 			'Download the ShroudForge Modloader from <link>shroudforge.net</link>. ShroudForge is preparing a ShroudEdit integration to discover, install, and update mods. Other community tools can connect through our open-source API.',
-	},
-	modLoadersIllustrationAlt: {
-		id: 'landing.feature.mod-loaders.illustration-alt',
-		defaultMessage: 'ShroudForge, EMF, Kiln, and Shroudtopia logos',
 	},
 	notificationsHeading: {
 		id: 'landing.notifications.heading',

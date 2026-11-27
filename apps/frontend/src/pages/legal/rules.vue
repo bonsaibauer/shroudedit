@@ -1,7 +1,7 @@
 <template>
 	<div class="markdown-body">
 		<h1>Content Rules</h1>
-		<p><em>Last updated: November 24, 2026</em></p>
+		<p><em>Last updated: November 27, 2026</em></p>
 
 		<p>
 			These Content Rules form part of the
@@ -83,17 +83,20 @@
 		<h3>4.1. Mods</h3>
 		<p>
 			Mods must identify their supported Enshrouded versions and loader, including Shroudtopia,
-			Shroudforge or EML where applicable. Any client/server requirements and configuration steps
-			must be disclosed.
+			ShroudForge or EML where applicable. Any client or server requirements and configuration steps
+			must be disclosed. Mods must not automatically check for or install updates. Automatic updates
+			are not considered essential to a mod's functionality. A mod must not connect to external servers
+			to download files or transmit information unless this is strictly necessary for its advertised
+			core functionality and approved by ShroudEdit before publication. Any approved network activity
+			must be prominently disclosed on the project page. Review requests must be sent to
+			<a href="mailto:support@shroudedit.com">support@shroudedit.com</a> and include the mod's source
+			code and a clear description of the network activity, data transmitted and files downloaded.
 		</p>
 		<h3>4.2. <span translate="no">Blueprints</span></h3>
 		<p>
-			<span translate="no">Blueprints</span> must be genuine ShroudForge World Editor
-			<code>.sfbp</code> content and must provide the relevant
-			<span translate="no">Blueprint</span> format version, dimensions, compatible game and World
-			Editor versions, and installation or import instructions. A
-			<span translate="no">Blueprint</span> must not include a world or asset that the uploader is
-			not permitted to redistribute.
+			<span translate="no">Blueprints</span> must be genuine schematics in the <code>.sfbp</code>
+			format. A <span translate="no">Blueprint</span> must not include a world or asset that the
+			uploader is not permitted to redistribute.
 		</p>
 		<h3>4.3. Modpacks</h3>
 		<p>
@@ -110,9 +113,20 @@
 		</p>
 		<h3>4.5. Mod loaders and similar software</h3>
 		<p>
-			Uploading or publishing mod loaders and similar software designed to load or run mods is not
-			permitted on ShroudEdit. This includes EML and comparable loaders. Mod loaders may still be
-			mentioned in project descriptions as a requirement for using a mod.
+			Mod loaders and similar software designed to load or run mods are not an uploadable content type
+			and must not be uploaded or published on ShroudEdit. Mods may list an external loader, including
+			EML, Shroudtopia or ShroudForge, as a requirement only if they identify the loader and its
+			supported version. Loaders that load or update additional DLLs, files or frameworks must be
+			reviewed by ShroudEdit before they may be listed as supported requirements. Review requests must
+			be sent to <a href="mailto:support@shroudedit.com">support@shroudedit.com</a> and include the
+			loader's source code, a list of the files and components it loads or updates, and details of any
+			network access, downloads or update functionality.
+		</p>
+		<p>
+			This review is intended to make the additional files and components loaded or updated by a
+			referenced loader identifiable. Loaders that bundle, install, update or combine multiple mod
+			loaders must not be listed as supported requirements. Combining loaders makes them harder to
+			review separately and can obscure which component is responsible for code execution and updates.
 		</p>
 
 		<h2 id="copyright-reuploads">5. Copyright, licences and reuploads</h2>

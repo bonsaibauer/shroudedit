@@ -8,7 +8,7 @@ use common::dummy_data::DUMMY_CATEGORIES;
 use crate::common::api_common::models::CommonProject;
 use crate::common::api_common::request_data::ProjectCreationRequestData;
 use crate::common::api_common::{
-	Api, ApiProject, ApiTags, ApiTeams, ApiVersion, AppendsOptionalPat,
+	Api, ApiProject, ApiTeams, ApiVersion, AppendsOptionalPat,
 };
 use crate::common::dummy_data::{
 	DummyImage, DummyOrganizationZeta, DummyProjectAlpha, DummyProjectBeta,

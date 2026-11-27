@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 650 450" role="img" aria-labelledby="title">
-	<title id="title">ShroudForge, EMF, Kiln, and Shroudtopia</title>
+	<title id="title">ShroudForge, EMF, and Shroudtopia</title>
 	<defs>
 		<linearGradient id="flame" x1="0" y1="0" x2="0" y2="1">
 			<stop stop-color="#ffb64e" />
@@ -11,13 +11,11 @@
 		<style>
 			.forge { animation: float-forge 7s ease-in-out infinite; }
 			.emf { animation: float-emf 6s ease-in-out infinite; }
-			.kiln { animation: float-kiln 8s ease-in-out infinite; }
 			.shroudtopia { animation: float-shroudtopia 7.5s ease-in-out infinite; }
 			@keyframes float-forge { 50% { transform: translate(0, -10px); } }
 			@keyframes float-emf { 50% { transform: translate(6px, -12px); } }
-			@keyframes float-kiln { 50% { transform: translate(-7px, 12px); } }
 			@keyframes float-shroudtopia { 50% { transform: translate(0, 9px); } }
-			@media (prefers-reduced-motion: reduce) { .forge, .emf, .kiln, .shroudtopia { animation: none; } }
+			@media (prefers-reduced-motion: reduce) { .forge, .emf, .shroudtopia { animation: none; } }
 		</style>
 	</defs>
 	<g class="forge">
@@ -36,15 +34,7 @@
 			<path d="M0-5c-8 10-16 20-16 31a16 16 0 0 0 32 0C16 15 8 5 0-5Z" fill="#ffda88" />
 		</g>
 	</g>
-	<g transform="translate(489 91) scale(1.35)">
-		<g class="kiln">
-			<path
-				fill="#ff6a1a"
-				d="M8 56V30C8 16.745 18.745 6 32 6S56 16.745 56 30V56H44V30C44 23.373 38.627 18 32 18S20 23.373 20 30V56Z"
-			/>
-			<path fill="#f9c74f" d="M32 34L40 44L32 52L24 44Z" />
-		</g>
-	</g>
+
 	<g class="shroudtopia">
 		<image
 			x="108"
